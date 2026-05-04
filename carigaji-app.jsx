@@ -237,12 +237,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
     { id: "earnings", label: "Earnings", icon: "💰" },
     { id: "profile", label: "Profile", icon: "👤" },
     { id: "settings", label: "Settings", icon: "⚙️" },
-  const navItems = [
-    { id: "discover", label: "Discover", icon: "🔍" },
-    { id: "applications", label: "My Bids", icon: "📋" },
-    { id: "earnings", label: "Earnings", icon: "💰" },
-    { id: "profile", label: "Profile", icon: "👤" },
-    { id: "settings", label: "Settings", icon: "⚙️" },
   ];
 
   // Modal content - rendered on top of main content
