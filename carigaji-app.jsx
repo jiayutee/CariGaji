@@ -1355,7 +1355,8 @@ export default function CariGaji() {
     }}>
       <div style={{
         width: isMobile ? "100%" : Math.min(portal === "worker" ? 1240 : cfg.width, viewport.width - 48),
-        height: isMobile ? "100vh" : Math.min(cfg.height + 120, viewport.height - 48),
+        height: isMobile ? "auto" : Math.min(cfg.height + 120, viewport.height - 48),
+        minHeight: isMobile ? "100vh" : "auto",
         background: isMobile ? "#fff" : "rgba(255,255,255,0.98)",
         borderRadius: isMobile ? 0 : 28,
         overflow: isMobile ? "visible" : "hidden",
@@ -1364,6 +1365,7 @@ export default function CariGaji() {
         position: "relative",
         display: "flex",
         flexDirection: "column",
+        flex: isMobile ? 1 : "none",
       }}>
         <div style={{
           height: isMobile ? 56 : 68,
