@@ -210,7 +210,7 @@ const CHAT_MESSAGES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
   const [tab, setTab] = useState("discover");
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -326,33 +326,33 @@ const WorkerPortal = ({ onOpenPortal }) => {
       )}
       {bidSuccess && (
         <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: 32, textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
-            <div style={{ fontWeight: 800, fontSize: 20, color: BRAND.text }}>Bid Submitted!</div>
-            <div style={{ color: BRAND.textMuted, fontSize: 14, marginTop: 8 }}>RM{bidAmount}/h · You'll be notified when shortlisted</div>
+          <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
+            <div style={{ fontSize: isMobile ? 40 : 48, marginBottom: 12 }}>🎉</div>
+            <div style={{ fontWeight: 800, fontSize: isMobile ? 18 : 20, color: BRAND.text }}>Bid Submitted!</div>
+            <div style={{ color: BRAND.textMuted, fontSize: isMobile ? 12 : 14, marginTop: 8 }}>RM{bidAmount}/h · You'll be notified when shortlisted</div>
           </div>
         </div>
       )}
       <div style={{ position: "relative" }}>
-        <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: "48px 24px 24px", borderRadius: "0 0 24px 24px" }}>
-          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 16, fontFamily: "inherit" }}>← Back</button>
-          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "0 0 24px 24px" }}>
+          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }}>← Back</button>
+          <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{selectedShift.category}</Badge>
             <Badge color="green">Positions {selectedShift.headcount}</Badge>
             <Badge color="blue">Applied {selectedShift.totalApplicants}</Badge>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
-          <div style={{ fontSize: 14, color: "rgba(255,255,255,0.85)" }}>{selectedShift.employer}</div>
+          <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
+          <div style={{ fontSize: isMobile ? 12 : 14, color: "rgba(255,255,255,0.85)" }}>{selectedShift.employer}</div>
         </div>
-        <div style={{ padding: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+        <div style={{ padding: isMobile ? 14 : 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: isMobile ? 8 : 10, marginBottom: 16 }}>
             <Stat label="Wage Range" value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub="per hour" color={BRAND.text} />
             <Stat label="Shift Duration" value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
             <Stat label="Estimated Gross" value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub="at max rate" color={BRAND.green} />
             <Stat label="Travel Stipend" value={`RM${selectedShift.stipend}`} sub={selectedShift.travelTime} color={BRAND.blue} />
           </div>
           <Card style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
             {[
               ["📍 Location", selectedShift.location],
               ["🗓 Date", selectedShift.date],
@@ -378,7 +378,7 @@ const WorkerPortal = ({ onOpenPortal }) => {
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} applicants</span>
             </div>
           </Card>
-          <Btn onClick={() => setShowBidModal(true)} style={{ width: "100%", justifyContent: "center", fontSize: 16, padding: "14px 0" }}>
+          <Btn onClick={() => setShowBidModal(true)} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0" }}>
             Place Bid →
           </Btn>
         </div>
@@ -387,19 +387,19 @@ const WorkerPortal = ({ onOpenPortal }) => {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : 20 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, width: "100%" }}>
         {tab === "discover" && (
           <div>
-            <div style={{ padding: "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 2 }}>Selamat Datang 👋</div>
-              <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16 }}>Find shifts near you — bid your rate</div>
+            <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
+              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: BRAND.text, marginBottom: 2 }}>Selamat Datang 👋</div>
+              <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted, marginBottom: 12 }}>Find shifts near you — bid your rate</div>
               <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
                 {cats.map(c => (
                   <button key={c} onClick={() => setFilterCat(c)} style={{
-                    padding: "8px 16px", borderRadius: 99, border: "none", cursor: "pointer", fontFamily: "inherit",
-                    fontWeight: 600, fontSize: 13, whiteSpace: "nowrap",
+                    padding: isMobile ? "6px 12px" : "8px 16px", borderRadius: 99, border: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontWeight: 600, fontSize: isMobile ? 12 : 13, whiteSpace: "nowrap",
                     background: filterCat === c ? BRAND.primary : BRAND.grayLight,
                     color: filterCat === c ? "#fff" : BRAND.textMuted,
                     transition: "all 0.15s",
@@ -407,23 +407,23 @@ const WorkerPortal = ({ onOpenPortal }) => {
                 ))}
               </div>
             </div>
-            <div style={{ padding: "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
               {filtered.map(s => (
                 <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ padding: 0, overflow: "hidden" }}>
-                  <div style={{ padding: "14px 16px 0" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                  <div style={{ padding: "12px 12px 0" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6, gap: 8 }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
+                        <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
                           <Badge color="amber" size="xs">{s.category}</Badge>
                           <Badge color="green" size="xs">Positions {s.headcount}</Badge>
                           <Badge color="blue" size="xs">Applied {s.totalApplicants}</Badge>
                         </div>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
-                        <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.employer}</div>
+                        <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
+                        <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted }}>{s.employer}</div>
                       </div>
-                      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
-                        <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.primary }}>RM{s.wageMin}–{s.wageMax}</div>
-                        <div style={{ fontSize: 11, color: BRAND.textMuted }}>/hour</div>
+                      <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
+                        <div style={{ fontWeight: 800, fontSize: isMobile ? 15 : 18, color: BRAND.primary }}>RM{s.wageMin}–{s.wageMax}</div>
+                        <div style={{ fontSize: isMobile ? 10 : 11, color: BRAND.textMuted }}>/hour</div>
                       </div>
                     </div>
                   </div>
@@ -434,9 +434,9 @@ const WorkerPortal = ({ onOpenPortal }) => {
                       [s.travelTime, "🚌"],
                       [`RM${s.stipend} stipend`, "💰"],
                     ].map(([v, ico], i) => (
-                      <div key={i} style={{ flex: 1, padding: "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
-                        <div style={{ fontSize: 13 }}>{ico}</div>
-                        <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.3 }}>{v}</div>
+                      <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
+                        <div style={{ fontSize: isMobile ? 11 : 13 }}>{ico}</div>
+                        <div style={{ fontSize: isMobile ? 9 : 10, color: BRAND.textMuted, marginTop: 1, lineHeight: 1.3 }}>{v}</div>
                       </div>
                     ))}
                   </div>
@@ -448,7 +448,7 @@ const WorkerPortal = ({ onOpenPortal }) => {
 
         {tab === "applications" && (
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
+            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {APPLICATIONS.map(a => (
                 <Card key={a.id}>
@@ -484,20 +484,20 @@ const WorkerPortal = ({ onOpenPortal }) => {
 
         {tab === "earnings" && (
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Earnings</div>
-            <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>Payouts & travel credits</div>
-            <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, borderRadius: 20, padding: 24, marginBottom: 20, color: "#fff" }}>
-              <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 8 }}>Total Earned (June 2025)</div>
-              <div style={{ fontSize: 38, fontWeight: 900, marginBottom: 4 }}>RM 842</div>
-              <div style={{ fontSize: 13, opacity: 0.8 }}>+ RM 45 travel credits</div>
+            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Earnings</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Payouts & travel credits</div>
+            <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 20, color: "#fff" }}>
+              <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>Total Earned (June 2025)</div>
+              <div style={{ fontSize: isMobile ? 32 : 38, fontWeight: 900, marginBottom: 4 }}>RM 842</div>
+              <div style={{ fontSize: isMobile ? 12 : 13, opacity: 0.8 }}>+ RM 45 travel credits</div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label="Shifts completed" value="12" color={BRAND.primary} />
               <Stat label="Avg hourly rate" value="RM15.20" color={BRAND.green} />
               <Stat label="Reliability score" value="94" sub="Excellent" color={BRAND.blue} />
               <Stat label="Travel credits" value="RM45" sub="unused" color={BRAND.accent} />
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Payouts</div>
+            <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Payouts</div>
             {[
               { shift: "Event Crew – Music Festival", amount: 200, date: "10 Jun", status: "completed", travel: 10 },
               { shift: "F&B Server – KLCC", amount: 85, date: "5 Jun", status: "completed", travel: 5 },
@@ -521,16 +521,16 @@ const WorkerPortal = ({ onOpenPortal }) => {
 
         {tab === "profile" && (
           <div>
-            <div style={{ textAlign: "center", padding: "20px 0 24px" }}>
-              <Avatar name="Ahmad Firdaus" size={72} color={BRAND.primary} />
-              <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginTop: 12 }}>Ahmad Firdaus</div>
-              <div style={{ fontSize: 14, color: BRAND.textMuted }}>+60 12-345 6789</div>
-              <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 10 }}>
+            <div style={{ textAlign: "center", padding: isMobile ? "12px 0 16px" : "20px 0 24px" }}>
+              <Avatar name="Ahmad Firdaus" size={isMobile ? 56 : 72} color={BRAND.primary} />
+              <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>Ahmad Firdaus</div>
+              <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>+60 12-345 6789</div>
+              <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">Standard KYC</Badge>
                 <Badge color="green">94/100 Reliability</Badge>
               </div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label="Shifts done" value="38" color={BRAND.primary} />
               <Stat label="Rating" value="4.7★" color={BRAND.accent} />
               <Stat label="Strikes" value="0" sub="Clean record" color={BRAND.green} />
@@ -568,8 +568,8 @@ const WorkerPortal = ({ onOpenPortal }) => {
 
         {tab === "settings" && (
           <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Settings</div>
-            <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>Manage your account and access hidden consoles</div>
+            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Settings</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Manage your account and access hidden consoles</div>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Account</div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
@@ -598,16 +598,16 @@ const WorkerPortal = ({ onOpenPortal }) => {
       </div>
 
       {/* Bottom nav */}
-      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex" }}>
+      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => setTab(n.id)} style={{
-            flex: 1, padding: "10px 0", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: 20 }}>{n.icon}</span>
-            <span style={{ fontSize: 10, fontWeight: tab === n.id ? 700 : 400 }}>{n.label}</span>
+            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
       </div>
@@ -1319,31 +1319,34 @@ export default function CariGaji() {
         border: isMobile ? "none" : `1px solid rgba(255,255,255,0.14)`,
         boxShadow: isMobile ? "none" : "0 40px 90px rgba(0,0,0,0.45)",
         position: "relative",
+        display: "flex",
+        flexDirection: "column",
       }}>
-        {!isMobile && (
-          <div style={{
-            height: 68,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 24px",
-            borderBottom: `1px solid ${BRAND.border}`,
-            background: "rgba(255,255,255,0.92)",
-            backdropFilter: "blur(16px)",
-          }}>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.03em" }}>
-                Cari<span style={{ color: BRAND.primary }}>Gaji</span>
-              </div>
-              <div style={{ fontSize: 12, color: BRAND.textMuted }}>Verified shift marketplace</div>
+        <div style={{
+          height: isMobile ? 56 : 68,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: isMobile ? "0 16px" : "0 24px",
+          borderBottom: `1px solid ${BRAND.border}`,
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(16px)",
+          flexShrink: 0,
+        }}>
+          <div>
+            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.03em" }}>
+              Cari<span style={{ color: BRAND.primary }}>Gaji</span>
             </div>
+            <div style={{ fontSize: isMobile ? 10 : 12, color: BRAND.textMuted }}>Verified shift marketplace</div>
+          </div>
+          {!isMobile && (
             <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
               {cfg.label}
             </Badge>
-          </div>
-        )}
-        <div style={{ height: isMobile ? "100%" : "calc(100% - 68px)" }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} />}
+          )}
+        </div>
+        <div style={{ height: isMobile ? "calc(100% - 56px)" : "calc(100% - 68px)", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} />}
           {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} />}
         </div>
