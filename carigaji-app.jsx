@@ -241,8 +241,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
 
   // Modal content - rendered on top of main content
   if (showQR) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, background: "#fff", overflow: "auto" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, background: "#fff", overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
         <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
@@ -272,7 +272,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
   );
 
   if (showChat) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: "#fff", flexShrink: 0 }}>
         <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }}>←</button>
         <Avatar name="Grand Hyatt KL" size={36} color={BRAND.blue} />
@@ -284,7 +284,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
           <Badge color="orange">F&B Server Shift</Badge>
         </div>
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: BRAND.grayLight }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: BRAND.grayLight, minHeight: 0 }}>
         {messages.map(m => (
           <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
             {m.from === "system" ? (
@@ -326,7 +326,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
 
   // Shift detail view with bottom nav
   if (selectedShift) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {showBidModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
           <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
@@ -363,7 +363,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
           </div>
         </div>
       )}
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }}>← Back</button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
@@ -430,9 +430,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, width: "100%" }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, width: "100%", minHeight: 0 }}>
         {tab === "discover" && (
           <div>
             <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
