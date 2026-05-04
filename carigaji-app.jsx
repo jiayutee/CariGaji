@@ -338,7 +338,8 @@ const WorkerPortal = ({ onOpenPortal }) => {
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 16, fontFamily: "inherit" }}>← Back</button>
           <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
             <Badge color="amber">{selectedShift.category}</Badge>
-            {selectedShift.filled >= selectedShift.headcount ? <Badge color="red">Full</Badge> : <Badge color="green">{selectedShift.headcount - selectedShift.filled} spots left</Badge>}
+            <Badge color="green">Positions {selectedShift.headcount}</Badge>
+            <Badge color="blue">Applied {selectedShift.totalApplicants}</Badge>
           </div>
           <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
           <div style={{ fontSize: 14, color: "rgba(255,255,255,0.85)" }}>{selectedShift.employer}</div>
@@ -414,7 +415,8 @@ const WorkerPortal = ({ onOpenPortal }) => {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
                           <Badge color="amber" size="xs">{s.category}</Badge>
-                          <Badge color="green" size="xs">{s.headcount - s.filled} spots left</Badge>
+                          <Badge color="green" size="xs">Positions {s.headcount}</Badge>
+                          <Badge color="blue" size="xs">Applied {s.totalApplicants}</Badge>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
                         <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.employer}</div>
@@ -447,7 +449,6 @@ const WorkerPortal = ({ onOpenPortal }) => {
         {tab === "applications" && (
           <div>
             <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
-            <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>Track your applications and offers</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {APPLICATIONS.map(a => (
                 <Card key={a.id}>
@@ -683,9 +684,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false }) => {
                       <Pill label={s.status} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
                     </div>
                     <div style={{ marginTop: 12 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontSize: 12, color: BRAND.textMuted }}>Filled: {s.filled}/{s.headcount}</span>
-                        <span style={{ fontSize: 12, color: BRAND.textMuted }}>{s.applicants} applicants</span>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+                        <Badge color="green" size="xs">Positions {s.headcount}</Badge>
+                        <Badge color="blue" size="xs">Applied {s.applicants}</Badge>
                       </div>
                       <Progress value={s.filled} max={s.headcount} color={BRAND.green} />
                     </div>
@@ -729,12 +730,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false }) => {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>RM{s.escrow} escrow</div>
-                    <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.applicants} applicants</div>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 6 }}>
+                          <Badge color="green" size="xs">Positions {s.headcount}</Badge>
+                          <Badge color="blue" size="xs">Applied {s.applicants}</Badge>
+                        </div>
                   </div>
                 </div>
-                <div style={{ marginTop: 12, display: "flex", gap: 16 }}>
-                  <span style={{ fontSize: 12, color: BRAND.textMuted }}>Slots: {s.filled}/{s.headcount} filled</span>
-                  <span style={{ fontSize: 12, color: BRAND.textMuted }}>Category: {s.category}</span>
+                    <div style={{ marginTop: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>Positions needed: {s.headcount}</span>
+                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>Filled: {s.filled}</span>
+                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>Category: {s.category}</span>
                 </div>
               </Card>
             ))}
@@ -750,12 +755,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false }) => {
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.date}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
-              <Stat label="Applicants" value={selectedShift.applicants} color={BRAND.blue} />
+              <Stat label="Applied users" value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label="Slots filled" value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
               <Stat label="Escrow" value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
               <Stat label="Avg bid" value="RM14.40" color={BRAND.accent} />
             </div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Applicants</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 4 }}>Applicant pool</div>
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>Choose from all applied users, even when applications exceed the number of needed workers.</div>
+              </div>
+              <Badge color="blue">{selectedShift.applicants} applied</Badge>
+            </div>
             <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
