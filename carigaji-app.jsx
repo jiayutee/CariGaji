@@ -1345,7 +1345,7 @@ export default function CariGaji() {
             </Badge>
           )}
         </div>
-        <div style={{ height: isMobile ? "calc(100% - 56px)" : "calc(100% - 68px)", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
           {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} />}
           {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} />}
