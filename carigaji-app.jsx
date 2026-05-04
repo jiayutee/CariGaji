@@ -1358,7 +1358,7 @@ export default function CariGaji() {
         height: isMobile ? "100vh" : Math.min(cfg.height + 120, viewport.height - 48),
         background: isMobile ? "#fff" : "rgba(255,255,255,0.98)",
         borderRadius: isMobile ? 0 : 28,
-        overflow: "hidden",
+        overflow: isMobile ? "visible" : "hidden",
         border: isMobile ? "none" : `1px solid rgba(255,255,255,0.14)`,
         boxShadow: isMobile ? "none" : "0 40px 90px rgba(0,0,0,0.45)",
         position: "relative",
