@@ -237,27 +237,49 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
     { id: "earnings", label: "Earnings", icon: "💰" },
     { id: "profile", label: "Profile", icon: "👤" },
     { id: "settings", label: "Settings", icon: "⚙️" },
+  const navItems = [
+    { id: "discover", label: "Discover", icon: "🔍" },
+    { id: "applications", label: "My Bids", icon: "📋" },
+    { id: "earnings", label: "Earnings", icon: "💰" },
+    { id: "profile", label: "Profile", icon: "👤" },
+    { id: "settings", label: "Settings", icon: "⚙️" },
   ];
 
+  // Modal content - rendered on top of main content
   if (showQR) return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", padding: 32, background: "#fff", borderRadius: 16 }}>
-      <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
-      <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
-      <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 48 }}>📷</div>
-          <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>Camera viewfinder</div>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, background: "#fff", overflow: "auto" }}>
+        <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
+        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
+        <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 48 }}>📷</div>
+            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>Camera viewfinder</div>
+          </div>
         </div>
+        <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
+        <Btn onClick={() => { setShowQR(false); alert("✅ Checked in at 18:02! Reliability +0 (on time)"); }}>Simulate Successful Check-in</Btn>
+        <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
       </div>
-      <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
-      <Btn onClick={() => { setShowQR(false); alert("✅ Checked in at 18:02! Reliability +0 (on time)"); }}>Simulate Successful Check-in</Btn>
-      <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
+      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+        {navItems.map(n => (
+          <button key={n.id} onClick={() => setTab(n.id)} style={{
+            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
+            fontFamily: "inherit",
+          }}>
+            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 
   if (showChat) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: "#fff" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
+      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: "#fff", flexShrink: 0 }}>
         <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }}>←</button>
         <Avatar name="Grand Hyatt KL" size={36} color={BRAND.blue} />
         <div>
@@ -285,20 +307,34 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
           </div>
         ))}
       </div>
-      <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", gap: 8 }}>
+      <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", gap: 8, flexShrink: 0 }}>
         <input value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
           placeholder="Type a message…"
           style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", outline: "none" }}
         />
         <Btn onClick={sendMsg}>Send</Btn>
       </div>
+      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+        {navItems.map(n => (
+          <button key={n.id} onClick={() => { setShowChat(false); setTab(n.id); }} style={{
+            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
+            fontFamily: "inherit",
+          }}>
+            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 
+  // Shift detail view with bottom nav
   if (selectedShift) return (
-    <div style={{ overflowY: "auto", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%" }}>
       {showBidModal && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
           <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
             <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.text, marginBottom: 4 }}>Place Your Bid</div>
             <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>
@@ -325,7 +361,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
         </div>
       )}
       {bidSuccess && (
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
           <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
             <div style={{ fontSize: isMobile ? 40 : 48, marginBottom: 12 }}>🎉</div>
             <div style={{ fontWeight: 800, fontSize: isMobile ? 18 : 20, color: BRAND.text }}>Bid Submitted!</div>
@@ -333,8 +369,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
           </div>
         </div>
       )}
-      <div style={{ position: "relative" }}>
-        <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "0 0 24px 24px" }}>
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }}>← Back</button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{selectedShift.category}</Badge>
@@ -378,10 +414,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} applicants</span>
             </div>
           </Card>
-          <Btn onClick={() => setShowBidModal(true)} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0" }}>
+          <Btn onClick={() => setShowBidModal(true)} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
             Place Bid →
           </Btn>
         </div>
+      </div>
+      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+        {navItems.map(n => (
+          <button key={n.id} onClick={() => setTab(n.id)} style={{
+            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
+            fontFamily: "inherit",
+          }}>
+            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
