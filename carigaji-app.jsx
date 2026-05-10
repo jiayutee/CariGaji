@@ -868,6 +868,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   const [showQR, setShowQR] = useState(false);
   const [liveApplications, setLiveApplications] = useState(null);
 
+  const navHeight = isMobile ? 60 : 72;
+  const navPadding = navHeight + 16;
+
   useEffect(() => {
     let active = true;
     const loadApplications = async () => {
@@ -920,7 +923,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   // Modal content - rendered on top of main content
   if (showQR) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, background: "#fff", overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, paddingBottom: navPadding, background: "#fff", overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
         <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
@@ -933,7 +936,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
         <Btn onClick={() => { setShowQR(false); alert("✅ Checked in at 18:02! Reliability +0 (on time)"); }}>Simulate Successful Check-in</Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
       </div>
-      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -962,7 +965,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           <Badge color="orange">F&B Server Shift</Badge>
         </div>
       </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12, background: BRAND.grayLight, minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, paddingBottom: navPadding, display: "flex", flexDirection: "column", gap: 12, background: BRAND.grayLight, minHeight: 0 }}>
         {messages.map(m => (
           <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
             {m.from === "system" ? (
@@ -979,14 +982,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           </div>
         ))}
       </div>
-      <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", gap: 8, flexShrink: 0 }}>
+      <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", gap: 8, flexShrink: 0, marginBottom: navHeight }}>
         <input value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
           placeholder="Type a message…"
           style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", outline: "none" }}
         />
         <Btn onClick={sendMsg}>Send</Btn>
       </div>
-      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -1066,7 +1069,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           </div>
         </div>
       )}
-      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", paddingBottom: navPadding, display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label="Back">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
@@ -1116,7 +1119,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           </Btn>
         </div>
       </div>
-      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -1135,7 +1138,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, width: "100%", minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", minHeight: 0 }}>
         {tab === "discover" && (
           <div>
             <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
@@ -1344,7 +1347,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
       </div>
 
       {/* Bottom nav */}
-      <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
+      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => setTab(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -2247,28 +2250,29 @@ export default function CariGaji() {
   return (
     <div style={{
       minHeight: "100vh",
+      width: "100%",
       background: isMobile
         ? `linear-gradient(180deg, ${BRAND.primary}08 0%, #fff 18%, #fff 100%)`
         : `radial-gradient(circle at top, ${BRAND.primary}20 0%, #140806 42%, ${BRAND.dark} 100%)`,
       display: "flex",
-      alignItems: isMobile ? "stretch" : "center",
-      justifyContent: "center",
-      padding: isMobile ? 0 : 24,
+      alignItems: "stretch",
+      justifyContent: "stretch",
+      padding: 0,
       fontFamily: "'DM Sans', system-ui, sans-serif",
     }}>
       <div style={{
-        width: isMobile ? "100%" : Math.min(portal === "worker" ? 1240 : cfg.width, viewport.width - 48),
-        height: isMobile ? "auto" : Math.min(cfg.height + 120, viewport.height - 48),
-        minHeight: isMobile ? "100vh" : "auto",
+        width: "100%",
+        height: "100%",
+        minHeight: "100vh",
         background: isMobile ? "#fff" : "rgba(255,255,255,0.98)",
-        borderRadius: isMobile ? 0 : 28,
-        overflow: isMobile ? "visible" : "hidden",
-        border: isMobile ? "none" : `1px solid rgba(255,255,255,0.14)`,
-        boxShadow: isMobile ? "none" : "0 40px 90px rgba(0,0,0,0.45)",
+        borderRadius: isMobile ? 0 : 0,
+        overflow: "auto",
+        border: "none",
+        boxShadow: "none",
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        flex: isMobile ? 1 : "none",
+        flex: 1,
       }}>
         <div style={{
           height: isMobile ? 56 : 68,
