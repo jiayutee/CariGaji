@@ -214,10 +214,78 @@ const StarRating = ({ value = 4.5, size = 14 }) => {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     stars.push(
-      <span key={i} style={{ color: i <= Math.round(value) ? BRAND.accent : "#D1D5DB", fontSize: size }}>★</span>
+      <span key={i} style={{ color: i <= Math.round(value) ? BRAND.accent : "#D1D5DB", fontSize: size }}>
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "inline-block", verticalAlign: "middle" }}>
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill={i <= Math.round(value) ? BRAND.accent : "#D1D5DB"} />
+        </svg>
+      </span>
     );
   }
   return <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>({value})</span></span>;
+};
+
+const Icons = {
+  Search: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21 21l-4.35-4.35" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="11" cy="11" r="6" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  List: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Money: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="6" width="20" height="12" rx="2" stroke="#374151" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.6" />
+    </svg>
+  ),
+  User: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="7" r="4" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Settings: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7z" stroke="#374151" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06A2 2 0 1 1 2.3 17.88l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82L4.21 3.7A2 2 0 1 1 7 1.88l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 10 1.88V1a2 2 0 1 1 4 0v.09c.36.12.69.32 1 .56.33.27.66.52.96.82l.06.06a2 2 0 1 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82v.09c.12.36.32.69.56 1 .27.33.52.66.82.96l.06.06A2 2 0 1 1 19.4 15z" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Close: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M18 6L6 18M6 6l12 12" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Camera: ({ size = 48 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2v11z" stroke="#374151" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="13" r="4" stroke="#374151" strokeWidth="1.4" />
+    </svg>
+  ),
+  ArrowLeft: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 19l-7-7 7-7" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  ChevronDown: ({ size = 14 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M6 9l6 6 6-6" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Rocket: ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2s4 1 6 3 3 6 3 6-4 1-6 3-6 6-6 6-4-4-6-6 6-6 6-6 1-4 3-6z" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Star: ({ size = 14 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#F5A623" />
+    </svg>
+  ),
 };
 
 const Progress = ({ value, max = 100, color = BRAND.primary }) => (
@@ -495,7 +563,7 @@ const uploadKycFile = async (userId, file, label) => {
           }}
         >
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>{selected ? (showDial ? <><span>{selected.flag}</span><span style={{ fontWeight: 700 }}>{selected.dialCode}</span></> : selected.name) : (showDial ? "Select" : "Select country")}</span>
-          {!compact && <span>{open ? "▲" : "▼"}</span>}
+          {!compact && <span style={{ display: "inline-flex", transform: open ? "rotate(180deg)" : "none" }}>{Icons.ChevronDown({ size: 14 })}</span>}
         </button>
         {open && (
           <div style={{
@@ -610,7 +678,7 @@ const AuthModal = ({
             <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{copy.title}</div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>
           </div>
-          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }} aria-label="Close">{Icons.Close({ size: 20 })}</button>
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column" }}>
@@ -834,11 +902,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   };
 
   const navItems = [
-    { id: "discover", label: "Discover", icon: "🔍" },
-    { id: "applications", label: "My Bids", icon: "📋" },
-    { id: "earnings", label: "Earnings", icon: "💰" },
-    { id: "profile", label: "Profile", icon: "👤" },
-    { id: "settings", label: "Settings", icon: "⚙️" },
+    { id: "discover", label: "Discover", icon: <Icons.Search size={20} /> },
+    { id: "applications", label: "My Bids", icon: <Icons.List size={20} /> },
+    { id: "earnings", label: "Earnings", icon: <Icons.Money size={20} /> },
+    { id: "profile", label: "Profile", icon: <Icons.User size={20} /> },
+    { id: "settings", label: "Settings", icon: <Icons.Settings size={20} /> },
   ];
 
   const handleWorkerNavClick = (nextTab) => {
@@ -857,7 +925,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
         <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 48 }}>📷</div>
+            <div style={{ fontSize: 48 }}>{Icons.Camera({ size: 48 })}</div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>Camera viewfinder</div>
           </div>
         </div>
@@ -884,7 +952,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   if (showChat) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: "#fff", flexShrink: 0 }}>
-        <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }}>←</button>
+        <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }} aria-label="Back">{Icons.ArrowLeft({ size: 18 })}</button>
         <Avatar name="Grand Hyatt KL" size={36} color={BRAND.blue} />
         <div>
           <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>Grand Hyatt KL</div>
@@ -1000,7 +1068,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
       )}
       <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
-          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }}>← Back</button>
+          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label="Back">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{selectedShift.category}</Badge>
             <Badge color="green">Positions {selectedShift.headcount}</Badge>
@@ -1210,7 +1278,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label="Shifts done" value="38" color={BRAND.primary} />
-              <Stat label="Rating" value="4.7★" color={BRAND.accent} />
+              <Stat label="Rating" value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>4.7</span>{Icons.Star({ size: 14 })}</span>} color={BRAND.accent} />
               <Stat label="Strikes" value="0" sub="Clean record" color={BRAND.green} />
               <Stat label="On-time rate" value="96%" color={BRAND.blue} />
             </div>
@@ -1455,7 +1523,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "shifts" && selectedShift && (
           <div>
-            <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }}>← Back to shifts</button>
+            <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label="Back to shifts">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back to shifts</span></button>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{selectedShift.title}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "completed" ? "green" : "gray"} />
@@ -1582,7 +1650,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <textarea placeholder="Any additional requirements…" style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", height: 80, resize: "none", boxSizing: "border-box" }} />
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
-                    <Btn variant="secondary" onClick={() => setPostStep(1)} style={{ flex: 1, justifyContent: "center" }}>← Back</Btn>
+                    <Btn variant="secondary" onClick={() => setPostStep(1)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
                     <Btn onClick={() => setPostStep(3)} style={{ flex: 1, justifyContent: "center" }}>Next: Review →</Btn>
                   </div>
                 </div>
@@ -1612,8 +1680,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     </div>
                   )}
                   <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                    <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>← Back</Btn>
-                    <Btn onClick={() => { alert("✅ Shift published! Workers will start applying within minutes."); setView("shifts"); setPostStep(1); }} style={{ flex: 1, justifyContent: "center" }}>Publish Shift 🚀</Btn>
+                    <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
+                    <Btn onClick={() => { alert("✅ Shift published! Workers will start applying within minutes."); setView("shifts"); setPostStep(1); }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
                   </div>
                 </div>
               )}
