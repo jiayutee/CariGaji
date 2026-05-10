@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { supabase } from "./src/lib/supabase.js";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────
 const BRAND = {
@@ -64,7 +65,7 @@ const Card = ({ children, style = {}, onClick, hover = false }) => (
   >{children}</div>
 );
 
-const Btn = ({ children, variant = "primary", onClick, size = "md", style = {}, disabled = false }) => {
+const Btn = ({ children, variant = "primary", onClick, size = "md", style = {}, disabled = false, type = "button" }) => {
   const base = {
     display: "inline-flex", alignItems: "center", gap: 6,
     border: "none", borderRadius: 10, cursor: disabled ? "not-allowed" : "pointer",
@@ -81,7 +82,7 @@ const Btn = ({ children, variant = "primary", onClick, size = "md", style = {}, 
     success: { background: BRAND.green, color: "#fff" },
   };
   return (
-    <button onClick={disabled ? undefined : onClick} style={{ ...base, ...variants[variant], ...style }}
+    <button type={type} onClick={disabled ? undefined : onClick} style={{ ...base, ...variants[variant], ...style }}
       onMouseEnter={e => { if (!disabled) e.currentTarget.style.opacity = "0.85"; }}
       onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
     >{children}</button>
@@ -122,6 +123,71 @@ const Input = ({ label, placeholder, value, onChange, type = "text", style = {} 
   </div>
 );
 
+const PasswordInput = ({ label, placeholder, value, onChange, style = {} }) => {
+  const [show, setShow] = useState(false);
+  return (
+    <div style={{ marginBottom: 16, position: "relative", ...style }}>
+      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
+      <div style={{ position: "relative" }}>
+        <input
+          type={show ? "text" : "password"}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          style={{
+            width: "100%", padding: "10px 14px", borderRadius: 10,
+            border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit",
+            color: BRAND.text, background: "#fff", outline: "none",
+            boxSizing: "border-box", height: 42, lineHeight: "20px",
+          }}
+        />
+        <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? "Hide password" : "Show password"} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+          {show ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 3L21 21" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M10.58 10.58A3 3 0 0 0 13.42 13.42" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M2.05 12.6A11 11 0 0 0 12 20c2.1 0 4.09-.5 5.95-1.4" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const FileInput = ({ label, onChange, accept, helper, fileName }) => (
+  <div style={{ marginBottom: 16 }}>
+    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
+    <input
+      type="file"
+      accept={accept}
+      onChange={onChange}
+      style={{
+        width: "100%",
+        padding: "10px 14px",
+        borderRadius: 10,
+        border: `1px solid ${BRAND.border}`,
+        fontSize: 14,
+        fontFamily: "inherit",
+        color: BRAND.text,
+        background: "#fff",
+        outline: "none",
+        boxSizing: "border-box",
+      }}
+    />
+    {(fileName || helper) && (
+      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6, lineHeight: 1.5 }}>
+        {fileName ? `Selected: ${fileName}` : helper}
+      </div>
+    )}
+  </div>
+);
+
 const Select = ({ label, options, value, onChange, style = {} }) => (
   <div style={{ marginBottom: 16, ...style }}>
     {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
@@ -159,6 +225,517 @@ const Progress = ({ value, max = 100, color = BRAND.primary }) => (
     <div style={{ height: "100%", width: `${(value / max) * 100}%`, background: color, borderRadius: 99, transition: "width 0.3s" }} />
   </div>
 );
+
+const formatIdentityNumber = (value, identityType) => {
+  if (identityType === "MyKad") {
+    const digits = value.replace(/\D/g, "").slice(0, 12);
+    if (digits.length <= 6) return digits;
+    if (digits.length <= 8) return `${digits.slice(0, 6)}-${digits.slice(6)}`;
+    return `${digits.slice(0, 6)}-${digits.slice(6, 8)}-${digits.slice(8)}`;
+  }
+  return value;
+};
+
+const extractDateFromIC = (icNumber) => {
+  const digits = icNumber.replace(/\D/g, "");
+  if (digits.length < 6) return "";
+  const yy = parseInt(digits.slice(0, 2), 10);
+  const mm = digits.slice(2, 4);
+  const dd = digits.slice(4, 6);
+  const year = yy > 50 ? 1900 + yy : 2000 + yy;
+  return `${year}-${mm}-${dd}`;
+};
+
+const assignKYCLevel = (hasFront, hasBack, hasSelfie, hasSupportingDoc) => {
+  if (!hasSelfie) return "Basic";
+  if ((hasFront || hasBack) && hasSelfie) return "Standard";
+  if (hasSupportingDoc && hasSelfie) return "Advanced";
+  return "Basic";
+};
+
+const KYC_BUCKET = "kyc-documents";
+
+const uploadKycFile = async (userId, file, label) => {
+  if (!file) return null;
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${userId}/${Date.now()}-${label}-${safeName}`;
+  const { error } = await supabase.storage.from(KYC_BUCKET).upload(path, file, {
+    contentType: file.type || "application/octet-stream",
+    upsert: true,
+  });
+  if (error) throw error;
+  return path;
+};
+
+  const COUNTRIES = [
+    { code: "MY", name: "Malaysia", flag: "🇲🇾", dialCode: "+60", placeholder: "e.g. 10-1234567" },
+    { code: "AF", name: "Afghanistan", flag: "🇦🇫", dialCode: "+93", placeholder: "e.g. 701-234-567" },
+    { code: "AL", name: "Albania", flag: "🇦🇱", dialCode: "+355", placeholder: "e.g. 69-123-4567" },
+    { code: "DZ", name: "Algeria", flag: "🇩🇿", dialCode: "+213", placeholder: "e.g. 21-123-4567" },
+    { code: "AS", name: "American Samoa", flag: "🇦🇸", dialCode: "+1-684", placeholder: "e.g. 735-1234" },
+    { code: "AD", name: "Andorra", flag: "🇦🇩", dialCode: "+376", placeholder: "e.g. 312-345" },
+    { code: "AO", name: "Angola", flag: "🇦🇴", dialCode: "+244", placeholder: "e.g. 923-123-456" },
+    { code: "AR", name: "Argentina", flag: "🇦🇷", dialCode: "+54", placeholder: "e.g. 11-1234-5678" },
+    { code: "AM", name: "Armenia", flag: "🇦🇲", dialCode: "+374", placeholder: "e.g. 10-123-456" },
+    { code: "AW", name: "Aruba", flag: "🇦🇼", dialCode: "+297", placeholder: "e.g. 567-1234" },
+    { code: "AU", name: "Australia", flag: "🇦🇺", dialCode: "+61", placeholder: "e.g. 2-1234-5678" },
+    { code: "AT", name: "Austria", flag: "🇦🇹", dialCode: "+43", placeholder: "e.g. 1-234-5678" },
+    { code: "AZ", name: "Azerbaijan", flag: "🇦🇿", dialCode: "+994", placeholder: "e.g. 12-345-6789" },
+    { code: "BS", name: "Bahamas", flag: "🇧🇸", dialCode: "+1-242", placeholder: "e.g. 327-1234" },
+    { code: "BH", name: "Bahrain", flag: "🇧🇭", dialCode: "+973", placeholder: "e.g. 36-123-456" },
+    { code: "BD", name: "Bangladesh", flag: "🇧🇩", dialCode: "+880", placeholder: "e.g. 171-123-4567" },
+    { code: "BB", name: "Barbados", flag: "🇧🇧", dialCode: "+1-246", placeholder: "e.g. 430-1234" },
+    { code: "BY", name: "Belarus", flag: "🇧🇾", dialCode: "+375", placeholder: "e.g. 17-123-4567" },
+    { code: "BE", name: "Belgium", flag: "🇧🇪", dialCode: "+32", placeholder: "e.g. 2-123-4567" },
+    { code: "BZ", name: "Belize", flag: "🇧🇿", dialCode: "+501", placeholder: "e.g. 2-123-456" },
+    { code: "BJ", name: "Benin", flag: "🇧🇯", dialCode: "+229", placeholder: "e.g. 90-123-456" },
+    { code: "BT", name: "Bhutan", flag: "🇧🇹", dialCode: "+975", placeholder: "e.g. 17-123-456" },
+    { code: "BO", name: "Bolivia", flag: "🇧🇴", dialCode: "+591", placeholder: "e.g. 2-123-4567" },
+    { code: "BA", name: "Bosnia and Herzegovina", flag: "🇧🇦", dialCode: "+387", placeholder: "e.g. 33-123-456" },
+    { code: "BW", name: "Botswana", flag: "🇧🇼", dialCode: "+267", placeholder: "e.g. 71-123-4567" },
+    { code: "BR", name: "Brazil", flag: "🇧🇷", dialCode: "+55", placeholder: "e.g. 11-91234-5678" },
+    { code: "BN", name: "Brunei", flag: "🇧🇳", dialCode: "+673", placeholder: "e.g. 712-3456" },
+    { code: "BG", name: "Bulgaria", flag: "🇧🇬", dialCode: "+359", placeholder: "e.g. 2-123-4567" },
+    { code: "BF", name: "Burkina Faso", flag: "🇧🇫", dialCode: "+226", placeholder: "e.g. 70-123-456" },
+    { code: "BI", name: "Burundi", flag: "🇧🇮", dialCode: "+257", placeholder: "e.g. 79-123-456" },
+    { code: "KH", name: "Cambodia", flag: "🇰🇭", dialCode: "+855", placeholder: "e.g. 12-345-678" },
+    { code: "CM", name: "Cameroon", flag: "🇨🇲", dialCode: "+237", placeholder: "e.g. 6-123-4567" },
+    { code: "CA", name: "Canada", flag: "🇨🇦", dialCode: "+1", placeholder: "e.g. 555-123-4567" },
+    { code: "CV", name: "Cape Verde", flag: "🇨🇻", dialCode: "+238", placeholder: "e.g. 99-123-456" },
+    { code: "KY", name: "Cayman Islands", flag: "🇰🇾", dialCode: "+1-345", placeholder: "e.g. 945-1234" },
+    { code: "CF", name: "Central African Republic", flag: "🇨🇫", dialCode: "+236", placeholder: "e.g. 75-123-456" },
+    { code: "TD", name: "Chad", flag: "🇹🇩", dialCode: "+235", placeholder: "e.g. 65-123-456" },
+    { code: "CL", name: "Chile", flag: "🇨🇱", dialCode: "+56", placeholder: "e.g. 2-1234-5678" },
+    { code: "CN", name: "China", flag: "🇨🇳", dialCode: "+86", placeholder: "e.g. 138-1234-5678" },
+    { code: "CO", name: "Colombia", flag: "🇨🇴", dialCode: "+57", placeholder: "e.g. 1-234-5678" },
+    { code: "KM", name: "Comoros", flag: "🇰🇲", dialCode: "+269", placeholder: "e.g. 321-23-45" },
+    { code: "CG", name: "Congo", flag: "🇨🇬", dialCode: "+242", placeholder: "e.g. 06-123-456" },
+    { code: "CD", name: "Congo (DRC)", flag: "🇨🇩", dialCode: "+243", placeholder: "e.g. 81-123-4567" },
+    { code: "CR", name: "Costa Rica", flag: "🇨🇷", dialCode: "+506", placeholder: "e.g. 2222-2222" },
+    { code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", dialCode: "+225", placeholder: "e.g. 01-23-45-67" },
+    { code: "HR", name: "Croatia", flag: "🇭🇷", dialCode: "+385", placeholder: "e.g. 1-123-4567" },
+    { code: "CU", name: "Cuba", flag: "🇨🇺", dialCode: "+53", placeholder: "e.g. 5-123-4567" },
+    { code: "CY", name: "Cyprus", flag: "🇨🇾", dialCode: "+357", placeholder: "e.g. 22-123-456" },
+    { code: "CZ", name: "Czech Republic", flag: "🇨🇿", dialCode: "+420", placeholder: "e.g. 602-123-456" },
+    { code: "DK", name: "Denmark", flag: "🇩🇰", dialCode: "+45", placeholder: "e.g. 12-34-56-78" },
+    { code: "DJ", name: "Djibouti", flag: "🇩🇯", dialCode: "+253", placeholder: "e.g. 77-12-34-56" },
+    { code: "DM", name: "Dominica", flag: "🇩🇲", dialCode: "+1-767", placeholder: "e.g. 275-1234" },
+    { code: "DO", name: "Dominican Republic", flag: "🇩🇴", dialCode: "+1-809", placeholder: "e.g. 829-123-4567" },
+    { code: "EC", name: "Ecuador", flag: "🇪🇨", dialCode: "+593", placeholder: "e.g. 9-123-4567" },
+    { code: "EG", name: "Egypt", flag: "🇪🇬", dialCode: "+20", placeholder: "e.g. 10-1234-5678" },
+    { code: "SV", name: "El Salvador", flag: "🇸🇻", dialCode: "+503", placeholder: "e.g. 7777-7777" },
+    { code: "GQ", name: "Equatorial Guinea", flag: "🇬🇶", dialCode: "+240", placeholder: "e.g. 222-123-456" },
+    { code: "ER", name: "Eritrea", flag: "🇪🇷", dialCode: "+291", placeholder: "e.g. 7-123-456" },
+    { code: "EE", name: "Estonia", flag: "🇪🇪", dialCode: "+372", placeholder: "e.g. 5123-4567" },
+    { code: "ET", name: "Ethiopia", flag: "🇪🇹", dialCode: "+251", placeholder: "e.g. 911-23-456" },
+    { code: "FJ", name: "Fiji", flag: "🇫🇯", dialCode: "+679", placeholder: "e.g. 701-1234" },
+    { code: "FI", name: "Finland", flag: "🇫🇮", dialCode: "+358", placeholder: "e.g. 40-123-4567" },
+    { code: "FR", name: "France", flag: "🇫🇷", dialCode: "+33", placeholder: "e.g. 06-12-34-56-78" },
+    { code: "PF", name: "French Polynesia", flag: "🇵🇫", dialCode: "+689", placeholder: "e.g. 87-123-456" },
+    { code: "GA", name: "Gabon", flag: "🇬🇦", dialCode: "+241", placeholder: "e.g. 06-12-34-56" },
+    { code: "GM", name: "Gambia", flag: "🇬🇲", dialCode: "+220", placeholder: "e.g. 301-2345" },
+    { code: "GE", name: "Georgia", flag: "🇬🇪", dialCode: "+995", placeholder: "e.g. 599-12-345" },
+    { code: "DE", name: "Germany", flag: "🇩🇪", dialCode: "+49", placeholder: "e.g. 151-12345678" },
+    { code: "GH", name: "Ghana", flag: "🇬🇭", dialCode: "+233", placeholder: "e.g. 24-123-4567" },
+    { code: "GR", name: "Greece", flag: "🇬🇷", dialCode: "+30", placeholder: "e.g. 21-1234-5678" },
+    { code: "GD", name: "Grenada", flag: "🇬🇩", dialCode: "+1-473", placeholder: "e.g. 440-1234" },
+    { code: "GU", name: "Guam", flag: "🇬🇺", dialCode: "+1-671", placeholder: "e.g. 969-1234" },
+    { code: "GT", name: "Guatemala", flag: "🇬🇹", dialCode: "+502", placeholder: "e.g. 4-1234-5678" },
+    { code: "GN", name: "Guinea", flag: "🇬🇳", dialCode: "+224", placeholder: "e.g. 30-123-456" },
+    { code: "GW", name: "Guinea-Bissau", flag: "🇬🇼", dialCode: "+245", placeholder: "e.g. 95-123-456" },
+    { code: "GY", name: "Guyana", flag: "🇬🇾", dialCode: "+592", placeholder: "e.g. 223-1234" },
+    { code: "HT", name: "Haiti", flag: "🇭🇹", dialCode: "+509", placeholder: "e.g. 34-12-3456" },
+    { code: "HN", name: "Honduras", flag: "🇭🇳", dialCode: "+504", placeholder: "e.g. 9-9123-4567" },
+    { code: "HK", name: "Hong Kong", flag: "🇭🇰", dialCode: "+852", placeholder: "e.g. 1234-5678" },
+    { code: "HU", name: "Hungary", flag: "🇭🇺", dialCode: "+36", placeholder: "e.g. 20-123-4567" },
+    { code: "IS", name: "Iceland", flag: "🇮🇸", dialCode: "+354", placeholder: "e.g. 861-1234" },
+    { code: "IR", name: "Iran", flag: "🇮🇷", dialCode: "+98", placeholder: "e.g. 912-123-4567" },
+    { code: "IQ", name: "Iraq", flag: "🇮🇶", dialCode: "+964", placeholder: "e.g. 770-123-4567" },
+    { code: "IE", name: "Ireland", flag: "🇮🇪", dialCode: "+353", placeholder: "e.g. 87-123-4567" },
+    { code: "IL", name: "Israel", flag: "🇮🇱", dialCode: "+972", placeholder: "e.g. 50-123-4567" },
+    { code: "IT", name: "Italy", flag: "🇮🇹", dialCode: "+39", placeholder: "e.g. 345-123-4567" },
+    { code: "JM", name: "Jamaica", flag: "🇯🇲", dialCode: "+1-876", placeholder: "e.g. 876-123-4567" },
+    { code: "JP", name: "Japan", flag: "🇯🇵", dialCode: "+81", placeholder: "e.g. 90-1234-5678" },
+    { code: "JO", name: "Jordan", flag: "🇯🇴", dialCode: "+962", placeholder: "e.g. 79-123-4567" },
+    { code: "KZ", name: "Kazakhstan", flag: "🇰🇿", dialCode: "+7", placeholder: "e.g. 701-123-4567" },
+    { code: "KE", name: "Kenya", flag: "🇰🇪", dialCode: "+254", placeholder: "e.g. 71-123-4567" },
+    { code: "KI", name: "Kiribati", flag: "🇰🇮", dialCode: "+686", placeholder: "e.g. 731-2345" },
+    { code: "KP", name: "North Korea", flag: "🇰🇵", dialCode: "+850", placeholder: "e.g. 123-4567" },
+    { code: "KR", name: "South Korea", flag: "🇰🇷", dialCode: "+82", placeholder: "e.g. 10-1234-5678" },
+    { code: "KW", name: "Kuwait", flag: "🇰🇼", dialCode: "+965", placeholder: "e.g. 500-12345" },
+    { code: "KG", name: "Kyrgyzstan", flag: "🇰🇬", dialCode: "+996", placeholder: "e.g. 555-123456" },
+    { code: "LA", name: "Laos", flag: "🇱🇦", dialCode: "+856", placeholder: "e.g. 20-123-4567" },
+    { code: "LV", name: "Latvia", flag: "🇱🇻", dialCode: "+371", placeholder: "e.g. 2-123-4567" },
+    { code: "LB", name: "Lebanon", flag: "🇱🇧", dialCode: "+961", placeholder: "e.g. 71-123456" },
+    { code: "LS", name: "Lesotho", flag: "🇱🇸", dialCode: "+266", placeholder: "e.g. 58-123-456" },
+    { code: "LR", name: "Liberia", flag: "🇱🇷", dialCode: "+231", placeholder: "e.g. 077-123-456" },
+    { code: "LY", name: "Libya", flag: "🇱🇾", dialCode: "+218", placeholder: "e.g. 91-123-4567" },
+    { code: "LI", name: "Liechtenstein", flag: "🇱🇮", dialCode: "+423", placeholder: "e.g. 660-1234" },
+    { code: "LT", name: "Lithuania", flag: "🇱🇹", dialCode: "+370", placeholder: "e.g. 612-34567" },
+    { code: "LU", name: "Luxembourg", flag: "🇱🇺", dialCode: "+352", placeholder: "e.g. 621-123456" },
+    { code: "MO", name: "Macau", flag: "🇲🇴", dialCode: "+853", placeholder: "e.g. 6-123-4567" },
+    { code: "MK", name: "North Macedonia", flag: "🇲🇰", dialCode: "+389", placeholder: "e.g. 70-123-456" },
+    { code: "MG", name: "Madagascar", flag: "🇲🇬", dialCode: "+261", placeholder: "e.g. 32-12-345-67" },
+    { code: "MW", name: "Malawi", flag: "🇲🇼", dialCode: "+265", placeholder: "e.g. 88-123-4567" },
+    { code: "MX", name: "Mexico", flag: "🇲🇽", dialCode: "+52", placeholder: "e.g. 55-1234-5678" },
+    { code: "FM", name: "Micronesia", flag: "🇫🇲", dialCode: "+691", placeholder: "e.g. 350-1234" },
+    { code: "MD", name: "Moldova", flag: "🇲🇩", dialCode: "+373", placeholder: "e.g. 79-123-456" },
+    { code: "MC", name: "Monaco", flag: "🇲🇨", dialCode: "+377", placeholder: "e.g. 6-12-34-56" },
+    { code: "MN", name: "Mongolia", flag: "🇲🇳", dialCode: "+976", placeholder: "e.g. 99-123-4567" },
+    { code: "ME", name: "Montenegro", flag: "🇲🇪", dialCode: "+382", placeholder: "e.g. 67-123-456" },
+    { code: "MA", name: "Morocco", flag: "🇲🇦", dialCode: "+212", placeholder: "e.g. 6-123-45678" },
+    { code: "MZ", name: "Mozambique", flag: "🇲🇿", dialCode: "+258", placeholder: "e.g. 82-123-4567" },
+    { code: "MM", name: "Myanmar", flag: "🇲🇲", dialCode: "+95", placeholder: "e.g. 9-123-45678" },
+    { code: "NA", name: "Namibia", flag: "🇳🇦", dialCode: "+264", placeholder: "e.g. 81-123-4567" },
+    { code: "NR", name: "Nauru", flag: "🇳🇷", dialCode: "+674", placeholder: "e.g. 555-1234" },
+    { code: "NP", name: "Nepal", flag: "🇳🇵", dialCode: "+977", placeholder: "e.g. 98-123-4567" },
+    { code: "NL", name: "Netherlands", flag: "🇳🇱", dialCode: "+31", placeholder: "e.g. 6-1234-5678" },
+    { code: "NI", name: "Nicaragua", flag: "🇳🇮", dialCode: "+505", placeholder: "e.g. 8-1234-5678" },
+    { code: "NE", name: "Niger", flag: "🇳🇪", dialCode: "+227", placeholder: "e.g. 90-123-456" },
+    { code: "NG", name: "Nigeria", flag: "🇳🇬", dialCode: "+234", placeholder: "e.g. 812-123-4567" },
+    { code: "NO", name: "Norway", flag: "🇳🇴", dialCode: "+47", placeholder: "e.g. 912-34-567" },
+    { code: "OM", name: "Oman", flag: "🇴🇲", dialCode: "+968", placeholder: "e.g. 9-123-4567" },
+    { code: "PK", name: "Pakistan", flag: "🇵🇰", dialCode: "+92", placeholder: "e.g. 300-1234567" },
+    { code: "PW", name: "Palau", flag: "🇵🇼", dialCode: "+680", placeholder: "e.g. 775-1234" },
+    { code: "PA", name: "Panama", flag: "🇵🇦", dialCode: "+507", placeholder: "e.g. 612-3456" },
+    { code: "PG", name: "Papua New Guinea", flag: "🇵🇬", dialCode: "+675", placeholder: "e.g. 7-123-4567" },
+    { code: "PY", name: "Paraguay", flag: "🇵🇾", dialCode: "+595", placeholder: "e.g. 98-123-456" },
+    { code: "PE", name: "Peru", flag: "🇵🇪", dialCode: "+51", placeholder: "e.g. 9-123-45678" },
+    { code: "PL", name: "Poland", flag: "🇵🇱", dialCode: "+48", placeholder: "e.g. 512-123-456" },
+    { code: "PT", name: "Portugal", flag: "🇵🇹", dialCode: "+351", placeholder: "e.g. 912-345-678" },
+    { code: "PR", name: "Puerto Rico", flag: "🇵🇷", dialCode: "+1-787", placeholder: "e.g. 787-123-4567" },
+    { code: "QA", name: "Qatar", flag: "🇶🇦", dialCode: "+974", placeholder: "e.g. 33-123-456" },
+    { code: "RO", name: "Romania", flag: "🇷🇴", dialCode: "+40", placeholder: "e.g. 72-123-4567" },
+    { code: "RU", name: "Russia", flag: "🇷🇺", dialCode: "+7", placeholder: "e.g. 912-123-4567" },
+    { code: "RW", name: "Rwanda", flag: "🇷🇼", dialCode: "+250", placeholder: "e.g. 78-123-4567" },
+    { code: "WS", name: "Samoa", flag: "🇼🇸", dialCode: "+685", placeholder: "e.g. 72-123" },
+    { code: "SM", name: "San Marino", flag: "🇸🇲", dialCode: "+378", placeholder: "e.g. 54-123-456" },
+    { code: "ST", name: "Sao Tome & Principe", flag: "🇸🇹", dialCode: "+239", placeholder: "e.g. 99-1234" },
+    { code: "SA", name: "Saudi Arabia", flag: "🇸🇦", dialCode: "+966", placeholder: "e.g. 5-123-4567" },
+    { code: "SN", name: "Senegal", flag: "🇸🇳", dialCode: "+221", placeholder: "e.g. 77-123-4567" },
+    { code: "RS", name: "Serbia", flag: "🇷🇸", dialCode: "+381", placeholder: "e.g. 64-123-4567" },
+    { code: "SC", name: "Seychelles", flag: "🇸🇨", dialCode: "+248", placeholder: "e.g. 251-1234" },
+    { code: "SL", name: "Sierra Leone", flag: "🇸🇱", dialCode: "+232", placeholder: "e.g. 76-123-456" },
+    { code: "SG", name: "Singapore", flag: "🇸🇬", dialCode: "+65", placeholder: "e.g. 6123-4567" },
+    { code: "SK", name: "Slovakia", flag: "🇸🇰", dialCode: "+421", placeholder: "e.g. 0912-123-456" },
+    { code: "SI", name: "Slovenia", flag: "🇸🇮", dialCode: "+386", placeholder: "e.g. 31-123-456" },
+    { code: "SB", name: "Solomon Islands", flag: "🇸🇧", dialCode: "+677", placeholder: "e.g. 7-1234" },
+    { code: "SO", name: "Somalia", flag: "🇸🇴", dialCode: "+252", placeholder: "e.g. 61-123-4567" },
+    { code: "ZA", name: "South Africa", flag: "🇿🇦", dialCode: "+27", placeholder: "e.g. 82-123-4567" },
+    { code: "ES", name: "Spain", flag: "🇪🇸", dialCode: "+34", placeholder: "e.g. 612-34-56-78" },
+    { code: "LK", name: "Sri Lanka", flag: "🇱🇰", dialCode: "+94", placeholder: "e.g. 71-123-4567" },
+    { code: "SD", name: "Sudan", flag: "🇸🇩", dialCode: "+249", placeholder: "e.g. 9-123-45678" },
+    { code: "SR", name: "Suriname", flag: "🇸🇷", dialCode: "+597", placeholder: "e.g. 9-612-3456" },
+    { code: "SE", name: "Sweden", flag: "🇸🇪", dialCode: "+46", placeholder: "e.g. 70-123-4567" },
+    { code: "CH", name: "Switzerland", flag: "🇨🇭", dialCode: "+41", placeholder: "e.g. 79-123-45-67" },
+    { code: "SY", name: "Syria", flag: "🇸🇾", dialCode: "+963", placeholder: "e.g. 94-123-4567" },
+    { code: "TW", name: "Taiwan", flag: "🇹🇼", dialCode: "+886", placeholder: "e.g. 912-345-678" },
+    { code: "TJ", name: "Tajikistan", flag: "🇹🇯", dialCode: "+992", placeholder: "e.g. 90-123-4567" },
+    { code: "TZ", name: "Tanzania", flag: "🇹🇿", dialCode: "+255", placeholder: "e.g. 71-123-4567" },
+    { code: "TH", name: "Thailand", flag: "🇹🇭", dialCode: "+66", placeholder: "e.g. 2-123-4567" },
+    { code: "TG", name: "Togo", flag: "🇹🇬", dialCode: "+228", placeholder: "e.g. 90-123-456" },
+    { code: "TO", name: "Tonga", flag: "🇹🇴", dialCode: "+676", placeholder: "e.g. 77-1234" },
+    { code: "TT", name: "Trinidad and Tobago", flag: "🇹🇹", dialCode: "+1-868", placeholder: "e.g. 628-1234" },
+    { code: "TN", name: "Tunisia", flag: "🇹🇳", dialCode: "+216", placeholder: "e.g. 20-123-456" },
+    { code: "TR", name: "Turkey", flag: "🇹🇷", dialCode: "+90", placeholder: "e.g. 532-123-4567" },
+    { code: "TM", name: "Turkmenistan", flag: "🇹🇲", dialCode: "+993", placeholder: "e.g. 62-123-456" },
+    { code: "TV", name: "Tuvalu", flag: "🇹🇻", dialCode: "+688", placeholder: "e.g. 90-123" },
+    { code: "UG", name: "Uganda", flag: "🇺🇬", dialCode: "+256", placeholder: "e.g. 77-123-4567" },
+    { code: "UA", name: "Ukraine", flag: "🇺🇦", dialCode: "+380", placeholder: "e.g. 67-123-4567" },
+    { code: "AE", name: "United Arab Emirates", flag: "🇦🇪", dialCode: "+971", placeholder: "e.g. 50-123-4567" },
+    { code: "UY", name: "Uruguay", flag: "🇺🇾", dialCode: "+598", placeholder: "e.g. 99-123-456" },
+    { code: "UZ", name: "Uzbekistan", flag: "🇺🇿", dialCode: "+998", placeholder: "e.g. 90-123-4567" },
+    { code: "VU", name: "Vanuatu", flag: "🇻🇺", dialCode: "+678", placeholder: "e.g. 55-123" },
+    { code: "VE", name: "Venezuela", flag: "🇻🇪", dialCode: "+58", placeholder: "e.g. 412-123-4567" },
+    { code: "YE", name: "Yemen", flag: "🇾🇪", dialCode: "+967", placeholder: "e.g. 77-123-4567" },
+    { code: "ZM", name: "Zambia", flag: "🇿🇲", dialCode: "+260", placeholder: "e.g. 95-123-4567" },
+    { code: "ZW", name: "Zimbabwe", flag: "🇿🇼", dialCode: "+263", placeholder: "e.g. 77-123-4567" }
+  ];
+
+  const SearchableCountrySelect = ({ label, value, onChange, compact = false, showDial = false }) => {
+    const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState("");
+    const inputRef = useRef(null);
+
+    const filtered = COUNTRIES.filter(c =>
+      c.name.toLowerCase().startsWith(search.toLowerCase()) ||
+      c.code.toLowerCase().startsWith(search.toLowerCase()) ||
+      c.dialCode.includes(search)
+    );
+
+    const selected = COUNTRIES.find(c => c.code === value);
+
+    const handleSelect = (code) => {
+      onChange({ target: { value: code } });
+      setOpen(false);
+      setSearch("");
+    };
+
+    return (
+      <div style={{ marginBottom: compact ? 0 : 16, position: "relative" }}>
+        {label && !compact && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          style={{
+            width: compact ? 110 : "100%",
+            padding: "10px 12px",
+            borderRadius: 10,
+            height: 42,
+            border: `1px solid ${BRAND.border}`,
+            fontSize: 14,
+            fontFamily: "inherit",
+            color: BRAND.text,
+            background: "#fff",
+            cursor: "pointer",
+            textAlign: "left",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: compact ? "flex-start" : "space-between",
+          }}
+        >
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>{selected ? (showDial ? <><span>{selected.flag}</span><span style={{ fontWeight: 700 }}>{selected.dialCode}</span></> : selected.name) : (showDial ? "Select" : "Select country")}</span>
+          {!compact && <span>{open ? "▲" : "▼"}</span>}
+        </button>
+        {open && (
+          <div style={{
+            position: "absolute",
+            top: "100%",
+            left: compact ? 0 : 0,
+            right: compact ? "auto" : 0,
+            marginTop: 4,
+            background: "#fff",
+            border: `1px solid ${BRAND.border}`,
+            borderRadius: 10,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            zIndex: 10,
+            maxHeight: 200,
+            overflowY: "auto",
+          }}>
+            <input
+              type="text"
+              placeholder="Search by name or code..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              autoFocus
+              style={{
+                width: "100%",
+                padding: "8px 12px",
+                border: "none",
+                borderBottom: `1px solid ${BRAND.border}`,
+                fontSize: 13,
+                fontFamily: "inherit",
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
+            {filtered.map(country => (
+              <button
+                key={country.code}
+                type="button"
+                onClick={() => handleSelect(country.code)}
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  border: "none",
+                  background: value === country.code ? BRAND.primaryLight : "#fff",
+                  color: BRAND.text,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  borderBottom: `1px solid ${BRAND.border}`,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                {showDial ? (
+                  <>
+                    <span style={{ marginRight: 8 }}>{country.flag}</span>
+                    <span>{country.name}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 12, color: BRAND.textMuted }}>{country.dialCode}</span>
+                  </>
+                ) : (
+                  <span>{country.name}</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+const AuthModal = ({
+  open,
+  view,
+  form,
+  loading,
+  message,
+  onClose,
+  onViewChange,
+  onChange,
+  onSignIn,
+  onRegister,
+  onResetPassword,
+}) => {
+  if (!open) return null;
+
+  const copy = {
+    signin: {
+      title: "Sign in",
+      subtitle: "Use your email and password to access CariGaji.",
+      action: "Sign in",
+    },
+    register: {
+      title: "Register",
+      subtitle: "Create your account and complete your profile and KYC details.",
+      action: "Create account",
+    },
+    reset: {
+      title: "Reset password",
+      subtitle: "We will send a password reset email to your inbox.",
+      action: "Send reset email",
+    },
+  }[view];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(17,24,39,0.58)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <div
+        style={{ width: "100%", maxWidth: view === "register" ? 640 : 440, maxHeight: "90vh", background: "#fff", borderRadius: 20, boxShadow: "0 24px 70px rgba(0,0,0,0.3)", overflow: "hidden", display: "flex", flexDirection: "column" }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ padding: "18px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `linear-gradient(135deg, ${BRAND.primaryLight}, #fff)`, flexShrink: 0 }}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{copy.title}</div>
+            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>
+          </div>
+          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column" }}>
+          {message && (
+            <div style={{ margin: "0 0 16px 0", padding: "12px 14px", borderRadius: 12, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, color: BRAND.text, fontSize: 13, lineHeight: 1.5 }}>
+              {message}
+            </div>
+          )}
+          {view === "signin" && (
+            <form onSubmit={onSignIn}>
+              <Input label="Email address" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
+              <Input label="Password" type="password" placeholder="Enter your password" value={form.password} onChange={e => onChange("password", e.target.value)} />
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: -6, marginBottom: 16 }}>
+                <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>Forget password?</button>
+                <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>No account yet? Register Here</button>
+              </div>
+              <Btn type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{copy.action}</Btn>
+            </form>
+          )}
+
+          {view === "reset" && (
+            <form onSubmit={onResetPassword}>
+              <Input label="Email address" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: -6, marginBottom: 16, lineHeight: 1.5 }}>We will email you a secure link to reset your password.</div>
+              <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>Back</Btn>
+                <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
+              </div>
+            </form>
+          )}
+
+          {view === "register" && (
+            <form onSubmit={onRegister}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <Input label="Full name *" placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} />
+                  <SearchableCountrySelect label="Country *" value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
+              </div>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Phone number *</label>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                    <div style={{ flex: "0 0 auto" }}>
+                      <SearchableCountrySelect value={form.countryCode} onChange={e => onChange("countryCode", e.target.value)} compact showDial />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Input 
+                        placeholder={COUNTRIES.find(c => c.code === form.countryCode)?.placeholder || "Enter phone number"}
+                        value={form.phone} 
+                        onChange={e => onChange("phone", e.target.value)} 
+                        style={{ marginBottom: 0 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <Input label="Email address *" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
+                <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} />
+              </div>
+              {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
+                <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>Passwords do not match.</div>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <Select
+                  label="Identity type *"
+                  value={form.identityType}
+                  onChange={e => {
+                    const nextType = e.target.value;
+                    onChange("identityType", nextType);
+                    onChange("idNumber", "");
+                  }}
+                  options={[
+                    { value: "MyKad", label: "IC (MyKad)" },
+                    { value: "Passport", label: "Passport" },
+                    { value: "MyPR", label: "MyPR" },
+                  ]}
+                />
+                <Input
+                  label={form.identityType === "MyKad" ? "MyKad Number *" : form.identityType === "MyPR" ? "MyPR Number *" : "Passport Number *"}
+                  placeholder={["MyKad", "MyPR"].includes(form.identityType) ? "XXXXXX-XX-XXXX" : "A1234567"}
+                  value={form.idNumber}
+                  onChange={e => {
+                    const formatted = formatIdentityNumber(e.target.value, form.identityType);
+                    onChange("idNumber", formatted);
+                    if (form.identityType === "MyKad") {
+                      const extractedDate = extractDateFromIC(formatted);
+                      if (extractedDate) onChange("dateOfBirth", extractedDate);
+                    }
+                  }}
+                />
+              </div>
+              <Input
+                label="Date of birth *"
+                type="date"
+                value={form.dateOfBirth}
+                onChange={e => onChange("dateOfBirth", e.target.value)}
+              />
+              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -12, marginBottom: 16 }}>
+                Your KYC level will be assigned based on uploaded documents.
+              </div>
+              <Input label="Address *" placeholder="Street, city, state" value={form.address} onChange={e => onChange("address", e.target.value)} />
+              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>KYC documents</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FileInput label="MyKad front *" accept="image/*,application/pdf" onChange={e => onChange("kycFront", e.target.files?.[0] || null)} fileName={form.kycFront?.name} helper="Upload a photo or PDF of the front side." />
+                <FileInput label="MyKad back *" accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper="Upload a photo or PDF of the back side." />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FileInput label="Selfie *" accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper="Upload a clear selfie for identity verification." />
+                <FileInput label="Certification" accept="image/*,application/pdf" onChange={e => onChange("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper="Optional: food handler, first aid, or other certifications." />
+              </div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
+                Add your personal and KYC details now. Selected files will be uploaded to Supabase Storage during registration.
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>Back</Btn>
+                <Btn type="submit" disabled={loading || (form.password !== form.confirmPassword) || form.password === ""} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 const SHIFTS = [
@@ -210,7 +787,7 @@ const CHAT_MESSAGES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   const [tab, setTab] = useState("discover");
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -221,6 +798,31 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
   const [bidSuccess, setBidSuccess] = useState(false);
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
+  const [liveApplications, setLiveApplications] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadApplications = async () => {
+      if (!user) return setLiveApplications(null);
+      const { data, error } = await supabase
+        .from('applications')
+        .select('id, wage_ask, status, applied_at, shift:shifts(title, start_at)')
+        .eq('worker_id', user.id)
+        .order('applied_at', { ascending: false });
+      if (!active) return;
+      if (error) { setLiveApplications(null); return; }
+      setLiveApplications((data ?? []).map(a => ({
+        id: a.id,
+        shiftTitle: a.shift?.title ?? 'Shift',
+        employer: '',
+        date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : 'TBA',
+        wageBid: Number(a.wage_ask ?? 0),
+        status: a.status,
+      })));
+    };
+    loadApplications();
+    return () => { active = false; };
+  }, [user]);
 
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
   const filtered = filterCat === "All" ? SHIFTS.filter(s => s.status === "open") : SHIFTS.filter(s => s.category === filterCat && s.status === "open");
@@ -238,6 +840,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
     { id: "profile", label: "Profile", icon: "👤" },
     { id: "settings", label: "Settings", icon: "⚙️" },
   ];
+
+  const handleWorkerNavClick = (nextTab) => {
+    setShowQR(false);
+    setShowChat(false);
+    setShowBidModal(false);
+    setSelectedShift(null);
+    setTab(nextTab);
+  };
 
   // Modal content - rendered on top of main content
   if (showQR) return (
@@ -257,7 +867,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
       </div>
       <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
         {navItems.map(n => (
-          <button key={n.id} onClick={() => setTab(n.id)} style={{
+          <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
             display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
@@ -310,7 +920,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
       </div>
       <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
         {navItems.map(n => (
-          <button key={n.id} onClick={() => { setShowChat(false); setTab(n.id); }} style={{
+          <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
             display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
@@ -345,10 +955,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="secondary" onClick={() => setShowBidModal(false)} style={{ flex: 1 }}>Cancel</Btn>
               <Btn onClick={() => {
-                if (!bidAmount) return;
-                if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { alert(`Max bid is RM${(selectedShift.wageMax * 1.5).toFixed(0)}/h`); return; }
-                setShowBidModal(false); setBidSuccess(true);
-                setTimeout(() => { setBidSuccess(false); setSelectedShift(null); setTab("applications"); }, 2000);
+                (async () => {
+                  if (!bidAmount) return;
+                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { alert(`Max bid is RM${(selectedShift.wageMax * 1.5).toFixed(0)}/h`); return; }
+                  if (!user) { alert('Please sign in before applying.'); return; }
+                  // Guard: mock shifts use numeric ids — require a real UUID id to insert
+                  if (typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) {
+                    alert('Cannot apply to a mock shift. Please use a real shift from the database.');
+                    return;
+                  }
+
+                  const payload = {
+                    shift_id: selectedShift.id,
+                    worker_id: user.id,
+                    wage_ask: Number(bidAmount),
+                  };
+
+                  const { data, error } = await supabase.from('applications').insert(payload).select();
+                  if (error) {
+                    // Unique constraint or FK errors will appear here
+                    alert('Failed to submit application: ' + error.message);
+                    return;
+                  }
+
+                  // Update local UI state and liveApplications cache if present
+                  setShowBidModal(false);
+                  setBidSuccess(true);
+                  setLiveApplications(prev => prev ? [{ id: data[0].id, shiftId: selectedShift.id, shiftTitle: selectedShift.title, employer: selectedShift.employer, date: selectedShift.date, wageBid: Number(bidAmount), status: data[0].status || 'pending', appliedAt: data[0].applied_at }, ...prev] : null);
+                  setTimeout(() => { setBidSuccess(false); setSelectedShift(null); setTab('applications'); }, 2000);
+                })();
               }} style={{ flex: 1 }}>Submit Bid →</Btn>
             </div>
           </div>
@@ -415,7 +1050,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
       </div>
       <div style={{ borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: isMobile ? 60 : 72 }}>
         {navItems.map(n => (
-          <button key={n.id} onClick={() => setTab(n.id)} style={{
+          <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
             display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
@@ -493,7 +1128,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {APPLICATIONS.map(a => (
+              {(liveApplications ?? APPLICATIONS).map(a => (
                 <Card key={a.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
@@ -659,12 +1294,41 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false }) => {
 };
 
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
-const EmployerPortal = ({ onOpenPortal, compact = false }) => {
+const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [view, setView] = useState("dashboard");
   const [selectedShift, setSelectedShift] = useState(null);
   const [postStep, setPostStep] = useState(1);
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre" });
   const [applicantAction, setApplicantAction] = useState({});
+  const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (!user) return setLiveEmployerShifts(null);
+      const { data, error } = await supabase
+        .from('shifts')
+        .select('id, title, category, start_at, end_at, headcount, filled_count, status')
+        .eq('employer_id', user.id)
+        .order('start_at', { ascending: false });
+      if (!active) return;
+      if (error) { setLiveEmployerShifts(null); return; }
+      setLiveEmployerShifts((data ?? []).map(s => ({
+        id: s.id,
+        title: s.title,
+        date: s.start_at ? new Date(s.start_at).toLocaleDateString('en-MY') : 'TBA',
+        time: s.start_at && s.end_at ? `${new Date(s.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${new Date(s.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'TBA',
+        headcount: s.headcount ?? 1,
+        filled: s.filled_count ?? 0,
+        applicants: 0,
+        status: s.status,
+        escrow: 0,
+        category: s.category,
+      })));
+    };
+    load();
+    return () => { active = false; };
+  }, [user]);
 
   const navItems = ["Dashboard", "Shifts", "Post Shift", "Billing", "Account"];
 
@@ -717,7 +1381,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false }) => {
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Active Shifts</div>
-                {EMPLOYER_SHIFTS.filter(s => s.status !== "draft").map(s => (
+                {(liveEmployerShifts ?? EMPLOYER_SHIFTS).filter(s => s.status !== "draft").map(s => (
                   <Card key={s.id} onClick={() => { setSelectedShift(s); setView("shifts"); }} hover style={{ marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
@@ -761,7 +1425,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false }) => {
               </div>
               <Btn onClick={() => { setView("postshift"); setPostStep(1); }}>+ Post Shift</Btn>
             </div>
-            {EMPLOYER_SHIFTS.map(s => (
+            {(liveEmployerShifts ?? EMPLOYER_SHIFTS).map(s => (
               <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ flex: 1 }}>
@@ -1320,7 +1984,178 @@ const AdminPortal = ({ onOpenPortal, compact = false }) => {
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
+  const [user, setUser] = useState(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authView, setAuthView] = useState("signin");
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState("");
+  const [authForm, setAuthForm] = useState({
+    fullName: "",
+      countryCode: "MY",
+    countryOfOrigin: "MY",
+    phone: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    identityType: "MyKad",
+    idNumber: "",
+    dateOfBirth: "",
+    kycLevel: "Basic",
+    address: "",
+    kycFront: null,
+    kycBack: null,
+    selfie: null,
+    supportingDoc: null,
+  });
   const [viewport, setViewport] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
+
+  const openAuthModal = (view = "signin") => {
+    setAuthView(view);
+    setAuthMessage("");
+    setAuthOpen(true);
+  };
+
+  const updateAuthField = (field, value) => {
+    setAuthForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const authRedirectUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : undefined;
+
+  const handleSignIn = async (event) => {
+    event.preventDefault();
+    setAuthLoading(true);
+    setAuthMessage("");
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authForm.email,
+      password: authForm.password,
+    });
+    setAuthLoading(false);
+    if (error) {
+      setAuthMessage(error.message);
+      return;
+    }
+    setAuthOpen(false);
+    setAuthForm(prev => ({ ...prev, password: "" }));
+  };
+
+  const handleResetPassword = async (event) => {
+    event.preventDefault();
+    setAuthLoading(true);
+    setAuthMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(authForm.email, { redirectTo: authRedirectUrl });
+    setAuthLoading(false);
+    if (error) {
+      setAuthMessage(error.message);
+      return;
+    }
+    setAuthMessage("Password reset email sent. Check your inbox to continue.");
+  };
+
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    if (authForm.password !== authForm.confirmPassword) {
+      setAuthMessage("Passwords do not match.");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthMessage("");
+    const autoKycLevel = assignKYCLevel(
+      Boolean(authForm.kycFront),
+      Boolean(authForm.kycBack),
+      Boolean(authForm.selfie),
+      Boolean(authForm.supportingDoc)
+    );
+    const { data, error } = await supabase.auth.signUp({
+      email: authForm.email,
+      password: authForm.password,
+      options: {
+        emailRedirectTo: authRedirectUrl,
+        data: {
+          full_name: authForm.fullName,
+            phone: `${COUNTRIES.find(c => c.code === authForm.countryCode)?.dialCode || "+60"}${authForm.phone}`,
+          identity_type: authForm.identityType,
+          id_number: authForm.idNumber,
+          date_of_birth: authForm.dateOfBirth,
+          kyc_level: autoKycLevel,
+          address: authForm.address,
+        },
+      },
+    });
+    if (error) {
+      setAuthLoading(false);
+      setAuthMessage(error.message);
+      return;
+    }
+
+    const registeredUserId = data?.user?.id;
+    const hasSession = Boolean(data?.session);
+    if (registeredUserId && hasSession) {
+      try {
+        const uploadTasks = [
+          ["kyc_front", authForm.kycFront],
+          ["kyc_back", authForm.kycBack],
+          ["selfie", authForm.selfie],
+          ["supporting_doc", authForm.supportingDoc],
+        ]
+          .filter(([, file]) => file)
+          .map(async ([label, file]) => [label, await uploadKycFile(registeredUserId, file, label)]);
+
+        const uploadedEntries = await Promise.all(uploadTasks);
+        const kycRefs = Object.fromEntries(uploadedEntries);
+
+        if (Object.keys(kycRefs).length > 0) {
+          const { error: profileError } = await supabase.auth.updateUser({
+            data: {
+              ...data.user.user_metadata,
+              ...kycRefs,
+            },
+          });
+          if (profileError) throw profileError;
+        }
+
+        setAuthMessage("Registration completed. Your KYC documents were uploaded successfully.");
+      } catch (uploadError) {
+        setAuthMessage(`Registration completed, but KYC upload needs attention: ${uploadError.message}`);
+      }
+    } else {
+      setAuthMessage("Registration submitted. Check your email if confirmation is enabled, then sign in to finish KYC upload.");
+    }
+
+    setAuthLoading(false);
+    setAuthForm({
+      fullName: "",
+        countryCode: "MY",
+      countryOfOrigin: "MY",
+      phone: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      identityType: "MyKad",
+      idNumber: "",
+      dateOfBirth: "",
+      kycLevel: "Basic",
+      address: "",
+      kycFront: null,
+      kycBack: null,
+      selfie: null,
+      supportingDoc: null,
+    });
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!mounted) return;
+      setUser(data?.user ?? null);
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => { mounted = false; sub.subscription.unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -1384,18 +2219,44 @@ export default function CariGaji() {
             </div>
             <div style={{ fontSize: isMobile ? 10 : 12, color: BRAND.textMuted }}>Verified shift marketplace</div>
           </div>
-          {!isMobile && (
-            <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
-              {cfg.label}
-            </Badge>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {!isMobile && (
+              <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
+                {cfg.label}
+              </Badge>
+            )}
+            {user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{user.email}</div>
+                <Btn size="sm" variant="ghost" onClick={async () => { await supabase.auth.signOut(); setUser(null); }}>Sign out</Btn>
+              </div>
+            ) : (
+              <Btn size="sm" variant="primary" onClick={() => openAuthModal("signin")}>Sign in</Btn>
+            )}
+          </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} />}
-          {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} />}
+          {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} />}
         </div>
       </div>
+      <AuthModal
+        open={authOpen}
+        view={authView}
+        form={authForm}
+        loading={authLoading}
+        message={authMessage}
+        onClose={() => setAuthOpen(false)}
+        onViewChange={view => {
+          setAuthView(view);
+          setAuthMessage("");
+        }}
+        onChange={updateAuthField}
+        onSignIn={handleSignIn}
+        onRegister={handleRegister}
+        onResetPassword={handleResetPassword}
+      />
     </div>
   );
 }
