@@ -692,7 +692,7 @@ const AuthModal = ({
           {view === "signin" && (
             <form onSubmit={onSignIn}>
               <Input label="Email address" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
-              <Input label="Password" type="password" placeholder="Enter your password" value={form.password} onChange={e => onChange("password", e.target.value)} />
+              <PasswordInput label="Password" placeholder="Enter your password" value={form.password} onChange={e => onChange("password", e.target.value)} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: -6, marginBottom: 16 }}>
                 <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>Forget password?</button>
                 <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>No account yet? Register Here</button>
@@ -739,7 +739,7 @@ const AuthModal = ({
                 <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} />
+                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
                 <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>Passwords do not match.</div>
