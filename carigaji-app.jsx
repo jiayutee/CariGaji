@@ -123,7 +123,7 @@ const Input = ({ label, placeholder, value, onChange, type = "text", style = {} 
   </div>
 );
 
-const PasswordInput = ({ label, placeholder, value, onChange, style = {} }) => {
+const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideToggle = false }) => {
   const [show, setShow] = useState(false);
   return (
     <div style={{ marginBottom: 16, position: "relative", ...style }}>
@@ -141,20 +141,22 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {} }) => {
             boxSizing: "border-box", height: 42, lineHeight: "20px",
           }}
         />
-        <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? "Hide password" : "Show password"} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-          {show ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 3L21 21" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M10.58 10.58A3 3 0 0 0 13.42 13.42" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2.05 12.6A11 11 0 0 0 12 20c2.1 0 4.09-.5 5.95-1.4" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
-        </button>
+        {!hideToggle && (
+          <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? "Hide password" : "Show password"} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+            {show ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 3L21 21" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10.58 10.58A3 3 0 0 0 13.42 13.42" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2.05 12.6A11 11 0 0 0 12 20c2.1 0 4.09-.5 5.95-1.4" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -737,7 +739,7 @@ const AuthModal = ({
                 <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} />
+                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
                 <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>Passwords do not match.</div>
