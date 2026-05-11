@@ -12,6 +12,9 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: https://eqxpskyymohghxgtykfr.supabase.co
+      VITE_SUPABASE_ANON_KEY: sb_publishable_OcU6L9FZuqwzmjuHBlaTBQ_RbqOyANk
     steps:
       - uses: actions/checkout@v4
       
