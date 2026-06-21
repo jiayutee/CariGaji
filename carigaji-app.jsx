@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./src/lib/supabase.js";
+import { runInternalPayoutScheduling } from "./src/lib/payouts/scheduler.js";
+import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTheme, readThemePreference, resolveThemeMode, writeThemePreference } from "./src/lib/theme.js";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────
 const BRAND = {
@@ -17,17 +19,59 @@ const BRAND = {
   amberLight: "#FEF3C7",
   red: "#DC2626",
   redLight: "#FEE2E2",
-  gray: "#6B7280",
-  grayLight: "#F9FAFB",
-  border: "#E5E7EB",
-  text: "#111827",
-  textMuted: "#6B7280",
+  gray: "var(--cg-text-muted)",
+  grayLight: "var(--cg-surface-muted)",
+  surface: "var(--cg-surface)",
+  surfaceElevated: "var(--cg-surface-elevated)",
+  panel: "var(--cg-panel)",
+  input: "var(--cg-input)",
+  page: "var(--cg-page)",
+  border: "var(--cg-border)",
+  text: "var(--cg-text)",
+  textMuted: "var(--cg-text-muted)",
+  shadow: "var(--cg-shadow)",
+  overlay: "var(--cg-overlay)",
+};
+
+const MALAYSIAN_BANK_OPTIONS = [
+  "Maybank",
+  "CIMB",
+  "Public Bank",
+  "RHB",
+  "Hong Leong Bank",
+  "AmBank",
+  "Bank Islam",
+  "Bank Rakyat",
+  "OCBC",
+  "HSBC",
+  "UOB",
+];
+
+const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
+
+const maskAccountNumber = (accountNumber = "") => {
+  const digits = String(accountNumber).replace(/\D/g, "");
+  if (digits.length <= 4) return digits || "Not set";
+  return `•••• •••• ${digits.slice(-4)}`;
+};
+
+const mapVerificationPillColor = (status) => {
+  if (status === "verified") return "green";
+  if (status === "rejected") return "red";
+  return "amber";
+};
+
+const mapPayoutPillColor = (status) => {
+  if (["processed_internal", "released", "paid"].includes(status)) return "green";
+  if (status === "held") return "red";
+  if (["ready", "scheduled", "processing"].includes(status)) return "blue";
+  return "gray";
 };
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
 const Badge = ({ color = "gray", children, size = "sm" }) => {
   const map = {
-    gray: { bg: "#F3F4F6", text: "#374151" },
+    gray: { bg: BRAND.grayLight, text: BRAND.textMuted },
     green: { bg: BRAND.greenLight, text: "#065F46" },
     red: { bg: BRAND.redLight, text: "#991B1B" },
     amber: { bg: BRAND.amberLight, text: "#92400E" },
@@ -52,7 +96,7 @@ const Badge = ({ color = "gray", children, size = "sm" }) => {
 
 const Card = ({ children, style = {}, onClick, hover = false }) => (
   <div onClick={onClick} style={{
-    background: "#fff",
+    background: BRAND.surface,
     border: `1px solid ${BRAND.border}`,
     borderRadius: 16,
     padding: "20px 24px",
@@ -60,7 +104,7 @@ const Card = ({ children, style = {}, onClick, hover = false }) => (
     transition: "box-shadow 0.15s, transform 0.15s",
     ...style,
   }}
-    onMouseEnter={e => { if (hover || onClick) { e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)"; e.currentTarget.style.transform = "translateY(-1px)"; } }}
+    onMouseEnter={e => { if (hover || onClick) { e.currentTarget.style.boxShadow = `0 4px 20px ${BRAND.shadow}`; e.currentTarget.style.transform = "translateY(-1px)"; } }}
     onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
   >{children}</div>
 );
@@ -116,7 +160,7 @@ const Input = ({ label, placeholder, value, onChange, type = "text", style = {} 
       style={{
         width: "100%", padding: "10px 14px", borderRadius: 10,
         border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit",
-        color: BRAND.text, background: "#fff", outline: "none",
+        color: BRAND.text, background: BRAND.input, outline: "none",
         boxSizing: "border-box",
       }}
     />
@@ -137,7 +181,7 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
           style={{
             width: "100%", padding: "10px 14px", borderRadius: 10,
             border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit",
-            color: BRAND.text, background: "#fff", outline: "none",
+            color: BRAND.text, background: BRAND.input, outline: "none",
             boxSizing: "border-box", height: 42, lineHeight: "20px",
           }}
         />
@@ -177,7 +221,7 @@ const FileInput = ({ label, onChange, accept, helper, fileName }) => (
         fontSize: 14,
         fontFamily: "inherit",
         color: BRAND.text,
-        background: "#fff",
+        background: BRAND.input,
         outline: "none",
         boxSizing: "border-box",
       }}
@@ -196,7 +240,7 @@ const Select = ({ label, options, value, onChange, style = {} }) => (
     <select value={value} onChange={onChange} style={{
       width: "100%", padding: "10px 14px", borderRadius: 10,
       border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit",
-      color: BRAND.text, background: "#fff", outline: "none",
+      color: BRAND.text, background: BRAND.input, outline: "none",
     }}>
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
@@ -207,8 +251,8 @@ const Pill = ({ label, color }) => (
   <span style={{
     display: "inline-block", padding: "2px 10px", borderRadius: 99,
     fontSize: 11, fontWeight: 600,
-    background: color === "green" ? BRAND.greenLight : color === "red" ? BRAND.redLight : color === "amber" ? BRAND.amberLight : color === "blue" ? BRAND.blueLight : "#F3F4F6",
-    color: color === "green" ? "#065F46" : color === "red" ? "#991B1B" : color === "amber" ? "#92400E" : color === "blue" ? "#1E40AF" : "#374151",
+    background: color === "green" ? BRAND.greenLight : color === "red" ? BRAND.redLight : color === "amber" ? BRAND.amberLight : color === "blue" ? BRAND.blueLight : BRAND.grayLight,
+    color: color === "green" ? "#065F46" : color === "red" ? "#991B1B" : color === "amber" ? "#92400E" : color === "blue" ? "#1E40AF" : BRAND.textMuted,
   }}>{label}</span>
 );
 
@@ -216,9 +260,9 @@ const StarRating = ({ value = 4.5, size = 14 }) => {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     stars.push(
-      <span key={i} style={{ color: i <= Math.round(value) ? BRAND.accent : "#D1D5DB", fontSize: size }}>
+      <span key={i} style={{ color: i <= Math.round(value) ? BRAND.accent : BRAND.border, fontSize: size }}>
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "inline-block", verticalAlign: "middle" }}>
-          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill={i <= Math.round(value) ? BRAND.accent : "#D1D5DB"} />
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill={i <= Math.round(value) ? BRAND.accent : BRAND.border} />
         </svg>
       </span>
     );
@@ -291,7 +335,7 @@ const Icons = {
 };
 
 const Progress = ({ value, max = 100, color = BRAND.primary }) => (
-  <div style={{ height: 6, background: "#F3F4F6", borderRadius: 99, overflow: "hidden" }}>
+  <div style={{ height: 6, background: BRAND.grayLight, borderRadius: 99, overflow: "hidden" }}>
     <div style={{ height: "100%", width: `${(value / max) * 100}%`, background: color, borderRadius: 99, transition: "width 0.3s" }} />
   </div>
 );
@@ -556,7 +600,7 @@ const uploadKycFile = async (userId, file, label) => {
             fontSize: 14,
             fontFamily: "inherit",
             color: BRAND.text,
-            background: "#fff",
+            background: BRAND.input,
             cursor: "pointer",
             textAlign: "left",
             display: "flex",
@@ -574,10 +618,10 @@ const uploadKycFile = async (userId, file, label) => {
             left: compact ? 0 : 0,
             right: compact ? "auto" : 0,
             marginTop: 4,
-            background: "#fff",
+            background: BRAND.surface,
             border: `1px solid ${BRAND.border}`,
             borderRadius: 10,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            boxShadow: `0 4px 12px ${BRAND.shadow}`,
             zIndex: 10,
             maxHeight: 200,
             overflowY: "auto",
@@ -672,10 +716,10 @@ const AuthModal = ({
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(17,24,39,0.58)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div
-        style={{ width: "100%", maxWidth: view === "register" ? 640 : 440, maxHeight: "90vh", background: "#fff", borderRadius: 20, boxShadow: "0 24px 70px rgba(0,0,0,0.3)", overflow: "hidden", display: "flex", flexDirection: "column" }}
+        style={{ width: "100%", maxWidth: view === "register" ? 640 : 440, maxHeight: "90vh", background: BRAND.surface, borderRadius: 20, boxShadow: `0 24px 70px ${BRAND.shadow}`, overflow: "hidden", display: "flex", flexDirection: "column" }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ padding: "18px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `linear-gradient(135deg, ${BRAND.primaryLight}, #fff)`, flexShrink: 0 }}>
+        <div style={{ padding: "18px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `linear-gradient(135deg, ${BRAND.primaryLight}, ${BRAND.surface})`, flexShrink: 0 }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{copy.title}</div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>
@@ -869,9 +913,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
   const [liveApplications, setLiveApplications] = useState(null);
+  const [workerBanking, setWorkerBanking] = useState(null);
+  const [workerBankForm, setWorkerBankForm] = useState({
+    bankName: MALAYSIAN_BANK_OPTIONS[0],
+    accountHolderName: "",
+    accountNumber: "",
+  });
+  const [bankingLoading, setBankingLoading] = useState(false);
+  const [bankingMessage, setBankingMessage] = useState("");
+  const [livePayouts, setLivePayouts] = useState(null);
 
-  const navHeight = isMobile ? 60 : 72;
-  const navPadding = navHeight + 16;
+  const navBaseHeight = isMobile ? 60 : 72;
+  const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
+  const navHeight = `calc(${navBaseHeight}px + ${navSafeAreaInset})`;
+  const navPadding = `calc(16px + ${navSafeAreaInset})`;
 
   useEffect(() => {
     let active = true;
@@ -897,8 +952,141 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
     return () => { active = false; };
   }, [user]);
 
+  useEffect(() => {
+    let active = true;
+    const loadWorkerPayoutData = async () => {
+      if (!user) {
+        setWorkerBanking(null);
+        setLivePayouts(null);
+        return;
+      }
+
+      const [{ data: bankData, error: bankError }, { data: payoutData, error: payoutError }] = await Promise.all([
+        supabase
+          .from("banking_details")
+          .select("id, bank_name, account_holder_name, account_number_last4, verification_status, verification_provider, verified_at")
+          .eq("user_id", user.id)
+          .eq("role", "worker")
+          .maybeSingle(),
+        supabase
+          .from("payout_item")
+          .select("id, amount, scheduled_date, status, source_refs, created_at")
+          .eq("worker_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10),
+      ]);
+
+      if (!active) return;
+
+      if (!bankError) {
+        setWorkerBanking(bankData ?? null);
+        if (bankData) {
+          setWorkerBankForm({
+            bankName: bankData.bank_name || MALAYSIAN_BANK_OPTIONS[0],
+            accountHolderName: bankData.account_holder_name || "",
+            accountNumber: bankData.account_number_last4 || "",
+          });
+        }
+      }
+
+      if (!payoutError) {
+        setLivePayouts(payoutData ?? []);
+      }
+    };
+
+    loadWorkerPayoutData();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const saveWorkerBankingDetails = async () => {
+    if (!user) {
+      setBankingMessage("Sign in to save banking details.");
+      return;
+    }
+    if (!workerBankForm.accountHolderName.trim() || !workerBankForm.accountNumber.trim()) {
+      setBankingMessage("Account holder name and account number are required.");
+      return;
+    }
+
+    setBankingLoading(true);
+    setBankingMessage("");
+    const accountDigits = workerBankForm.accountNumber.replace(/\D/g, "");
+    const payload = {
+      user_id: user.id,
+      role: "worker",
+      bank_name: workerBankForm.bankName,
+      bank_code: workerBankForm.bankName.toUpperCase().replace(/\s+/g, "_"),
+      account_holder_name: workerBankForm.accountHolderName.trim(),
+      account_number_last4: accountDigits.slice(-4),
+      account_number_encrypted: `enc:${accountDigits}`,
+      verification_status: workerBanking?.verification_status || "pending",
+    };
+
+    const { data, error } = await supabase
+      .from("banking_details")
+      .upsert(payload, { onConflict: "user_id,role" })
+      .select("id, bank_name, account_holder_name, account_number_last4, verification_status, verification_provider, verified_at")
+      .single();
+
+    setBankingLoading(false);
+    if (error) {
+      setBankingMessage(`Unable to save banking details: ${error.message}`);
+      return;
+    }
+    setWorkerBanking(data);
+    setBankingMessage("Banking details saved. Please verify with SecureSign.");
+  };
+
+  const verifyWorkerBankingDetails = async () => {
+    if (!workerBanking?.id) {
+      setBankingMessage("Save banking details before starting verification.");
+      return;
+    }
+
+    setBankingLoading(true);
+    setBankingMessage("");
+    const { data, error } = await supabase
+      .from("banking_details")
+      .update({
+        verification_status: "verified",
+        verification_provider: "secure_sign_sim",
+        verification_reference: `SEC-${Date.now()}`,
+        verified_at: new Date().toISOString(),
+      })
+      .eq("id", workerBanking.id)
+      .select("id, bank_name, account_holder_name, account_number_last4, verification_status, verification_provider, verified_at")
+      .single();
+
+    setBankingLoading(false);
+    if (error) {
+      setBankingMessage(`Verification failed: ${error.message}`);
+      return;
+    }
+    setWorkerBanking(data);
+    setBankingMessage("SecureSign verification completed.");
+  };
+
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
   const filtered = filterCat === "All" ? SHIFTS.filter(s => s.status === "open") : SHIFTS.filter(s => s.category === filterCat && s.status === "open");
+  const payoutRows = (livePayouts && livePayouts.length > 0)
+    ? livePayouts.map((p) => ({
+      id: p.id,
+      shift: p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Completed shift",
+      amount: Number(p.amount || 0),
+      date: p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA",
+      status: p.status,
+      travel: 0,
+    }))
+    : [
+      { id: "mock-1", shift: "Event Crew – Music Festival", amount: 200, date: "10 Jun", status: "processed_internal", travel: 10 },
+      { id: "mock-2", shift: "F&B Server – KLCC", amount: 85, date: "5 Jun", status: "processed_internal", travel: 5 },
+      { id: "mock-3", shift: "Retail Promoter – Pavilion", amount: 120, date: "28 May", status: "processed_internal", travel: 0 },
+    ];
+
+  const totalEarned = payoutRows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const payoutEligibility = workerBanking?.verification_status === "verified";
 
   const sendMsg = () => {
     if (!chatMsg.trim()) return;
@@ -922,10 +1110,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
     setTab(nextTab);
   };
 
+  const navBarStyle = {
+    position: "sticky",
+    bottom: 0,
+    width: "100%",
+    zIndex: 20,
+    boxShadow: `0 -6px 20px ${BRAND.shadow}`,
+    borderTop: `1px solid ${BRAND.border}`,
+    background: BRAND.surface,
+    display: "flex",
+    flexShrink: 0,
+    height: navHeight,
+    paddingBottom: navSafeAreaInset,
+    marginTop: "auto",
+  };
+
   // Modal content - rendered on top of main content
   if (showQR) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, paddingBottom: navPadding, background: "#fff", overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
         <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
@@ -938,7 +1141,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
         <Btn onClick={() => { setShowQR(false); alert("✅ Checked in at 18:02! Reliability +0 (on time)"); }}>Simulate Successful Check-in</Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
       </div>
-      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
+      <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -956,42 +1159,44 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
 
   if (showChat) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: "#fff", flexShrink: 0 }}>
-        <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }} aria-label="Back">{Icons.ArrowLeft({ size: 18 })}</button>
-        <Avatar name="Grand Hyatt KL" size={36} color={BRAND.blue} />
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>Grand Hyatt KL</div>
-          <div style={{ fontSize: 12, color: BRAND.green }}>● Online</div>
-        </div>
-        <div style={{ marginLeft: "auto" }}>
-          <Badge color="orange">F&B Server Shift</Badge>
-        </div>
-      </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: 16, paddingBottom: navPadding, display: "flex", flexDirection: "column", gap: 12, background: BRAND.grayLight, minHeight: 0 }}>
-        {messages.map(m => (
-          <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
-            {m.from === "system" ? (
-              <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.accent}30`, borderRadius: 12, padding: "10px 16px", fontSize: 13, color: BRAND.amber, maxWidth: "85%", textAlign: "center", cursor: "pointer" }}
-                onClick={() => alert("📋 Offer: RM14/h × 5 hours = RM70 total\nTravel stipend: RM5\nStart: 15 Jun 18:00\nDress: All black formal\n\nAccept or Decline?")}>
-                {m.text}
-              </div>
-            ) : (
-              <div style={{ background: m.from === "worker" ? BRAND.primary : "#fff", borderRadius: 14, padding: "10px 14px", maxWidth: "75%", border: m.from === "employer" ? `1px solid ${BRAND.border}` : "none" }}>
-                <div style={{ fontSize: 13, color: m.from === "worker" ? "#fff" : BRAND.text, lineHeight: 1.5 }}>{m.text}</div>
-                <div style={{ fontSize: 10, color: m.from === "worker" ? "rgba(255,255,255,0.7)" : BRAND.textMuted, marginTop: 4 }}>{m.time}</div>
-              </div>
-            )}
+      <div style={{ flex: 1, overflowY: "auto", background: BRAND.grayLight, minHeight: 0, paddingBottom: navPadding }}>
+        <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: BRAND.surface, flexShrink: 0 }}>
+          <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }} aria-label="Back">{Icons.ArrowLeft({ size: 18 })}</button>
+          <Avatar name="Grand Hyatt KL" size={36} color={BRAND.blue} />
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>Grand Hyatt KL</div>
+            <div style={{ fontSize: 12, color: BRAND.green }}>● Online</div>
           </div>
-        ))}
+          <div style={{ marginLeft: "auto" }}>
+            <Badge color="orange">F&B Server Shift</Badge>
+          </div>
+        </div>
+        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+          {messages.map(m => (
+            <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
+              {m.from === "system" ? (
+                <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.accent}30`, borderRadius: 12, padding: "10px 16px", fontSize: 13, color: BRAND.amber, maxWidth: "85%", textAlign: "center", cursor: "pointer" }}
+                  onClick={() => alert("📋 Offer: RM14/h × 5 hours = RM70 total\nTravel stipend: RM5\nStart: 15 Jun 18:00\nDress: All black formal\n\nAccept or Decline?")}>
+                  {m.text}
+                </div>
+              ) : (
+                <div style={{ background: m.from === "worker" ? BRAND.primary : BRAND.surface, borderRadius: 14, padding: "10px 14px", maxWidth: "75%", border: m.from === "employer" ? `1px solid ${BRAND.border}` : "none" }}>
+                  <div style={{ fontSize: 13, color: m.from === "worker" ? "#fff" : BRAND.text, lineHeight: 1.5 }}>{m.text}</div>
+                  <div style={{ fontSize: 10, color: m.from === "worker" ? "rgba(255,255,255,0.7)" : BRAND.textMuted, marginTop: 4 }}>{m.time}</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: BRAND.surface, display: "flex", gap: 8, flexShrink: 0 }}>
+          <input value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
+            placeholder="Type a message…"
+            style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", outline: "none", background: BRAND.input, color: BRAND.text }}
+          />
+          <Btn onClick={sendMsg}>Send</Btn>
+        </div>
       </div>
-      <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", gap: 8, flexShrink: 0, marginBottom: navHeight }}>
-        <input value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
-          placeholder="Type a message…"
-          style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", outline: "none" }}
-        />
-        <Btn onClick={sendMsg}>Send</Btn>
-      </div>
-      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
+      <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -1011,8 +1216,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   if (selectedShift) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {showBidModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
-          <div style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
+        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
+          <div style={{ background: BRAND.surface, borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
             <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.text, marginBottom: 4 }}>Place Your Bid</div>
             <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>
               Employer range: RM{selectedShift.wageMin}–RM{selectedShift.wageMax}/h · Max bid: RM{(selectedShift.wageMax * 1.5).toFixed(0)}/h
@@ -1063,8 +1268,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
         </div>
       )}
       {bidSuccess && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
+        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
+          <div style={{ background: BRAND.surface, borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
             <div style={{ fontSize: isMobile ? 40 : 48, marginBottom: 12 }}>🎉</div>
             <div style={{ fontWeight: 800, fontSize: isMobile ? 18 : 20, color: BRAND.text }}>Bid Submitted!</div>
             <div style={{ color: BRAND.textMuted, fontSize: isMobile ? 12 : 14, marginTop: 8 }}>RM{bidAmount}/h · You'll be notified when shortlisted</div>
@@ -1121,7 +1326,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           </Btn>
         </div>
       </div>
-      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
+      <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -1236,33 +1441,31 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
         {tab === "earnings" && (
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Earnings</div>
-            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Payouts & travel credits</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Live payout schedule and internal settlement status</div>
             <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 20, color: "#fff" }}>
-              <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>Total Earned (June 2025)</div>
-              <div style={{ fontSize: isMobile ? 32 : 38, fontWeight: 900, marginBottom: 4 }}>RM 842</div>
-              <div style={{ fontSize: isMobile ? 12 : 13, opacity: 0.8 }}>+ RM 45 travel credits</div>
+              <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>Total Internal Payouts</div>
+              <div style={{ fontSize: isMobile ? 32 : 38, fontWeight: 900, marginBottom: 4 }}>{toCurrency(totalEarned)}</div>
+              <div style={{ fontSize: isMobile ? 12 : 13, opacity: 0.8 }}>
+                {payoutEligibility ? "Banking verified for salary payout" : "Complete SecureSign bank verification to receive payout"}
+              </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label="Shifts completed" value="12" color={BRAND.primary} />
-              <Stat label="Avg hourly rate" value="RM15.20" color={BRAND.green} />
-              <Stat label="Reliability score" value="94" sub="Excellent" color={BRAND.blue} />
-              <Stat label="Travel credits" value="RM45" sub="unused" color={BRAND.accent} />
+              <Stat label="Payout records" value={String(payoutRows.length)} color={BRAND.primary} />
+              <Stat label="Ready to release" value={String(payoutRows.filter(p => p.status === "ready").length)} color={BRAND.green} />
+              <Stat label="Held payouts" value={String(payoutRows.filter(p => p.status === "held").length)} color={BRAND.red} />
+              <Stat label="Banking status" value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
             </div>
             <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Payouts</div>
-            {[
-              { shift: "Event Crew – Music Festival", amount: 200, date: "10 Jun", status: "completed", travel: 10 },
-              { shift: "F&B Server – KLCC", amount: 85, date: "5 Jun", status: "completed", travel: 5 },
-              { shift: "Retail Promoter – Pavilion", amount: 120, date: "28 May", status: "completed", travel: 0 },
-            ].map((p, i) => (
-              <Card key={i} style={{ marginBottom: 10, padding: "14px 16px" }}>
+            {payoutRows.map((p) => (
+              <Card key={p.id} style={{ marginBottom: 10, padding: "14px 16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
-                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : "no travel credit"}</div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : "salary payout"}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+RM{p.amount}</div>
-                    <Pill label="Paid" color="green" />
+                    <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
+                    <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
                   </div>
                 </div>
               </Card>
@@ -1337,6 +1540,47 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
               </div>
             </Card>
             <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Salary Banking Details</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
+                Mid-month payouts require verified bank details via SecureSign.
+              </div>
+              <Select
+                label="Bank"
+                value={workerBankForm.bankName}
+                onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, bankName: e.target.value }))}
+                options={MALAYSIAN_BANK_OPTIONS.map((name) => ({ value: name, label: name }))}
+              />
+              <Input
+                label="Account holder name"
+                placeholder="As per bank account"
+                value={workerBankForm.accountHolderName}
+                onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, accountHolderName: e.target.value }))}
+              />
+              <Input
+                label="Account number"
+                placeholder="Enter bank account number"
+                value={workerBankForm.accountNumber}
+                onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <span style={{ fontSize: 12, color: BRAND.textMuted }}>Status</span>
+                <Pill
+                  label={workerBanking?.verification_status ? `SecureSign ${workerBanking.verification_status}` : "SecureSign pending"}
+                  color={mapVerificationPillColor(workerBanking?.verification_status)}
+                />
+              </div>
+              {workerBanking?.account_number_last4 && (
+                <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
+                  Saved account: {maskAccountNumber(workerBanking.account_number_last4)}
+                </div>
+              )}
+              {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
+              <div style={{ display: "flex", gap: 8 }}>
+                <Btn variant="secondary" onClick={saveWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Save banking</Btn>
+                <Btn onClick={verifyWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign</Btn>
+              </div>
+            </Card>
+            <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Access other consoles</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 14 }}>These are hidden from the main app and can only be opened here.</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1349,7 +1593,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
       </div>
 
       {/* Bottom nav */}
-      <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, width: "100%", zIndex: 1000, boxShadow: "0 -6px 20px rgba(0,0,0,0.08)", borderTop: `1px solid ${BRAND.border}`, background: "#fff", display: "flex", flexShrink: 0, minHeight: navHeight }}>
+      <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => setTab(n.id)} style={{
             flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
@@ -1374,6 +1618,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre" });
   const [applicantAction, setApplicantAction] = useState({});
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
+  const [employerBanking, setEmployerBanking] = useState(null);
+  const [employerBankForm, setEmployerBankForm] = useState({
+    bankName: MALAYSIAN_BANK_OPTIONS[0],
+    accountHolderName: "",
+    accountNumber: "",
+    fundingReady: false,
+  });
+  const [bankingMessage, setBankingMessage] = useState("");
+  const [bankingLoading, setBankingLoading] = useState(false);
+  const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
 
   useEffect(() => {
     let active = true;
@@ -1403,6 +1657,122 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     return () => { active = false; };
   }, [user]);
 
+  useEffect(() => {
+    let active = true;
+    const loadEmployerPaymentData = async () => {
+      if (!user) {
+        setEmployerBanking(null);
+        setEmployerPayoutItems([]);
+        return;
+      }
+
+      const [{ data: bankData, error: bankError }, { data: payoutData, error: payoutError }] = await Promise.all([
+        supabase
+          .from("banking_details")
+          .select("id, bank_name, account_holder_name, account_number_last4, verification_status, funding_ready, verified_at")
+          .eq("user_id", user.id)
+          .eq("role", "employer")
+          .maybeSingle(),
+        supabase
+          .from("payout_item")
+          .select("id, amount, status, scheduled_date, created_at")
+          .eq("employer_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(8),
+      ]);
+
+      if (!active) return;
+
+      if (!bankError) {
+        setEmployerBanking(bankData ?? null);
+        if (bankData) {
+          setEmployerBankForm({
+            bankName: bankData.bank_name || MALAYSIAN_BANK_OPTIONS[0],
+            accountHolderName: bankData.account_holder_name || "",
+            accountNumber: bankData.account_number_last4 || "",
+            fundingReady: Boolean(bankData.funding_ready),
+          });
+        }
+      }
+      if (!payoutError) setEmployerPayoutItems(payoutData ?? []);
+    };
+
+    loadEmployerPaymentData();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const saveEmployerBankingDetails = async () => {
+    if (!user) {
+      setBankingMessage("Sign in to save banking details.");
+      return;
+    }
+    if (!employerBankForm.accountHolderName.trim() || !employerBankForm.accountNumber.trim()) {
+      setBankingMessage("Account holder name and account number are required.");
+      return;
+    }
+
+    setBankingLoading(true);
+    setBankingMessage("");
+    const accountDigits = employerBankForm.accountNumber.replace(/\D/g, "");
+    const payload = {
+      user_id: user.id,
+      role: "employer",
+      bank_name: employerBankForm.bankName,
+      bank_code: employerBankForm.bankName.toUpperCase().replace(/\s+/g, "_"),
+      account_holder_name: employerBankForm.accountHolderName.trim(),
+      account_number_last4: accountDigits.slice(-4),
+      account_number_encrypted: `enc:${accountDigits}`,
+      verification_status: employerBanking?.verification_status || "pending",
+      funding_ready: employerBankForm.fundingReady,
+    };
+
+    const { data, error } = await supabase
+      .from("banking_details")
+      .upsert(payload, { onConflict: "user_id,role" })
+      .select("id, bank_name, account_holder_name, account_number_last4, verification_status, funding_ready, verified_at")
+      .single();
+
+    setBankingLoading(false);
+    if (error) {
+      setBankingMessage(`Unable to save employer banking details: ${error.message}`);
+      return;
+    }
+    setEmployerBanking(data);
+    setBankingMessage("Employer banking details saved.");
+  };
+
+  const verifyEmployerBankingDetails = async () => {
+    if (!employerBanking?.id) {
+      setBankingMessage("Save banking details before verification.");
+      return;
+    }
+
+    setBankingLoading(true);
+    setBankingMessage("");
+    const { data, error } = await supabase
+      .from("banking_details")
+      .update({
+        verification_status: "verified",
+        verification_provider: "secure_sign_sim",
+        verification_reference: `SEC-${Date.now()}`,
+        verified_at: new Date().toISOString(),
+        funding_ready: employerBankForm.fundingReady,
+      })
+      .eq("id", employerBanking.id)
+      .select("id, bank_name, account_holder_name, account_number_last4, verification_status, funding_ready, verified_at")
+      .single();
+
+    setBankingLoading(false);
+    if (error) {
+      setBankingMessage(`Employer verification failed: ${error.message}`);
+      return;
+    }
+    setEmployerBanking(data);
+    setBankingMessage("Employer bank verified via SecureSign.");
+  };
+
   const navItems = ["Dashboard", "Shifts", "Post Shift", "Billing", "Account"];
 
   const handleApplicantAction = (id, action) => {
@@ -1414,7 +1784,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%", fontFamily: "inherit" }}>
       {/* Sidebar */}
-      <div style={{ width: compact ? "100%" : 180, borderRight: compact ? "none" : `1px solid ${BRAND.border}`, borderBottom: compact ? `1px solid ${BRAND.border}` : "none", padding: "24px 0", background: "#fff", flexShrink: 0, display: "flex", flexDirection: "column" }}>
+      <div style={{ width: compact ? "100%" : 180, borderRight: compact ? "none" : `1px solid ${BRAND.border}`, borderBottom: compact ? `1px solid ${BRAND.border}` : "none", padding: "24px 0", background: BRAND.surface, flexShrink: 0, display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "0 20px 24px" }}>
           <div style={{ fontWeight: 900, fontSize: 20, color: BRAND.primary }}>CariGaji</div>
           <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>Employer Console</div>
@@ -1547,7 +1917,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               </div>
               <Badge color="blue">{selectedShift.applicants} applied</Badge>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: BRAND.surface, borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
                   {["Worker", "KYC", "Reliability", "Rating", "Bid (RM/h)", "Status", "Action"].map(h => (
@@ -1739,16 +2109,71 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Account & Verification</div>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Company Details</div>
-              <Input label="Company name" value="Grand Hyatt Kuala Lumpur" onChange={() => {}} />
-              <Input label="SSM registration number" value="1234567-A" onChange={() => {}} />
-              <Input label="Contact email" value="hr@grandhyatt-kl.com" onChange={() => {}} />
+              <Input label="Company name" placeholder="Grand Hyatt Kuala Lumpur" value="Grand Hyatt Kuala Lumpur" onChange={() => {}} />
+              <Input label="SSM registration number" placeholder="1234567-A" value="1234567-A" onChange={() => {}} />
+              <Input label="Contact email" placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} />
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Verification Status</div>
-              {[{ label: "SSM Document", status: "approved" }, { label: "Bank Account (DuitNow)", status: "approved" }, { label: "Escrow Deposit", status: "approved" }].map((v, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < 2 ? `1px solid ${BRAND.border}` : "none" }}>
-                  <span style={{ fontSize: 13, color: BRAND.text }}>{v.label}</span>
-                  <Pill label="✓ Approved" color="green" />
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Employer Banking (Salary Funding)</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
+                Funding account must be verified through SecureSign before payouts can move to ready state.
+              </div>
+              <Select
+                label="Bank"
+                value={employerBankForm.bankName}
+                onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, bankName: e.target.value }))}
+                options={MALAYSIAN_BANK_OPTIONS.map((name) => ({ value: name, label: name }))}
+              />
+              <Input
+                label="Account holder name"
+                placeholder="Company account holder"
+                value={employerBankForm.accountHolderName}
+                onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, accountHolderName: e.target.value }))}
+              />
+              <Input
+                label="Account number"
+                placeholder="Employer funding account"
+                value={employerBankForm.accountNumber}
+                onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
+              />
+              <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontSize: 13, color: BRAND.text }}>
+                <input
+                  type="checkbox"
+                  checked={employerBankForm.fundingReady}
+                  onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, fundingReady: e.target.checked }))}
+                />
+                Funding account has sufficient balance for this cycle
+              </label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 12, color: BRAND.textMuted }}>Verification</span>
+                <Pill
+                  label={employerBanking?.verification_status ? `SecureSign ${employerBanking.verification_status}` : "SecureSign pending"}
+                  color={mapVerificationPillColor(employerBanking?.verification_status)}
+                />
+              </div>
+              {employerBanking?.account_number_last4 && (
+                <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>
+                  Saved account: {maskAccountNumber(employerBanking.account_number_last4)}
+                </div>
+              )}
+              {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
+              <div style={{ display: "flex", gap: 8 }}>
+                <Btn variant="secondary" onClick={saveEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Save banking</Btn>
+                <Btn onClick={verifyEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign</Btn>
+              </div>
+            </Card>
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Outgoing Salary Obligations</div>
+              {employerPayoutItems.length === 0 && (
+                <div style={{ fontSize: 12, color: BRAND.textMuted }}>No payout obligations yet for this employer account.</div>
+              )}
+              {employerPayoutItems.map((item) => (
+                <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{toCurrency(item.amount)}</div>
+                    <div style={{ fontSize: 11, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</div>
+                  </div>
+                  <Pill label={String(item.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(item.status)} />
                 </div>
               ))}
             </Card>
@@ -1761,11 +2186,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 };
 
 // ─── ADMIN PORTAL ─────────────────────────────────────────────────────────────
-const AdminPortal = ({ onOpenPortal, compact = false }) => {
+const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [view, setView] = useState("overview");
   const [kycActions, setKycActions] = useState({});
   const [disputeActions, setDisputeActions] = useState({});
   const [flagActions, setFlagActions] = useState({});
+  const [livePayoutQueue, setLivePayoutQueue] = useState(null);
+  const [payoutRunning, setPayoutRunning] = useState(false);
+  const [payoutMessage, setPayoutMessage] = useState("");
 
   const navItems = ["Overview", "KYC Queue", "Disputes", "Flags", "Payouts", "Config"];
 
@@ -1774,6 +2202,62 @@ const AdminPortal = ({ onOpenPortal, compact = false }) => {
     { id: 2, user: "Unknown Device #42", type: "QR token reuse", riskScore: 95, shift: "Event Crew – Music Festival", time: "5 hours ago", status: "open" },
     { id: 3, user: "Muhammad Izzat", type: "No-show (confirmed)", riskScore: 72, shift: "F&B Server – Wedding Banquet", time: "1 day ago", status: "open" },
   ];
+
+  const loadPayoutQueue = async () => {
+    const { data, error } = await supabase
+      .from("payout_item")
+      .select("id, worker_id, employer_id, amount, scheduled_date, status, source_refs, created_at")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (error) {
+      setLivePayoutQueue(null);
+      setPayoutMessage(`Unable to load payout queue: ${error.message}`);
+      return;
+    }
+    setLivePayoutQueue(data || []);
+  };
+
+  useEffect(() => {
+    loadPayoutQueue();
+  }, []);
+
+  const updatePayoutStatus = async (item, nextStatus) => {
+    const { error } = await supabase
+      .from("payout_item")
+      .update({ status: nextStatus })
+      .eq("id", item.id);
+    if (error) {
+      setPayoutMessage(`Failed to update payout item: ${error.message}`);
+      return;
+    }
+
+    await supabase.from("payout_audit").insert({
+      payout_item_id: item.id,
+      actor_type: "admin",
+      actor_id: user?.id ?? null,
+      action: "manual_status_update",
+      from_status: item.status,
+      to_status: nextStatus,
+      notes: "Admin action from payout queue",
+      metadata_json: { source: "admin_portal" },
+    });
+
+    setPayoutMessage(`Payout ${item.id} moved to ${nextStatus}.`);
+    await loadPayoutQueue();
+  };
+
+  const runScheduler = async () => {
+    setPayoutRunning(true);
+    setPayoutMessage("");
+    try {
+      const result = await runInternalPayoutScheduling(supabase);
+      setPayoutMessage(`Scheduler completed. Created ${result.created}, ready ${result.ready}, held ${result.held}.`);
+      await loadPayoutQueue();
+    } catch (error) {
+      setPayoutMessage(error.message);
+    }
+    setPayoutRunning(false);
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%" }}>
@@ -1977,10 +2461,15 @@ const AdminPortal = ({ onOpenPortal, compact = false }) => {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Payout Overrides</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Pending payouts" value="RM 8,420" color={BRAND.amber} />
-              <Stat label="Disputed (held)" value="RM 308" color={BRAND.red} />
-              <Stat label="Paid this month" value="RM 24,110" color={BRAND.green} />
+              <Stat label="Pending payouts" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "ready" || p.status === "scheduled").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.amber} />
+              <Stat label="Disputed (held)" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "held").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.red} />
+              <Stat label="Processed internal" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "processed_internal").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.green} />
             </div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+              <Btn onClick={runScheduler} disabled={payoutRunning}>{payoutRunning ? "Running..." : "Run Internal Scheduler"}</Btn>
+              <Btn variant="secondary" onClick={loadPayoutQueue}>Refresh Queue</Btn>
+            </div>
+            {payoutMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{payoutMessage}</div>}
             <Card>
               <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 16 }}>Payout Queue</div>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -1992,22 +2481,20 @@ const AdminPortal = ({ onOpenPortal, compact = false }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { worker: "Ahmad Firdaus", shift: "Event Crew", amount: 200, scheduled: "14 Jun", status: "processing" },
-                    { worker: "Nurul Ain", shift: "Retail Promoter", amount: 128, scheduled: "15 Jun", status: "pending" },
-                    { worker: "Hafiz Roslan", shift: "F&B Server", amount: 70, scheduled: "16 Jun", status: "disputed" },
-                    { worker: "Priya Selvam", shift: "Warehouse Packer", amount: 88, scheduled: "16 Jun", status: "pending" },
-                  ].map((p, i) => (
-                    <tr key={i} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
-                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>{p.worker}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.shift}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: BRAND.green }}>RM{p.amount}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.scheduled}</td>
-                      <td style={{ padding: "10px 12px" }}><Pill label={p.status} color={p.status === "processing" ? "blue" : p.status === "disputed" ? "red" : "gray"} /></td>
+                  {(livePayoutQueue && livePayoutQueue.length > 0 ? livePayoutQueue : [
+                    { id: "demo-1", worker_id: "worker-1", source_refs: { shift_id: 2 }, amount: 200, scheduled_date: "2026-06-13", status: "ready" },
+                    { id: "demo-2", worker_id: "worker-2", source_refs: { shift_id: 4 }, amount: 128, scheduled_date: "2026-06-15", status: "held" },
+                  ]).map((p) => (
+                    <tr key={p.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
+                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>{p.worker_id || "N/A"}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Shift"}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: BRAND.green }}>{toCurrency(p.amount)}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</td>
+                      <td style={{ padding: "10px 12px" }}><Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} /></td>
                       <td style={{ padding: "10px 12px" }}>
                         <div style={{ display: "flex", gap: 6 }}>
-                          <Btn size="xs" variant="success" onClick={() => alert(`Released RM${p.amount} to ${p.worker}`)}>Release</Btn>
-                          <Btn size="xs" variant="secondary" onClick={() => alert(`RM${p.amount} payout held for ${p.worker}`)}>Hold</Btn>
+                          <Btn size="xs" variant="success" onClick={() => updatePayoutStatus(p, "processed_internal")}>Release</Btn>
+                          <Btn size="xs" variant="secondary" onClick={() => updatePayoutStatus(p, "held")}>Hold</Btn>
                         </div>
                       </td>
                     </tr>
@@ -2057,6 +2544,8 @@ const AdminPortal = ({ onOpenPortal, compact = false }) => {
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
+  const [themePreference, setThemePreference] = useState(() => readThemePreference());
+  const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
   const [user, setUser] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState("signin");
@@ -2248,14 +2737,43 @@ export default function CariGaji() {
     admin: { label: "Admin", color: BRAND.accent, width: 960, height: 640 },
   };
   const cfg = portalConfig[portal];
+  const resolvedTheme = resolveThemeMode(themePreference, systemTheme);
+  const themeVars = buildThemeVars(resolvedTheme);
+
+  useEffect(() => {
+    writeThemePreference(themePreference);
+  }, [themePreference]);
+
+  useEffect(() => {
+    applyThemeToDocument(resolvedTheme);
+  }, [resolvedTheme]);
+
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event) => {
+      setSystemTheme(event.matches ? "dark" : "light");
+    };
+
+    handleChange(mediaQuery);
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
 
   return (
     <div style={{
       minHeight: "100vh",
+      height: "100dvh",
       width: "100%",
+      ...themeVars,
       background: isMobile
-        ? `linear-gradient(180deg, ${BRAND.primary}08 0%, #fff 18%, #fff 100%)`
-        : `radial-gradient(circle at top, ${BRAND.primary}20 0%, #140806 42%, ${BRAND.dark} 100%)`,
+        ? `linear-gradient(180deg, ${BRAND.primary}08 0%, ${BRAND.page} 18%, ${BRAND.page} 100%)`
+        : `radial-gradient(circle at top, ${BRAND.primary}20 0%, ${resolvedTheme === "dark" ? "#09111d" : "#f8fafc"} 42%, ${resolvedTheme === "dark" ? BRAND.dark : BRAND.page} 100%)`,
       display: "flex",
       alignItems: "stretch",
       justifyContent: "stretch",
@@ -2265,10 +2783,10 @@ export default function CariGaji() {
       <div style={{
         width: "100%",
         height: "100%",
-        minHeight: "100vh",
-        background: isMobile ? "#fff" : "rgba(255,255,255,0.98)",
+        minHeight: "100dvh",
+          background: isMobile ? BRAND.surface : BRAND.panel,
         borderRadius: isMobile ? 0 : 0,
-        overflow: "auto",
+        overflow: "hidden",
         border: "none",
         boxShadow: "none",
         position: "relative",
@@ -2283,7 +2801,7 @@ export default function CariGaji() {
           justifyContent: "space-between",
           padding: isMobile ? "0 16px" : "0 24px",
           borderBottom: `1px solid ${BRAND.border}`,
-          background: "rgba(255,255,255,0.92)",
+          background: BRAND.panel,
           backdropFilter: "blur(16px)",
           flexShrink: 0,
         }}>
@@ -2299,6 +2817,9 @@ export default function CariGaji() {
                 {cfg.label}
               </Badge>
             )}
+            <Btn size="sm" variant="secondary" onClick={() => setThemePreference(current => cycleThemePreference(current))} style={{ minWidth: 126, justifyContent: "center" }}>
+              {themePreference === "system" ? `System · ${resolvedTheme}` : themePreference === "light" ? "light" : "dark"}
+            </Btn>
             {user ? (
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ fontSize: 13, color: BRAND.textMuted }}>{user.email}</div>
