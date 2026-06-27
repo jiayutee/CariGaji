@@ -62,8 +62,8 @@ const mapVerificationPillColor = (status) => {
 };
 
 const mapPayoutPillColor = (status) => {
-  if (["processed_internal", "released", "paid"].includes(status)) return "green";
-  if (status === "held") return "red";
+  if (status === "processed_internal") return "green";
+  if (status === "held" || status === "failed_internal") return "red";
   if (["ready", "scheduled", "processing"].includes(status)) return "blue";
   return "gray";
 };
@@ -783,7 +783,7 @@ const AuthModal = ({
                 <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} />
+                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
                 <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>Passwords do not match.</div>
@@ -984,7 +984,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           setWorkerBankForm({
             bankName: bankData.bank_name || MALAYSIAN_BANK_OPTIONS[0],
             accountHolderName: bankData.account_holder_name || "",
-            accountNumber: bankData.account_number_last4 || "",
+            accountNumber: "",
           });
         }
       }
@@ -1013,14 +1013,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
     setBankingLoading(true);
     setBankingMessage("");
     const accountDigits = workerBankForm.accountNumber.replace(/\D/g, "");
+    const last4 = accountDigits.slice(-4);
     const payload = {
       user_id: user.id,
       role: "worker",
       bank_name: workerBankForm.bankName,
       bank_code: workerBankForm.bankName.toUpperCase().replace(/\s+/g, "_"),
       account_holder_name: workerBankForm.accountHolderName.trim(),
-      account_number_last4: accountDigits.slice(-4),
-      account_number_encrypted: `enc:${accountDigits}`,
+      account_number_last4: last4,
+      // Full account number must be encrypted server-side before go-live.
+      // Storing masked placeholder here until a backend encryption flow is wired up.
+      account_number_encrypted: `MASKED-${last4}`,
       verification_status: workerBanking?.verification_status || "pending",
     };
 
@@ -1571,13 +1574,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
               </div>
               {workerBanking?.account_number_last4 && (
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
-                  Saved account: {maskAccountNumber(workerBanking.account_number_last4)}
+                  Saved account: •••• {workerBanking.account_number_last4}
                 </div>
               )}
               {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
               <div style={{ display: "flex", gap: 8 }}>
                 <Btn variant="secondary" onClick={saveWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Save banking</Btn>
-                <Btn onClick={verifyWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign</Btn>
+                <Btn onClick={verifyWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign (Demo)</Btn>
               </div>
             </Card>
             <Card style={{ marginBottom: 16 }}>
@@ -1689,7 +1692,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           setEmployerBankForm({
             bankName: bankData.bank_name || MALAYSIAN_BANK_OPTIONS[0],
             accountHolderName: bankData.account_holder_name || "",
-            accountNumber: bankData.account_number_last4 || "",
+            accountNumber: "",
             fundingReady: Boolean(bankData.funding_ready),
           });
         }
@@ -1716,14 +1719,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setBankingLoading(true);
     setBankingMessage("");
     const accountDigits = employerBankForm.accountNumber.replace(/\D/g, "");
+    const last4 = accountDigits.slice(-4);
     const payload = {
       user_id: user.id,
       role: "employer",
       bank_name: employerBankForm.bankName,
       bank_code: employerBankForm.bankName.toUpperCase().replace(/\s+/g, "_"),
       account_holder_name: employerBankForm.accountHolderName.trim(),
-      account_number_last4: accountDigits.slice(-4),
-      account_number_encrypted: `enc:${accountDigits}`,
+      account_number_last4: last4,
+      // Full account number must be encrypted server-side before go-live.
+      // Storing masked placeholder here until a backend encryption flow is wired up.
+      account_number_encrypted: `MASKED-${last4}`,
       verification_status: employerBanking?.verification_status || "pending",
       funding_ready: employerBankForm.fundingReady,
     };
@@ -2153,13 +2159,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               </div>
               {employerBanking?.account_number_last4 && (
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>
-                  Saved account: {maskAccountNumber(employerBanking.account_number_last4)}
+                  Saved account: •••• {employerBanking.account_number_last4}
                 </div>
               )}
               {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
               <div style={{ display: "flex", gap: 8 }}>
                 <Btn variant="secondary" onClick={saveEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Save banking</Btn>
-                <Btn onClick={verifyEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign</Btn>
+                <Btn onClick={verifyEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign (Demo)</Btn>
               </div>
             </Card>
             <Card style={{ marginBottom: 16 }}>
@@ -2247,6 +2253,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   };
 
   const runScheduler = async () => {
+    if (!user) {
+      setPayoutMessage("You must be signed in to run the scheduler.");
+      return;
+    }
     setPayoutRunning(true);
     setPayoutMessage("");
     try {
