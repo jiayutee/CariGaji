@@ -1160,7 +1160,7 @@ const CHAT_MESSAGES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {}, onUserUpdated = () => {} }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0 }) => {
   const toast = useToast();
   const [avatarUploading, setAvatarUploading] = useState(false);
 
@@ -1404,6 +1404,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     setSelectedShift(null);
     setTab(nextTab);
   };
+
+  // Logo click in the header bumps homeSignal → return to Discover.
+  const isFirstHome = useRef(true);
+  useEffect(() => {
+    if (isFirstHome.current) { isFirstHome.current = false; return; }
+    handleWorkerNavClick("discover");
+  }, [homeSignal]);
 
   const navBarStyle = isMobile
     ? {
@@ -2945,6 +2952,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
+  const [homeSignal, setHomeSignal] = useState(0);
   const [themePreference, setThemePreference] = useState(() => readThemePreference());
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
   const [user, setUser] = useState(null);
@@ -3228,12 +3236,16 @@ export default function CariGaji() {
           backdropFilter: "blur(16px)",
           flexShrink: 0,
         }}>
-          <div>
+          <button
+            onClick={() => { setPortal("worker"); setHomeSignal(s => s + 1); }}
+            aria-label="CariGaji home — go to Discover"
+            style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+          >
             <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.03em" }}>
               Cari<span style={{ color: BRAND.primary }}>Gaji</span>
             </div>
             <div style={{ fontSize: isMobile ? 10 : 12, color: BRAND.textMuted }}>Verified shift marketplace</div>
-          </div>
+          </button>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {!isMobile && (
               <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
@@ -3262,7 +3274,7 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
           {portal === "admin" && (
             isAdmin
