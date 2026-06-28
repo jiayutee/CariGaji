@@ -99,6 +99,26 @@ Required specialist outputs:
   - Risks and open items
   - Next recommended step
 
+## Notion Task Tracker Integration
+Notion database: `collection://356d2ab0-50d9-8063-b22b-000b349fdafd`
+Parent page: https://app.notion.com/p/354d2ab050d980e4be42cc74707f3baf
+
+### Before starting each work cycle:
+1. Fetch the task database and sort by `Priority (1-5)` descending.
+2. Pick the highest-priority row where `Solution` is empty or null.
+3. If the task is ambiguous, post a question to the user before proceeding.
+
+### After completing each task:
+1. Update the Notion row: set `Solution` to a one-paragraph summary of what was done (files changed, migration applied, result).
+2. Append the agent decision log (agents used, risk level) into the row's `Note` field.
+3. If code was changed, commit and push to `main` to trigger GitHub Pages deploy.
+
+### Escalate to user (pause and ask) if:
+- The task has no clear acceptance criteria.
+- The task touches auth, RLS, secrets, payments, or database migrations.
+- Security reviewer flags a high-severity finding.
+- Two implementation paths exist and neither is clearly safer/smaller.
+
 ## Fallbacks
 - If delegation is unavailable, emulate specialist behavior in the same order and keep sectioned outputs identical to the specialist contracts.
 - If user asks for speed over depth, reduce agent count but never skip mandatory high-risk security review.
