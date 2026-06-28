@@ -1,20 +1,21 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext, memo } from "react";
 import { supabase } from "./src/lib/supabase.js";
 import { runInternalPayoutScheduling } from "./src/lib/payouts/scheduler.js";
 import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTheme, readThemePreference, resolveThemeMode, writeThemePreference } from "./src/lib/theme.js";
 
 // ─── Design tokens ─────────────────────────────────────────────────────────
 const BRAND = {
-  primary: "#E8380D",
-  primaryLight: "#FFF0ED",
-  primaryMid: "#F7C5BA",
-  dark: "#1A0A06",
-  accent: "#F5A623",
-  accentLight: "#FEF6E7",
+  primary: "#2563EB",
+  primaryDark: "#1D4ED8",
+  primaryLight: "#EFF4FF",
+  primaryMid: "#BBD0FF",
+  dark: "#0A1428",
+  accent: "#0891B2",
+  accentLight: "#E0F7FB",
   green: "#1A9E5C",
   greenLight: "#E8F7EF",
-  blue: "#1A6BE8",
-  blueLight: "#E8F0FE",
+  blue: "#0284C7",
+  blueLight: "#E0F2FE",
   amber: "#D97706",
   amberLight: "#FEF3C7",
   red: "#DC2626",
@@ -49,12 +50,6 @@ const MALAYSIAN_BANK_OPTIONS = [
 
 const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 
-const maskAccountNumber = (accountNumber = "") => {
-  const digits = String(accountNumber).replace(/\D/g, "");
-  if (digits.length <= 4) return digits || "Not set";
-  return `•••• •••• ${digits.slice(-4)}`;
-};
-
 const mapVerificationPillColor = (status) => {
   if (status === "verified") return "green";
   if (status === "rejected") return "red";
@@ -68,15 +63,87 @@ const mapPayoutPillColor = (status) => {
   return "gray";
 };
 
+// ─── Toast system ───────────────────────────────────────────────────────────
+const ToastContext = createContext(() => {});
+const useToast = () => useContext(ToastContext);
+
+const TOAST_ACCENT = {
+  success: "var(--cg-toast-success, #1A9E5C)",
+  error: "#DC2626",
+  info: "#2563EB",
+};
+
+const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
+
+  const dismiss = useCallback((id) => {
+    setToasts((list) => list.filter((t) => t.id !== id));
+  }, []);
+
+  const showToast = useCallback((message, type = "info", duration = 4000) => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    setToasts((list) => [...list, { id, message, type }]);
+    if (duration > 0) setTimeout(() => dismiss(id), duration);
+    return id;
+  }, [dismiss]);
+
+  return (
+    <ToastContext.Provider value={showToast}>
+      {children}
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          position: "fixed",
+          left: "50%",
+          bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+          transform: "translateX(-50%)",
+          zIndex: 1000,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          width: "min(420px, calc(100% - 32px))",
+          pointerEvents: "none",
+        }}
+      >
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            onClick={() => dismiss(t.id)}
+            style={{
+              pointerEvents: "auto",
+              cursor: "pointer",
+              background: "var(--cg-surface, #fff)",
+              color: "var(--cg-text, #111827)",
+              border: "1px solid var(--cg-border, #E5E7EB)",
+              borderLeft: `4px solid ${TOAST_ACCENT[t.type] || TOAST_ACCENT.info}`,
+              borderRadius: 12,
+              padding: "12px 16px",
+              fontSize: 14,
+              lineHeight: 1.45,
+              fontWeight: 500,
+              boxShadow: "0 8px 28px var(--cg-shadow, rgba(15,23,42,0.12))",
+              whiteSpace: "pre-line",
+              animation: "cg-toast-in 0.18s ease-out",
+            }}
+          >
+            {t.message}
+          </div>
+        ))}
+      </div>
+    </ToastContext.Provider>
+  );
+};
+
 // ─── Shared helpers ─────────────────────────────────────────────────────────
-const Badge = ({ color = "gray", children, size = "sm" }) => {
+const Badge = memo(({ color = "gray", children, size = "sm" }) => {
   const map = {
     gray: { bg: BRAND.grayLight, text: BRAND.textMuted },
     green: { bg: BRAND.greenLight, text: "#065F46" },
     red: { bg: BRAND.redLight, text: "#991B1B" },
     amber: { bg: BRAND.amberLight, text: "#92400E" },
     blue: { bg: BRAND.blueLight, text: "#1E40AF" },
-    orange: { bg: BRAND.primaryLight, text: "#9A3412" },
+    orange: { bg: BRAND.accentLight, text: "#155E75" },
     teal: { bg: "#CCFBF1", text: "#0F766E" },
   };
   const c = map[color] || map.gray;
@@ -92,9 +159,9 @@ const Badge = ({ color = "gray", children, size = "sm" }) => {
       whiteSpace: "nowrap",
     }}>{children}</span>
   );
-};
+});
 
-const Card = ({ children, style = {}, onClick, hover = false }) => (
+const Card = memo(({ children, style = {}, onClick, hover = false }) => (
   <div onClick={onClick} style={{
     background: BRAND.surface,
     border: `1px solid ${BRAND.border}`,
@@ -107,14 +174,15 @@ const Card = ({ children, style = {}, onClick, hover = false }) => (
     onMouseEnter={e => { if (hover || onClick) { e.currentTarget.style.boxShadow = `0 4px 20px ${BRAND.shadow}`; e.currentTarget.style.transform = "translateY(-1px)"; } }}
     onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}
   >{children}</div>
-);
+));
 
-const Btn = ({ children, variant = "primary", onClick, size = "md", style = {}, disabled = false, type = "button" }) => {
+const Btn = memo(({ children, variant = "primary", onClick, size = "md", style = {}, disabled = false, type = "button", ...rest }) => {
   const base = {
-    display: "inline-flex", alignItems: "center", gap: 6,
+    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
     border: "none", borderRadius: 10, cursor: disabled ? "not-allowed" : "pointer",
     fontWeight: 600, fontFamily: "inherit",
     transition: "all 0.15s", opacity: disabled ? 0.5 : 1,
+    minHeight: size === "xs" ? 28 : 36,
     fontSize: size === "sm" ? 13 : size === "xs" ? 12 : 14,
     padding: size === "sm" ? "7px 14px" : size === "xs" ? "4px 10px" : "10px 20px",
   };
@@ -126,14 +194,15 @@ const Btn = ({ children, variant = "primary", onClick, size = "md", style = {}, 
     success: { background: BRAND.green, color: "#fff" },
   };
   return (
-    <button type={type} onClick={disabled ? undefined : onClick} style={{ ...base, ...variants[variant], ...style }}
+    <button type={type} onClick={disabled ? undefined : onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}
       onMouseEnter={e => { if (!disabled) e.currentTarget.style.opacity = "0.85"; }}
       onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+      {...rest}
     >{children}</button>
   );
-};
+});
 
-const Avatar = ({ name = "?", size = 36, color = BRAND.primary }) => {
+const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary }) => {
   const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
   return (
     <div style={{
@@ -143,15 +212,15 @@ const Avatar = ({ name = "?", size = 36, color = BRAND.primary }) => {
       fontSize: size * 0.35, fontWeight: 700, flexShrink: 0,
     }}>{initials}</div>
   );
-};
+});
 
-const Stat = ({ label, value, sub, color = BRAND.primary }) => (
+const Stat = memo(({ label, value, sub, color = BRAND.primary }) => (
   <div style={{ background: BRAND.grayLight, borderRadius: 14, padding: "16px 20px" }}>
     <div style={{ fontSize: 12, color: BRAND.textMuted, fontWeight: 500, marginBottom: 4 }}>{label}</div>
     <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
     {sub && <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>{sub}</div>}
   </div>
-);
+));
 
 const Input = ({ label, placeholder, value, onChange, type = "text", style = {} }) => (
   <div style={{ marginBottom: 16, ...style }}>
@@ -247,14 +316,64 @@ const Select = ({ label, options, value, onChange, style = {} }) => (
   </div>
 );
 
-const Pill = ({ label, color }) => (
+const Pill = memo(({ label, color }) => (
   <span style={{
-    display: "inline-block", padding: "2px 10px", borderRadius: 99,
-    fontSize: 11, fontWeight: 600,
+    display: "inline-block", padding: "3px 10px", borderRadius: 99,
+    fontSize: 12, fontWeight: 600,
     background: color === "green" ? BRAND.greenLight : color === "red" ? BRAND.redLight : color === "amber" ? BRAND.amberLight : color === "blue" ? BRAND.blueLight : BRAND.grayLight,
     color: color === "green" ? "#065F46" : color === "red" ? "#991B1B" : color === "amber" ? "#92400E" : color === "blue" ? "#1E40AF" : BRAND.textMuted,
   }}>{label}</span>
-);
+));
+
+const EmptyState = memo(({ icon = "📭", title, hint }) => (
+  <div style={{
+    border: `1px dashed ${BRAND.border}`,
+    borderRadius: 14,
+    padding: "28px 20px",
+    textAlign: "center",
+    background: BRAND.grayLight,
+  }}>
+    <div style={{ fontSize: 28, marginBottom: 8 }} aria-hidden="true">{icon}</div>
+    <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{title}</div>
+    {hint && <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>{hint}</div>}
+  </div>
+));
+
+const AuthGate = memo(({ onRequireAuth, title, hint, icon = "🔒" }) => (
+  <div style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    gap: 14,
+    padding: "48px 24px",
+  }}>
+    <div style={{
+      width: 64, height: 64, borderRadius: "50%",
+      background: BRAND.primaryLight, display: "flex",
+      alignItems: "center", justifyContent: "center", fontSize: 28,
+    }} aria-hidden="true">{icon}</div>
+    <div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: 1.5, maxWidth: 280 }}>{hint}</div>
+    </div>
+    <div style={{ display: "flex", gap: 10, marginTop: 4, width: "100%", maxWidth: 280 }}>
+      <Btn variant="secondary" onClick={() => onRequireAuth("register")} style={{ flex: 1, justifyContent: "center" }}>Create account</Btn>
+      <Btn onClick={() => onRequireAuth("signin")} style={{ flex: 1, justifyContent: "center" }}>Sign in</Btn>
+    </div>
+  </div>
+));
+
+const SkeletonRow = memo(({ height = 64 }) => (
+  <div style={{
+    height,
+    borderRadius: 14,
+    marginBottom: 10,
+    background: `linear-gradient(90deg, ${BRAND.grayLight} 25%, ${BRAND.border} 37%, ${BRAND.grayLight} 63%)`,
+    backgroundSize: "400% 100%",
+    animation: "cg-skeleton 1.3s ease-in-out infinite",
+  }} />
+));
 
 const StarRating = ({ value = 4.5, size = 14 }) => {
   const stars = [];
@@ -901,7 +1020,8 @@ const CHAT_MESSAGES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {} }) => {
+  const toast = useToast();
   const [tab, setTab] = useState("discover");
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -1072,24 +1192,33 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
   };
 
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
-  const filtered = filterCat === "All" ? SHIFTS.filter(s => s.status === "open") : SHIFTS.filter(s => s.category === filterCat && s.status === "open");
-  const payoutRows = (livePayouts && livePayouts.length > 0)
-    ? livePayouts.map((p) => ({
+  const filtered = useMemo(
+    () => (filterCat === "All"
+      ? SHIFTS.filter(s => s.status === "open")
+      : SHIFTS.filter(s => s.category === filterCat && s.status === "open")),
+    [filterCat]
+  );
+  const payoutsLoading = Boolean(user) && livePayouts === null;
+  const payoutRows = useMemo(
+    () => (livePayouts || []).map((p) => ({
       id: p.id,
       shift: p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Completed shift",
       amount: Number(p.amount || 0),
       date: p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA",
       status: p.status,
       travel: 0,
-    }))
-    : [
-      { id: "mock-1", shift: "Event Crew – Music Festival", amount: 200, date: "10 Jun", status: "processed_internal", travel: 10 },
-      { id: "mock-2", shift: "F&B Server – KLCC", amount: 85, date: "5 Jun", status: "processed_internal", travel: 5 },
-      { id: "mock-3", shift: "Retail Promoter – Pavilion", amount: 120, date: "28 May", status: "processed_internal", travel: 0 },
-    ];
+    })),
+    [livePayouts]
+  );
 
-  const totalEarned = payoutRows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const totalEarned = useMemo(
+    () => payoutRows.reduce((sum, row) => sum + Number(row.amount || 0), 0),
+    [payoutRows]
+  );
   const payoutEligibility = workerBanking?.verification_status === "verified";
+  const profileName = user
+    ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Your account")
+    : "";
 
   const sendMsg = () => {
     if (!chatMsg.trim()) return;
@@ -1141,7 +1270,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           </div>
         </div>
         <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
-        <Btn onClick={() => { setShowQR(false); alert("✅ Checked in at 18:02! Reliability +0 (on time)"); }}>Simulate Successful Check-in</Btn>
+        <Btn onClick={() => { setShowQR(false); toast("Checked in at 18:02 · Reliability maintained (on time)", "success"); }}>Simulate Successful Check-in</Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
       </div>
       <div style={navBarStyle}>
@@ -1179,7 +1308,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
             <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
               {m.from === "system" ? (
                 <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.accent}30`, borderRadius: 12, padding: "10px 16px", fontSize: 13, color: BRAND.amber, maxWidth: "85%", textAlign: "center", cursor: "pointer" }}
-                  onClick={() => alert("📋 Offer: RM14/h × 5 hours = RM70 total\nTravel stipend: RM5\nStart: 15 Jun 18:00\nDress: All black formal\n\nAccept or Decline?")}>
+                  onClick={() => toast("Offer: RM14/h × 5 hours = RM70 total\nTravel stipend: RM5 · Start: 15 Jun 18:00\nDress: All black formal", "info", 6000)}>
                   {m.text}
                 </div>
               ) : (
@@ -1238,11 +1367,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
               <Btn onClick={() => {
                 (async () => {
                   if (!bidAmount) return;
-                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { alert(`Max bid is RM${(selectedShift.wageMax * 1.5).toFixed(0)}/h`); return; }
-                  if (!user) { alert('Please sign in before applying.'); return; }
+                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`Max bid is RM${(selectedShift.wageMax * 1.5).toFixed(0)}/h`, "error"); return; }
+                  if (!user) { setShowBidModal(false); onRequireAuth("signin"); return; }
                   // Guard: mock shifts use numeric ids — require a real UUID id to insert
                   if (typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) {
-                    alert('Cannot apply to a mock shift. Please use a real shift from the database.');
+                    toast("This is a sample shift. Apply to a live shift to submit a bid.", "info");
                     return;
                   }
 
@@ -1255,7 +1384,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
                   const { data, error } = await supabase.from('applications').insert(payload).select();
                   if (error) {
                     // Unique constraint or FK errors will appear here
-                    alert('Failed to submit application: ' + error.message);
+                    toast("Failed to submit application: " + error.message, "error");
                     return;
                   }
 
@@ -1280,7 +1409,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
         </div>
       )}
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: navPadding, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
+        <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label="Back">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{selectedShift.category}</Badge>
@@ -1324,8 +1453,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} applicants</span>
             </div>
           </Card>
-          <Btn onClick={() => setShowBidModal(true)} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
-            Place Bid →
+          <Btn onClick={() => user ? setShowBidModal(true) : onRequireAuth("signin")} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
+            {user ? "Place Bid →" : "Sign in to bid →"}
           </Btn>
         </div>
       </div>
@@ -1441,11 +1570,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
           </div>
         )}
 
-        {tab === "earnings" && (
+        {tab === "earnings" && !user && (
+          <AuthGate
+            onRequireAuth={onRequireAuth}
+            icon="💸"
+            title="Sign in to view earnings"
+            hint="Track your payouts, internal settlement status, and bank verification once you're signed in."
+          />
+        )}
+
+        {tab === "earnings" && user && (
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Earnings</div>
             <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Live payout schedule and internal settlement status</div>
-            <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, #C0280A)`, borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 20, color: "#fff" }}>
+            <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 20, color: "#fff" }}>
               <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>Total Internal Payouts</div>
               <div style={{ fontSize: isMobile ? 32 : 38, fontWeight: 900, marginBottom: 4 }}>{toCurrency(totalEarned)}</div>
               <div style={{ fontSize: isMobile ? 12 : 13, opacity: 0.8 }}>
@@ -1459,29 +1597,52 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
               <Stat label="Banking status" value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
             </div>
             <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Payouts</div>
-            {payoutRows.map((p) => (
-              <Card key={p.id} style={{ marginBottom: 10, padding: "14px 16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
-                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : "salary payout"}</div>
+            {payoutsLoading ? (
+              <>
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </>
+            ) : payoutRows.length === 0 ? (
+              <EmptyState
+                icon="💸"
+                title="No payouts yet"
+                hint="Complete a shift and verify your bank details to receive your first payout here."
+              />
+            ) : (
+              payoutRows.map((p) => (
+                <Card key={p.id} style={{ marginBottom: 10, padding: "14px 16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
+                      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : "salary payout"}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
+                      <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
+                    </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
-                    <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            )}
           </div>
         )}
 
-        {tab === "profile" && (
+        {tab === "profile" && !user && (
+          <AuthGate
+            onRequireAuth={onRequireAuth}
+            icon="👤"
+            title="Sign in to view your profile"
+            hint="Your KYC status, reliability score, ratings, and shift history live here once you sign in."
+          />
+        )}
+
+        {tab === "profile" && user && (
           <div>
             <div style={{ textAlign: "center", padding: isMobile ? "12px 0 16px" : "20px 0 24px" }}>
-              <Avatar name="Ahmad Firdaus" size={isMobile ? 56 : 72} color={BRAND.primary} />
-              <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>Ahmad Firdaus</div>
-              <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>+60 12-345 6789</div>
+              <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} />
+              <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
+              <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">Standard KYC</Badge>
                 <Badge color="green">94/100 Reliability</Badge>
@@ -1615,6 +1776,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null }) => {
 
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
 const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
+  const toast = useToast();
   const [view, setView] = useState("dashboard");
   const [selectedShift, setSelectedShift] = useState(null);
   const [postStep, setPostStep] = useState(1);
@@ -2062,7 +2224,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   )}
                   <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                     <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
-                    <Btn onClick={() => { alert("✅ Shift published! Workers will start applying within minutes."); setView("shifts"); setPostStep(1); }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
+                    <Btn onClick={() => { toast("Shift published · Workers will start applying within minutes.", "success"); setView("shifts"); setPostStep(1); }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
                   </div>
                 </div>
               )}
@@ -2193,6 +2355,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
 // ─── ADMIN PORTAL ─────────────────────────────────────────────────────────────
 const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
+  const toast = useToast();
   const [view, setView] = useState("overview");
   const [kycActions, setKycActions] = useState({});
   const [disputeActions, setDisputeActions] = useState({});
@@ -2365,7 +2528,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
                     {k.docs.map(doc => (
                       <div key={doc} style={{ background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, borderRadius: 8, padding: "6px 12px", fontSize: 12, color: BRAND.text, cursor: "pointer" }}
-                        onClick={() => alert(`[Simulated] Viewing: ${doc}`)}>
+                        onClick={() => toast(`Opening document preview: ${doc}`, "info")}>
                         📄 {doc}
                       </div>
                     ))}
@@ -2378,7 +2541,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div style={{ display: "flex", gap: 10 }}>
                       <Btn size="sm" variant="success" onClick={() => setKycActions(prev => ({ ...prev, [k.id]: "approved" }))}>✓ Approve</Btn>
                       <Btn size="sm" variant="danger" onClick={() => setKycActions(prev => ({ ...prev, [k.id]: "rejected" }))}>✗ Reject</Btn>
-                      <Btn size="sm" variant="secondary" onClick={() => alert("Re-upload request sent to user")}>Request Re-upload</Btn>
+                      <Btn size="sm" variant="secondary" onClick={() => toast("Re-upload request sent to user", "success")}>Request Re-upload</Btn>
                     </div>
                   )}
                 </Card>
@@ -2412,7 +2575,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                   <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 4 }}>Shift: {d.shift}</div>
                   <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                    <button onClick={() => alert(`[Simulated] Viewing check-in/out logs, chat history and GPS data for ${d.id}`)} style={{ fontSize: 12, color: BRAND.blue, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>View evidence →</button>
+                    <button onClick={() => toast(`Opening evidence for ${d.id}: check-in/out logs, chat history and GPS data`, "info", 6000)} style={{ fontSize: 12, color: BRAND.blue, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>View evidence →</button>
                   </div>
                   {action ? (
                     <div style={{ padding: "8px 12px", borderRadius: 8, background: BRAND.greenLight, fontSize: 13, fontWeight: 600, color: "#065F46" }}>
@@ -2491,10 +2654,17 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(livePayoutQueue && livePayoutQueue.length > 0 ? livePayoutQueue : [
-                    { id: "demo-1", worker_id: "worker-1", source_refs: { shift_id: 2 }, amount: 200, scheduled_date: "2026-06-13", status: "ready" },
-                    { id: "demo-2", worker_id: "worker-2", source_refs: { shift_id: 4 }, amount: 128, scheduled_date: "2026-06-15", status: "held" },
-                  ]).map((p) => (
+                  {livePayoutQueue === null && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: "20px 12px", textAlign: "center", fontSize: 13, color: BRAND.textMuted }}>Loading payout queue…</td>
+                    </tr>
+                  )}
+                  {livePayoutQueue && livePayoutQueue.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ padding: "20px 12px", textAlign: "center", fontSize: 13, color: BRAND.textMuted }}>No payouts in the queue. Run the internal scheduler to generate this cycle's payouts.</td>
+                    </tr>
+                  )}
+                  {(livePayoutQueue || []).map((p) => (
                     <tr key={p.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
                       <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>{p.worker_id || "N/A"}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Shift"}</td>
@@ -2543,7 +2713,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Platform fee</div>
               <Input label="Platform fee (% of gross shift cost)" type="number" value="15" onChange={() => {}} />
             </Card>
-            <Btn onClick={() => alert("✅ Configuration saved and applied globally")} style={{ width: "100%", justifyContent: "center" }}>Save Configuration</Btn>
+            <Btn onClick={() => toast("Configuration saved and applied globally", "success")} style={{ width: "100%", justifyContent: "center" }}>Save Configuration</Btn>
           </div>
         )}
       </div>
@@ -2776,6 +2946,7 @@ export default function CariGaji() {
   }, []);
 
   return (
+    <ToastProvider>
     <div style={{
       minHeight: "100vh",
       height: "100dvh",
@@ -2785,24 +2956,25 @@ export default function CariGaji() {
         ? `linear-gradient(180deg, ${BRAND.primary}08 0%, ${BRAND.page} 18%, ${BRAND.page} 100%)`
         : `radial-gradient(circle at top, ${BRAND.primary}20 0%, ${resolvedTheme === "dark" ? "#09111d" : "#f8fafc"} 42%, ${resolvedTheme === "dark" ? BRAND.dark : BRAND.page} 100%)`,
       display: "flex",
-      alignItems: "stretch",
-      justifyContent: "stretch",
-      padding: 0,
+      alignItems: isMobile ? "stretch" : "flex-start",
+      justifyContent: "center",
+      padding: isMobile ? 0 : "24px 16px",
       fontFamily: "'DM Sans', system-ui, sans-serif",
     }}>
       <div style={{
         width: "100%",
-        height: "100%",
-        minHeight: "100dvh",
-          background: isMobile ? BRAND.surface : BRAND.panel,
-        borderRadius: isMobile ? 0 : 0,
+        maxWidth: isMobile ? "100%" : cfg.width,
+        height: isMobile ? "100%" : `min(${cfg.height}px, calc(100dvh - 48px))`,
+        minHeight: isMobile ? "100dvh" : undefined,
+        background: isMobile ? BRAND.surface : BRAND.panel,
+        borderRadius: isMobile ? 0 : portal === "worker" ? 24 : 16,
         overflow: "hidden",
-        border: "none",
-        boxShadow: "none",
+        border: isMobile ? "none" : `1px solid ${BRAND.border}`,
+        boxShadow: isMobile ? "none" : `0 18px 60px ${BRAND.shadow}`,
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        flex: 1,
+        flex: isMobile ? 1 : "0 1 auto",
       }}>
         <div style={{
           height: isMobile ? 56 : 68,
@@ -2827,8 +2999,16 @@ export default function CariGaji() {
                 {cfg.label}
               </Badge>
             )}
-            <Btn size="sm" variant="secondary" onClick={() => setThemePreference(current => cycleThemePreference(current))} style={{ minWidth: 126, justifyContent: "center" }}>
-              {themePreference === "system" ? `System · ${resolvedTheme}` : themePreference === "light" ? "light" : "dark"}
+            <Btn
+              size="sm"
+              variant="secondary"
+              onClick={() => setThemePreference(current => cycleThemePreference(current))}
+              aria-label={`Theme: ${themePreference}. Click to change.`}
+              title={`Theme: ${themePreference}`}
+              style={{ width: 112, justifyContent: "center", gap: 7 }}
+            >
+              <span aria-hidden="true">{themePreference === "system" ? "🖥️" : themePreference === "light" ? "☀️" : "🌙"}</span>
+              <span>{themePreference === "system" ? "System" : themePreference === "light" ? "Light" : "Dark"}</span>
             </Btn>
             {user ? (
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -2841,9 +3021,9 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} />}
-          {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
+          {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
         </div>
       </div>
       <AuthModal
@@ -2863,5 +3043,6 @@ export default function CariGaji() {
         onResetPassword={handleResetPassword}
       />
     </div>
+    </ToastProvider>
   );
 }
