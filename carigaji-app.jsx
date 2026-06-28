@@ -1540,8 +1540,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                     {[
                       [s.date, "📅"],
                       [s.location, "📍"],
-                      [s.travelTime, "🚌"],
-                      [`RM${s.stipend} stipend`, "💰"],
+                      [`${s.hours}h work`, "⏱️"],
+                      [`${s.headcount} pos · ${s.totalApplicants} applied`, "👥"],
                     ].map(([v, ico], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
                         <div style={{ fontSize: isMobile ? 11 : 13 }}>{ico}</div>
