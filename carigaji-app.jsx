@@ -1540,7 +1540,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                     {[
                       [s.date, "📅"],
                       [s.location, "📍"],
-                      [`${s.hours}h work`, "⏱️"],
+                      [`${s.hours}h`, "⏱️"],
                       [`${s.headcount} pos · ${s.totalApplicants} applied`, "👥"],
                     ].map(([v, ico], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
@@ -1555,7 +1555,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           </div>
         )}
 
-        {tab === "applications" && (
+        {tab === "applications" && !user && (
+          <AuthGate
+            onRequireAuth={onRequireAuth}
+            icon="📄"
+            title="Sign in to view your bids"
+            hint="Track the shifts you've applied to and their status once you're signed in."
+          />
+        )}
+
+        {tab === "applications" && user && (
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1724,6 +1733,18 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>Standard worker mode</span>
               </div>
             </Card>
+            {!user && (
+              <Card style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Salary Banking Details</div>
+                <AuthGate
+                  onRequireAuth={onRequireAuth}
+                  icon="🏦"
+                  title="Sign in to manage banking"
+                  hint="Add and verify your bank details for salary payouts after signing in."
+                />
+              </Card>
+            )}
+            {user && (
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Salary Banking Details</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
@@ -1765,6 +1786,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 <Btn onClick={verifyWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign (Demo)</Btn>
               </div>
             </Card>
+            )}
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Access other consoles</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 14 }}>These are hidden from the main app and can only be opened here.</div>
