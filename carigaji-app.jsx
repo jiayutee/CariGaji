@@ -1516,7 +1516,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 ))}
               </div>
             </div>
-            <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: isMobile ? undefined : "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+            <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
               {filtered.map(s => (
                 <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ padding: 0, overflow: "hidden" }}>
                   <div style={{ padding: "12px 12px 0" }}>
