@@ -202,8 +202,21 @@ const Btn = memo(({ children, variant = "primary", onClick, size = "md", style =
   );
 });
 
-const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary }) => {
+const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src = null }) => {
   const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        style={{
+          width: size, height: size, borderRadius: "50%",
+          objectFit: "cover", flexShrink: 0, display: "block",
+          background: color + "22",
+        }}
+      />
+    );
+  }
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%",
@@ -375,6 +388,81 @@ const SkeletonRow = memo(({ height = 64 }) => (
   }} />
 ));
 
+const ProfileMenu = ({ user, onSignOut }) => {
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Account";
+  const avatarUrl = getAvatarUrl(user.user_metadata?.avatar_url);
+
+  const items = [
+    { label: "Help", icon: "❓", onClick: () => toast("Help centre is coming soon.", "info") },
+    { label: "Contact customer support", icon: "💬", onClick: () => toast("Support: support@carigaji.com", "info", 6000) },
+    { label: "Refer friends", icon: "🎁", onClick: () => toast("Referral programme launching soon.", "info") },
+    { label: "Sign out", icon: "↩️", danger: true, onClick: onSignOut },
+  ];
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Account menu"
+        style={{
+          display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
+          border: `1px solid ${BRAND.border}`, background: BRAND.surface,
+          borderRadius: 99, padding: "4px 10px 4px 4px", fontFamily: "inherit",
+        }}
+      >
+        <Avatar name={displayName} size={32} color={BRAND.primary} src={avatarUrl} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>
+        <span aria-hidden="true" style={{ fontSize: 10, color: BRAND.textMuted }}>▼</span>
+      </button>
+      {open && (
+        <div role="menu" style={{
+          position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 400,
+          minWidth: 220, background: BRAND.surface, border: `1px solid ${BRAND.border}`,
+          borderRadius: 12, boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
+        }}>
+          <div style={{ padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+            <div style={{ fontSize: 11, color: BRAND.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
+          </div>
+          {items.map((it) => (
+            <button
+              key={it.label}
+              role="menuitem"
+              onClick={() => { setOpen(false); it.onClick(); }}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 14px", border: "none", background: "transparent",
+                cursor: "pointer", fontFamily: "inherit", fontSize: 13, textAlign: "left",
+                color: it.danger ? BRAND.red : BRAND.text,
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = BRAND.grayLight; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+            >
+              <span aria-hidden="true" style={{ fontSize: 15 }}>{it.icon}</span>
+              <span>{it.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const StarRating = ({ value = 4.5, size = 14 }) => {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
@@ -487,6 +575,26 @@ const assignKYCLevel = (hasFront, hasBack, hasSelfie, hasSupportingDoc) => {
 };
 
 const KYC_BUCKET = "kyc-documents";
+const AVATAR_BUCKET = "avatars";
+
+const getAvatarUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  return data?.publicUrl || null;
+};
+
+const uploadAvatarFile = async (userId, file) => {
+  if (!file) return null;
+  const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
+  const path = `${userId}/avatar.${ext}`;
+  const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
+    contentType: file.type || "image/jpeg",
+    upsert: true,
+  });
+  if (error) throw error;
+  return path;
+};
 
 const uploadKycFile = async (userId, file, label) => {
   if (!file) return null;
@@ -1020,8 +1128,26 @@ const CHAT_MESSAGES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {} }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {}, onUserUpdated = () => {} }) => {
   const toast = useToast();
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const handleAvatarUpload = async (file) => {
+    if (!file || !user) return;
+    setAvatarUploading(true);
+    try {
+      const path = await uploadAvatarFile(user.id, file);
+      const { error } = await supabase.auth.updateUser({
+        data: { ...user.user_metadata, avatar_url: path },
+      });
+      if (error) throw error;
+      await onUserUpdated();
+      toast("Profile picture updated.", "success");
+    } catch (err) {
+      toast(`Could not update photo: ${err.message}`, "error");
+    }
+    setAvatarUploading(false);
+  };
   const [tab, setTab] = useState("discover");
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -1278,7 +1404,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   // Modal content - rendered on top of main content
   if (showQR) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
         <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
@@ -1498,7 +1624,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
         {tab === "discover" && (
           <div>
             <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
@@ -1670,7 +1796,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         {tab === "profile" && user && (
           <div>
             <div style={{ textAlign: "center", padding: isMobile ? "12px 0 16px" : "20px 0 24px" }}>
-              <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} />
+              <div style={{ display: "inline-block", position: "relative" }}>
+                <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} src={getAvatarUrl(user.user_metadata?.avatar_url)} />
+                <label style={{
+                  position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
+                  borderRadius: "50%", background: BRAND.primary, color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: avatarUploading ? "wait" : "pointer", fontSize: 13,
+                  border: `2px solid ${BRAND.surface}`,
+                }} title="Change profile picture">
+                  {avatarUploading ? "…" : "✎"}
+                  <input type="file" accept="image/*" disabled={avatarUploading}
+                    onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
+                    style={{ display: "none" }} />
+                </label>
+              </div>
               <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
@@ -2943,6 +3083,11 @@ export default function CariGaji() {
     return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, []);
 
+  const refreshUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    setUser(data?.user ?? null);
+  };
+
   useEffect(() => {
     const handleResize = () => {
       setViewport({ width: window.innerWidth, height: window.innerHeight });
@@ -3054,17 +3199,17 @@ export default function CariGaji() {
               <span>{themePreference === "system" ? "System" : themePreference === "light" ? "Light" : "Dark"}</span>
             </Btn>
             {user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{user.email}</div>
-                <Btn size="sm" variant="ghost" onClick={async () => { await supabase.auth.signOut(); setUser(null); }}>Sign out</Btn>
-              </div>
+              <ProfileMenu
+                user={user}
+                onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }}
+              />
             ) : (
               <Btn size="sm" variant="primary" onClick={() => openAuthModal("signin")}>Sign in</Btn>
             )}
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
           {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
         </div>
