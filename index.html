@@ -36,6 +36,25 @@
           background: #0B1120;
         }
       }
+      /* Accessible focus ring for keyboard users (replaces removed outlines) */
+      a:focus-visible,
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      [tabindex]:focus-visible {
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.45) !important;
+        border-radius: 8px;
+      }
+      @keyframes cg-toast-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes cg-skeleton {
+        0% { background-position: 100% 50%; }
+        100% { background-position: 0 50%; }
+      }
     </style>
   </head>
   <body>
