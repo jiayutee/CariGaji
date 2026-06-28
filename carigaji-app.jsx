@@ -1242,20 +1242,38 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     setTab(nextTab);
   };
 
-  const navBarStyle = {
-    position: "sticky",
-    bottom: 0,
-    width: "100%",
-    zIndex: 20,
-    boxShadow: `0 -6px 20px ${BRAND.shadow}`,
-    borderTop: `1px solid ${BRAND.border}`,
-    background: BRAND.surface,
-    display: "flex",
-    flexShrink: 0,
-    height: navHeight,
-    paddingBottom: navSafeAreaInset,
-    marginTop: "auto",
-  };
+  const navBarStyle = isMobile
+    ? {
+        position: "sticky",
+        bottom: 0,
+        width: "100%",
+        zIndex: 20,
+        boxShadow: `0 -6px 20px ${BRAND.shadow}`,
+        borderTop: `1px solid ${BRAND.border}`,
+        background: BRAND.surface,
+        display: "flex",
+        flexShrink: 0,
+        height: navHeight,
+        paddingBottom: navSafeAreaInset,
+        marginTop: "auto",
+      }
+    : {
+        // Desktop: top navigation row. order:-1 floats it above the
+        // content without changing DOM order across the worker screens.
+        order: -1,
+        position: "sticky",
+        top: 0,
+        width: "100%",
+        zIndex: 20,
+        boxShadow: `0 2px 12px ${BRAND.shadow}`,
+        borderBottom: `1px solid ${BRAND.border}`,
+        background: BRAND.surface,
+        display: "flex",
+        justifyContent: "center",
+        gap: 8,
+        flexShrink: 0,
+        height: 56,
+      };
 
   // Modal content - rendered on top of main content
   if (showQR) return (
@@ -1276,13 +1294,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
-            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
+            borderRadius: isMobile ? 0 : 8,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
-            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
       </div>
@@ -1331,13 +1350,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
-            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
+            borderRadius: isMobile ? 0 : 8,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
-            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
       </div>
@@ -1461,13 +1481,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
-            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
+            borderRadius: isMobile ? 0 : 8,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
-            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
       </div>
@@ -1477,7 +1498,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
         {tab === "discover" && (
           <div>
             <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
@@ -1495,7 +1516,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 ))}
               </div>
             </div>
-            <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: isMobile ? undefined : "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
               {filtered.map(s => (
                 <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ padding: 0, overflow: "hidden" }}>
                   <div style={{ padding: "12px 12px 0" }}>
@@ -1760,13 +1781,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       <div style={navBarStyle}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => setTab(n.id)} style={{
-            flex: 1, padding: isMobile ? "6px 0" : "10px 0", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: "column", alignItems: "center", gap: isMobile ? 2 : 3,
+            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
+            borderRadius: isMobile ? 0 : 8,
             color: tab === n.id ? BRAND.primary : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 20, lineHeight: 1 }}>{n.icon}</span>
-            <span style={{ fontSize: isMobile ? 9 : 10, fontWeight: tab === n.id ? 700 : 400, whiteSpace: "nowrap" }}>{n.label}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
       </div>
@@ -2956,25 +2978,24 @@ export default function CariGaji() {
         ? `linear-gradient(180deg, ${BRAND.primary}08 0%, ${BRAND.page} 18%, ${BRAND.page} 100%)`
         : `radial-gradient(circle at top, ${BRAND.primary}20 0%, ${resolvedTheme === "dark" ? "#09111d" : "#f8fafc"} 42%, ${resolvedTheme === "dark" ? BRAND.dark : BRAND.page} 100%)`,
       display: "flex",
-      alignItems: isMobile ? "stretch" : "flex-start",
-      justifyContent: "center",
-      padding: isMobile ? 0 : "24px 16px",
+      alignItems: "stretch",
+      justifyContent: "stretch",
+      padding: 0,
       fontFamily: "'DM Sans', system-ui, sans-serif",
     }}>
       <div style={{
         width: "100%",
-        maxWidth: isMobile ? "100%" : cfg.width,
-        height: isMobile ? "100%" : `min(${cfg.height}px, calc(100dvh - 48px))`,
-        minHeight: isMobile ? "100dvh" : undefined,
+        height: "100%",
+        minHeight: "100dvh",
         background: isMobile ? BRAND.surface : BRAND.panel,
-        borderRadius: isMobile ? 0 : portal === "worker" ? 24 : 16,
+        borderRadius: 0,
         overflow: "hidden",
-        border: isMobile ? "none" : `1px solid ${BRAND.border}`,
-        boxShadow: isMobile ? "none" : `0 18px 60px ${BRAND.shadow}`,
+        border: "none",
+        boxShadow: "none",
         position: "relative",
         display: "flex",
         flexDirection: "column",
-        flex: isMobile ? 1 : "0 1 auto",
+        flex: 1,
       }}>
         <div style={{
           height: isMobile ? 56 : 68,
