@@ -48,6 +48,33 @@ const MALAYSIAN_BANK_OPTIONS = [
   "UOB",
 ];
 
+const validateMalaysianBankAccount = (bankName, accountNumber) => {
+  if (!bankName || !accountNumber) {
+    return { valid: false, message: "Bank name and account number are required." };
+  }
+  const digits = String(accountNumber).replace(/\D/g, "");
+  const code = bankName.toUpperCase().replace(/\s+/g, "_");
+  const lengthMap = {
+    MAYBANK: [12, 12],
+    CIMB: [14, 14],
+    PUBLIC_BANK: [10, 10],
+    RHB: [14, 14],
+    HONG_LEONG_BANK: [10, 12],
+    AMBANK: [12, 14],
+    BANK_ISLAM: [14, 14],
+    BANK_RAKYAT: [12, 12],
+    OCBC: [9, 12],
+    HSBC: [12, 12],
+    UOB: [10, 12],
+  };
+  const [min, max] = lengthMap[code] ?? [8, 17];
+  if (digits.length < min || digits.length > max) {
+    const range = min === max ? `${min}` : `${min}–${max}`;
+    return { valid: false, message: `${bankName} account numbers must be ${range} digits (you entered ${digits.length}).` };
+  }
+  return { valid: true, message: "" };
+};
+
 const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 
 const mapVerificationPillColor = (status) => {
@@ -1292,6 +1319,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       setBankingMessage("Account holder name and account number are required.");
       return;
     }
+    const workerAcctValidation = validateMalaysianBankAccount(workerBankForm.bankName, workerBankForm.accountNumber);
+    if (!workerAcctValidation.valid) {
+      toast(workerAcctValidation.message, "error");
+      return;
+    }
 
     setBankingLoading(true);
     setBankingMessage("");
@@ -2103,6 +2135,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     }
     if (!employerBankForm.accountHolderName.trim() || !employerBankForm.accountNumber.trim()) {
       setBankingMessage("Account holder name and account number are required.");
+      return;
+    }
+    const employerAcctValidation = validateMalaysianBankAccount(employerBankForm.bankName, employerBankForm.accountNumber);
+    if (!employerAcctValidation.valid) {
+      toast(employerAcctValidation.message, "error");
       return;
     }
 
