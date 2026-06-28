@@ -577,6 +577,36 @@ const assignKYCLevel = (hasFront, hasBack, hasSelfie, hasSupportingDoc) => {
 const KYC_BUCKET = "kyc-documents";
 const AVATAR_BUCKET = "avatars";
 
+// Downscale + re-encode images client-side before upload to cut storage cost.
+const compressImage = (file, maxDim = 1280, quality = 0.82) =>
+  new Promise((resolve) => {
+    if (!file || !file.type?.startsWith("image/")) return resolve(file);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width >= height) { height = Math.round((height * maxDim) / width); width = maxDim; }
+        else { width = Math.round((width * maxDim) / height); height = maxDim; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return resolve(file);
+          resolve(new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+
 const getAvatarUrl = (path) => {
   if (!path) return null;
   if (path.startsWith("http")) return path;
@@ -586,10 +616,10 @@ const getAvatarUrl = (path) => {
 
 const uploadAvatarFile = async (userId, file) => {
   if (!file) return null;
-  const ext = (file.name.split(".").pop() || "jpg").replace(/[^a-zA-Z0-9]/g, "");
-  const path = `${userId}/avatar.${ext}`;
-  const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
-    contentType: file.type || "image/jpeg",
+  const compressed = await compressImage(file, 512, 0.85);
+  const path = `${userId}/avatar.jpg`;
+  const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, compressed, {
+    contentType: "image/jpeg",
     upsert: true,
   });
   if (error) throw error;
@@ -598,10 +628,12 @@ const uploadAvatarFile = async (userId, file) => {
 
 const uploadKycFile = async (userId, file, label) => {
   if (!file) return null;
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  // Compress photos (keep legibility for ID docs); leave PDFs/others untouched.
+  const toUpload = file.type?.startsWith("image/") ? await compressImage(file, 1600, 0.8) : file;
+  const safeName = toUpload.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${userId}/${Date.now()}-${label}-${safeName}`;
-  const { error } = await supabase.storage.from(KYC_BUCKET).upload(path, file, {
-    contentType: file.type || "application/octet-stream",
+  const { error } = await supabase.storage.from(KYC_BUCKET).upload(path, toUpload, {
+    contentType: toUpload.type || "application/octet-stream",
     upsert: true,
   });
   if (error) throw error;
@@ -1141,6 +1173,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         data: { ...user.user_metadata, avatar_url: path },
       });
       if (error) throw error;
+      // Mirror to the public profiles table so employers can see the photo.
+      await supabase.from("profiles").upsert(
+        { id: user.id, avatar_url: path, full_name: user.user_metadata?.full_name || null },
+        { onConflict: "id" }
+      );
       await onUserUpdated();
       toast("Profile picture updated.", "success");
     } catch (err) {
@@ -2991,6 +3028,9 @@ export default function CariGaji() {
       Boolean(authForm.selfie),
       Boolean(authForm.supportingDoc)
     );
+    const fullPhone = `${COUNTRIES.find(c => c.code === authForm.countryCode)?.dialCode || "+60"}${authForm.phone}`;
+    // Keep only non-sensitive fields in auth metadata (it is client-readable
+    // and self-editable). Sensitive PII goes to the owner-only user_private table.
     const { data, error } = await supabase.auth.signUp({
       email: authForm.email,
       password: authForm.password,
@@ -2998,12 +3038,7 @@ export default function CariGaji() {
         emailRedirectTo: authRedirectUrl,
         data: {
           full_name: authForm.fullName,
-            phone: `${COUNTRIES.find(c => c.code === authForm.countryCode)?.dialCode || "+60"}${authForm.phone}`,
-          identity_type: authForm.identityType,
-          id_number: authForm.idNumber,
-          date_of_birth: authForm.dateOfBirth,
           kyc_level: autoKycLevel,
-          address: authForm.address,
         },
       },
     });
@@ -3017,6 +3052,23 @@ export default function CariGaji() {
     const hasSession = Boolean(data?.session);
     if (registeredUserId && hasSession) {
       try {
+        // Public-safe profile (employers may read) + private PII (owner only).
+        await supabase.from("profiles").upsert(
+          { id: registeredUserId, full_name: authForm.fullName, kyc_level: autoKycLevel },
+          { onConflict: "id" }
+        );
+        await supabase.from("user_private").upsert(
+          {
+            id: registeredUserId,
+            identity_type: authForm.identityType,
+            id_number: authForm.idNumber,
+            date_of_birth: authForm.dateOfBirth || null,
+            address: authForm.address,
+            phone: fullPhone,
+          },
+          { onConflict: "id" }
+        );
+
         const uploadTasks = [
           ["kyc_front", authForm.kycFront],
           ["kyc_back", authForm.kycBack],
@@ -3106,6 +3158,7 @@ export default function CariGaji() {
     admin: { label: "Admin", color: BRAND.accent, width: 960, height: 640 },
   };
   const cfg = portalConfig[portal];
+  const isAdmin = user?.app_metadata?.role === "admin";
   const resolvedTheme = resolveThemeMode(themePreference, systemTheme);
   const themeVars = buildThemeVars(resolvedTheme);
 
@@ -3211,7 +3264,20 @@ export default function CariGaji() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
           {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
-          {portal === "admin" && <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
+          {portal === "admin" && (
+            isAdmin
+              ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
+              : (
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
+                  <div style={{ fontSize: 40 }} aria-hidden="true">🚫</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>Admin access required</div>
+                  <div style={{ fontSize: 13, color: BRAND.textMuted, maxWidth: 320 }}>
+                    {user ? "Your account is not an administrator." : "Sign in with an administrator account to continue."}
+                  </div>
+                  <Btn variant="secondary" onClick={() => setPortal("worker")}>Back to Worker App</Btn>
+                </div>
+              )
+          )}
         </div>
       </div>
       <AuthModal
