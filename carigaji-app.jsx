@@ -596,8 +596,8 @@ const extractDateFromIC = (icNumber) => {
 
 const assignKYCLevel = (hasFront, hasBack, hasSelfie, hasSupportingDoc) => {
   if (!hasSelfie) return "Basic";
-  if ((hasFront || hasBack) && hasSelfie) return "Standard";
-  if (hasSupportingDoc && hasSelfie) return "Advanced";
+  if ((hasFront || hasBack) && hasSelfie) return "pending_review";
+  if (hasSupportingDoc && hasSelfie) return "pending_review";
   return "Basic";
 };
 
@@ -2628,6 +2628,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [livePayoutQueue, setLivePayoutQueue] = useState(null);
   const [payoutRunning, setPayoutRunning] = useState(false);
   const [payoutMessage, setPayoutMessage] = useState("");
+  const [kycQueue, setKycQueue] = useState(null);
+  const [kycSignedUrls, setKycSignedUrls] = useState({});
 
   const navItems = ["Overview", "KYC Queue", "Disputes", "Flags", "Payouts", "Config"];
 
@@ -2654,6 +2656,20 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   useEffect(() => {
     loadPayoutQueue();
   }, []);
+
+  useEffect(() => {
+    if (!supabase || (view !== "kycqueue" && view !== "overview")) return;
+    (async () => {
+      setKycQueue(null);
+      const { data: pending, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, kyc_level, created_at")
+        .eq("kyc_level", "pending_review")
+        .order("created_at", { ascending: true });
+      if (error) { setKycQueue([]); return; }
+      setKycQueue(pending || []);
+    })();
+  }, [view]);
 
   const updatePayoutStatus = async (item, nextStatus) => {
     const { error } = await supabase
@@ -2697,6 +2713,40 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setPayoutRunning(false);
   };
 
+  const loadKycDocuments = async (userId) => {
+    if (kycSignedUrls[userId]) return;
+    const { data: files, error: listError } = await supabase.storage
+      .from("kyc-documents")
+      .list(userId, { limit: 20 });
+    if (listError) { addToast("Could not load documents.", "error"); return; }
+    if (!files?.length) { setKycSignedUrls(prev => ({ ...prev, [userId]: {} })); return; }
+    const urls = {};
+    await Promise.all(files.map(async (file) => {
+      const { data, error: urlErr } = await supabase.storage
+        .from("kyc-documents")
+        .createSignedUrl(`${userId}/${file.name}`, 3600);
+      if (urlErr) return;
+      if (data?.signedUrl) urls[file.name] = data.signedUrl;
+    }));
+    setKycSignedUrls(prev => ({ ...prev, [userId]: urls }));
+  };
+
+  const approveKyc = async (userId, level = "Standard") => {
+    const { error } = await supabase.from("profiles").update({ kyc_level: level }).eq("id", userId);
+    if (error) { addToast(`Failed to approve KYC: ${error.message}`, "error"); return; }
+    setKycQueue(prev => prev.filter(u => u.id !== userId));
+    setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
+    addToast(`KYC approved — level set to ${level}`, "success");
+  };
+
+  const rejectKyc = async (userId) => {
+    const { error } = await supabase.from("profiles").update({ kyc_level: "Basic" }).eq("id", userId);
+    if (error) { addToast(`Failed to reject KYC: ${error.message}`, "error"); return; }
+    setKycQueue(prev => prev.filter(u => u.id !== userId));
+    setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
+    addToast("KYC rejected — user reset to Basic", "info");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%" }}>
       {/* Sidebar */}
@@ -2734,7 +2784,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Klang Valley — Live metrics</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Open shifts" value="18" color={BRAND.blue} />
-              <Stat label="Pending KYC" value={ADMIN_KYC.filter(k => k.status === "pending").length} color={BRAND.amber} />
+              <Stat label="Pending KYC" value={kycQueue?.length ?? "—"} color={BRAND.amber} />
               <Stat label="Open disputes" value={ADMIN_DISPUTES.filter(d => d.status === "open" || d.status === "under_review").length} color={BRAND.red} />
               <Stat label="Fill rate" value="84%" color={BRAND.green} />
             </div>
@@ -2747,10 +2797,12 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <Card>
                 <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>KYC Queue</div>
-                {ADMIN_KYC.slice(0, 3).map(k => (
+                {kycQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+                {kycQueue?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>No pending submissions.</div>}
+                {kycQueue?.slice(0, 3).map(k => (
                   <div key={k.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                    <div style={{ fontSize: 13, color: BRAND.text }}>{k.name}</div>
-                    <Badge color={k.status === "flagged" ? "red" : "amber"} size="xs">{k.status}</Badge>
+                    <div style={{ fontSize: 13, color: BRAND.text }}>{k.full_name || "Unnamed user"}</div>
+                    <Badge color="amber" size="xs">pending</Badge>
                   </div>
                 ))}
                 <Btn size="xs" variant="secondary" onClick={() => setView("kycqueue")} style={{ marginTop: 10 }}>View all →</Btn>
@@ -2772,46 +2824,61 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         {view === "kycqueue" && (
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>KYC Review Queue</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{ADMIN_KYC.length} pending reviews</div>
-            {ADMIN_KYC.map(k => {
-              const action = kycActions[k.id];
-              return (
-                <Card key={k.id} style={{ marginBottom: 14 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <Avatar name={k.name} size={40} color={BRAND.blue} />
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>{k.name}</div>
-                        <div style={{ fontSize: 12, color: BRAND.textMuted }}>{k.type} KYC · Submitted {k.submitted}</div>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      <Badge color={k.status === "flagged" ? "red" : "amber"}>{k.status}</Badge>
-                      <Badge color="blue">{k.type}</Badge>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
+              {kycQueue === null ? "Loading…" : `${kycQueue.length} pending review${kycQueue.length !== 1 ? "s" : ""}`}
+            </div>
+
+            {kycQueue === null && (
+              <div style={{ color: BRAND.textMuted, padding: 16 }}>Loading...</div>
+            )}
+            {kycQueue?.length === 0 && (
+              <div style={{ color: BRAND.textMuted, padding: 16 }}>✅ No pending KYC submissions.</div>
+            )}
+
+            {kycQueue?.map(worker => (
+              <Card key={worker.id} style={{ marginBottom: 14 }}>
+                {/* Header row */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>{worker.full_name || "Unnamed user"}</div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted }}>{worker.id}</div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>
+                      Submitted: {new Date(worker.created_at).toLocaleDateString("en-MY")}
                     </div>
                   </div>
-                  <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
-                    {k.docs.map(doc => (
-                      <div key={doc} style={{ background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, borderRadius: 8, padding: "6px 12px", fontSize: 12, color: BRAND.text, cursor: "pointer" }}
-                        onClick={() => toast(`Opening document preview: ${doc}`, "info")}>
-                        📄 {doc}
-                      </div>
-                    ))}
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <Btn size="sm" variant="secondary" onClick={() => loadKycDocuments(worker.id)}>
+                      View Docs
+                    </Btn>
+                    <Btn size="sm" variant="success" onClick={() => approveKyc(worker.id, "Standard")}>
+                      Approve Standard
+                    </Btn>
+                    <Btn size="sm" variant="success" onClick={() => approveKyc(worker.id, "Advanced")}>
+                      Approve Advanced
+                    </Btn>
+                    <Btn size="sm" variant="danger" onClick={() => rejectKyc(worker.id)}>
+                      Reject
+                    </Btn>
                   </div>
-                  {action ? (
-                    <div style={{ padding: "8px 12px", borderRadius: 8, background: action === "approved" ? BRAND.greenLight : BRAND.redLight, fontSize: 13, fontWeight: 600, color: action === "approved" ? "#065F46" : "#991B1B" }}>
-                      {action === "approved" ? "✓ Approved" : "✗ Rejected"} — action logged
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <Btn size="sm" variant="success" onClick={() => setKycActions(prev => ({ ...prev, [k.id]: "approved" }))}>✓ Approve</Btn>
-                      <Btn size="sm" variant="danger" onClick={() => setKycActions(prev => ({ ...prev, [k.id]: "rejected" }))}>✗ Reject</Btn>
-                      <Btn size="sm" variant="secondary" onClick={() => toast("Re-upload request sent to user", "success")}>Request Re-upload</Btn>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
+                </div>
+
+                {/* Documents */}
+                {kycSignedUrls[worker.id] && (
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+                    {Object.keys(kycSignedUrls[worker.id]).length === 0 ? (
+                      <div style={{ fontSize: 12, color: BRAND.textMuted }}>No documents found in storage.</div>
+                    ) : (
+                      Object.entries(kycSignedUrls[worker.id]).map(([filename, url]) => (
+                        <a key={filename} href={url} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: 12, color: BRAND.primary, textDecoration: "underline" }}>
+                          📄 {filename}
+                        </a>
+                      ))
+                    )}
+                  </div>
+                )}
+              </Card>
+            ))}
           </div>
         )}
 
