@@ -1212,6 +1212,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     }
     setAvatarUploading(false);
   };
+  const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0 });
   const [tab, setTab] = useState("discover");
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -1237,6 +1238,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
   const navHeight = `calc(${navBaseHeight}px + ${navSafeAreaInset})`;
   const navPadding = `calc(16px + ${navSafeAreaInset})`;
+
+  useEffect(() => {
+    if (!user || tab !== 'profile') return;
+    let active = true;
+    supabase.from('profiles').select('reliability_score, rating')
+      .eq('id', user.id).single()
+      .then(({ data }) => {
+        if (active && data) setProfileStats({
+          reliability_score: data.reliability_score ?? 0,
+          rating: data.rating ?? 0
+        });
+      });
+    return () => { active = false; };
+  }, [user, tab]);
 
   useEffect(() => {
     let active = true;
@@ -1891,12 +1906,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">Standard KYC</Badge>
-                <Badge color="green">94/100 Reliability</Badge>
+                <Badge color="green">🛡️ {profileStats.reliability_score}/100 Reliability</Badge>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label="Shifts done" value="38" color={BRAND.primary} />
-              <Stat label="Rating" value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>4.7</span>{Icons.Star({ size: 14 })}</span>} color={BRAND.accent} />
+              <Stat label="Rating" value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
               <Stat label="Strikes" value="0" sub="Clean record" color={BRAND.green} />
               <Stat label="On-time rate" value="96%" color={BRAND.blue} />
             </div>
@@ -1910,9 +1925,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               ))}
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Reliability Score: 94</div>
-              <Progress value={94} color={BRAND.green} />
-              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>Excellent — you're in the top 15% of workers on CariGaji</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Reliability Score: {profileStats.reliability_score}</div>
+              <Progress value={Math.min(100, Math.max(0, profileStats.reliability_score))} color={profileStats.reliability_score > 90 ? BRAND.green : profileStats.reliability_score > 75 ? BRAND.accent : BRAND.red} />
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>{profileStats.reliability_score >= 90 ? "Excellent — top 15% of workers 🏆" :
+ profileStats.reliability_score >= 75 ? "Good standing — keep it up 👍" :
+ profileStats.reliability_score >= 50 ? "Building your reputation 📈" :
+ "Complete more shifts to improve your score"}</div>
             </Card>
             <Card>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Ratings</div>
