@@ -1233,6 +1233,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [bankingLoading, setBankingLoading] = useState(false);
   const [bankingMessage, setBankingMessage] = useState("");
   const [livePayouts, setLivePayouts] = useState(null);
+  const [liveShifts, setLiveShifts] = useState(null);
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterPayMin, setFilterPayMin] = useState('');
+  const [filterPayMax, setFilterPayMax] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
@@ -1274,6 +1280,44 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       })));
     };
     loadApplications();
+    return () => { active = false; };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    supabase
+      .from('shifts')
+      .select('id, title, category, location, start_at, end_at, wage_min, wage_max, headcount, filled_count, status')
+      .eq('status', 'open')
+      .order('start_at', { ascending: true })
+      .then(({ data }) => {
+        if (!active) return;
+        setLiveShifts((data ?? []).map(s => ({
+          id: s.id,
+          title: s.title,
+          category: s.category,
+          employer: 'Employer',
+          location: s.location,
+          date: s.start_at ? s.start_at.slice(0, 10) : '',
+          time: s.start_at && s.end_at
+            ? `${new Date(s.start_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}–${new Date(s.end_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`
+            : 'TBA',
+          hours: s.start_at && s.end_at
+            ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000)
+            : 0,
+          wageMin: Number(s.wage_min),
+          wageMax: Number(s.wage_max),
+          headcount: s.headcount,
+          filled: s.filled_count,
+          status: s.status,
+          totalApplicants: 0,
+          dress: '',
+          stipend: 0,
+          travelTime: '',
+          distance: 0,
+        })));
+      });
     return () => { active = false; };
   }, [user]);
 
@@ -1402,12 +1446,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   };
 
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
-  const filtered = useMemo(
-    () => (filterCat === "All"
-      ? SHIFTS.filter(s => s.status === "open")
-      : SHIFTS.filter(s => s.category === filterCat && s.status === "open")),
-    [filterCat]
-  );
+  const shiftsSource = liveShifts ?? SHIFTS;
+  const filtered = useMemo(() => {
+    let s = filterCat === 'All' ? shiftsSource : shiftsSource.filter(x => x.category === filterCat);
+    if (filterLocation) s = s.filter(x => x.location.toLowerCase().includes(filterLocation.toLowerCase()));
+    if (filterDate) s = s.filter(x => x.date === filterDate);
+    if (filterPayMin) s = s.filter(x => x.wageMin >= Number(filterPayMin));
+    if (filterPayMax) s = s.filter(x => x.wageMax <= Number(filterPayMax));
+    return s;
+  }, [filterCat, shiftsSource, filterLocation, filterDate, filterPayMin, filterPayMax]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => ({
@@ -1733,6 +1780,34 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 ))}
               </div>
             </div>
+            <div style={{ padding: isMobile ? "0 12px 8px" : "0 20px 8px" }}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                <button
+                  onClick={() => setShowFilters(f => !f)}
+                  style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #e2e8f0',background:'#f8fafc',cursor:'pointer',color:'#64748b'}}
+                >
+                  {showFilters ? 'Hide Filters ▲' : 'Filters ▼'}
+                </button>
+                {(filterLocation||filterDate||filterPayMin||filterPayMax) && (
+                  <button onClick={() => { setFilterLocation(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax(''); }}
+                    style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #fca5a5',background:'#fef2f2',cursor:'pointer',color:'#ef4444'}}>
+                    Clear
+                  </button>
+                )}
+              </div>
+              {showFilters && (
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12,padding:12,background:'#f8fafc',borderRadius:8,border:'1px solid #e2e8f0'}}>
+                  <input placeholder="City / Location" value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}
+                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
+                  <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
+                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
+                  <input type="number" placeholder="Min pay (RM/hr)" value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
+                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
+                  <input type="number" placeholder="Max pay (RM/hr)" value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
+                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
+                </div>
+              )}
+            </div>
             <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
               {filtered.map(s => (
                 <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ padding: 0, overflow: "hidden" }}>
@@ -2057,6 +2132,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
   const [view, setView] = useState("dashboard");
   const [selectedShift, setSelectedShift] = useState(null);
+  const [liveApplicants, setLiveApplicants] = useState(null);
   const [postStep, setPostStep] = useState(1);
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre" });
   const [applicantAction, setApplicantAction] = useState({});
@@ -2099,6 +2175,33 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     load();
     return () => { active = false; };
   }, [user]);
+
+  useEffect(() => {
+    if (!selectedShift?.id || typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) return;
+    let active = true;
+    supabase
+      .from('applications')
+      .select('id, wage_ask, status, applied_at, worker:profiles(full_name, kyc_level, reliability_score, rating)')
+      .eq('shift_id', selectedShift.id)
+      .order('applied_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) { console.error('liveApplicants load failed:', error.message); setLiveApplicants([]); return; }
+        setLiveApplicants((data ?? []).map(a => ({
+          id: a.id,
+          name: a.worker?.full_name ?? 'Worker',
+          kyc: a.worker?.kyc_level ?? 'Basic',
+          reliability: a.worker?.reliability_score ?? 0,
+          rating: a.worker?.rating ?? 0,
+          wage: Number(a.wage_ask),
+          wageBid: Number(a.wage_ask),
+          completedShifts: 0,
+          status: a.status,
+          appliedAt: a.applied_at,
+        })));
+      });
+    return () => { active = false; };
+  }, [selectedShift]);
 
   useEffect(() => {
     let active = true;
@@ -2226,7 +2329,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
   const navItems = ["Dashboard", "Shifts", "Post Shift", "Billing", "Account"];
 
-  const handleApplicantAction = (id, action) => {
+  const handleApplicantAction = async (id, action) => {
+    if (!['shortlisted', 'accepted', 'rejected'].includes(action)) return;
+    const { error } = await supabase
+      .from('applications')
+      .update({ status: action, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) { toast('Update failed: ' + error.message, 'error'); return; }
+    setLiveApplicants(prev => prev ? prev.map(a => a.id === id ? { ...a, status: action } : a) : prev);
     setApplicantAction(prev => ({ ...prev, [id]: action }));
   };
 
@@ -2377,7 +2487,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </tr>
               </thead>
               <tbody>
-                {shiftApplicants.map(a => {
+                {(liveApplicants ?? shiftApplicants).map(a => {
                   const action = applicantAction[a.id] || a.status;
                   return (
                     <tr key={a.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
@@ -2507,7 +2617,34 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   )}
                   <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                     <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
-                    <Btn onClick={() => { toast("Shift published · Workers will start applying within minutes.", "success"); setView("shifts"); setPostStep(1); }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
+                    <Btn onClick={async () => {
+                      if (!user) { toast('Sign in to post a shift.', 'error'); return; }
+                      if (!form.title || !form.date || !form.timeStart || !form.timeEnd) {
+                        toast('Title, date, and start/end times are required.', 'error'); return;
+                      }
+                      const startAt = new Date(`${form.date}T${form.timeStart}:00+08:00`).toISOString();
+                      const endAt   = new Date(`${form.date}T${form.timeEnd}:00+08:00`).toISOString();
+                      const wageMin = parseFloat(form.wageMin) || 0;
+                      const wageMax = parseFloat(form.wageMax) || 0;
+                      if (wageMax < wageMin) { toast('Max pay must be ≥ min pay.', 'error'); return; }
+                      const { error } = await supabase.from('shifts').insert({
+                        employer_id: user.id,
+                        title:       form.title.trim(),
+                        category:    form.category || 'Other',
+                        location:    (form.location || '').trim() || 'Kuala Lumpur',
+                        dress_code:  form.dress ? form.dress.trim() : null,
+                        start_at:    startAt,
+                        end_at:      endAt,
+                        wage_min:    wageMin,
+                        wage_max:    wageMax || wageMin,
+                        headcount:   parseInt(form.headcount) || 1,
+                        status:      'open',
+                      });
+                      if (error) { toast('Failed to post shift: ' + error.message, 'error'); return; }
+                      toast('Shift published! Workers will start applying shortly.', 'success');
+                      setView('shifts');
+                      setPostStep(1);
+                    }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
                   </div>
                 </div>
               )}

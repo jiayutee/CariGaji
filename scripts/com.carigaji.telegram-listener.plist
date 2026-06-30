@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.carigaji.telegram-listener</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/jiayutee/miniconda3/bin/python3</string>
+        <string>/Users/jiayutee/Dev/Projects/CariGaji/scripts/telegram-listener.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/jiayutee/Dev/Projects/CariGaji</string>
+
+    <!-- Start immediately and restart if it crashes -->
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Restart throttle: wait 10s before restarting after a crash -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <!-- Logs -->
+    <key>StandardOutPath</key>
+    <string>/Users/jiayutee/Dev/Projects/CariGaji/logs/telegram-listener.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/jiayutee/Dev/Projects/CariGaji/logs/telegram-listener-error.log</string>
+
+    <!-- Environment: ensures conda python finds its packages -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/jiayutee/miniconda3/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/jiayutee</string>
+    </dict>
+</dict>
+</plist>
