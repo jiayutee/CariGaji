@@ -1239,6 +1239,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [filterPayMin, setFilterPayMin] = useState('');
   const [filterPayMax, setFilterPayMax] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [filterDuration, setFilterDuration] = useState('');
+  const [filterHighBooking, setFilterHighBooking] = useState(false);
+  const [filterWeekend, setFilterWeekend] = useState(false);
+  const [filterTimeStart, setFilterTimeStart] = useState('');
+  const [filterTimeEnd, setFilterTimeEnd] = useState('');
 
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
@@ -1316,6 +1321,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           stipend: 0,
           travelTime: '',
           distance: 0,
+          startTime: s.start_at ? (() => { const d = new Date(s.start_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
+          endTime: s.end_at ? (() => { const d = new Date(s.end_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
+          date: s.start_at ? new Date(s.start_at).toISOString().slice(0, 10) : '',
         })));
       });
     return () => { active = false; };
@@ -1448,13 +1456,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
   const shiftsSource = liveShifts ?? SHIFTS;
   const filtered = useMemo(() => {
-    let s = filterCat === 'All' ? shiftsSource : shiftsSource.filter(x => x.category === filterCat);
+    let s = shiftsSource;
+    if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
     if (filterLocation) s = s.filter(x => x.location.toLowerCase().includes(filterLocation.toLowerCase()));
     if (filterDate) s = s.filter(x => x.date === filterDate);
+    if (filterDuration) s = s.filter(x => x.hours >= Number(filterDuration));
     if (filterPayMin) s = s.filter(x => x.wageMin >= Number(filterPayMin));
     if (filterPayMax) s = s.filter(x => x.wageMax <= Number(filterPayMax));
+    if (filterHighBooking) s = s.filter(x => x.headcount > 0 && (x.headcount - (x.filled || 0)) / x.headcount > 0.5);
+    if (filterWeekend) s = s.filter(x => x.date && [0, 6].includes(new Date(x.date + 'T00:00:00').getDay()));
+    if (filterTimeStart) s = s.filter(x => x.startTime && x.startTime >= filterTimeStart);
+    if (filterTimeEnd) s = s.filter(x => x.endTime && x.endTime <= filterTimeEnd);
     return s;
-  }, [filterCat, shiftsSource, filterLocation, filterDate, filterPayMin, filterPayMax]);
+  }, [shiftsSource, filterCat, filterLocation, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => ({
@@ -1781,30 +1795,104 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               </div>
             </div>
             <div style={{ padding: isMobile ? "0 12px 8px" : "0 20px 8px" }}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                <button
-                  onClick={() => setShowFilters(f => !f)}
-                  style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #e2e8f0',background:'#f8fafc',cursor:'pointer',color:'#64748b'}}
-                >
-                  {showFilters ? 'Hide Filters ▲' : 'Filters ▼'}
-                </button>
-                {(filterLocation||filterDate||filterPayMin||filterPayMax) && (
-                  <button onClick={() => { setFilterLocation(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax(''); }}
-                    style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #fca5a5',background:'#fef2f2',cursor:'pointer',color:'#ef4444'}}>
-                    Clear
-                  </button>
-                )}
-              </div>
+              {(() => {
+                const activeFilterCount = [filterLocation, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
+                  + (filterCat !== 'All' ? 1 : 0)
+                  + (filterHighBooking ? 1 : 0)
+                  + (filterWeekend ? 1 : 0);
+                return (
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                    <button
+                      onClick={() => setShowFilters(f => !f)}
+                      style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #e2e8f0',background:'#f8fafc',cursor:'pointer',color:'#64748b'}}
+                    >
+                      {showFilters ? 'Hide Filters ▲' : `Filters${activeFilterCount > 0 ? ` (${activeFilterCount})` : ''} ▼`}
+                    </button>
+                    {(filterLocation||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd) && (
+                      <button onClick={() => {
+                        setFilterLocation(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
+                        setFilterDuration(''); setFilterCat('All');
+                        setFilterHighBooking(false); setFilterWeekend(false);
+                        setFilterTimeStart(''); setFilterTimeEnd('');
+                      }}
+                        style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #fca5a5',background:'#fef2f2',cursor:'pointer',color:'#ef4444'}}>
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
               {showFilters && (
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12,padding:12,background:'#f8fafc',borderRadius:8,border:'1px solid #e2e8f0'}}>
-                  <input placeholder="City / Location" value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}
-                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
-                  <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
-                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
-                  <input type="number" placeholder="Min pay (RM/hr)" value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
-                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
-                  <input type="number" placeholder="Max pay (RM/hr)" value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
-                    style={{padding:'6px 10px',borderRadius:6,border:'1px solid #e2e8f0',fontSize:13}} />
+                <div style={{marginBottom:12, padding:12, background:'#f8fafc', borderRadius:8, border:'1px solid #e2e8f0'}}>
+                  {/* Row 1: Location, Date, Duration */}
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Location</div>
+                      <input placeholder="e.g. KLCC" value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Date</div>
+                      <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Min Duration (hrs)</div>
+                      <input type="number" min="0" placeholder="e.g. 4" value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                  </div>
+                  {/* Row 2: Job type, Min pay, Max pay */}
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Job Type</div>
+                      <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff'}}>
+                        <option value="All">All types</option>
+                        <option value="F&B">F&B</option>
+                        <option value="Retail">Retail</option>
+                        <option value="Event">Event</option>
+                        <option value="Logistics">Logistics</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Min Pay (RM/hr)</div>
+                      <input type="number" min="0" placeholder="e.g. 10" value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Max Pay (RM/hr)</div>
+                      <input type="number" min="0" placeholder="e.g. 25" value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                  </div>
+                  {/* Row 3: Start time, End time */}
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Starts after</div>
+                      <input type="time" value={filterTimeStart} onChange={e=>setFilterTimeStart(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                    <div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Ends by</div>
+                      <input type="time" value={filterTimeEnd} onChange={e=>setFilterTimeEnd(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                    </div>
+                  </div>
+                  {/* Row 4: Toggles */}
+                  <div style={{display:'flex', gap:16, flexWrap:'wrap'}}>
+                    <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:'#374151'}}>
+                      <input type="checkbox" checked={filterHighBooking} onChange={e=>setFilterHighBooking(e.target.checked)}
+                        style={{width:15, height:15, accentColor:'#2563EB'}} />
+                      🔥 High booking chance
+                    </label>
+                    <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:'#374151'}}>
+                      <input type="checkbox" checked={filterWeekend} onChange={e=>setFilterWeekend(e.target.checked)}
+                        style={{width:15, height:15, accentColor:'#2563EB'}} />
+                      📅 Weekends only
+                    </label>
+                  </div>
                 </div>
               )}
             </div>
