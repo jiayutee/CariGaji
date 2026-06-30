@@ -33,7 +33,9 @@ def load_env():
 
 load_env()
 
-BOT_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN", "8822196992:AAHBq6USVCLtapMw6vJvxQzdpJRjo0lmU3U")
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    sys.exit("ERROR: TELEGRAM_BOT_TOKEN not set. Add it to .env and retry.")
 ALLOWED_CHAT  = int(os.environ.get("TELEGRAM_CHAT_ID", "51218456"))
 OFFSET_FILE   = PROJECT_DIR / "logs" / ".telegram_offset"
 LOG_FILE      = PROJECT_DIR / "logs" / "telegram-listener.log"
