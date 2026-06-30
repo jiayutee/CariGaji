@@ -1889,7 +1889,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             <Stat label="Wage Range" value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub="per hour" color={BRAND.text} />
             <Stat label="Shift Duration" value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
             <Stat label="Estimated Gross" value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub="at max rate" color={BRAND.green} />
-            <Stat label="Transport Allowance" value={`RM${selectedShift.stipend}`} sub={selectedShift.travelTime} color={BRAND.blue} />
+            <Stat label="Transport Allowance" value={`RM${selectedShift.stipend}`} color={BRAND.blue} />
           </div>
           <Card style={{ marginBottom: 16 }}>
             <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
