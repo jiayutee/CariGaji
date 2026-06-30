@@ -1246,6 +1246,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [filterWeekend, setFilterWeekend] = useState(false);
   const [filterTimeStart, setFilterTimeStart] = useState('');
   const [filterTimeEnd, setFilterTimeEnd] = useState('');
+  const [chatConversations, setChatConversations] = useState([]);
+  const [activeChatShift, setActiveChatShift] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [workerContractModal, setWorkerContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk, employerName }
 
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
@@ -1267,12 +1273,80 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   }, [user, tab]);
 
   useEffect(() => {
+    if (!user || tab !== 'chat') return;
+    let active = true;
+    supabase
+      .from('applications')
+      .select('shift_id, shift:shifts(id, title, start_at, employer_id)')
+      .eq('worker_id', user.id)
+      .eq('status', 'accepted')
+      .then(({ data }) => {
+        if (!active) return;
+        setChatConversations((data ?? []).map(a => ({
+          shiftId: a.shift_id,
+          title: a.shift?.title ?? 'Shift',
+          date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : '',
+          otherUserId: a.shift?.employer_id,
+          otherUserLabel: 'Employer',
+        })));
+      });
+    return () => { active = false; };
+  }, [user, tab]);
+
+  useEffect(() => {
+    if (!activeChatShift || !user) return;
+    setChatLoading(true);
+    let active = true;
+    supabase
+      .from('messages')
+      .select('id, sender_id, content, created_at, read_at')
+      .eq('shift_id', activeChatShift.shiftId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (!active) return;
+        setChatMessages(data ?? []);
+        setChatLoading(false);
+      });
+    const channel = supabase
+      .channel(`chat-${activeChatShift.shiftId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `shift_id=eq.${activeChatShift.shiftId}`,
+      }, payload => {
+        if (active) setChatMessages(prev => [...prev, payload.new]);
+      })
+      .subscribe();
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [activeChatShift, user]);
+
+  const sendMessage = async () => {
+    if (!chatInput.trim() || !activeChatShift || !user) return;
+    const content = chatInput.trim();
+    setChatInput('');
+    const { error } = await supabase.from('messages').insert({
+      shift_id:     activeChatShift.shiftId,
+      sender_id:    user.id,
+      recipient_id: activeChatShift.otherUserId,
+      content,
+    });
+    if (error) {
+      toast('Failed to send: ' + error.message, 'error');
+      setChatInput(content); // restore on failure
+    }
+  };
+
+  useEffect(() => {
     let active = true;
     const loadApplications = async () => {
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, wage_ask, status, applied_at, shift:shifts(title, start_at)')
+        .select('id, wage_ask, status, applied_at, worker_signed_at, shift:shifts(title, start_at, employer_id)')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -1284,6 +1358,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : 'TBA',
         wageBid: Number(a.wage_ask ?? 0),
         status: a.status,
+        workerSignedAt: a.worker_signed_at ?? null,
+        shiftId: a.shift?.id ?? null,
+        employerId: a.shift?.employer_id ?? null,
       })));
     };
     loadApplications();
@@ -1504,6 +1581,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const navItems = [
     { id: "discover", label: "Discover", icon: <Icons.Search size={20} /> },
     { id: "applications", label: "My Bids", icon: <Icons.List size={20} /> },
+    { id: "chat", label: "Chat", icon: <span style={{fontSize:20}}>💬</span> },
     { id: "earnings", label: "Earnings", icon: <Icons.Money size={20} /> },
     { id: "profile", label: "Profile", icon: <Icons.User size={20} /> },
     { id: "settings", label: "Settings", icon: <Icons.Settings size={20} /> },
@@ -2000,9 +2078,100 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                       🎉 You've been shortlisted! Open chat to discuss and receive your offer.
                     </div>
                   )}
+                  {a.status === 'accepted' && !a.workerSignedAt && (
+                    <button onClick={() => setWorkerContractModal({
+                        applicationId: a.id,
+                        shiftTitle: a.shiftTitle,
+                        shiftDate: a.date,
+                        wageAsk: a.wageBid,
+                        employerName: a.employer,
+                      })}
+                      style={{marginTop:6, padding:'6px 14px', borderRadius:6, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
+                      ✍️ Sign Contract
+                    </button>
+                  )}
+                  {a.status === 'accepted' && a.workerSignedAt && (
+                    <span style={{fontSize:11, color:'#16a34a', marginTop:4, display:'block'}}>✅ Contract signed</span>
+                  )}
                 </Card>
               ))}
             </div>
+          </div>
+        )}
+
+        {tab === 'chat' && !user && (
+          <AuthGate
+            onRequireAuth={onRequireAuth}
+            icon="💬"
+            title="Sign in to view messages"
+            hint="Messages with employers appear here once you're signed in and have an accepted bid."
+          />
+        )}
+
+        {tab === 'chat' && user && (
+          <div style={{padding:'0 0 80px'}}>
+            <h2 style={{fontSize:18, fontWeight:700, color:'#1e293b', margin:'16px 0 12px'}}>💬 Messages</h2>
+            {!activeChatShift ? (
+              chatConversations.length === 0 ? (
+                <div style={{textAlign:'center', color:'#94a3b8', marginTop:48}}>
+                  <div style={{fontSize:40}}>💬</div>
+                  <div style={{marginTop:8}}>No accepted shifts yet.</div>
+                  <div style={{fontSize:12, marginTop:4}}>Messages appear here once an employer accepts your bid.</div>
+                </div>
+              ) : (
+                chatConversations.map(conv => (
+                  <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
+                    style={{padding:14, background:'#fff', borderRadius:10, border:'1px solid #e2e8f0',
+                      marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    <div>
+                      <div style={{fontWeight:600, color:'#1e293b'}}>{conv.title}</div>
+                      <div style={{fontSize:12, color:'#64748b'}}>{conv.date} · {conv.otherUserLabel}</div>
+                    </div>
+                    <span style={{color:'#94a3b8'}}>›</span>
+                  </div>
+                ))
+              )
+            ) : (
+              <div style={{display:'flex', flexDirection:'column', height:'calc(100vh - 200px)'}}>
+                <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
+                  <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
+                    style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
+                  <div>
+                    <div style={{fontWeight:600, color:'#1e293b'}}>{activeChatShift.title}</div>
+                    <div style={{fontSize:12, color:'#64748b'}}>{activeChatShift.otherUserLabel}</div>
+                  </div>
+                </div>
+                <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
+                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>Loading...</div>}
+                  {chatMessages.map(msg => {
+                    const isMe = msg.sender_id === user.id;
+                    return (
+                      <div key={msg.id} style={{display:'flex', justifyContent: isMe ? 'flex-end' : 'flex-start'}}>
+                        <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                          background: isMe ? '#2563EB' : '#f1f5f9', color: isMe ? '#fff' : '#1e293b', fontSize:14}}>
+                          <div>{msg.content}</div>
+                          <div style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
+                            {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:'1px solid #e2e8f0'}}>
+                  <input
+                    value={chatInput} onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                    placeholder="Type a message…"
+                    style={{flex:1, padding:'10px 12px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:14}}
+                  />
+                  <button onClick={sendMessage}
+                    style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                    Send
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -2312,6 +2481,55 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         ))}
       </div>
     </div>
+
+    {workerContractModal && (
+      <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div style={{background:'#fff', borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
+          <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>📄 Your Employment Contract</h3>
+          <p style={{fontSize:12, color:'#6b7280', marginBottom:16}}>Please read carefully before signing.</p>
+
+          <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
+            <p><strong>CariGaji Platform — Shift Work Agreement</strong></p>
+            <p>• <strong>Employer:</strong> {workerContractModal.employerName}</p>
+            <p>• <strong>Worker:</strong> You</p>
+            <p>• <strong>Role:</strong> {workerContractModal.shiftTitle}</p>
+            <p>• <strong>Date:</strong> {workerContractModal.shiftDate}</p>
+            <p>• <strong>Agreed wage:</strong> RM {workerContractModal.wageAsk}/hr</p>
+            <br/>
+            <p><strong>By signing you agree to:</strong></p>
+            <p>1. Attend the shift punctually and perform the assigned duties.</p>
+            <p>2. Accept the agreed wage as full payment for hours worked.</p>
+            <p>3. Notify the employer promptly if you are unable to attend.</p>
+            <p>4. Comply with the employer's workplace rules and safety requirements.</p>
+            <p>5. This is a casual short-term engagement. You are responsible for declaring your own income tax to LHDN if applicable.</p>
+            <p>6. CariGaji acts as a marketplace intermediary and is not your employer.</p>
+            <p>7. Governed by Malaysian law including the Employment Act 1955.</p>
+          </div>
+
+          <div style={{display:'flex', gap:8}}>
+            <button onClick={() => setWorkerContractModal(null)}
+              style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
+              Cancel
+            </button>
+            <button onClick={async () => {
+              const { error } = await supabase
+                .from('applications')
+                .update({ worker_signed_at: new Date().toISOString() })
+                .eq('id', workerContractModal.applicationId);
+              if (error) { toast('Failed to sign: ' + error.message, 'error'); return; }
+              toast('✅ Contract signed! You can now chat with your employer.', 'success');
+              setLiveApplications(prev => prev.map(a =>
+                a.id === workerContractModal.applicationId ? { ...a, workerSignedAt: new Date().toISOString() } : a
+              ));
+              setWorkerContractModal(null);
+            }}
+              style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+              ✍️ I have read and agree — Sign
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   );
 };
 
@@ -2335,6 +2553,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [bankingMessage, setBankingMessage] = useState("");
   const [bankingLoading, setBankingLoading] = useState(false);
   const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
+  const [contractModal, setContractModal] = useState(null);
+  const [chatConversations, setChatConversations] = useState([]);
+  const [activeChatShift, setActiveChatShift] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -2390,6 +2614,74 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       });
     return () => { active = false; };
   }, [selectedShift]);
+
+  useEffect(() => {
+    if (!user || view !== 'chat') return;
+    let active = true;
+    supabase
+      .from('applications')
+      .select('shift_id, worker_id, shift:shifts(id, title, start_at), worker:profiles(full_name)')
+      .eq('status', 'accepted')
+      .then(({ data }) => {
+        if (!active) return;
+        setChatConversations((data ?? []).map(a => ({
+          shiftId: a.shift_id,
+          workerId: a.worker_id,
+          title: a.shift?.title ?? 'Shift',
+          date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : '',
+          otherUserId: a.worker_id,
+          otherUserLabel: a.worker?.full_name ?? 'Worker',
+        })));
+      });
+    return () => { active = false; };
+  }, [user, view]);
+
+  useEffect(() => {
+    if (!activeChatShift || !user) return;
+    setChatLoading(true);
+    let active = true;
+    supabase
+      .from('messages')
+      .select('id, sender_id, content, created_at, read_at')
+      .eq('shift_id', activeChatShift.shiftId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (!active) return;
+        setChatMessages(data ?? []);
+        setChatLoading(false);
+      });
+    const channel = supabase
+      .channel(`employer-chat-${activeChatShift.shiftId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `shift_id=eq.${activeChatShift.shiftId}`,
+      }, payload => {
+        if (active) setChatMessages(prev => [...prev, payload.new]);
+      })
+      .subscribe();
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [activeChatShift, user]);
+
+  const sendMessage = async () => {
+    if (!chatInput.trim() || !activeChatShift || !user) return;
+    const content = chatInput.trim();
+    setChatInput('');
+    const { error } = await supabase.from('messages').insert({
+      shift_id:     activeChatShift.shiftId,
+      sender_id:    user.id,
+      recipient_id: activeChatShift.otherUserId,
+      content,
+    });
+    if (error) {
+      toast('Failed to send: ' + error.message, 'error');
+      setChatInput(content); // restore on failure
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -2515,17 +2807,30 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setBankingMessage("Employer bank verified via SecureSign.");
   };
 
-  const navItems = ["Dashboard", "Shifts", "Post Shift", "Billing", "Account"];
+  const navItems = ["Dashboard", "Shifts", "Post Shift", "Chat", "Billing", "Account"];
 
   const handleApplicantAction = async (id, action) => {
     if (!['shortlisted', 'accepted', 'rejected'].includes(action)) return;
     const { error } = await supabase
       .from('applications')
-      .update({ status: action, updated_at: new Date().toISOString() })
+      .update({ status: action, updated_at: new Date().toISOString(), ...(action === 'accepted' ? { employer_signed_at: new Date().toISOString() } : {}) })
       .eq('id', id);
     if (error) { toast('Update failed: ' + error.message, 'error'); return; }
     setLiveApplicants(prev => prev ? prev.map(a => a.id === id ? { ...a, status: action } : a) : prev);
     setApplicantAction(prev => ({ ...prev, [id]: action }));
+    if (action === 'accepted') {
+      const app = liveApplicants?.find(a => a.id === id);
+      setContractModal({
+        applicationId: id,
+        workerName: app?.name ?? 'Worker',
+        shiftTitle: selectedShift?.title ?? 'Shift',
+        shiftDate: selectedShift?.date ?? '',
+        shiftTime: selectedShift?.time ?? '',
+        wageAsk: app?.wage ?? 0,
+        headcount: selectedShift?.headcount ?? 1,
+        location: selectedShift?.location ?? '',
+      });
+    }
   };
 
   const shiftApplicants = selectedShift ? EMPLOYER_APPLICANTS : [];
@@ -2975,7 +3280,122 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <Btn style={{ width: "100%", justifyContent: "center" }}>Save Changes</Btn>
           </div>
         )}
+
+        {view === 'chat' && (
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>💬 Messages</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16 }}>Chat with workers on accepted shifts</div>
+            {!activeChatShift ? (
+              chatConversations.length === 0 ? (
+                <div style={{textAlign:'center', color:'#94a3b8', marginTop:48}}>
+                  <div style={{fontSize:40}}>💬</div>
+                  <div style={{marginTop:8}}>No accepted applications yet.</div>
+                  <div style={{fontSize:12, marginTop:4}}>Chats appear here once you accept a worker's bid.</div>
+                </div>
+              ) : (
+                chatConversations.map(conv => (
+                  <div key={conv.shiftId + conv.workerId} onClick={() => setActiveChatShift(conv)}
+                    style={{padding:14, background:'#fff', borderRadius:10, border:'1px solid #e2e8f0',
+                      marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                    <div>
+                      <div style={{fontWeight:600, color:'#1e293b'}}>{conv.title}</div>
+                      <div style={{fontSize:12, color:'#64748b'}}>{conv.date} · {conv.otherUserLabel}</div>
+                    </div>
+                    <span style={{color:'#94a3b8'}}>›</span>
+                  </div>
+                ))
+              )
+            ) : (
+              <div style={{display:'flex', flexDirection:'column', height:'calc(100vh - 260px)'}}>
+                <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
+                  <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
+                    style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
+                  <div>
+                    <div style={{fontWeight:600, color:'#1e293b'}}>{activeChatShift.title}</div>
+                    <div style={{fontSize:12, color:'#64748b'}}>{activeChatShift.otherUserLabel}</div>
+                  </div>
+                </div>
+                <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
+                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>Loading...</div>}
+                  {chatMessages.map(msg => {
+                    const isMe = msg.sender_id === user?.id;
+                    return (
+                      <div key={msg.id} style={{display:'flex', justifyContent: isMe ? 'flex-end' : 'flex-start'}}>
+                        <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                          background: isMe ? '#2563EB' : '#f1f5f9', color: isMe ? '#fff' : '#1e293b', fontSize:14}}>
+                          <div>{msg.content}</div>
+                          <div style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
+                            {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:'1px solid #e2e8f0'}}>
+                  <input
+                    value={chatInput} onChange={e => setChatInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                    placeholder="Type a message…"
+                    style={{flex:1, padding:'10px 12px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:14}}
+                  />
+                  <button onClick={sendMessage}
+                    style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                    Send
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {contractModal && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div style={{background:'#fff', borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'80vh', overflowY:'auto'}}>
+            <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>📄 Employment Contract</h3>
+            <p style={{fontSize:12, color:'#64748b', marginBottom:16}}>Auto-generated upon bid acceptance. Both parties must sign.</p>
+            <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
+              <p><strong>CariGaji Platform — Shift Work Agreement</strong></p>
+              <p>This agreement is entered into between:</p>
+              <p>• <strong>Employer:</strong> (your business name on file)</p>
+              <p>• <strong>Worker:</strong> {contractModal.workerName}</p>
+              <br/>
+              <p><strong>Shift Details:</strong></p>
+              <p>• Role: {contractModal.shiftTitle}</p>
+              <p>• Date: {contractModal.shiftDate}</p>
+              <p>• Time: {contractModal.shiftTime}</p>
+              <p>• Location: {contractModal.location}</p>
+              <p>• Agreed wage: RM {contractModal.wageAsk}/hr</p>
+              <br/>
+              <p><strong>Terms:</strong></p>
+              <p>1. This is a short-term casual engagement and does not constitute permanent employment.</p>
+              <p>2. The employer will pay the agreed wage rate for all hours worked, no less than the Malaysian minimum wage of RM8.72/hr.</p>
+              <p>3. The employer is responsible for EPF, SOCSO, and EIS contributions as required by Malaysian law.</p>
+              <p>4. The worker agrees to attend the shift punctually and perform the duties as described.</p>
+              <p>5. Either party may cancel with reasonable notice. Last-minute cancellation may result in platform penalties.</p>
+              <p>6. CariGaji acts as a marketplace intermediary and is not the employer in this arrangement.</p>
+              <p>7. This agreement is governed by Malaysian law including the Employment Act 1955 and Gig Workers Act 2025.</p>
+            </div>
+            <p style={{fontSize:12, color:'#64748b', marginBottom:12}}>
+              By clicking "Confirm & Send to Worker", you agree to these terms and the contract will be sent to {contractModal.workerName} for their signature.
+            </p>
+            <div style={{display:'flex', gap:8}}>
+              <button onClick={() => setContractModal(null)}
+                style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
+                Cancel
+              </button>
+              <button onClick={() => {
+                toast('✅ Contract sent to worker for signature!', 'success');
+                setContractModal(null);
+              }}
+                style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                Confirm & Send to Worker
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
