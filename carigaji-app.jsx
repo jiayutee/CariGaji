@@ -1214,6 +1214,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   };
   const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0 });
   const [tab, setTab] = useState("discover");
+  const [showTnC, setShowTnC] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
@@ -2217,6 +2218,80 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 <Btn variant="secondary" onClick={() => onOpenPortal?.("admin")}>Open Admin Dashboard</Btn>
               </div>
             </Card>
+
+            {/* Terms & Conditions — Malaysian Labor Law */}
+            <div style={{marginTop:24, borderTop:'1px solid #e2e8f0', paddingTop:16}}>
+              <button
+                onClick={() => setShowTnC(v => !v)}
+                style={{display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%',
+                  background:'none', border:'none', cursor:'pointer', padding:0, textAlign:'left'}}
+              >
+                <span style={{fontSize:14, fontWeight:600, color:'#374151'}}>
+                  📋 Terms & Conditions — Malaysian Labor Law
+                </span>
+                <span style={{fontSize:12, color:'#6b7280'}}>{showTnC ? '▲ Hide' : '▼ Show'}</span>
+              </button>
+
+              {showTnC && (
+                <div style={{marginTop:12, fontSize:13, color:'#374151', lineHeight:1.7}}>
+                  <p style={{color:'#6b7280', fontSize:12, marginBottom:12}}>
+                    ⚠️ This is a summary for general guidance only. Consult a Malaysian employment lawyer before making decisions. Last updated: June 2026.
+                  </p>
+
+                  {[
+                    {
+                      title: '1. Employment Act Coverage',
+                      body: 'Since the 2022 amendments (in force 1 Jan 2023), ALL employees in Peninsular Malaysia are covered regardless of salary. Workers earning below RM4,000/month are entitled to overtime pay (1.5×), rest day premiums (2×), and public holiday premiums (3×). Casual/single-shift workers are covered from their first day of work, though annual leave and sick leave require at least 1 month of continuous service with the same employer.'
+                    },
+                    {
+                      title: '2. EPF (KWSP) — Employees Provident Fund',
+                      body: 'EPF contributions are mandatory for any employee under a contract of service, from their very first day — there is no minimum hours or days threshold. Rates (2025–2026): Employer 13% + Employee 11% for wages ≤ RM5,000/month. Employer 12% + Employee 11% for wages > RM5,000/month. Foreign workers: Employer 2% + Employee 2% (from Oct 2025). EPF obligations belong to the hiring business, not to CariGaji as a marketplace platform.'
+                    },
+                    {
+                      title: '3. SOCSO (PERKESO) — Social Security',
+                      body: 'SOCSO is mandatory from an employee\'s first day of work. Wage ceiling is RM6,000/month (from Oct 2024). Rates: Employer 1.75% + Employee 0.5% (below age 60). SOCSO covers workplace injuries under the Employment Injury Scheme from Day 1, and invalidity from non-work causes for workers below age 60. The hiring business on CariGaji is responsible for registering and contributing SOCSO for their workers.'
+                    },
+                    {
+                      title: '4. EIS — Employment Insurance System',
+                      body: 'EIS applies to Malaysian/PR employees aged 18–60. Rate: 0.2% employer + 0.2% employee (wage ceiling RM6,000). EIS provides income replacement of up to 80% of wages for up to 6 months if a worker is retrenched. Contributions are legally required for casual workers, though practical EIS benefits are limited for workers on single-shift engagements who are simply not re-engaged. EIS does not apply to foreign workers.'
+                    },
+                    {
+                      title: '5. Income Tax',
+                      body: 'Workers must file a tax return if annual income exceeds RM34,000 after EPF deductions (approximately RM2,833/month gross). The first RM5,000 of chargeable income is taxed at 0%. After standard personal reliefs (RM9,000 automatic + up to RM4,000 EPF relief), most shift workers earning below RM3,500/month will pay zero or minimal income tax. Workers with income from multiple employers or gig jobs must declare all income on a single combined return via MyTax (mytax.hasil.gov.my). Non-residents (present in Malaysia fewer than 182 days/year) are taxed at a flat 30% rate.'
+                    },
+                    {
+                      title: '6. Gig Workers Act 2025 (Act 872) ⭐ New Law',
+                      body: 'The Gig Workers Act 2025 (Act 872) came into force on 31 March 2026, creating a new legal category between employee and independent contractor. Under Act 872, platform providers (digital intermediaries connecting gig workers to service users — which may include CariGaji) must: register gig workers with PERKESO; deduct and remit 1.25% of each transaction to PERKESO under the self-employment social security scheme; provide written service agreements; and integrate payment systems with PERKESO. EPF is not required for gig workers under Act 872. Non-compliance penalties: up to 2 years imprisonment or RM10,000 fine. CariGaji is currently seeking legal advice on its classification under this Act.'
+                    },
+                    {
+                      title: '7. Minimum Wage (2025)',
+                      body: 'The minimum wage in Malaysia is RM1,700/month or RM8.72/hour (effective August 2025 for all employers). This applies to all workers including casual and short-term shift workers. No exceptions exist for gig or platform workers. Employers on CariGaji must not post shifts with a wage below RM8.72/hour.'
+                    },
+                    {
+                      title: '8. Working Hours & Overtime',
+                      body: 'Maximum working hours are 8 hours per day and 45 hours per week. No single day may exceed 12 hours including overtime. Maximum overtime is 104 hours per month. For employees earning below RM4,000/month, overtime on a normal day is paid at 1.5× the hourly rate; work on a rest day at 2× the daily rate; work on a public holiday at 3× the hourly rate. These protections apply to shift workers from their first day of employment.'
+                    },
+                    {
+                      title: '9. What Short-Term Workers May Not Receive',
+                      body: 'Annual leave (8–16 days/year), sick leave (14–22 days/year), and hospitalisation leave (60 days/year) require at least 1 month of continuous service with the same employer — a one-off or infrequent shift engagement may not qualify. Maternity leave (98 days) requires an ongoing employment relationship. Paternity leave (7 days) requires at least 12 months of continuous service. EPF and SOCSO contributions are legally due from Day 1 regardless of how short the engagement is.'
+                    },
+                    {
+                      title: '10. Platform Liability — CariGaji\'s Role',
+                      body: 'CariGaji operates as a technology marketplace connecting employers and workers. The legal employment relationship — and the resulting EPF, SOCSO, EIS, minimum wage, and Employment Act obligations — is between the worker and the hiring business, not between the worker and CariGaji. CariGaji does not set hours, direct how work is performed, or pay wages directly. Employers using CariGaji are responsible for complying with all applicable Malaysian employment laws. CariGaji is separately assessing its obligations as a potential platform provider under the Gig Workers Act 2025 (Act 872). This summary does not constitute legal advice.'
+                    },
+                  ].map(({ title, body }) => (
+                    <div key={title} style={{marginBottom:14, paddingBottom:14, borderBottom:'1px solid #f1f5f9'}}>
+                      <div style={{fontWeight:600, marginBottom:4, color:'#1e293b'}}>{title}</div>
+                      <div style={{color:'#475569'}}>{body}</div>
+                    </div>
+                  ))}
+
+                  <p style={{fontSize:11, color:'#94a3b8', marginTop:8}}>
+                    References: Employment Act 1955 (Act 265) · EPF Act 1991 (Act 452) · SOCSO Act 1969 (Act 4) · EIS Act 2017 (Act 800) · Gig Workers Act 2025 (Act 872) · Minimum Wages Act 2012 (Act 732) · Income Tax Act 1967 (Act 53)
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
