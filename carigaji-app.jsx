@@ -1772,7 +1772,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
               {m.from === "system" ? (
                 <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.accent}30`, borderRadius: 12, padding: "10px 16px", fontSize: 13, color: BRAND.amber, maxWidth: "85%", textAlign: "center", cursor: "pointer" }}
-                  onClick={() => toast("Offer: RM14/h × 5 hours = RM70 total\nTravel stipend: RM5 · Start: 15 Jun 18:00\nDress: All black formal", "info", 6000)}>
+                  onClick={() => toast("Offer: RM14/h × 5 hours = RM70 total\nTransport allowance: RM5 · Start: 15 Jun 18:00\nDress: All black formal", "info", 6000)}>
                   {m.text}
                 </div>
               ) : (
@@ -1824,7 +1824,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               <div style={{ background: BRAND.grayLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: BRAND.textMuted }}>Estimated total pay</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.green }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
-                <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend} travel stipend</div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend} transport allowance</div>
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
@@ -1889,7 +1889,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             <Stat label="Wage Range" value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub="per hour" color={BRAND.text} />
             <Stat label="Shift Duration" value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
             <Stat label="Estimated Gross" value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub="at max rate" color={BRAND.green} />
-            <Stat label="Travel Stipend" value={`RM${selectedShift.stipend}`} sub={selectedShift.travelTime} color={BRAND.blue} />
+            <Stat label="Transport Allowance" value={`RM${selectedShift.stipend}`} sub={selectedShift.travelTime} color={BRAND.blue} />
           </div>
           <Card style={{ marginBottom: 16 }}>
             <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
@@ -3891,7 +3891,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Input label="Worker late-cancel threshold (hours before shift)" type="number" value="4" onChange={() => {}} />
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Travel stipend bands (RM)</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Transport allowance bands (RM)</div>
               {[["0–5 km", "0"], ["5–15 km", "5"], ["15–30 km", "10"], ["30–50 km", "18"], [">50 km", "25"]].map(([band, val]) => (
                 <div key={band} style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
                   <span style={{ fontSize: 13, color: BRAND.text, minWidth: 80 }}>{band}</span>
