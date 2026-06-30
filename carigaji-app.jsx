@@ -1856,6 +1856,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   );
 
   return (
+    <>
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
@@ -2530,6 +2531,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         </div>
       </div>
     )}
+    </>
   );
 };
 
