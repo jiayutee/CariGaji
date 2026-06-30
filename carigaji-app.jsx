@@ -48,6 +48,91 @@ const MALAYSIAN_BANK_OPTIONS = [
   "UOB",
 ];
 
+// Hierarchical city → region mapping for location filtering.
+// Keys are the canonical city names shown in the dropdown.
+// Values list all sub-areas / landmarks that belong to that city.
+// Matching is case-insensitive substring, so "KLCC" matches "KLCC, KL City Centre".
+const CITY_REGIONS = {
+  "Kuala Lumpur": [
+    "kuala lumpur", "kl", "klcc", "kl city centre", "city centre",
+    "bukit bintang", "chow kit", "titiwangsa", "sentul", "kepong",
+    "wangsa maju", "setapak", "gombak", "batu caves", "segambut",
+    "bangsar", "bangsar south", "mid valley", "pantai", "pandan",
+    "ampang", "pandan indah", "pandan jaya", "ulu klang",
+    "cheras", "taman connaught", "taman maluri",
+    "desa petaling", "bukit jalil", "sri petaling",
+    "taman tun dr ismail", "ttdi", "damansara",
+    "mont kiara", "hartamas", "duta", "jalan ipoh",
+    "stadium merdeka", "merdeka", "masjid india", "brickfields",
+    "pudu", "imbi", "jalan raja laut", "pusat bandar",
+  ],
+  "Petaling Jaya": [
+    "petaling jaya", "pj", "ss2", "ss3", "ss7", "damansara jaya",
+    "damansara utama", "uptown", "kelana jaya", "sea park",
+    "taman jaya", "ara damansara", "sunway", "bandar sunway",
+    "kota damansara", "mutiara damansara", "one utama", "1 utama",
+    "bandar utama", "puchong", "subang",
+  ],
+  "Subang Jaya": [
+    "subang jaya", "subang", "ss15", "ss16", "ss18", "uep subang",
+    "empire subang", "usj", "taipan", "sunway pyramid",
+  ],
+  "Shah Alam": [
+    "shah alam", "section 14", "section 7", "section 13",
+    "bukit raja", "i-city", "alam megah", "kota kemuning",
+    "banting", "meru", "klang", "port klang",
+  ],
+  "Klang": [
+    "klang", "port klang", "port swettenham", "meru klang",
+    "bukit tinggi", "bandar botanik", "kapar",
+  ],
+  "Cheras": [
+    "cheras", "taman connaught", "taman miharja", "taman mulia",
+    "taman segar", "alam damai", "balakong", "kajang",
+  ],
+  "Kajang": [
+    "kajang", "semenyih", "bangi", "nilai", "seremban",
+    "bandar baru bangi", "presint bangi",
+  ],
+  "Putrajaya": [
+    "putrajaya", "cyberjaya", "presint",
+  ],
+  "Penang": [
+    "penang", "pulau pinang", "george town", "georgetown",
+    "batu ferringhi", "tanjung bungah", "air itam", "gelugor",
+    "bukit mertajam", "butterworth", "nibong tebal", "seberang jaya",
+    "bayan lepas", "bayan baru", "sungai ara",
+  ],
+  "Johor Bahru": [
+    "johor bahru", "jb", "johor", "skudai", "tebrau",
+    "danga bay", "bukit indah", "mount austin", "masai",
+    "pasir gudang", "kulai", "kluang", "pontian",
+    "ulu tiram", "larkin", "tampoi",
+  ],
+  "Ipoh": [
+    "ipoh", "menglembu", "bercham", "chemor", "taiping",
+    "teluk intan", "lumut", "manjung",
+  ],
+  "Kota Kinabalu": [
+    "kota kinabalu", "kk", "sabah", "penampang", "putatan",
+    "inanam", "menggatal", "tuaran", "sandakan", "lahad datu", "tawau",
+  ],
+  "Kuching": [
+    "kuching", "sarawak", "kota samarahan", "bintawa", "petra jaya",
+    "miri", "sibu", "bintulu",
+  ],
+};
+
+// Returns the canonical city name if the location string belongs to that city, else null.
+const resolveCity = (locationStr) => {
+  if (!locationStr) return null;
+  const lower = locationStr.toLowerCase();
+  for (const [city, regions] of Object.entries(CITY_REGIONS)) {
+    if (regions.some(r => lower.includes(r))) return city;
+  }
+  return null;
+};
+
 const validateMalaysianBankAccount = (bankName, accountNumber) => {
   if (!bankName || !accountNumber) {
     return { valid: false, message: "Bank name and account number are required." };
@@ -1235,8 +1320,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [bankingMessage, setBankingMessage] = useState("");
   const [livePayouts, setLivePayouts] = useState(null);
   const [liveShifts, setLiveShifts] = useState(null);
-  const [filterLocation, setFilterLocation] = useState('');
-  const [filterLocationArea, setFilterLocationArea] = useState('');
+  const [filterCity, setFilterCity] = useState('');
+  const [filterArea, setFilterArea] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterPayMin, setFilterPayMin] = useState('');
   const [filterPayMax, setFilterPayMax] = useState('');
@@ -1538,8 +1623,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const filtered = useMemo(() => {
     let s = shiftsSource;
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
-    if (filterLocation) s = s.filter(x => x.location.toLowerCase().includes(filterLocation.toLowerCase()));
-    if (filterLocationArea) s = s.filter(x => x.location.toLowerCase().includes(filterLocationArea.toLowerCase()));
+    if (filterCity) s = s.filter(x => resolveCity(x.location) === filterCity);
+    if (filterArea) s = s.filter(x => x.location.toLowerCase().includes(filterArea.toLowerCase()));
     if (filterDate) s = s.filter(x => x.date === filterDate);
     if (filterDuration) s = s.filter(x => x.hours <= Number(filterDuration));
     if (filterPayMin) s = s.filter(x => x.wageMin >= Number(filterPayMin));
@@ -1549,7 +1634,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     if (filterTimeStart) s = s.filter(x => x.startTime && x.startTime >= filterTimeStart);
     if (filterTimeEnd) s = s.filter(x => x.endTime && x.endTime <= filterTimeEnd);
     return s;
-  }, [shiftsSource, filterCat, filterLocation, filterLocationArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
+  }, [shiftsSource, filterCat, filterCity, filterArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => ({
@@ -1879,7 +1964,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             </div>
             <div style={{ padding: isMobile ? "0 12px 8px" : "0 20px 8px" }}>
               {(() => {
-                const activeFilterCount = [filterLocation, filterLocationArea, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
+                const activeFilterCount = [filterCity, filterArea, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
                   + (filterCat !== 'All' ? 1 : 0)
                   + (filterHighBooking ? 1 : 0)
                   + (filterWeekend ? 1 : 0);
@@ -1899,26 +1984,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   {/* Row 1: Location, Date, Duration */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Location</div>
-                      <select value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>City</div>
+                      <select value={filterCity} onChange={e=>{ setFilterCity(e.target.value); setFilterArea(''); }}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff', marginBottom:4}}>
                         <option value="">Any city</option>
-                        <option value="Kuala Lumpur">Kuala Lumpur</option>
-                        <option value="Petaling Jaya">Petaling Jaya</option>
-                        <option value="Shah Alam">Shah Alam</option>
-                        <option value="Subang Jaya">Subang Jaya</option>
-                        <option value="Cheras">Cheras</option>
-                        <option value="Kepong">Kepong</option>
-                        <option value="Puchong">Puchong</option>
-                        <option value="Klang">Klang</option>
-                        <option value="Penang">Penang</option>
-                        <option value="Johor Bahru">Johor Bahru</option>
-                        <option value="Ipoh">Ipoh</option>
-                        <option value="Kota Kinabalu">Kota Kinabalu</option>
-                        <option value="Kuching">Kuching</option>
+                        {Object.keys(CITY_REGIONS).map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
                       </select>
-                      {filterLocation && (
-                        <input placeholder="Area (optional, e.g. Bukit Bintang)" value={filterLocationArea} onChange={e=>setFilterLocationArea(e.target.value)}
+                      {filterCity && (
+                        <input placeholder="Area e.g. Bukit Bintang" value={filterArea} onChange={e=>setFilterArea(e.target.value)}
                           style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:12, boxSizing:'border-box', color:'#64748b'}} />
                       )}
                     </div>
@@ -1986,9 +2061,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   </div>
                   {/* Clear all button */}
                   <div style={{display:'flex', justifyContent:'flex-end', marginTop:8}}>
-                    {(filterLocation||filterLocationArea||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd) && (
+                    {(filterCity||filterArea||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd) && (
                       <button onClick={() => {
-                        setFilterLocation(''); setFilterLocationArea(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
+                        setFilterCity(''); setFilterArea(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
                         setFilterDuration(''); setFilterCat('All');
                         setFilterHighBooking(false); setFilterWeekend(false);
                         setFilterTimeStart(''); setFilterTimeEnd('');
