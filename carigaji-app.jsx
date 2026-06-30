@@ -1235,6 +1235,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [livePayouts, setLivePayouts] = useState(null);
   const [liveShifts, setLiveShifts] = useState(null);
   const [filterLocation, setFilterLocation] = useState('');
+  const [filterLocationArea, setFilterLocationArea] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [filterPayMin, setFilterPayMin] = useState('');
   const [filterPayMax, setFilterPayMax] = useState('');
@@ -1316,6 +1317,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           headcount: s.headcount,
           filled: s.filled_count,
           status: s.status,
+          addressVisibility: s.address_visibility || 'public',
           totalApplicants: 0,
           dress: '',
           stipend: 0,
@@ -1459,8 +1461,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     let s = shiftsSource;
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
     if (filterLocation) s = s.filter(x => x.location.toLowerCase().includes(filterLocation.toLowerCase()));
+    if (filterLocationArea) s = s.filter(x => x.location.toLowerCase().includes(filterLocationArea.toLowerCase()));
     if (filterDate) s = s.filter(x => x.date === filterDate);
-    if (filterDuration) s = s.filter(x => x.hours >= Number(filterDuration));
+    if (filterDuration) s = s.filter(x => x.hours <= Number(filterDuration));
     if (filterPayMin) s = s.filter(x => x.wageMin >= Number(filterPayMin));
     if (filterPayMax) s = s.filter(x => x.wageMax <= Number(filterPayMax));
     if (filterHighBooking) s = s.filter(x => x.headcount > 0 && (x.headcount - (x.filled || 0)) / x.headcount > 0.5);
@@ -1468,7 +1471,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     if (filterTimeStart) s = s.filter(x => x.startTime && x.startTime >= filterTimeStart);
     if (filterTimeEnd) s = s.filter(x => x.endTime && x.endTime <= filterTimeEnd);
     return s;
-  }, [shiftsSource, filterCat, filterLocation, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
+  }, [shiftsSource, filterCat, filterLocation, filterLocationArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => ({
@@ -1796,7 +1799,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             </div>
             <div style={{ padding: isMobile ? "0 12px 8px" : "0 20px 8px" }}>
               {(() => {
-                const activeFilterCount = [filterLocation, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
+                const activeFilterCount = [filterLocation, filterLocationArea, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
                   + (filterCat !== 'All' ? 1 : 0)
                   + (filterHighBooking ? 1 : 0)
                   + (filterWeekend ? 1 : 0);
@@ -1808,17 +1811,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                     >
                       {showFilters ? 'Hide Filters ▲' : `Filters${activeFilterCount > 0 ? ` (${activeFilterCount})` : ''} ▼`}
                     </button>
-                    {(filterLocation||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd) && (
-                      <button onClick={() => {
-                        setFilterLocation(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
-                        setFilterDuration(''); setFilterCat('All');
-                        setFilterHighBooking(false); setFilterWeekend(false);
-                        setFilterTimeStart(''); setFilterTimeEnd('');
-                      }}
-                        style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #fca5a5',background:'#fef2f2',cursor:'pointer',color:'#ef4444'}}>
-                        Clear
-                      </button>
-                    )}
                   </div>
                 );
               })()}
@@ -1828,8 +1820,27 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
                       <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Location</div>
-                      <input placeholder="e.g. KLCC" value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                      <select value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff', marginBottom:4}}>
+                        <option value="">Any city</option>
+                        <option value="Kuala Lumpur">Kuala Lumpur</option>
+                        <option value="Petaling Jaya">Petaling Jaya</option>
+                        <option value="Shah Alam">Shah Alam</option>
+                        <option value="Subang Jaya">Subang Jaya</option>
+                        <option value="Cheras">Cheras</option>
+                        <option value="Kepong">Kepong</option>
+                        <option value="Puchong">Puchong</option>
+                        <option value="Klang">Klang</option>
+                        <option value="Penang">Penang</option>
+                        <option value="Johor Bahru">Johor Bahru</option>
+                        <option value="Ipoh">Ipoh</option>
+                        <option value="Kota Kinabalu">Kota Kinabalu</option>
+                        <option value="Kuching">Kuching</option>
+                      </select>
+                      {filterLocation && (
+                        <input placeholder="Area (optional, e.g. Bukit Bintang)" value={filterLocationArea} onChange={e=>setFilterLocationArea(e.target.value)}
+                          style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:12, boxSizing:'border-box', color:'#64748b'}} />
+                      )}
                     </div>
                     <div>
                       <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Date</div>
@@ -1837,8 +1848,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Min Duration (hrs)</div>
-                      <input type="number" min="0" placeholder="e.g. 4" value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Max Duration (hrs)</div>
+                      <input type="number" min="0" placeholder="e.g. 8" value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                   </div>
@@ -1893,6 +1904,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                       📅 Weekends only
                     </label>
                   </div>
+                  {/* Clear all button */}
+                  <div style={{display:'flex', justifyContent:'flex-end', marginTop:8}}>
+                    {(filterLocation||filterLocationArea||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd) && (
+                      <button onClick={() => {
+                        setFilterLocation(''); setFilterLocationArea(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
+                        setFilterDuration(''); setFilterCat('All');
+                        setFilterHighBooking(false); setFilterWeekend(false);
+                        setFilterTimeStart(''); setFilterTimeEnd('');
+                      }} style={{fontSize:12, padding:'5px 14px', borderRadius:6, border:'1px solid #fca5a5', background:'#fef2f2', cursor:'pointer', color:'#ef4444'}}>
+                        Clear all
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1919,13 +1943,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   <div style={{ display: "flex", gap: 0, borderTop: `1px solid ${BRAND.border}`, marginTop: 10 }}>
                     {[
                       [s.date, "📅"],
-                      [s.location, "📍"],
+                      [s.addressVisibility === 'accepted_only' ? s.location.split(',')[0] : s.location, "📍", s.addressVisibility === 'accepted_only'],
                       [`${s.hours}h`, "⏱️"],
                       [`${s.headcount} pos · ${s.totalApplicants} applied`, "👥"],
-                    ].map(([v, ico], i) => (
+                    ].map(([v, ico, hiddenAddr], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
                         <div style={{ fontSize: isMobile ? 11 : 13 }}>{ico}</div>
                         <div style={{ fontSize: isMobile ? 9 : 10, color: BRAND.textMuted, marginTop: 1, lineHeight: 1.3 }}>{v}</div>
+                        {hiddenAddr && <div style={{ fontSize: 9, color: '#94a3b8', lineHeight: 1.2, marginTop: 1 }}>Exact address revealed after acceptance</div>}
                       </div>
                     ))}
                   </div>
@@ -2222,7 +2247,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [selectedShift, setSelectedShift] = useState(null);
   const [liveApplicants, setLiveApplicants] = useState(null);
   const [postStep, setPostStep] = useState(1);
-  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre" });
+  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public" });
   const [applicantAction, setApplicantAction] = useState({});
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerBanking, setEmployerBanking] = useState(null);
@@ -2637,6 +2662,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <Input label="Shift title" placeholder="e.g. F&B Server – Corporate Dinner" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
                   <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={["F&B", "Retail", "Event", "Logistics", "Other"].map(v => ({ value: v, label: v }))} />
                   <Input label="Location" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
+                  <div style={{marginTop:8, marginBottom:16}}>
+                    <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>Address visibility</div>
+                    <div style={{display:'flex', gap:12}}>
+                      <label style={{display:'flex', alignItems:'center', gap:5, fontSize:13, cursor:'pointer'}}>
+                        <input type="radio" name="addrVisibility" value="public"
+                          checked={form.addressVisibility !== 'accepted_only'}
+                          onChange={() => setForm(f=>({...f, addressVisibility:'public'}))} />
+                        Show full address on listing
+                      </label>
+                      <label style={{display:'flex', alignItems:'center', gap:5, fontSize:13, cursor:'pointer'}}>
+                        <input type="radio" name="addrVisibility" value="accepted_only"
+                          checked={form.addressVisibility === 'accepted_only'}
+                          onChange={() => setForm(f=>({...f, addressVisibility:'accepted_only'}))} />
+                        Reveal only to accepted workers
+                      </label>
+                    </div>
+                  </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <Input label="Date" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
                     <Input label="Headcount" type="number" value={form.headcount} onChange={e => setForm(f => ({ ...f, headcount: e.target.value }))} />
@@ -2727,6 +2769,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         wage_max:    wageMax || wageMin,
                         headcount:   parseInt(form.headcount) || 1,
                         status:      'open',
+                        // TODO: add address_visibility column to shifts migration
+                        address_visibility: form.addressVisibility || 'public',
                       });
                       if (error) { toast('Failed to post shift: ' + error.message, 'error'); return; }
                       toast('Shift published! Workers will start applying shortly.', 'success');
