@@ -1056,6 +1056,77 @@ const uploadKycFile = async (userId, file, label) => {
     );
   };
 
+const TnCConsent = ({ checked, onChange }) => {
+  const [expanded, setExpanded] = React.useState(false);
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={e => onChange(e.target.checked)}
+          style={{ marginTop: 2, accentColor: BRAND.primary, flexShrink: 0, width: 16, height: 16 }}
+        />
+        <span style={{ fontSize: 12, color: BRAND.text, lineHeight: 1.5 }}>
+          I have read and agree to the{" "}
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={e => { e.preventDefault(); setExpanded(v => !v); }}
+            onKeyDown={e => e.key === "Enter" && setExpanded(v => !v)}
+            style={{ color: BRAND.primary, textDecoration: "underline", cursor: "pointer" }}
+          >
+            Terms & Conditions and Privacy Notice
+          </span>
+          , including the collection and use of my identity document (MyKad/passport) for employment verification purposes.
+        </span>
+      </label>
+      {expanded && (
+        <div style={{ marginTop: 10, padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7 }}>
+          <strong style={{ color: BRAND.text, fontSize: 12 }}>Privacy Notice & Terms of Consent</strong>
+          <p style={{ marginTop: 8 }}>
+            <strong>1. Data Controller</strong><br />
+            CariGaji ("we", "us") operates this platform and is responsible for the personal data you provide during registration. This notice is issued pursuant to the <strong>Personal Data Protection Act 2010 (Act 709)</strong> ("PDPA").
+          </p>
+          <p>
+            <strong>2. Personal Data Collected</strong><br />
+            We collect your full name, national identity card number (MyKad) or passport number, date of birth, residential address, phone number, email address, selfie photograph, and copies of your identity document (front and back). This information is required to complete your account registration and KYC (Know Your Customer) verification.
+          </p>
+          <p>
+            <strong>3. Purpose of Collection</strong><br />
+            Your personal data and identity document are collected solely for the following purposes:
+          </p>
+          <ul style={{ paddingLeft: 16, margin: "4px 0 8px" }}>
+            <li>Verifying your identity on the CariGaji platform as permitted under the <strong>National Registration Act 1959 (Act 78)</strong>;</li>
+            <li>Sharing your identity information with employers who have engaged you for a shift, to enable them to fulfil their statutory record-keeping obligations under the <strong>Employment Act 1955 (Act 265)</strong> and the <strong>Gig Workers Act 2025 (Act 872)</strong>;</li>
+            <li>Complying with applicable laws and regulatory requirements.</li>
+          </ul>
+          <p>
+            <strong>4. Disclosure of Personal Data</strong><br />
+            Your personal data will only be shared with (a) employers on this platform who have confirmed your engagement for a shift, and (b) relevant government authorities where required by law. We will not sell, rent, or otherwise disclose your data to any third party for marketing purposes.
+          </p>
+          <p>
+            <strong>5. Data Retention</strong><br />
+            Your personal data will be retained for as long as your account remains active and for a minimum of seven (7) years after your last transaction to meet legal and audit obligations. You may request deletion of your account; however, retention for statutory compliance purposes may continue where required by law.
+          </p>
+          <p>
+            <strong>6. Your Rights Under PDPA</strong><br />
+            You have the right to access, correct, and request the deletion of your personal data held by us. To exercise these rights, please contact us at <strong>support@carigaji.my</strong>. We will respond within fourteen (14) business days.
+          </p>
+          <p>
+            <strong>7. Consent</strong><br />
+            By ticking the checkbox, you confirm that you are at least 18 years of age (or have obtained parental/guardian consent), that the information you provide is accurate, and that you voluntarily consent to the collection, processing, and disclosure of your personal data as described above. You acknowledge that providing false identity documents may constitute an offence under Malaysian law.
+          </p>
+          <p style={{ marginBottom: 0 }}>
+            <strong>8. Withdrawal of Consent</strong><br />
+            You may withdraw this consent at any time by contacting us, but doing so may limit or terminate your access to the platform.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const AuthModal = ({
   open,
   view,
@@ -1215,9 +1286,11 @@ const AuthModal = ({
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
                 Add your personal and KYC details now. Selected files will be uploaded to Supabase Storage during registration.
               </div>
+              {/* T&C consent — PDPA 2010 (Act 709), Employment Act 1955 (Act 265) */}
+              <TnCConsent checked={form.agreedToTnC} onChange={v => onChange("agreedToTnC", v)} />
               <div style={{ display: "flex", gap: 10 }}>
                 <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>Back</Btn>
-                <Btn type="submit" disabled={loading || (form.password !== form.confirmPassword) || form.password === ""} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
+                <Btn type="submit" disabled={loading || (form.password !== form.confirmPassword) || form.password === "" || !form.agreedToTnC} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
               </div>
             </form>
           )}
@@ -3945,6 +4018,7 @@ export default function CariGaji() {
     kycBack: null,
     selfie: null,
     supportingDoc: null,
+    agreedToTnC: false,
   });
   const [viewport, setViewport] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
 
