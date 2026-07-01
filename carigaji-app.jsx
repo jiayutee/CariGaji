@@ -630,6 +630,11 @@ const Icons = {
       <circle cx="12" cy="13" r="4" stroke="#374151" strokeWidth="1.4" />
     </svg>
   ),
+  Chat: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
   ArrowLeft: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 12H5" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -1666,7 +1671,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const navItems = [
     { id: "discover", label: "Discover", icon: <Icons.Search size={20} /> },
     { id: "applications", label: "My Bids", icon: <Icons.List size={20} /> },
-    { id: "chat", label: "Chat", icon: <span style={{fontSize:20}}>💬</span> },
+    { id: "chat", label: "Chat", icon: <Icons.Chat size={20} /> },
     { id: "earnings", label: "Earnings", icon: <Icons.Money size={20} /> },
     { id: "profile", label: "Profile", icon: <Icons.User size={20} /> },
     { id: "settings", label: "Settings", icon: <Icons.Settings size={20} /> },
