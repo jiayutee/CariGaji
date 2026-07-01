@@ -60,11 +60,10 @@ INSTANT_HELP = """🤖 *CariGaji Bot commands:*
 For anything else, just type naturally — I'll pass it to the orchestrator."""
 
 def log(msg: str):
+    # launchd redirects stdout to the log file, so print() is sufficient.
+    # Writing to the file directly would duplicate every line.
     line = f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {msg}"
     print(line, flush=True)
-    LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(LOG_FILE, "a") as f:
-        f.write(line + "\n")
 
 def send(chat_id: int, text: str):
     """Send a Telegram message, splitting if over 4000 chars."""
@@ -135,7 +134,9 @@ def run_orchestrator(user_message: str) -> str:
         "If it's a command like 'build shifts', 'skip', 'priority: X', acknowledge it, "
         "act on it, and confirm what you did. "
         "Keep your Telegram reply under 500 words — the user is reading on a phone. "
-        "TEXT ONLY — no tool call output, no JSON."
+        "TEXT ONLY — no tool call output, no JSON. "
+        "IMPORTANT: Do NOT send any Telegram messages yourself via WebFetch. "
+        "The listener script will forward your text reply to the user automatically."
     )
     try:
         claude_bin = os.environ.get("CLAUDE_BIN", "/Users/jiayutee/.local/bin/claude")
