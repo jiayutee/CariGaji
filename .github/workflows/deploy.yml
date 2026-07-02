@@ -28,12 +28,27 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
-      
+
+      - name: Syntax gate (esbuild parse)
+        run: npx esbuild carigaji-app.jsx --bundle=false --platform=browser > /dev/null
+
       - name: Build
         run: npm run build
-      
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+
+      - name: Alert on failure via Telegram
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TG_TOKEN" ]; then echo "No TELEGRAM_BOT_TOKEN secret set; skipping alert."; exit 0; fi
+          curl -s -G "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT:-51218456}" \
+            --data-urlencode "text=🚨 CariGaji deploy FAILED on main (${GITHUB_SHA::7}). Site NOT updated. Logs: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            > /dev/null || true

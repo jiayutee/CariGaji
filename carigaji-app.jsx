@@ -2372,8 +2372,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
                           <Badge color="amber" size="xs">{s.category}</Badge>
-                          <Badge color="green" size="xs">Positions {s.headcount}</Badge>
-                          <Badge color="blue" size="xs">Applied {s.totalApplicants}</Badge>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
                         <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted }}>{s.employer}</div>
