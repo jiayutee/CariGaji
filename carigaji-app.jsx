@@ -1057,7 +1057,7 @@ const uploadKycFile = async (userId, file, label) => {
   };
 
 const TnCConsent = ({ checked, onChange }) => {
-  const [expanded, setExpanded] = React.useState(false);
+  const [expanded, setExpanded] = useState(false);
   return (
     <div style={{ marginBottom: 16 }}>
       <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
