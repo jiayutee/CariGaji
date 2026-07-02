@@ -1,0 +1,21 @@
+#!/bin/bash
+# Pre-commit gate: reject commits that break the JSX parse of carigaji-app.jsx.
+# The single-file app has broken the GitHub Pages build before via JSX slips;
+# this catches them locally before they reach main → auto-deploy.
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+APP="$REPO_ROOT/carigaji-app.jsx"
+
+# Only run when the app file is staged.
+if git diff --cached --name-only | grep -q "carigaji-app.jsx"; then
+    echo "pre-commit: checking carigaji-app.jsx syntax…"
+    if ! npx --no-install esbuild "$APP" --bundle=false --platform=browser >/dev/null 2>/tmp/carigaji-esbuild-err; then
+        echo "❌ pre-commit BLOCKED: carigaji-app.jsx failed to parse:"
+        cat /tmp/carigaji-esbuild-err
+        echo ""
+        echo "Fix the syntax error above, or bypass intentionally with --no-verify."
+        exit 1
+    fi
+    echo "✅ pre-commit: carigaji-app.jsx parses cleanly."
+fi
+exit 0
