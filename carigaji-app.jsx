@@ -347,13 +347,13 @@ const Stat = memo(({ label, value, sub, color = BRAND.primary }) => (
   </div>
 ));
 
-const Input = ({ label, placeholder, value, onChange, type = "text", style = {} }) => (
+const Input = ({ label, placeholder, value, onChange, type = "text", style = {}, error = false }) => (
   <div style={{ marginBottom: 16, ...style }}>
-    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
+    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
     <input type={type} placeholder={placeholder} value={value} onChange={onChange}
       style={{
         width: "100%", padding: "10px 14px", borderRadius: 10,
-        border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit",
+        border: `1.5px solid ${error ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit",
         color: BRAND.text, background: BRAND.input, outline: "none",
         boxSizing: "border-box",
       }}
@@ -361,11 +361,11 @@ const Input = ({ label, placeholder, value, onChange, type = "text", style = {} 
   </div>
 );
 
-const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideToggle = false }) => {
+const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideToggle = false, error = false }) => {
   const [show, setShow] = useState(false);
   return (
     <div style={{ marginBottom: 16, position: "relative", ...style }}>
-      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
+      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
       <div style={{ position: "relative" }}>
         <input
           type={show ? "text" : "password"}
@@ -374,7 +374,7 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
           onChange={onChange}
           style={{
             width: "100%", padding: "10px 14px", borderRadius: 10,
-            border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit",
+            border: `1.5px solid ${error ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit",
             color: BRAND.text, background: BRAND.input, outline: "none",
             boxSizing: "border-box", height: 42, lineHeight: "20px",
           }}
@@ -400,9 +400,9 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
   );
 };
 
-const FileInput = ({ label, onChange, accept, helper, fileName }) => (
+const FileInput = ({ label, onChange, accept, helper, fileName, error = false }) => (
   <div style={{ marginBottom: 16 }}>
-    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{label}</label>}
+    {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
     <input
       type="file"
       accept={accept}
@@ -411,7 +411,7 @@ const FileInput = ({ label, onChange, accept, helper, fileName }) => (
         width: "100%",
         padding: "10px 14px",
         borderRadius: 10,
-        border: `1px solid ${BRAND.border}`,
+        border: `1.5px solid ${error ? BRAND.red : BRAND.border}`,
         fontSize: 14,
         fontFamily: "inherit",
         color: BRAND.text,
@@ -569,6 +569,166 @@ const ProfileMenu = ({ user, onSignOut }) => {
               <span>{it.label}</span>
             </button>
           ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const notificationTimeAgo = (iso) => {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString("en-MY");
+};
+
+const NotificationBell = ({ user }) => {
+  const [notifications, setNotifications] = useState([]);
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    let active = true;
+    supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        if (active) setNotifications(data ?? []);
+      });
+    const channel = supabase
+      .channel(`notifications-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, payload => {
+        if (active) setNotifications(prev => [payload.new, ...prev]);
+      })
+      .subscribe();
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const markRead = async (id) => {
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+    await supabase.from('notifications').update({ read: true }).eq('id', id);
+  };
+
+  const markAllRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    await supabase.from('notifications').update({ read: true }).in('id', unreadIds);
+  };
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Notifications"
+        style={{
+          position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
+          width: 36, height: 36, cursor: "pointer",
+          border: `1px solid ${BRAND.border}`, background: BRAND.surface,
+          borderRadius: 99, padding: 0, fontFamily: "inherit", fontSize: 16,
+        }}
+      >
+        <span aria-hidden="true">🔔</span>
+        {unreadCount > 0 && (
+          <span aria-hidden="true" style={{
+            position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, padding: "0 3px",
+            borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 10, fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+          }}>
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div role="menu" style={{
+          position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 400,
+          width: 320, maxWidth: "90vw", background: BRAND.surface, border: `1px solid ${BRAND.border}`,
+          borderRadius: 12, boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}`,
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>Notifications</div>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllRead}
+                style={{
+                  border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit",
+                  fontSize: 11, fontWeight: 600, color: BRAND.primary, padding: 0,
+                }}
+              >
+                Mark all as read
+              </button>
+            )}
+          </div>
+          <div style={{ maxHeight: 360, overflowY: "auto" }}>
+            {notifications.length === 0 ? (
+              <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 12, color: BRAND.textMuted }}>
+                No notifications yet
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <button
+                  key={n.id}
+                  role="menuitem"
+                  onClick={() => markRead(n.id)}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "flex-start", gap: 8,
+                    padding: "10px 14px", border: "none", borderBottom: `1px solid ${BRAND.border}`,
+                    background: n.read ? "transparent" : BRAND.grayLight,
+                    cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = BRAND.grayLight; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = n.read ? "transparent" : BRAND.grayLight; }}
+                >
+                  {!n.read && (
+                    <span aria-hidden="true" style={{
+                      width: 7, height: 7, borderRadius: 99, background: BRAND.primary,
+                      marginTop: 5, flexShrink: 0,
+                    }} />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text }}>{n.title}</div>
+                    {n.body && (
+                      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>
+                    )}
+                    <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at)}</div>
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -1056,10 +1216,10 @@ const uploadKycFile = async (userId, file, label) => {
     );
   };
 
-const TnCConsent = ({ checked, onChange }) => {
+const TnCConsent = ({ checked, onChange, error = false }) => {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 16, ...(error ? { border: `1.5px solid ${BRAND.red}`, borderRadius: 10, padding: 10 } : {}) }}>
       <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
         <input
           type="checkbox"
@@ -1067,7 +1227,7 @@ const TnCConsent = ({ checked, onChange }) => {
           onChange={e => onChange(e.target.checked)}
           style={{ marginTop: 2, accentColor: BRAND.primary, flexShrink: 0, width: 16, height: 16 }}
         />
-        <span style={{ fontSize: 12, color: BRAND.text, lineHeight: 1.5 }}>
+        <span style={{ fontSize: 12, color: error ? BRAND.red : BRAND.text, lineHeight: 1.5 }}>
           I have read and agree to the{" "}
           <span
             role="button"
@@ -1140,6 +1300,49 @@ const AuthModal = ({
   onRegister,
   onResetPassword,
 }) => {
+  const [showErrors, setShowErrors] = useState(false);
+  const scrollRef = useRef(null);
+  // Keep the status message visible without forcing the user to scroll up
+  useEffect(() => {
+    if (message && scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+  }, [message]);
+  useEffect(() => { setShowErrors(false); }, [view, open]);
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email || "");
+  const REGISTER_FIELD_LABELS = {
+    fullName: "Full name", phone: "Phone number", email: "Email address",
+    password: "Password", confirmPassword: "Confirm password", idNumber: "Identity number",
+    dateOfBirth: "Date of birth", address: "Address", kycFront: "MyKad front",
+    kycBack: "MyKad back", selfie: "Selfie", agreedToTnC: "Terms & Conditions consent",
+  };
+  const registerErrors = {
+    fullName: !form.fullName?.trim(),
+    phone: !form.phone?.trim(),
+    email: !emailOk,
+    password: !form.password,
+    confirmPassword: !form.confirmPassword || form.password !== form.confirmPassword,
+    idNumber: !form.idNumber?.trim(),
+    dateOfBirth: !form.dateOfBirth,
+    address: !form.address?.trim(),
+    kycFront: !form.kycFront,
+    kycBack: !form.kycBack,
+    selfie: !form.selfie,
+    agreedToTnC: !form.agreedToTnC,
+  };
+  const hasRegisterErrors = Object.values(registerErrors).some(Boolean);
+  const fieldError = k => showErrors && registerErrors[k];
+  const missingLabels = Object.keys(registerErrors).filter(k => registerErrors[k]).map(k => REGISTER_FIELD_LABELS[k]);
+
+  const handleRegisterSubmit = e => {
+    e.preventDefault();
+    if (hasRegisterErrors) {
+      setShowErrors(true);
+      if (scrollRef.current) scrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    onRegister(e);
+  };
+
   if (!open) return null;
 
   const copy = {
@@ -1174,10 +1377,15 @@ const AuthModal = ({
           <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }} aria-label="Close">{Icons.Close({ size: 20 })}</button>
         </div>
 
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column" }}>
+        <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column" }}>
           {message && (
-            <div style={{ margin: "0 0 16px 0", padding: "12px 14px", borderRadius: 12, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, color: BRAND.text, fontSize: 13, lineHeight: 1.5 }}>
+            <div style={{ position: "sticky", top: -20, zIndex: 10, margin: "-20px -4px 16px -4px", padding: "14px 16px", borderRadius: 12, background: "#EFF6FF", border: `1.5px solid ${BRAND.primary}`, color: BRAND.text, fontSize: 13.5, fontWeight: 600, lineHeight: 1.5, boxShadow: "0 4px 14px rgba(37,99,235,0.15)" }}>
               {message}
+            </div>
+          )}
+          {showErrors && hasRegisterErrors && view === "register" && (
+            <div style={{ position: "sticky", top: message ? 52 : -20, zIndex: 9, margin: "0 -4px 16px -4px", padding: "12px 16px", borderRadius: 12, background: "#FEF2F2", border: `1.5px solid ${BRAND.red}`, color: BRAND.red, fontSize: 13, lineHeight: 1.6 }}>
+              <strong>Please complete the highlighted fields:</strong> {missingLabels.join(", ")}
             </div>
           )}
           {view === "signin" && (
@@ -1204,9 +1412,9 @@ const AuthModal = ({
           )}
 
           {view === "register" && (
-            <form onSubmit={onRegister}>
+            <form onSubmit={handleRegisterSubmit} noValidate>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label="Full name *" placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} />
+                <Input label="Full name *" placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
                   <SearchableCountrySelect label="Country *" value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
               </div>
                 <div style={{ marginBottom: 16 }}>
@@ -1218,19 +1426,20 @@ const AuthModal = ({
                     <div style={{ flex: 1 }}>
                       <Input 
                         placeholder={COUNTRIES.find(c => c.code === form.countryCode)?.placeholder || "Enter phone number"}
-                        value={form.phone} 
-                        onChange={e => onChange("phone", e.target.value)} 
+                        value={form.phone}
+                        onChange={e => onChange("phone", e.target.value)}
                         style={{ marginBottom: 0 }}
+                        error={fieldError("phone")}
                       />
                     </div>
                   </div>
                 </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label="Email address *" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
-                <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} />
+                <Input label="Email address *" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
+                <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} error={fieldError("password")} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} />
+                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} error={fieldError("confirmPassword")} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
                 <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>Passwords do not match.</div>
@@ -1262,6 +1471,7 @@ const AuthModal = ({
                       if (extractedDate) onChange("dateOfBirth", extractedDate);
                     }
                   }}
+                  error={fieldError("idNumber")}
                 />
               </div>
               <Input
@@ -1269,28 +1479,29 @@ const AuthModal = ({
                 type="date"
                 value={form.dateOfBirth}
                 onChange={e => onChange("dateOfBirth", e.target.value)}
+                error={fieldError("dateOfBirth")}
               />
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -12, marginBottom: 16 }}>
                 Your KYC level will be assigned based on uploaded documents.
               </div>
-              <Input label="Address *" placeholder="Street, city, state" value={form.address} onChange={e => onChange("address", e.target.value)} />
+              <Input label="Address *" placeholder="Street, city, state" value={form.address} onChange={e => onChange("address", e.target.value)} error={fieldError("address")} />
               <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>KYC documents</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label="MyKad front *" accept="image/*,application/pdf" onChange={e => onChange("kycFront", e.target.files?.[0] || null)} fileName={form.kycFront?.name} helper="Upload a photo or PDF of the front side." />
-                <FileInput label="MyKad back *" accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper="Upload a photo or PDF of the back side." />
+                <FileInput label="MyKad front *" accept="image/*,application/pdf" onChange={e => onChange("kycFront", e.target.files?.[0] || null)} fileName={form.kycFront?.name} helper="Upload a photo or PDF of the front side." error={fieldError("kycFront")} />
+                <FileInput label="MyKad back *" accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper="Upload a photo or PDF of the back side." error={fieldError("kycBack")} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label="Selfie *" accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper="Upload a clear selfie for identity verification." />
+                <FileInput label="Selfie *" accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper="Upload a clear selfie for identity verification." error={fieldError("selfie")} />
                 <FileInput label="Certification" accept="image/*,application/pdf" onChange={e => onChange("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper="Optional: food handler, first aid, or other certifications." />
               </div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
                 Add your personal and KYC details now. Selected files will be uploaded to Supabase Storage during registration.
               </div>
               {/* T&C consent — PDPA 2010 (Act 709), Employment Act 1955 (Act 265) */}
-              <TnCConsent checked={form.agreedToTnC} onChange={v => onChange("agreedToTnC", v)} />
+              <TnCConsent checked={form.agreedToTnC} onChange={v => onChange("agreedToTnC", v)} error={fieldError("agreedToTnC")} />
               <div style={{ display: "flex", gap: 10 }}>
                 <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>Back</Btn>
-                <Btn type="submit" disabled={loading || (form.password !== form.confirmPassword) || form.password === "" || !form.agreedToTnC} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
+                <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
               </div>
             </form>
           )}
@@ -4305,6 +4516,7 @@ export default function CariGaji() {
               <span aria-hidden="true">{themePreference === "system" ? "🖥️" : themePreference === "light" ? "☀️" : "🌙"}</span>
               <span>{themePreference === "system" ? "System" : themePreference === "light" ? "Light" : "Dark"}</span>
             </Btn>
+            {user && <NotificationBell user={user} />}
             {user ? (
               <ProfileMenu
                 user={user}
