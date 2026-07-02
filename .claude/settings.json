@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Read",
+      "Write",
+      "Bash(git *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(echo *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(wc *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(openssl *)",
+      "WebFetch(domain:api.telegram.org)",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-search",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-fetch",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-create-pages",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-update-page",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-query-database-view",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-query-data-sources",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-create-comment",
+      "mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-get-comments",
+      "mcp__scheduled-tasks__list_scheduled_tasks"
+    ]
+  }
+}
