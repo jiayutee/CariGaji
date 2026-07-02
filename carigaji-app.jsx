@@ -347,10 +347,10 @@ const Stat = memo(({ label, value, sub, color = BRAND.primary }) => (
   </div>
 ));
 
-const Input = ({ label, placeholder, value, onChange, type = "text", style = {}, error = false }) => (
+const Input = ({ label, placeholder, value, onChange, type = "text", style = {}, error = false, ...rest }) => (
   <div style={{ marginBottom: 16, ...style }}>
     {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
-    <input type={type} placeholder={placeholder} value={value} onChange={onChange}
+    <input type={type} placeholder={placeholder} value={value} onChange={onChange} {...rest}
       style={{
         width: "100%", padding: "10px 14px", borderRadius: 10,
         border: `1.5px solid ${error ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit",
@@ -1301,6 +1301,9 @@ const AuthModal = ({
   onResetPassword,
 }) => {
   const [showErrors, setShowErrors] = useState(false);
+  // Advisory OCR check that the ID on the uploaded photo matches what was typed.
+  // status: idle | checking | match | mismatch | unreadable
+  const [idOcr, setIdOcr] = useState({ status: "idle" });
   const scrollRef = useRef(null);
   // Keep the status message visible without forcing the user to scroll up
   useEffect(() => {
@@ -1309,11 +1312,70 @@ const AuthModal = ({
   useEffect(() => { setShowErrors(false); }, [view, open]);
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email || "");
+
+  // Legal working age gate — Malaysia; platform T&C requires 18+.
+  const LEGAL_WORKING_AGE = 18;
+  const ageFromDob = dob => {
+    if (!dob) return null;
+    const d = new Date(dob);
+    if (isNaN(d)) return null;
+    const t = new Date();
+    let a = t.getFullYear() - d.getFullYear();
+    const m = t.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
+    return a;
+  };
+  const applicantAge = ageFromDob(form.dateOfBirth);
+  const dobUnderage = form.dateOfBirth && applicantAge !== null && applicantAge < LEGAL_WORKING_AGE;
+  // Latest DOB allowed (exactly LEGAL_WORKING_AGE years ago) — guides the date picker.
+  const maxDob = (() => {
+    const t = new Date();
+    t.setFullYear(t.getFullYear() - LEGAL_WORKING_AGE);
+    return t.toISOString().slice(0, 10);
+  })();
+
+  // Document labels adapt to the selected identity type.
+  const DOC_LABELS = {
+    MyKad: { front: "MyKad (front)", back: "MyKad (back)" },
+    MyPR: { front: "MyPR card (front)", back: "MyPR card (back)" },
+    Passport: { front: "Passport photo page", back: "Passport back page" },
+  }[form.identityType] || { front: "ID document (front)", back: "ID document (back)" };
+
+  // Client-side OCR: read the ID off the uploaded front photo and compare with
+  // the typed identity number. Runs entirely in the browser (the image is never
+  // sent anywhere for this check) and is advisory only — it never blocks submit.
+  const normalizeId = s => (s || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+  const verifyIdOnImage = async file => {
+    const entered = normalizeId(form.idNumber);
+    if (!file || !file.type?.startsWith("image/") || entered.length < 6) {
+      setIdOcr({ status: "idle" });
+      return;
+    }
+    setIdOcr({ status: "checking" });
+    try {
+      const T = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js");
+      const recognize = T.recognize || T.default?.recognize;
+      const { data } = await recognize(file, "eng");
+      const ocr = normalizeId(data?.text);
+      // For numeric IDs (MyKad/MyPR) compare digit runs; for passports, alnum.
+      const enteredDigits = entered.replace(/[^0-9]/g, "");
+      const ocrDigits = ocr.replace(/[^0-9]/g, "");
+      const matched = form.identityType === "Passport"
+        ? ocr.includes(entered)
+        : (enteredDigits.length >= 6 && ocrDigits.includes(enteredDigits));
+      setIdOcr({ status: matched ? "match" : "mismatch" });
+    } catch (e) {
+      // OCR engine unavailable / failed — stay silent, never block the user.
+      setIdOcr({ status: "idle" });
+    }
+  };
+
   const REGISTER_FIELD_LABELS = {
     fullName: "Full name", phone: "Phone number", email: "Email address",
     password: "Password", confirmPassword: "Confirm password", idNumber: "Identity number",
-    dateOfBirth: "Date of birth", address: "Address", kycFront: "MyKad front",
-    kycBack: "MyKad back", selfie: "Selfie", agreedToTnC: "Terms & Conditions consent",
+    dateOfBirth: dobUnderage ? `Date of birth (must be ${LEGAL_WORKING_AGE}+)` : "Date of birth",
+    address: "Address", kycFront: DOC_LABELS.front,
+    kycBack: DOC_LABELS.back, selfie: "Selfie", agreedToTnC: "Terms & Conditions consent",
   };
   const registerErrors = {
     fullName: !form.fullName?.trim(),
@@ -1322,7 +1384,7 @@ const AuthModal = ({
     password: !form.password,
     confirmPassword: !form.confirmPassword || form.password !== form.confirmPassword,
     idNumber: !form.idNumber?.trim(),
-    dateOfBirth: !form.dateOfBirth,
+    dateOfBirth: !form.dateOfBirth || dobUnderage,
     address: !form.address?.trim(),
     kycFront: !form.kycFront,
     kycBack: !form.kycBack,
@@ -1480,16 +1542,48 @@ const AuthModal = ({
                 value={form.dateOfBirth}
                 onChange={e => onChange("dateOfBirth", e.target.value)}
                 error={fieldError("dateOfBirth")}
+                max={maxDob}
+                style={{ marginBottom: dobUnderage ? 4 : 16 }}
               />
-              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -12, marginBottom: 16 }}>
+              {dobUnderage && (
+                <div style={{ fontSize: 12, color: BRAND.red, fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
+                  You must be at least {LEGAL_WORKING_AGE} years old to register and work on CariGaji.
+                </div>
+              )}
+              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: dobUnderage ? 0 : -12, marginBottom: 16 }}>
                 Your KYC level will be assigned based on uploaded documents.
               </div>
               <Input label="Address *" placeholder="Street, city, state" value={form.address} onChange={e => onChange("address", e.target.value)} error={fieldError("address")} />
-              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>KYC documents</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label="MyKad front *" accept="image/*,application/pdf" onChange={e => onChange("kycFront", e.target.files?.[0] || null)} fileName={form.kycFront?.name} helper="Upload a photo or PDF of the front side." error={fieldError("kycFront")} />
-                <FileInput label="MyKad back *" accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper="Upload a photo or PDF of the back side." error={fieldError("kycBack")} />
+              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Upload documents</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10, lineHeight: 1.5 }}>
+                Upload clear photos of your {form.identityType === "Passport" ? "passport" : form.identityType === "MyPR" ? "MyPR card" : "MyKad"}. The identity number must be readable and match what you entered above.
               </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FileInput label={`${DOC_LABELS.front} *`} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; onChange("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper="Upload a photo or PDF of the front side." error={fieldError("kycFront")} />
+                <FileInput label={`${DOC_LABELS.back} *`} accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper="Upload a photo or PDF of the back side." error={fieldError("kycBack")} />
+              </div>
+              {idOcr.status === "checking" && (
+                <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ display: "inline-block", width: 12, height: 12, border: `2px solid ${BRAND.border}`, borderTopColor: BRAND.primary, borderRadius: "50%", animation: "cg-spin 0.7s linear infinite" }} />
+                  Checking the ID number on your photo…
+                </div>
+              )}
+              {idOcr.status === "match" && (
+                <div style={{ fontSize: 12, color: BRAND.green, fontWeight: 600, marginBottom: 12, padding: "8px 12px", background: "#ECFDF5", border: `1px solid ${BRAND.green}`, borderRadius: 8 }}>
+                  ✓ The identity number on your photo matches what you entered.
+                </div>
+              )}
+              {idOcr.status === "mismatch" && (
+                <div style={{ fontSize: 12, color: "#B45309", marginBottom: 12, padding: "10px 12px", background: "#FFFBEB", border: "1px solid #F59E0B", borderRadius: 8, lineHeight: 1.6 }}>
+                  <strong>We couldn't match the ID number on your photo to what you typed.</strong> This usually means one of:
+                  <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                    <li>the photo is blurry or the number isn't fully visible,</li>
+                    <li>the identity number you entered has a typo, or</li>
+                    <li>the wrong document photo was uploaded.</li>
+                  </ul>
+                  <div style={{ marginTop: 6 }}>Please double-check both. You can still submit — our team will verify manually.</div>
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <FileInput label="Selfie *" accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper="Upload a clear selfie for identity verification." error={fieldError("selfie")} />
                 <FileInput label="Certification" accept="image/*,application/pdf" onChange={e => onChange("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper="Optional: food handler, first aid, or other certifications." />
