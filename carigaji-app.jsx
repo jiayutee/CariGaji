@@ -133,6 +133,17 @@ const resolveCity = (locationStr) => {
   return null;
 };
 
+// Coarse location for public listing cards — only ever a city or region,
+// never the exact place/street. Prefers the canonical city; if the city is
+// unknown, falls back to the last (coarsest) comma segment of the address.
+const overviewLocation = (locationStr) => {
+  if (!locationStr) return "Area on request";
+  const city = resolveCity(locationStr);
+  if (city) return city;
+  const parts = locationStr.split(",").map(s => s.trim()).filter(Boolean);
+  return parts[parts.length - 1] || locationStr;
+};
+
 const validateMalaysianBankAccount = (bankName, accountNumber) => {
   if (!bankName || !accountNumber) {
     return { valid: false, message: "Bank name and account number are required." };
@@ -2274,22 +2285,36 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             <Stat label="Estimated Gross" value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub="at max rate" color={BRAND.green} />
             <Stat label="Transport Allowance" value={`RM${selectedShift.stipend}`} color={BRAND.blue} />
           </div>
+          {(() => {
+            // Exact address is shown when the employer made it public, or when
+            // this worker has been accepted for the shift. Otherwise only the
+            // coarse city/region is shown, with a note explaining why.
+            const acceptedForShift = selectedShift.myStatus === "accepted";
+            const canSeeExact = selectedShift.addressVisibility !== "accepted_only" || acceptedForShift;
+            const detailLocation = canSeeExact ? selectedShift.location : overviewLocation(selectedShift.location);
+            const locationNote = canSeeExact ? null : "Exact address revealed once your application is accepted.";
+            return (
           <Card style={{ marginBottom: 16 }}>
             <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
             {[
-              ["📍 Location", selectedShift.location],
+              ["📍 Location", detailLocation, locationNote],
               ["🗓 Date", selectedShift.date],
               ["⏰ Time", selectedShift.time],
               ["👗 Dress Code", selectedShift.dress],
               ["👥 Headcount", `${selectedShift.headcount} workers needed`],
               ["🏢 Employer Score", `${selectedShift.reliabilityScore}/100`],
-            ].map(([k, v]) => (
+            ].map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted, width: 130, flexShrink: 0 }}>{k}</span>
-                <span style={{ fontSize: 13, color: BRAND.text, fontWeight: 500 }}>{v}</span>
+                <span style={{ fontSize: 13, color: BRAND.text, fontWeight: 500 }}>
+                  {v}
+                  {note && <span style={{ display: "block", fontSize: 11, color: BRAND.textMuted, fontWeight: 400, marginTop: 2 }}>🔒 {note}</span>}
+                </span>
               </div>
             ))}
           </Card>
+            );
+          })()}
           <Card style={{ marginBottom: 20, background: BRAND.grayLight, border: "none" }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: BRAND.text }}>Employer Reliability</div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
@@ -2479,14 +2504,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   <div style={{ display: "flex", gap: 0, borderTop: `1px solid ${BRAND.border}`, marginTop: 10 }}>
                     {[
                       [s.date, "📅"],
-                      [s.addressVisibility === 'accepted_only' ? s.location.split(',')[0] : s.location, "📍", s.addressVisibility === 'accepted_only'],
+                      // Listing cards only ever show the city/region, never the exact place.
+                      [overviewLocation(s.location), "📍"],
                       [`${s.hours}h`, "⏱️"],
                       [`${s.headcount} pos · ${s.totalApplicants} applied`, "👥"],
-                    ].map(([v, ico, hiddenAddr], i) => (
+                    ].map(([v, ico], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
                         <div style={{ fontSize: isMobile ? 11 : 13 }}>{ico}</div>
                         <div style={{ fontSize: isMobile ? 9 : 10, color: BRAND.textMuted, marginTop: 1, lineHeight: 1.3 }}>{v}</div>
-                        {hiddenAddr && <div style={{ fontSize: 9, color: '#94a3b8', lineHeight: 1.2, marginTop: 1 }}>Exact address revealed after acceptance</div>}
                       </div>
                     ))}
                   </div>
@@ -4543,8 +4568,12 @@ export default function CariGaji() {
   return (
     <ToastProvider>
     <div style={{
-      minHeight: "100vh",
+      // Use dynamic viewport height so the shell exactly fills the visible
+      // area on mobile. Mixing minHeight:100vh here made the container taller
+      // than the screen (100vh counts space behind the browser/system bars),
+      // pushing the sticky bottom nav below the fold.
       height: "100dvh",
+      minHeight: "100dvh",
       width: "100%",
       ...themeVars,
       background: isMobile
