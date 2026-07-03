@@ -1617,34 +1617,6 @@ const AuthModal = ({
 };
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
-const SHIFTS = [
-  { id: 1, title: "F&B Server – Wedding Banquet", employer: "Grand Hyatt KL", category: "F&B", date: "15 Jun 2025", time: "18:00–23:00", hours: 5, wageMin: 12, wageMax: 16, location: "KL City Centre", distance: 8.2, travelTime: "~45 min", stipend: 5, headcount: 8, filled: 3, status: "open", dress: "All black formal", reliabilityScore: 94, rating: 4.7, totalApplicants: 14 },
-  { id: 2, title: "Retail Promoter – Tech Expo", employer: "Maxis Berhad", category: "Retail", date: "18 Jun 2025", time: "10:00–18:00", hours: 8, wageMin: 14, wageMax: 18, location: "KLCC", distance: 3.1, travelTime: "~20 min", stipend: 0, headcount: 4, filled: 1, status: "open", dress: "Smart casual – company polo provided", reliabilityScore: 98, rating: 4.9, totalApplicants: 22 },
-  { id: 3, title: "Event Crew – Music Festival", employer: "Live Nation MY", category: "Event", date: "21 Jun 2025", time: "14:00–00:00", hours: 10, wageMin: 15, wageMax: 20, location: "Stadium Merdeka", distance: 12.5, travelTime: "~55 min", stipend: 10, headcount: 20, filled: 12, status: "open", dress: "Black t-shirt + jeans", reliabilityScore: 87, rating: 4.2, totalApplicants: 41 },
-  { id: 4, title: "Warehouse Packer – Flash Sale", employer: "Shopee MY", category: "Logistics", date: "20 Jun 2025", time: "08:00–16:00", hours: 8, wageMin: 11, wageMax: 14, location: "Shah Alam", distance: 28.4, travelTime: "~70 min", stipend: 10, headcount: 15, filled: 15, status: "filled", dress: "Casual, closed-toe shoes", reliabilityScore: 91, rating: 4.5, totalApplicants: 58 },
-  { id: 5, title: "Barista – Pop-up Café", employer: "Artisan Roast Co.", category: "F&B", date: "22 Jun 2025", time: "09:00–15:00", hours: 6, wageMin: 13, wageMax: 17, location: "Bangsar", distance: 5.8, travelTime: "~30 min", stipend: 5, headcount: 2, filled: 0, status: "open", dress: "Smart casual, apron provided", reliabilityScore: 96, rating: 4.8, totalApplicants: 7 },
-];
-
-const APPLICATIONS = [
-  { id: 1, shiftId: 2, shiftTitle: "Retail Promoter – Tech Expo", employer: "Maxis Berhad", date: "18 Jun 2025", wageBid: 16, status: "shortlisted", appliedAt: "2 days ago" },
-  { id: 2, shiftId: 1, shiftTitle: "F&B Server – Wedding Banquet", employer: "Grand Hyatt KL", date: "15 Jun 2025", wageBid: 14, status: "pending", appliedAt: "1 day ago" },
-  { id: 3, shiftId: 5, shiftTitle: "Barista – Pop-up Café", employer: "Artisan Roast Co.", date: "22 Jun 2025", wageBid: 15, status: "accepted", appliedAt: "3 hours ago" },
-];
-
-const EMPLOYER_SHIFTS = [
-  { id: 1, title: "F&B Server – Wedding Banquet", date: "15 Jun 2025", time: "18:00–23:00", headcount: 8, filled: 6, applicants: 14, status: "open", escrow: 640, category: "F&B" },
-  { id: 2, title: "Kitchen Helper – Corporate Lunch", date: "12 Jun 2025", time: "09:00–14:00", headcount: 3, filled: 3, applicants: 9, status: "completed", escrow: 180, category: "F&B" },
-  { id: 3, title: "Waitstaff – Gala Dinner", date: "25 Jun 2025", time: "19:00–00:00", headcount: 10, filled: 0, applicants: 0, status: "draft", escrow: 0, category: "F&B" },
-];
-
-const EMPLOYER_APPLICANTS = [
-  { id: 1, name: "Ahmad Firdaus", kyc: "Standard", reliability: 94, rating: 4.7, wageBid: 14, status: "shortlisted", completedShifts: 38 },
-  { id: 2, name: "Nurul Ain Binti Hassan", kyc: "Standard", reliability: 98, rating: 4.9, wageBid: 15, status: "shortlisted", completedShifts: 72 },
-  { id: 3, name: "Wei Jian Lim", kyc: "Basic", reliability: 71, rating: 4.1, wageBid: 12, status: "pending", completedShifts: 5 },
-  { id: 4, name: "Priya Selvam", kyc: "Standard", reliability: 88, rating: 4.5, wageBid: 16, status: "pending", completedShifts: 22 },
-  { id: 5, name: "Hafiz Roslan", kyc: "Advanced", reliability: 99, rating: 5.0, wageBid: 15, status: "accepted", completedShifts: 156 },
-];
-
 const ADMIN_KYC = [
   { id: 1, name: "Muhammad Izzat", type: "Standard", submitted: "2 hours ago", status: "pending", docs: ["MyKad front", "MyKad back", "Selfie"] },
   { id: 2, name: "Siti Rahmah Binti Ali", type: "Standard", submitted: "4 hours ago", status: "pending", docs: ["MyKad front", "MyKad back", "Selfie"] },
@@ -1656,13 +1628,6 @@ const ADMIN_DISPUTES = [
   { id: "D-001", worker: "Ahmad Firdaus", employer: "Grand Hyatt KL", shift: "F&B Server – Wedding Banquet", reason: "Hours disputed", amount: 70, status: "under_review", opened: "2 days ago" },
   { id: "D-002", worker: "Wei Jian Lim", employer: "Live Nation MY", shift: "Event Crew – Music Festival", reason: "No-show claim by employer", amount: 150, status: "open", opened: "1 day ago" },
   { id: "D-003", worker: "Priya Selvam", employer: "Shopee MY", shift: "Warehouse Packer – Flash Sale", reason: "Unsafe working conditions", amount: 88, status: "escalated", opened: "5 days ago" },
-];
-
-const CHAT_MESSAGES = [
-  { id: 1, from: "employer", name: "Grand Hyatt KL", text: "Hi! We reviewed your application. Your experience looks great. Do you have experience with silver service?", time: "10:32 AM" },
-  { id: 2, from: "worker", name: "You", text: "Yes, I have 2 years of silver service experience from my previous role at Shangri-La.", time: "10:45 AM" },
-  { id: 3, from: "employer", name: "Grand Hyatt KL", text: "Perfect! We'd like to offer you the shift at RM14/h. Please review the contract details.", time: "11:00 AM" },
-  { id: 4, from: "system", text: "📋 Offer sent: RM14/h × 5 hours = RM70 total. Tap to view and accept.", time: "11:00 AM" },
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
@@ -1697,9 +1662,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
-  const [showChat, setShowChat] = useState(false);
-  const [chatMsg, setChatMsg] = useState("");
-  const [messages, setMessages] = useState(CHAT_MESSAGES);
   const [bidSuccess, setBidSuccess] = useState(false);
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
@@ -2013,7 +1975,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   };
 
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
-  const shiftsSource = liveShifts ?? SHIFTS;
+  const shiftsSource = liveShifts ?? [];
   const filtered = useMemo(() => {
     let s = shiftsSource;
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
@@ -2051,12 +2013,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Your account")
     : "";
 
-  const sendMsg = () => {
-    if (!chatMsg.trim()) return;
-    setMessages(m => [...m, { id: m.length + 1, from: "worker", name: "You", text: chatMsg, time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) }]);
-    setChatMsg("");
-  };
-
   const navItems = [
     { id: "discover", label: "Discover", icon: <Icons.Search size={20} /> },
     { id: "applications", label: "My Bids", icon: <Icons.List size={20} /> },
@@ -2068,7 +2024,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
 
   const handleWorkerNavClick = (nextTab) => {
     setShowQR(false);
-    setShowChat(false);
     setShowBidModal(false);
     setSelectedShift(null);
     setTab(nextTab);
@@ -2129,62 +2084,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
         <Btn onClick={() => { setShowQR(false); toast("Checked in at 18:02 · Reliability maintained (on time)", "success"); }}>Simulate Successful Check-in</Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
-      </div>
-      <div style={navBarStyle}>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
-            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
-            borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
-            fontFamily: "inherit",
-          }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
-            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  if (showChat) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, overflowY: "auto", background: BRAND.grayLight, minHeight: 0, paddingBottom: navPadding }}>
-        <div style={{ padding: "16px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", gap: 12, background: BRAND.surface, flexShrink: 0 }}>
-          <button onClick={() => setShowChat(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: BRAND.text }} aria-label="Back">{Icons.ArrowLeft({ size: 18 })}</button>
-          <Avatar name="Grand Hyatt KL" size={36} color={BRAND.blue} />
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>Grand Hyatt KL</div>
-            <div style={{ fontSize: 12, color: BRAND.green }}>● Online</div>
-          </div>
-          <div style={{ marginLeft: "auto" }}>
-            <Badge color="orange">F&B Server Shift</Badge>
-          </div>
-        </div>
-        <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-          {messages.map(m => (
-            <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.from === "system" ? "center" : m.from === "worker" ? "flex-end" : "flex-start" }}>
-              {m.from === "system" ? (
-                <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.accent}30`, borderRadius: 12, padding: "10px 16px", fontSize: 13, color: BRAND.amber, maxWidth: "85%", textAlign: "center", cursor: "pointer" }}
-                  onClick={() => toast("Offer: RM14/h × 5 hours = RM70 total\nTransport allowance: RM5 · Start: 15 Jun 18:00\nDress: All black formal", "info", 6000)}>
-                  {m.text}
-                </div>
-              ) : (
-                <div style={{ background: m.from === "worker" ? BRAND.primary : BRAND.surface, borderRadius: 14, padding: "10px 14px", maxWidth: "75%", border: m.from === "employer" ? `1px solid ${BRAND.border}` : "none" }}>
-                  <div style={{ fontSize: 13, color: m.from === "worker" ? "#fff" : BRAND.text, lineHeight: 1.5 }}>{m.text}</div>
-                  <div style={{ fontSize: 10, color: m.from === "worker" ? "rgba(255,255,255,0.7)" : BRAND.textMuted, marginTop: 4 }}>{m.time}</div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        <div style={{ padding: 16, borderTop: `1px solid ${BRAND.border}`, background: BRAND.surface, display: "flex", gap: 8, flexShrink: 0 }}>
-          <input value={chatMsg} onChange={e => setChatMsg(e.target.value)} onKeyDown={e => e.key === "Enter" && sendMsg()}
-            placeholder="Type a message…"
-            style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", outline: "none", background: BRAND.input, color: BRAND.text }}
-          />
-          <Btn onClick={sendMsg}>Send</Btn>
-        </div>
       </div>
       <div style={navBarStyle}>
         {navItems.map(n => (
@@ -2484,6 +2383,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               )}
             </div>
             <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+              {filtered.length === 0 && (
+                <EmptyState
+                  icon="🔍"
+                  title={liveShifts === null ? "Loading shifts…" : "No shifts match right now"}
+                  hint={liveShifts === null ? "Hang tight while we fetch open shifts." : "Try widening your filters, or check back soon — new shifts are posted regularly."}
+                />
+              )}
               {filtered.map(s => (
                 <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ padding: 0, overflow: "hidden" }}>
                   <div style={{ padding: "12px 12px 0" }}>
@@ -2534,7 +2440,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {(liveApplications ?? APPLICATIONS).map(a => (
+              {(liveApplications ?? []).length === 0 && (
+                <EmptyState
+                  icon="📄"
+                  title={liveApplications === null ? "Loading your bids…" : "No bids yet"}
+                  hint={liveApplications === null ? "Hang tight while we fetch your bids." : "Head to Discover and place a bid on a shift to see it here."}
+                />
+              )}
+              {(liveApplications ?? []).map(a => (
                 <Card key={a.id}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
@@ -2549,7 +2462,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                       <span style={{ fontSize: 15, fontWeight: 700, color: BRAND.text }}>RM{a.wageBid}/h</span>
                     </div>
                     {a.status === "shortlisted" && (
-                      <Btn size="sm" onClick={() => setShowChat(true)}>Chat →</Btn>
+                      <Btn size="sm" onClick={() => setTab('chat')}>Chat →</Btn>
                     )}
                     {a.status === "accepted" && (
                       <Btn size="sm" variant="success" onClick={() => setShowQR(true)}>Check In</Btn>
@@ -3316,7 +3229,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     }
   };
 
-  const shiftApplicants = selectedShift ? EMPLOYER_APPLICANTS : [];
   const committedPayoutTotal = employerPayoutItems
     .filter(item => ['queued', 'ready', 'scheduled', 'held'].includes(item.status))
     .reduce((sum, item) => sum + Number(item.amount || 0), 0);
@@ -3367,7 +3279,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Active Shifts</div>
-                {(liveEmployerShifts ?? EMPLOYER_SHIFTS).filter(s => s.status !== "draft").map(s => (
+                {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").length === 0 && (
+                  <EmptyState
+                    icon="📋"
+                    title={liveEmployerShifts === null ? "Loading shifts…" : "No active shifts"}
+                    hint={liveEmployerShifts === null ? "Hang tight while we fetch your shifts." : "Post a shift to start hiring workers."}
+                  />
+                )}
+                {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").map(s => (
                   <Card key={s.id} onClick={() => { setSelectedShift(s); setView("shifts"); }} hover style={{ marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
@@ -3411,7 +3330,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               </div>
               <Btn onClick={() => { setView("postshift"); setPostStep(1); }}>+ Post Shift</Btn>
             </div>
-            {(liveEmployerShifts ?? EMPLOYER_SHIFTS).map(s => (
+            {(liveEmployerShifts ?? []).length === 0 && (
+              <EmptyState
+                icon="📋"
+                title={liveEmployerShifts === null ? "Loading shifts…" : "No shifts posted yet"}
+                hint={liveEmployerShifts === null ? "Hang tight while we fetch your shifts." : "Post your first shift to start hiring workers."}
+              />
+            )}
+            {(liveEmployerShifts ?? []).map(s => (
               <Card key={s.id} onClick={() => setSelectedShift(s)} hover style={{ marginBottom: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ flex: 1 }}>
@@ -3460,6 +3386,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               </div>
               <Badge color="blue">{selectedShift.applicants} applied</Badge>
             </div>
+            {(liveApplicants ?? []).length === 0 && (
+              <EmptyState
+                icon="👥"
+                title={liveApplicants === null ? "Loading applicants…" : "No applicants yet"}
+                hint={liveApplicants === null ? "Hang tight while we fetch applicants." : "Applicants will appear here once workers bid on this shift."}
+              />
+            )}
+            {(liveApplicants ?? []).length > 0 && (
             <table style={{ width: "100%", borderCollapse: "collapse", background: BRAND.surface, borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
@@ -3469,7 +3403,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </tr>
               </thead>
               <tbody>
-                {(liveApplicants ?? shiftApplicants).map(a => {
+                {(liveApplicants ?? []).map(a => {
                   const action = applicantAction[a.id] || a.status;
                   return (
                     <tr key={a.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
@@ -3508,6 +3442,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 })}
               </tbody>
             </table>
+            )}
           </div>
         )}
 
@@ -4077,7 +4012,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <Btn size="xs" variant="secondary" onClick={() => setView("kycqueue")} style={{ marginTop: 10 }}>View all →</Btn>
               </Card>
               <Card>
-                <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>Active Disputes</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>Active Disputes</div>
+                  <Badge color="amber" size="xs">Demo data</Badge>
+                </div>
                 {ADMIN_DISPUTES.slice(0, 3).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ fontSize: 13, color: BRAND.text }}>{d.id} – {d.reason}</div>
@@ -4153,8 +4091,11 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "disputes" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Disputes Dashboard</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{ADMIN_DISPUTES.length} disputes total</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>Disputes Dashboard</div>
+              <Badge color="amber" size="xs">Demo data</Badge>
+            </div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{ADMIN_DISPUTES.length} disputes total — dispute resolution isn't wired to real data yet.</div>
             {ADMIN_DISPUTES.map(d => {
               const action = disputeActions[d.id];
               return (
