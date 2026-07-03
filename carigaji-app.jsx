@@ -3187,7 +3187,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           .select("id, amount, status, scheduled_date, created_at")
           .eq("employer_id", user.id)
           .order("created_at", { ascending: false })
-          .limit(8),
+          .limit(100),
       ]);
 
       if (!active) return;
@@ -3317,6 +3317,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   };
 
   const shiftApplicants = selectedShift ? EMPLOYER_APPLICANTS : [];
+  const committedPayoutTotal = employerPayoutItems
+    .filter(item => ['queued', 'ready', 'scheduled', 'held'].includes(item.status))
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const paidOutPayoutTotal = employerPayoutItems
+    .filter(item => item.status === 'processed_internal')
+    .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%", fontFamily: "inherit" }}>
@@ -3338,9 +3344,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             }}>{n}</button>
         ))}
         <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
-          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Escrow Balance</div>
-          <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>RM 2,840</div>
-          <Btn size="xs" variant="ghost" style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Top Up</Btn>
+          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Committed to Workers</div>
+          <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
+          <Btn size="xs" variant="ghost" onClick={() => toast('Escrow top-up isn’t available yet — coming with FPX/DuitNow integration.', 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Top Up (soon)</Btn>
           <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Return to Worker App</Btn>
         </div>
       </div>
@@ -3650,35 +3656,33 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         {view === "billing" && (
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Billing & Escrow</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Escrow balance" value="RM 2,840" color={BRAND.green} />
-              <Stat label="Locked (active shifts)" value="RM 640" color={BRAND.amber} />
-              <Stat label="Total paid out" value="RM 4,210" color={BRAND.primary} />
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
+              <Stat label="Committed to workers" value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
+              <Stat label="Total paid out" value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
             </div>
-            <Btn style={{ marginBottom: 24 }}>+ Top Up Escrow</Btn>
-            <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Escrow Ledger</div>
+            <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
+              Escrow top-ups aren't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.
+            </div>
+            <Btn onClick={() => toast('Escrow top-up isn’t available yet — coming with FPX/DuitNow integration.', 'info')} style={{ marginBottom: 24 }}>+ Top Up Escrow (soon)</Btn>
+            <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Payout Ledger</div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: BRAND.grayLight }}>
-                    {["Date", "Type", "Shift", "Amount", "Balance"].map(h => (
+                    {["Date", "Status", "Amount"].map(h => (
                       <th key={h} style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { date: "12 Jun", type: "funded", shift: "Wedding Banquet", amount: "+640", balance: "2,840" },
-                    { date: "10 Jun", type: "released", shift: "Kitchen Helper", amount: "−180", balance: "2,200" },
-                    { date: "10 Jun", type: "fee", shift: "Kitchen Helper", amount: "−27", balance: "2,380" },
-                    { date: "8 Jun", type: "funded", shift: "Kitchen Helper", amount: "+207", balance: "2,407" },
-                  ].map((row, i) => (
-                    <tr key={i} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: BRAND.textMuted }}>{row.date}</td>
-                      <td style={{ padding: "12px 16px" }}><Badge color={row.type === "funded" ? "blue" : row.type === "released" ? "red" : row.type === "fee" ? "amber" : "gray"} size="xs">{row.type}</Badge></td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: BRAND.text }}>{row.shift}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: row.amount.startsWith("+") ? BRAND.green : BRAND.red }}>{row.amount}</td>
-                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>RM {row.balance}</td>
+                  {employerPayoutItems.length === 0 && (
+                    <tr><td colSpan={3} style={{ padding: "16px", fontSize: 13, color: BRAND.textMuted, textAlign: "center" }}>No payout obligations yet for this employer account.</td></tr>
+                  )}
+                  {employerPayoutItems.map(item => (
+                    <tr key={item.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
+                      <td style={{ padding: "12px 16px", fontSize: 13, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString('en-MY') : 'TBA'}</td>
+                      <td style={{ padding: "12px 16px" }}><Pill label={String(item.status || 'queued').replaceAll('_', ' ')} color={mapPayoutPillColor(item.status)} /></td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: BRAND.text }}>{toCurrency(item.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
