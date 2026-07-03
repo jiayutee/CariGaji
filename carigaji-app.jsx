@@ -1809,7 +1809,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+    // Logged-out visitors can't fetch shifts (RLS requires auth) — show the
+    // empty state, not an infinite "Loading…" spinner (the old demo-data
+    // fallback used to mask this).
+    if (!user) { setLiveShifts([]); return; }
     let active = true;
     supabase
       .from('shifts')
@@ -1846,7 +1849,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           endTime: s.end_at ? (() => { const d = new Date(s.end_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
           date: s.start_at ? new Date(s.start_at).toISOString().slice(0, 10) : '',
         })));
-      });
+      })
+      .catch(() => { if (active) setLiveShifts([]); });
     return () => { active = false; };
   }, [user]);
 
