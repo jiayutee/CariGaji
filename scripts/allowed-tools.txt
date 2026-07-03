@@ -1,7 +1,11 @@
 # Single source of truth for orchestrator headless allowed tools.
 # One tool per line. Lines starting with # and blank lines are ignored.
 # The runner joins these with commas into --allowedTools.
-# Notion connector prefix in HEADLESS mode is mcp__claude_ai_Notion__ .
+#
+# NOTE: The claude.ai Notion MCP connector is NOT available in headless
+# (launchd) runs — it only exists inside an interactive Claude Code session.
+# The orchestrator therefore uses the Notion REST API via curl (Bash tool)
+# with NOTION_TOKEN from .env. No Notion MCP entries here on purpose.
 Bash
 Read
 Edit
@@ -9,11 +13,3 @@ Write
 Agent
 WebFetch
 WebSearch
-mcp__claude_ai_Notion__notion-search
-mcp__claude_ai_Notion__notion-fetch
-mcp__claude_ai_Notion__notion-create-pages
-mcp__claude_ai_Notion__notion-update-page
-mcp__claude_ai_Notion__notion-query-data-sources
-mcp__claude_ai_Notion__notion-query-database-view
-mcp__claude_ai_Notion__notion-get-comments
-mcp__claude_ai_Notion__notion-create-comment
