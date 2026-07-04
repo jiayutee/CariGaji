@@ -213,6 +213,40 @@ const TRANSLATIONS = {
     "auth.fieldAddress": "Address",
     "auth.fieldSelfie": "Selfie",
     "auth.fieldTnC": "Terms & Conditions consent",
+    "employerNav.dashboard": "Dashboard",
+    "employerNav.shifts": "Shifts",
+    "employerNav.postShift": "Post Shift",
+    "employerNav.chat": "Chat",
+    "employerNav.billing": "Billing",
+    "employerNav.account": "Account",
+    "employer.dashboardTitle": "Dashboard",
+    "employer.goodMorning": "Good morning, ",
+    "employer.statActiveShifts": "Active shifts",
+    "employer.statTotalApplicants": "Total applicants",
+    "employer.statFilledSlots": "Filled slots",
+    "employer.statReliability": "Reliability score",
+    "employer.activeShiftsHeading": "Active Shifts",
+    "employer.quickActions": "Quick Actions",
+    "employer.postNewShift": "+ Post New Shift",
+    "employer.recentActivity": "Recent Activity",
+    "employer.noActivity": "No activity yet — post a shift to start hiring.",
+    "employer.shiftsTitle": "Your Shifts",
+    "employer.postShiftBtn": "+ Post Shift",
+    "employer.editShift": "Edit shift",
+    "employer.cancelShift": "Cancel shift",
+    "employer.cancellingShift": "Cancelling…",
+    "employer.applicantPool": "Applicant pool",
+    "employer.postAShiftTitle": "Post a Shift",
+    "employer.editShiftTitle": "Edit Shift",
+    "employer.postAShiftSubtitle": "Fill in shift details and required workers",
+    "employer.editShiftSubtitle": "Update the details of your posted shift",
+    "employer.stepShiftDetails": "Shift Details",
+    "employer.stepRequirements": "Requirements",
+    "employer.stepReview": "Review & Post",
+    "employer.saveChanges": "Save Changes",
+    "employer.publishShift": "Publish Shift",
+    "employer.billingTitle": "Billing & Escrow",
+    "employer.accountTitle": "Account",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -391,6 +425,40 @@ const TRANSLATIONS = {
     "auth.fieldAddress": "Alamat",
     "auth.fieldSelfie": "Selfie",
     "auth.fieldTnC": "Persetujuan Terma & Syarat",
+    "employerNav.dashboard": "Papan Pemuka",
+    "employerNav.shifts": "Syif",
+    "employerNav.postShift": "Siar Syif",
+    "employerNav.chat": "Sembang",
+    "employerNav.billing": "Bil",
+    "employerNav.account": "Akaun",
+    "employer.dashboardTitle": "Papan Pemuka",
+    "employer.goodMorning": "Selamat pagi, ",
+    "employer.statActiveShifts": "Syif aktif",
+    "employer.statTotalApplicants": "Jumlah pemohon",
+    "employer.statFilledSlots": "Slot terisi",
+    "employer.statReliability": "Skor kebolehpercayaan",
+    "employer.activeShiftsHeading": "Syif Aktif",
+    "employer.quickActions": "Tindakan Pantas",
+    "employer.postNewShift": "+ Siar Syif Baharu",
+    "employer.recentActivity": "Aktiviti Terkini",
+    "employer.noActivity": "Belum ada aktiviti — siarkan syif untuk mula mengambil pekerja.",
+    "employer.shiftsTitle": "Syif Anda",
+    "employer.postShiftBtn": "+ Siar Syif",
+    "employer.editShift": "Sunting syif",
+    "employer.cancelShift": "Batalkan syif",
+    "employer.cancellingShift": "Membatalkan…",
+    "employer.applicantPool": "Kumpulan Pemohon",
+    "employer.postAShiftTitle": "Siar Syif",
+    "employer.editShiftTitle": "Sunting Syif",
+    "employer.postAShiftSubtitle": "Isikan butiran syif dan keperluan pekerja",
+    "employer.editShiftSubtitle": "Kemas kini butiran syif yang telah disiarkan",
+    "employer.stepShiftDetails": "Butiran Syif",
+    "employer.stepRequirements": "Keperluan",
+    "employer.stepReview": "Semak & Siar",
+    "employer.saveChanges": "Simpan Perubahan",
+    "employer.publishShift": "Siar Syif",
+    "employer.billingTitle": "Bil & Escrow",
+    "employer.accountTitle": "Akaun",
   },
 };
 
@@ -4014,7 +4082,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setBankingMessage("Employer bank verified via SecureSign.");
   };
 
-  const navItems = ["Dashboard", "Shifts", "Post Shift", "Chat", "Billing", "Account"];
+  const navItems = [
+    { id: "dashboard", label: t("employerNav.dashboard") },
+    { id: "shifts", label: t("employerNav.shifts") },
+    { id: "postshift", label: t("employerNav.postShift") },
+    { id: "chat", label: t("employerNav.chat") },
+    { id: "billing", label: t("employerNav.billing") },
+    { id: "account", label: t("employerNav.account") },
+  ];
 
   const handleApplicantAction = async (id, action) => {
     if (!['shortlisted', 'accepted', 'rejected'].includes(action)) return;
@@ -4056,15 +4131,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>Employer Console</div>
         </div>
         {navItems.map(n => (
-          <button key={n} onClick={() => { setView(n.toLowerCase().replace(" ", "")); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); }}
+          <button key={n.id} onClick={() => { setView(n.id); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); }}
             style={{
               display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
-              background: view === n.toLowerCase().replace(" ", "") ? BRAND.primaryLight : "none",
-              color: view === n.toLowerCase().replace(" ", "") ? BRAND.primary : BRAND.textMuted,
+              background: view === n.id ? BRAND.primaryLight : "none",
+              color: view === n.id ? BRAND.primary : BRAND.textMuted,
               border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
-              borderLeft: view === n.toLowerCase().replace(" ", "") ? `3px solid ${BRAND.primary}` : "3px solid transparent",
+              borderLeft: view === n.id ? `3px solid ${BRAND.primary}` : "3px solid transparent",
               transition: "all 0.1s",
-            }}>{n}</button>
+            }}>{n.label}</button>
         ))}
         <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
           <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Committed to Workers</div>
@@ -4079,17 +4154,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "dashboard" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Dashboard</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Good morning, {employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("employer.dashboardTitle")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.goodMorning")}{employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Active shifts" value={(liveEmployerShifts ?? []).filter(s => s.status === "open").length} color={BRAND.primary} />
-              <Stat label="Total applicants" value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
-              <Stat label="Filled slots" value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
-              <Stat label="Reliability score" value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
+              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open").length} color={BRAND.primary} />
+              <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
+              <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
+              <Stat label={t("employer.statReliability")} value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Active Shifts</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.activeShiftsHeading")}</div>
                 {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").length === 0 && (
                   <EmptyState
                     icon="📋"
@@ -4117,13 +4192,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 ))}
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Quick Actions</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.quickActions")}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <Btn onClick={beginNewShift} style={{ justifyContent: "center" }}>+ Post New Shift</Btn>
+                  <Btn onClick={beginNewShift} style={{ justifyContent: "center" }}>{t("employer.postNewShift")}</Btn>
                   <Card style={{ padding: 14 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>Recent Activity</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.recentActivity")}</div>
                     {recentActivity.length === 0 && (
-                      <div style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0" }}>No activity yet — post a shift to start hiring.</div>
+                      <div style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0" }}>{t("employer.noActivity")}</div>
                     )}
                     {recentActivity.map((a, i) => (
                       <div key={i} style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0", borderBottom: i < recentActivity.length - 1 ? `1px solid ${BRAND.border}` : "none" }}>{a}</div>
@@ -4139,10 +4214,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>My Shifts</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{t("employer.shiftsTitle")}</div>
                 <div style={{ fontSize: 14, color: BRAND.textMuted }}>Manage all your posted shifts</div>
               </div>
-              <Btn onClick={beginNewShift}>+ Post Shift</Btn>
+              <Btn onClick={beginNewShift}>{t("employer.postShiftBtn")}</Btn>
             </div>
             {(liveEmployerShifts ?? []).length === 0 && (
               <EmptyState
@@ -4185,7 +4260,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>Edit shift</span></Btn>
+                <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>{t("employer.editShift")}</span></Btn>
                 {selectedShift.status !== "cancelled" && selectedShift.status !== "completed" && (
                   <Btn
                     variant="secondary"
@@ -4202,7 +4277,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     }}
                     style={{ padding: "8px 14px", color: BRAND.red }}
                   >
-                    {cancellingShift ? "Cancelling…" : "Cancel shift"}
+                    {cancellingShift ? t("employer.cancellingShift") : t("employer.cancelShift")}
                   </Btn>
                 )}
               </div>
@@ -4286,13 +4361,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "postshift" && (
           <div style={{ maxWidth: 600 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{editingShiftId ? "Edit Shift" : t("common.postAShift")}</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{editingShiftId ? "Update the details of your posted shift" : "Fill in shift details and required workers"}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{editingShiftId ? t("employer.editShiftTitle") : t("employer.postAShiftTitle")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{editingShiftId ? t("employer.editShiftSubtitle") : t("employer.postAShiftSubtitle")}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 28, height: 28, borderRadius: "50%", background: postStep >= s ? BRAND.primary : BRAND.border, color: postStep >= s ? "#fff" : BRAND.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
-                  <span style={{ fontSize: 12, color: postStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: postStep === s ? 700 : 400 }}>{["Shift Details", "Requirements", "Review & Post"][s - 1]}</span>
+                  <span style={{ fontSize: 12, color: postStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: postStep === s ? 700 : 400 }}>{[t("employer.stepShiftDetails"), t("employer.stepRequirements"), t("employer.stepReview")][s - 1]}</span>
                   {s < 3 && <span style={{ color: BRAND.border, fontSize: 18 }}>→</span>}
                 </div>
               ))}
@@ -4446,7 +4521,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       setEditingShiftId(null);
                       setView('shifts');
                       setPostStep(1);
-                    }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>{editingShiftId ? "Save Changes" : "Publish Shift"}</span></Btn>
+                    }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>{editingShiftId ? t("employer.saveChanges") : t("employer.publishShift")}</span></Btn>
                   </div>
                 </div>
               )}
@@ -4456,7 +4531,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "billing" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Billing & Escrow</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
               <Stat label="Committed to workers" value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
               <Stat label="Total paid out" value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
@@ -4494,11 +4569,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "account" && (
           <div style={{ maxWidth: 500 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Account & Verification</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Company Details</div>
-              <Input label="Company name" placeholder="Grand Hyatt Kuala Lumpur" value="Grand Hyatt Kuala Lumpur" onChange={() => {}} />
-              <Input label="SSM registration number" placeholder="1234567-A" value="1234567-A" onChange={() => {}} />
+              <Input label="Company name" placeholder="e.g. Grand Hyatt Kuala Lumpur" value={employerProfile?.full_name || user?.user_metadata?.full_name || ""} onChange={() => {}} />
+              <Input label="SSM registration number" placeholder="e.g. 1234567-A" value="" onChange={() => {}} />
               <Input label="Contact email" placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} />
             </Card>
             <Card style={{ marginBottom: 16 }}>
