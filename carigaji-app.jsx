@@ -34,6 +34,62 @@ const BRAND = {
   overlay: "var(--cg-overlay)",
 };
 
+// ─── i18n dictionary (v1 foundation — core strings only, not exhaustive) ────
+const TRANSLATIONS = {
+  en: {
+    "nav.discover": "Discover",
+    "nav.myBids": "My Bids",
+    "nav.chat": "Chat",
+    "nav.earnings": "Earnings",
+    "nav.profile": "Profile",
+    "nav.settings": "Settings",
+    "settings.title": "Settings",
+    "settings.subtitle": "Manage your account and access hidden consoles",
+    "settings.account": "Account",
+    "settings.language": "Language",
+    "settings.languageEnglish": "English",
+    "settings.languageBM": "Bahasa Melayu",
+    "settings.notifications": "Notifications",
+    "settings.notificationsValue": "Enabled",
+    "settings.privacy": "Privacy",
+    "settings.privacyValue": "Standard worker mode",
+    "common.signIn": "Sign in",
+    "common.createAccount": "Create account",
+    "common.postAShift": "Post a Shift",
+    "common.accept": "Accept",
+    "common.reject": "Reject",
+    "common.submitBid": "Submit Bid →",
+    "common.placeBid": "Place Bid →",
+    "common.signInToBid": "Sign in to bid →",
+  },
+  bm: {
+    "nav.discover": "Terokai",
+    "nav.myBids": "Tawaran Saya",
+    "nav.chat": "Sembang",
+    "nav.earnings": "Pendapatan",
+    "nav.profile": "Profil",
+    "nav.settings": "Tetapan",
+    "settings.title": "Tetapan",
+    "settings.subtitle": "Urus akaun anda dan akses konsol tersembunyi",
+    "settings.account": "Akaun",
+    "settings.language": "Bahasa",
+    "settings.languageEnglish": "Bahasa Inggeris",
+    "settings.languageBM": "Bahasa Melayu",
+    "settings.notifications": "Pemberitahuan",
+    "settings.notificationsValue": "Diaktifkan",
+    "settings.privacy": "Privasi",
+    "settings.privacyValue": "Mod pekerja standard",
+    "common.signIn": "Log Masuk",
+    "common.createAccount": "Daftar Akaun",
+    "common.postAShift": "Siarkan Syif",
+    "common.accept": "Terima",
+    "common.reject": "Tolak",
+    "common.submitBid": "Hantar Tawaran →",
+    "common.placeBid": "Buat Tawaran →",
+    "common.signInToBid": "Log Masuk untuk Menawar →",
+  },
+};
+
 const MALAYSIAN_BANK_OPTIONS = [
   "Maybank",
   "CIMB",
@@ -184,6 +240,36 @@ const mapPayoutPillColor = (status) => {
   if (status === "held" || status === "failed_internal") return "red";
   if (["ready", "scheduled", "processing"].includes(status)) return "blue";
   return "gray";
+};
+
+// ─── Language / i18n ────────────────────────────────────────────────────────
+const LANGUAGE_STORAGE_KEY = "carigaji_lang";
+
+const readLanguagePreference = () => {
+  if (typeof window === "undefined") return "en";
+  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  return stored === "bm" ? "bm" : "en";
+};
+
+const LanguageContext = createContext({ language: "en", setLanguage: () => {}, t: (key) => key });
+const useLanguage = () => useContext(LanguageContext);
+
+const LanguageProvider = ({ children }) => {
+  const [language, setLanguageState] = useState(() => readLanguagePreference());
+
+  const setLanguage = useCallback((lang) => {
+    const next = lang === "bm" ? "bm" : "en";
+    setLanguageState(next);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
+    }
+  }, []);
+
+  const t = useCallback((key) => (TRANSLATIONS[language]?.[key] ?? TRANSLATIONS.en[key] ?? key), [language]);
+
+  const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };
 
 // ─── Toast system ───────────────────────────────────────────────────────────
@@ -475,7 +561,9 @@ const EmptyState = memo(({ icon = "📭", title, hint }) => (
   </div>
 ));
 
-const AuthGate = memo(({ onRequireAuth, title, hint, icon = "🔒" }) => (
+const AuthGate = memo(({ onRequireAuth, title, hint, icon = "🔒" }) => {
+  const { t } = useLanguage();
+  return (
   <div style={{
     display: "flex",
     flexDirection: "column",
@@ -494,11 +582,12 @@ const AuthGate = memo(({ onRequireAuth, title, hint, icon = "🔒" }) => (
       <div style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: 1.5, maxWidth: 280 }}>{hint}</div>
     </div>
     <div style={{ display: "flex", gap: 10, marginTop: 4, width: "100%", maxWidth: 280 }}>
-      <Btn variant="secondary" onClick={() => onRequireAuth("register")} style={{ flex: 1, justifyContent: "center" }}>Create account</Btn>
-      <Btn onClick={() => onRequireAuth("signin")} style={{ flex: 1, justifyContent: "center" }}>Sign in</Btn>
+      <Btn variant="secondary" onClick={() => onRequireAuth("register")} style={{ flex: 1, justifyContent: "center" }}>{t("common.createAccount")}</Btn>
+      <Btn onClick={() => onRequireAuth("signin")} style={{ flex: 1, justifyContent: "center" }}>{t("common.signIn")}</Btn>
     </div>
   </div>
-));
+  );
+});
 
 const SkeletonRow = memo(({ height = 64 }) => (
   <div style={{
@@ -1311,6 +1400,7 @@ const AuthModal = ({
   onRegister,
   onResetPassword,
 }) => {
+  const { t: translate } = useLanguage();
   const [showErrors, setShowErrors] = useState(false);
   // Advisory OCR check that the ID on the uploaded photo matches what was typed.
   // status: idle | checking | match | mismatch | unreadable
@@ -1420,14 +1510,14 @@ const AuthModal = ({
 
   const copy = {
     signin: {
-      title: "Sign in",
+      title: translate("common.signIn"),
       subtitle: "Use your email and password to access CariGaji.",
-      action: "Sign in",
+      action: translate("common.signIn"),
     },
     register: {
       title: "Register",
       subtitle: "Create your account and complete your profile and KYC details.",
-      action: "Create account",
+      action: translate("common.createAccount"),
     },
     reset: {
       title: "Reset password",
@@ -1633,6 +1723,7 @@ const ADMIN_DISPUTES = [
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
 const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0 }) => {
   const toast = useToast();
+  const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
 
   const handleAvatarUpload = async (file) => {
@@ -2018,12 +2109,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     : "";
 
   const navItems = [
-    { id: "discover", label: "Discover", icon: <Icons.Search size={20} /> },
-    { id: "applications", label: "My Bids", icon: <Icons.List size={20} /> },
-    { id: "chat", label: "Chat", icon: <Icons.Chat size={20} /> },
-    { id: "earnings", label: "Earnings", icon: <Icons.Money size={20} /> },
-    { id: "profile", label: "Profile", icon: <Icons.User size={20} /> },
-    { id: "settings", label: "Settings", icon: <Icons.Settings size={20} /> },
+    { id: "discover", label: t("nav.discover"), icon: <Icons.Search size={20} /> },
+    { id: "applications", label: t("nav.myBids"), icon: <Icons.List size={20} /> },
+    { id: "chat", label: t("nav.chat"), icon: <Icons.Chat size={20} /> },
+    { id: "earnings", label: t("nav.earnings"), icon: <Icons.Money size={20} /> },
+    { id: "profile", label: t("nav.profile"), icon: <Icons.User size={20} /> },
+    { id: "settings", label: t("nav.settings"), icon: <Icons.Settings size={20} /> },
   ];
 
   const handleWorkerNavClick = (nextTab) => {
@@ -2156,7 +2247,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   setLiveApplications(prev => prev ? [{ id: data[0].id, shiftId: selectedShift.id, shiftTitle: selectedShift.title, employer: selectedShift.employer, date: selectedShift.date, wageBid: Number(bidAmount), status: data[0].status || 'pending', appliedAt: data[0].applied_at }, ...prev] : null);
                   setTimeout(() => { setBidSuccess(false); setSelectedShift(null); setTab('applications'); }, 2000);
                 })();
-              }} style={{ flex: 1 }}>Submit Bid →</Btn>
+              }} style={{ flex: 1 }}>{t("common.submitBid")}</Btn>
             </div>
           </div>
         </div>
@@ -2230,7 +2321,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             </div>
           </Card>
           <Btn onClick={() => user ? setShowBidModal(true) : onRequireAuth("signin")} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
-            {user ? "Place Bid →" : "Sign in to bid →"}
+            {user ? t("common.placeBid") : t("common.signInToBid")}
           </Btn>
         </div>
       </div>
@@ -2707,21 +2798,38 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
 
         {tab === "settings" && (
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Settings</div>
-            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Manage your account and access hidden consoles</div>
+            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("settings.title")}</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>{t("settings.subtitle")}</div>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Account</div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                <span style={{ fontSize: 13, color: BRAND.textMuted }}>Language</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>English / Bahasa Melayu</span>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("settings.account")}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.language")}</span>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <Btn
+                    size="xs"
+                    variant={language === "en" ? "primary" : "secondary"}
+                    onClick={() => setLanguage("en")}
+                    aria-pressed={language === "en"}
+                  >
+                    {t("settings.languageEnglish")}
+                  </Btn>
+                  <Btn
+                    size="xs"
+                    variant={language === "bm" ? "primary" : "secondary"}
+                    onClick={() => setLanguage("bm")}
+                    aria-pressed={language === "bm"}
+                  >
+                    {t("settings.languageBM")}
+                  </Btn>
+                </div>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                <span style={{ fontSize: 13, color: BRAND.textMuted }}>Notifications</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>Enabled</span>
+                <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.notifications")}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.notificationsValue")}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0" }}>
-                <span style={{ fontSize: 13, color: BRAND.textMuted }}>Privacy</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>Standard worker mode</span>
+                <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.privacy")}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.privacyValue")}</span>
               </div>
             </Card>
             {!user && (
@@ -2936,6 +3044,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
 const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
+  const { t } = useLanguage();
   const [view, setView] = useState("dashboard");
   const [selectedShift, setSelectedShift] = useState(null);
   const [liveApplicants, setLiveApplicants] = useState(null);
@@ -3434,8 +3543,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         {action !== "accepted" && action !== "rejected" && (
                           <div style={{ display: "flex", gap: 6 }}>
                             {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>Shortlist</Btn>}
-                            <Btn size="xs" variant="success" onClick={() => handleApplicantAction(a.id, "accepted")}>Accept</Btn>
-                            <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>Reject</Btn>
+                            <Btn size="xs" variant="success" onClick={() => handleApplicantAction(a.id, "accepted")}>{t("common.accept")}</Btn>
+                            <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
                           </div>
                         )}
                         {action === "accepted" && <span style={{ fontSize: 12, color: BRAND.green }}>✓ Hired</span>}
@@ -3452,7 +3561,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "postshift" && (
           <div style={{ maxWidth: 600 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Post a Shift</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("common.postAShift")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Fill in shift details and required workers</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
@@ -4267,6 +4376,14 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   );
 };
 
+// Small header-level component so it can read the language context — the
+// root CariGaji component below is the one that *creates* LanguageProvider,
+// so it can't consume its own provider's value; this child can.
+const HeaderSignInButton = ({ onClick }) => {
+  const { t } = useLanguage();
+  return <Btn size="sm" variant="primary" onClick={onClick}>{t("common.signIn")}</Btn>;
+};
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
@@ -4515,6 +4632,7 @@ export default function CariGaji() {
   }, []);
 
   return (
+    <LanguageProvider>
     <ToastProvider>
     <div style={{
       // Use dynamic viewport height so the shell exactly fills the visible
@@ -4593,7 +4711,7 @@ export default function CariGaji() {
                 onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }}
               />
             ) : (
-              <Btn size="sm" variant="primary" onClick={() => openAuthModal("signin")}>Sign in</Btn>
+              <HeaderSignInButton onClick={() => openAuthModal("signin")} />
             )}
           </div>
         </div>
@@ -4634,5 +4752,6 @@ export default function CariGaji() {
       />
     </div>
     </ToastProvider>
+    </LanguageProvider>
   );
 }
