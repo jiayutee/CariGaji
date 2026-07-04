@@ -2341,7 +2341,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, category, location, start_at, end_at, wage_min, wage_max, headcount, filled_count, status')
+      .select('id, title, category, location, start_at, end_at, wage_min, wage_max, headcount, filled_count, status, transport_allowance')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -2367,7 +2367,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           addressVisibility: s.address_visibility || 'public',
           totalApplicants: 0,
           dress: '',
-          stipend: 0,
+          stipend: Number(s.transport_allowance) || 0,
           travelTime: '',
           distance: 0,
           startTime: s.start_at ? (() => { const d = new Date(s.start_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
@@ -2646,7 +2646,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               <div style={{ background: BRAND.grayLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("shiftDetail.estimatedTotalPay")}</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.green }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
-                <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend}{t("shiftDetail.transportAllowanceSuffix")}</div>
+                {selectedShift.stipend > 0 && (
+                  <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend}{t("shiftDetail.transportAllowanceSuffix")}</div>
+                )}
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
@@ -2711,7 +2713,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
             <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
             <Stat label={t("shiftDetail.estimatedGross")} value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub={t("shiftDetail.atMaxRate")} color={BRAND.green} />
-            <Stat label={t("shiftDetail.transportAllowance")} value={`RM${selectedShift.stipend}`} color={BRAND.blue} />
+            <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : "Not provided"} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
           {(() => {
             // Exact address is shown when the employer made it public, or when
@@ -3475,7 +3477,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [liveApplicants, setLiveApplicants] = useState(null);
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
-  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public" });
+  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "" });
   const [applicantAction, setApplicantAction] = useState({});
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerBanking, setEmployerBanking] = useState(null);
@@ -3527,7 +3529,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const beginNewShift = () => {
     setEditingShiftId(null);
     setSelectedShift(null);
-    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public" });
+    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "" });
     setView("postshift");
     setPostStep(1);
   };
@@ -3536,7 +3538,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const startEditShift = async (shiftId) => {
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility')
+      .select('id, title, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance')
       .eq('id', shiftId)
       .single();
     if (error || !data) { toast('Could not load shift for editing.', 'error'); return; }
@@ -3544,6 +3546,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     const start = data.start_at ? new Date(data.start_at) : null;
     const end = data.end_at ? new Date(data.end_at) : null;
     const hhmm = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+    const transportAmt = Number(data.transport_allowance) || 0;
     setForm({
       title: data.title || '',
       category: data.category || 'F&B',
@@ -3556,6 +3559,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       dress: data.dress_code || '',
       location: data.location || '',
       addressVisibility: data.address_visibility || 'public',
+      offersTransportAllowance: transportAmt > 0,
+      transportAllowance: transportAmt > 0 ? String(transportAmt) : '',
     });
     setEditingShiftId(shiftId);
     setSelectedShift(null);
@@ -4083,6 +4088,28 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       </div>
                     )}
                   </div>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: form.offersTransportAllowance ? 8 : 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={form.offersTransportAllowance}
+                        onChange={e => setForm(f => ({ ...f, offersTransportAllowance: e.target.checked, transportAllowance: e.target.checked ? f.transportAllowance : "" }))}
+                      />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>Offer a transport allowance</span>
+                    </label>
+                    {form.offersTransportAllowance && (
+                      <Input
+                        placeholder="e.g. 10"
+                        type="number"
+                        value={form.transportAllowance}
+                        onChange={e => setForm(f => ({ ...f, transportAllowance: e.target.value }))}
+                        style={{ marginTop: 0, marginBottom: 0 }}
+                      />
+                    )}
+                    <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>
+                      Optional flat amount (RM) paid on top of hourly wage to help cover workers' travel costs.
+                    </div>
+                  </div>
                   <Btn onClick={() => setPostStep(2)} style={{ width: "100%", justifyContent: "center" }}>Next: Requirements →</Btn>
                 </div>
               )}
@@ -4117,6 +4144,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     ["Date", form.date || "(not set)"],
                     ["Headcount", form.headcount],
                     ["Wage range", form.wageMin && form.wageMax ? `RM${form.wageMin}–RM${form.wageMax}/h` : "(not set)"],
+                    ["Transport allowance", form.offersTransportAllowance && form.transportAllowance ? `RM${form.transportAllowance}` : "Not offered"],
                     ["Dress code", form.dress || "None"],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
@@ -4154,6 +4182,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         wage_max:    wageMax || wageMin,
                         headcount:   parseInt(form.headcount) || 1,
                         address_visibility: form.addressVisibility || 'public',
+                        transport_allowance: form.offersTransportAllowance ? (parseFloat(form.transportAllowance) || 0) : 0,
                       };
                       let error;
                       if (editingShiftId) {
