@@ -247,6 +247,27 @@ const TRANSLATIONS = {
     "employer.publishShift": "Publish Shift",
     "employer.billingTitle": "Billing & Escrow",
     "employer.accountTitle": "Account",
+    "earnings.title": "Earnings",
+    "earnings.subtitle": "Live payout schedule and internal settlement status",
+    "earnings.totalPayouts": "Total Internal Payouts",
+    "earnings.verified": "Banking verified for salary payout",
+    "earnings.notVerified": "Complete SecureSign bank verification to receive payout",
+    "earnings.statRecords": "Payout records",
+    "earnings.statReady": "Ready to release",
+    "earnings.statHeld": "Held payouts",
+    "earnings.statBanking": "Banking status",
+    "earnings.recentPayouts": "Recent Payouts",
+    "earnings.noPayoutsTitle": "No payouts yet",
+    "earnings.noPayoutsHint": "Complete a shift and verify your bank details to receive your first payout here.",
+    "earnings.salaryPayout": "salary payout",
+    "settings.salaryBankingTitle": "Salary Banking Details",
+    "settings.salaryBankingHint": "Mid-month payouts require verified bank details via SecureSign.",
+    "settings.bankLabel": "Bank",
+    "settings.accountHolderName": "Account holder name",
+    "settings.accountNumber": "Account number",
+    "settings.status": "Status",
+    "settings.saveBanking": "Save banking",
+    "settings.verifySecureSign": "Verify via SecureSign (Demo)",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -459,6 +480,27 @@ const TRANSLATIONS = {
     "employer.publishShift": "Siar Syif",
     "employer.billingTitle": "Bil & Escrow",
     "employer.accountTitle": "Akaun",
+    "earnings.title": "Pendapatan",
+    "earnings.subtitle": "Jadual bayaran langsung dan status penyelesaian dalaman",
+    "earnings.totalPayouts": "Jumlah Bayaran Dalaman",
+    "earnings.verified": "Perbankan disahkan untuk bayaran gaji",
+    "earnings.notVerified": "Lengkapkan pengesahan bank SecureSign untuk menerima bayaran",
+    "earnings.statRecords": "Rekod bayaran",
+    "earnings.statReady": "Sedia dikeluarkan",
+    "earnings.statHeld": "Bayaran ditahan",
+    "earnings.statBanking": "Status perbankan",
+    "earnings.recentPayouts": "Bayaran Terkini",
+    "earnings.noPayoutsTitle": "Belum ada bayaran",
+    "earnings.noPayoutsHint": "Lengkapkan satu syif dan sahkan butiran bank anda untuk menerima bayaran pertama anda di sini.",
+    "earnings.salaryPayout": "bayaran gaji",
+    "settings.salaryBankingTitle": "Butiran Perbankan Gaji",
+    "settings.salaryBankingHint": "Bayaran pertengahan bulan memerlukan butiran bank yang disahkan melalui SecureSign.",
+    "settings.bankLabel": "Bank",
+    "settings.accountHolderName": "Nama pemegang akaun",
+    "settings.accountNumber": "Nombor akaun",
+    "settings.status": "Status",
+    "settings.saveBanking": "Simpan perbankan",
+    "settings.verifySecureSign": "Sahkan melalui SecureSign (Demo)",
   },
 };
 
@@ -1315,16 +1357,19 @@ const WageRatePicker = ({ min, max, value, onChange, step = 1 }) => {
 
   return (
     <div style={{ position: "relative", height: ITEM_H * VISIBLE }}>
-      {/* Centre selection band */}
+      {/* Centre selection band — solid fill + white text so the selected
+          value stays readable regardless of light/dark theme (a pale
+          tinted band with coloured text was too low-contrast). */}
       <div style={{
         position: "absolute", top: padding, left: 0, right: 0, height: ITEM_H,
-        background: BRAND.primaryLight, borderRadius: 10, pointerEvents: "none",
-        border: `1.5px solid ${BRAND.primary}`,
+        background: BRAND.primary, borderRadius: 10, pointerEvents: "none",
+        zIndex: 1,
       }} />
       <div
         ref={containerRef}
         onScroll={handleScroll}
         style={{
+          position: "relative", zIndex: 2,
           height: "100%", overflowY: "auto", scrollSnapType: "y mandatory",
           WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
         }}
@@ -1338,7 +1383,7 @@ const WageRatePicker = ({ min, max, value, onChange, step = 1 }) => {
               height: ITEM_H, scrollSnapAlign: "center", display: "flex", alignItems: "center",
               justifyContent: "center", fontSize: v === Number(value) ? 20 : 15,
               fontWeight: v === Number(value) ? 800 : 500,
-              color: v === Number(value) ? BRAND.primary : BRAND.textMuted,
+              color: v === Number(value) ? "#FFFFFF" : BRAND.textMuted,
               cursor: "pointer", transition: "font-size 0.1s, color 0.1s",
             }}
           >
@@ -2146,6 +2191,25 @@ const AuthModal = ({
 
           {view === "register" && (
             <form onSubmit={handleRegisterSubmit} noValidate>
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>I want to…</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[
+                    { value: "worker", title: "Find shift work", hint: "Browse and bid on shifts" },
+                    { value: "employer", title: "Hire workers", hint: "Post shifts and manage applicants" },
+                  ].map(opt => (
+                    <label key={opt.value} style={{
+                      display: "block", padding: "10px 12px", borderRadius: 10, cursor: "pointer",
+                      border: `1.5px solid ${form.accountRole === opt.value ? BRAND.primary : BRAND.border}`,
+                      background: form.accountRole === opt.value ? BRAND.primaryLight : BRAND.surface,
+                    }}>
+                      <input type="radio" name="accountRole" value={opt.value} checked={form.accountRole === opt.value} onChange={() => onChange("accountRole", opt.value)} style={{ marginRight: 6 }} />
+                      <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{opt.title}</span>
+                      <div style={{ fontSize: 11, color: BRAND.textMuted, marginLeft: 20 }}>{opt.hint}</div>
+                    </label>
+                  ))}
+                </div>
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <Input label={translate("auth.fullName")} placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
                   <SearchableCountrySelect label={translate("auth.country")} value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
@@ -2295,7 +2359,7 @@ const ADMIN_DISPUTES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0 }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0 }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -3148,7 +3212,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
 
         {tab === "applications" && user && !selectedApplication && (
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
+            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("nav.myBids")}</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {(liveApplications ?? []).length === 0 && (
                 <EmptyState
@@ -3365,22 +3429,22 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
 
         {tab === "earnings" && user && (
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Earnings</div>
-            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>Live payout schedule and internal settlement status</div>
+            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("earnings.title")}</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>{t("earnings.subtitle")}</div>
             <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 20, color: "#fff" }}>
-              <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>Total Internal Payouts</div>
+              <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>{t("earnings.totalPayouts")}</div>
               <div style={{ fontSize: isMobile ? 32 : 38, fontWeight: 900, marginBottom: 4 }}>{toCurrency(totalEarned)}</div>
               <div style={{ fontSize: isMobile ? 12 : 13, opacity: 0.8 }}>
-                {payoutEligibility ? "Banking verified for salary payout" : "Complete SecureSign bank verification to receive payout"}
+                {payoutEligibility ? t("earnings.verified") : t("earnings.notVerified")}
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label="Payout records" value={String(payoutRows.length)} color={BRAND.primary} />
-              <Stat label="Ready to release" value={String(payoutRows.filter(p => p.status === "ready").length)} color={BRAND.green} />
-              <Stat label="Held payouts" value={String(payoutRows.filter(p => p.status === "held").length)} color={BRAND.red} />
-              <Stat label="Banking status" value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
+              <Stat label={t("earnings.statRecords")} value={String(payoutRows.length)} color={BRAND.primary} />
+              <Stat label={t("earnings.statReady")} value={String(payoutRows.filter(p => p.status === "ready").length)} color={BRAND.green} />
+              <Stat label={t("earnings.statHeld")} value={String(payoutRows.filter(p => p.status === "held").length)} color={BRAND.red} />
+              <Stat label={t("earnings.statBanking")} value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
             </div>
-            <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Payouts</div>
+            <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.recentPayouts")}</div>
             {payoutsLoading ? (
               <>
                 <SkeletonRow />
@@ -3390,8 +3454,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             ) : payoutRows.length === 0 ? (
               <EmptyState
                 icon="💸"
-                title="No payouts yet"
-                hint="Complete a shift and verify your bank details to receive your first payout here."
+                title={t("earnings.noPayoutsTitle")}
+                hint={t("earnings.noPayoutsHint")}
               />
             ) : (
               payoutRows.map((p) => (
@@ -3399,7 +3463,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
-                      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : "salary payout"}</div>
+                      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : t("earnings.salaryPayout")}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
@@ -3525,30 +3589,30 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             )}
             {user && (
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Salary Banking Details</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
-                Mid-month payouts require verified bank details via SecureSign.
+                {t("settings.salaryBankingHint")}
               </div>
               <Select
-                label="Bank"
+                label={t("settings.bankLabel")}
                 value={workerBankForm.bankName}
                 onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, bankName: e.target.value }))}
                 options={MALAYSIAN_BANK_OPTIONS.map((name) => ({ value: name, label: name }))}
               />
               <Input
-                label="Account holder name"
+                label={t("settings.accountHolderName")}
                 placeholder="As per bank account"
                 value={workerBankForm.accountHolderName}
                 onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, accountHolderName: e.target.value }))}
               />
               <Input
-                label="Account number"
+                label={t("settings.accountNumber")}
                 placeholder="Enter bank account number"
                 value={workerBankForm.accountNumber}
                 onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
               />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <span style={{ fontSize: 12, color: BRAND.textMuted }}>Status</span>
+                <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("settings.status")}</span>
                 <Pill
                   label={workerBanking?.verification_status ? `SecureSign ${workerBanking.verification_status}` : "SecureSign pending"}
                   color={mapVerificationPillColor(workerBanking?.verification_status)}
@@ -3561,19 +3625,26 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               )}
               {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
               <div style={{ display: "flex", gap: 8 }}>
-                <Btn variant="secondary" onClick={saveWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Save banking</Btn>
-                <Btn onClick={verifyWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign (Demo)</Btn>
+                <Btn variant="secondary" onClick={saveWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>{t("settings.saveBanking")}</Btn>
+                <Btn onClick={verifyWorkerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>{t("settings.verifySecureSign")}</Btn>
               </div>
             </Card>
             )}
-            <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Access other consoles</div>
-              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 14 }}>These are hidden from the main app and can only be opened here.</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <Btn variant="secondary" onClick={() => onOpenPortal?.("employer")}>Open Employer Console</Btn>
-                <Btn variant="secondary" onClick={() => onOpenPortal?.("admin")}>Open Admin Dashboard</Btn>
-              </div>
-            </Card>
+            {(() => {
+              const isAdminAccount = user?.app_metadata?.role === "admin";
+              const canSeeEmployer = userRole === "employer" || isAdminAccount;
+              if (!canSeeEmployer && !isAdminAccount) return null;
+              return (
+                <Card style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Access other consoles</div>
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 14 }}>These are hidden from the main app and can only be opened here.</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {canSeeEmployer && <Btn variant="secondary" onClick={() => onOpenPortal?.("employer")}>Open Employer Console</Btn>}
+                    {isAdminAccount && <Btn variant="secondary" onClick={() => onOpenPortal?.("admin")}>Open Admin Dashboard</Btn>}
+                  </div>
+                </Card>
+              );
+            })()}
 
             {/* Terms & Conditions — Malaysian Labor Law */}
             <div style={{marginTop:24, borderTop:'1px solid #e2e8f0', paddingTop:16}}>
@@ -5215,6 +5286,7 @@ const HeaderSignInButton = ({ onClick }) => {
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
+  const [userRole, setUserRole] = useState(null);
   const [homeSignal, setHomeSignal] = useState(0);
   const [themePreference, setThemePreference] = useState(() => readThemePreference());
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
@@ -5231,6 +5303,7 @@ export default function CariGaji() {
     email: "",
     password: "",
     confirmPassword: "",
+    accountRole: "worker",
     identityType: "MyKad",
     idNumber: "",
     dateOfBirth: "",
@@ -5336,7 +5409,7 @@ export default function CariGaji() {
       try {
         // Public-safe profile (employers may read) + private PII (owner only).
         await supabase.from("profiles").upsert(
-          { id: registeredUserId, full_name: authForm.fullName, kyc_level: autoKycLevel },
+          { id: registeredUserId, full_name: authForm.fullName, kyc_level: autoKycLevel, role: authForm.accountRole === "employer" ? "employer" : "worker" },
           { onConflict: "id" }
         );
         await supabase.from("user_private").upsert(
@@ -5421,6 +5494,27 @@ export default function CariGaji() {
     const { data } = await supabase.auth.getUser();
     setUser(data?.user ?? null);
   };
+
+  // Fetch the account's stored role and default the portal accordingly on
+  // sign-in: employer accounts land in the Employer Console, admins in the
+  // Admin Dashboard, everyone else in the Worker app. Console access below
+  // (Settings buttons) is gated on this same role.
+  useEffect(() => {
+    if (!user) { setUserRole(null); return; }
+    let active = true;
+    supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        const role = data?.role ?? 'worker';
+        setUserRole(role);
+        const isAdminAccount = user?.app_metadata?.role === 'admin';
+        if (isAdminAccount) setPortal('admin');
+        else if (role === 'employer') setPortal('employer');
+        else setPortal('worker');
+      });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -5554,7 +5648,7 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
           {portal === "admin" && (
             isAdmin
