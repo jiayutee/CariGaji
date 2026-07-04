@@ -10,6 +10,14 @@ const themeVars = buildThemeVars(resolvedTheme);
 
 applyThemeToDocument(resolvedTheme);
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/CariGaji/service-worker.js", { scope: "/CariGaji/" }).catch((error) => {
+      console.error("Service worker registration failed", error);
+    });
+  });
+}
+
 const renderConfigError = (message) => {
   root.render(
     <div style={{
