@@ -1691,6 +1691,66 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
   );
 };
 
+const SocialAuthButtons = ({ onOAuth, label = "Continue" }) => {
+  const providers = [
+    {
+      id: "google", name: "Google",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92a8.78 8.78 0 0 0 2.68-6.62z" fill="#4285F4"/>
+          <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" fill="#34A853"/>
+          <path d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" fill="#FBBC05"/>
+          <path d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58A8.98 8.98 0 0 0 9 0 9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" fill="#EA4335"/>
+        </svg>
+      ),
+    },
+    {
+      id: "apple", name: "Apple",
+      icon: (
+        <svg width="16" height="18" viewBox="0 0 16 18" xmlns="http://www.w3.org/2000/svg" fill="#000">
+          <path d="M13.24 9.54c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.3 2-1.4 2.44-.36 6.05 1.01 8.03.67.97 1.47 2.06 2.5 2.02 1-.04 1.39-.65 2.6-.65 1.21 0 1.56.65 2.63.63 1.09-.02 1.78-.99 2.44-1.96.77-1.12 1.09-2.21 1.1-2.27-.02-.01-2.11-.81-2.13-3.21zM11.3 3.6c.55-.67.93-1.6.82-2.53-.8.03-1.76.53-2.33 1.2-.51.59-.96 1.53-.84 2.44.89.07 1.8-.45 2.35-1.11z"/>
+        </svg>
+      ),
+    },
+    {
+      id: "facebook", name: "Facebook",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#1877F2">
+          <path d="M24 12c0-6.63-5.37-12-12-12S0 5.37 0 12c0 5.99 4.39 10.95 10.13 11.85v-8.38H7.08V12h3.05V9.36c0-3.01 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v2.95h-1.51c-1.49 0-1.96.93-1.96 1.87V12h3.33l-.53 3.47h-2.8v8.38C19.61 22.95 24 17.99 24 12z"/>
+        </svg>
+      ),
+    },
+  ];
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "4px 0 14px" }}>
+        <div style={{ flex: 1, height: 1, background: BRAND.border }} />
+        <span style={{ fontSize: 12, color: BRAND.textMuted }}>or</span>
+        <div style={{ flex: 1, height: 1, background: BRAND.border }} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {providers.map(p => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => onOAuth?.(p.id)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              width: "100%", padding: "10px 14px", borderRadius: 10,
+              border: `1px solid ${BRAND.border}`, background: BRAND.surface,
+              color: BRAND.text, fontSize: 14, fontWeight: 600, fontFamily: "inherit",
+              cursor: "pointer",
+            }}
+          >
+            {p.icon}
+            <span>{label} with {p.name}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const AuthModal = ({
   open,
   view,
@@ -1703,6 +1763,7 @@ const AuthModal = ({
   onSignIn,
   onRegister,
   onResetPassword,
+  onOAuth,
 }) => {
   const { t: translate } = useLanguage();
   const [showErrors, setShowErrors] = useState(false);
@@ -1864,6 +1925,7 @@ const AuthModal = ({
                 <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.noAccountYet")}</button>
               </div>
               <Btn type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{copy.action}</Btn>
+              <SocialAuthButtons onOAuth={onOAuth} label="Sign in" />
             </form>
           )}
 
@@ -2001,6 +2063,10 @@ const AuthModal = ({
               <div style={{ display: "flex", gap: 10 }}>
                 <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>{translate("common.back")}</Btn>
                 <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
+              </div>
+              <SocialAuthButtons onOAuth={onOAuth} label="Sign up" />
+              <div style={{ fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 4, textAlign: "center" }}>
+                Signing up with Google, Apple, or Facebook creates your account instantly. You'll be asked to complete identity (KYC) verification afterwards to start working.
               </div>
             </form>
           )}
@@ -4740,6 +4806,16 @@ export default function CariGaji() {
     setAuthForm(prev => ({ ...prev, password: "" }));
   };
 
+  const handleOAuth = async (provider) => {
+    setAuthMessage("");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider, // 'google' | 'apple' | 'facebook'
+      options: { redirectTo: authRedirectUrl },
+    });
+    // On success the browser is redirected to the provider; only errors return here.
+    if (error) setAuthMessage(`${provider} sign-in unavailable: ${error.message}`);
+  };
+
   const handleResetPassword = async (event) => {
     event.preventDefault();
     setAuthLoading(true);
@@ -5044,6 +5120,7 @@ export default function CariGaji() {
         onSignIn={handleSignIn}
         onRegister={handleRegister}
         onResetPassword={handleResetPassword}
+        onOAuth={handleOAuth}
       />
     </div>
     </ToastProvider>
