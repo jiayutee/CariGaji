@@ -139,6 +139,8 @@ const TRANSLATIONS = {
     "profile.reliabilityBuilding": "Building your reputation 📈",
     "profile.reliabilityLow": "Complete more shifts to improve your score",
     "profile.recentRatings": "Recent Ratings",
+    "profile.noRatingsTitle": "No ratings yet",
+    "profile.noRatingsHint": "Ratings from employers will appear here after you complete shifts.",
     "auth.signinSubtitle": "Use your email and password to access CariGaji.",
     "auth.registerTitle": "Register",
     "auth.registerSubtitle": "Create your account and complete your profile and KYC details.",
@@ -315,6 +317,8 @@ const TRANSLATIONS = {
     "profile.reliabilityBuilding": "Membina reputasi anda 📈",
     "profile.reliabilityLow": "Selesaikan lebih banyak syif untuk tingkatkan skor anda",
     "profile.recentRatings": "Penilaian Terkini",
+    "profile.noRatingsTitle": "Belum ada penilaian",
+    "profile.noRatingsHint": "Penilaian daripada majikan akan dipaparkan di sini selepas anda menyelesaikan syif.",
     "auth.signinSubtitle": "Gunakan e-mel dan kata laluan anda untuk mengakses CariGaji.",
     "auth.registerTitle": "Daftar",
     "auth.registerSubtitle": "Cipta akaun anda dan lengkapkan profil serta butiran KYC anda.",
@@ -3082,16 +3086,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             </Card>
             <Card>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
-              {[{ from: "Grand Hyatt KL", stars: 5, note: "Excellent service, very professional", date: "10 Jun" }, { from: "Live Nation MY", stars: 4, note: "Reliable and hardworking", date: "28 May" }].map((r, i) => (
-                <div key={i} style={{ marginBottom: 12 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{r.from}</span>
-                    <span style={{ fontSize: 12, color: BRAND.textMuted }}>{r.date}</span>
-                  </div>
-                  <StarRating value={r.stars} size={13} />
-                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{r.note}</div>
-                </div>
-              ))}
+              <EmptyState icon="⭐" title={t("profile.noRatingsTitle")} hint={t("profile.noRatingsHint")} />
             </Card>
           </div>
         )}
