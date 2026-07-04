@@ -61,6 +61,34 @@ const TRANSLATIONS = {
     "common.submitBid": "Submit Bid →",
     "common.placeBid": "Place Bid →",
     "common.signInToBid": "Sign in to bid →",
+    "toast.avatarUpdated": "Profile picture updated.",
+    "toast.avatarUpdateFailed": "Could not update photo: ",
+    "toast.sendFailed": "Failed to send: ",
+    "toast.checkinSimulated": "Checked in at 18:02 · Reliability maintained (on time)",
+    "toast.maxBidPrefix": "Max bid is RM",
+    "toast.sampleShiftBidInfo": "This is a sample shift. Apply to a live shift to submit a bid.",
+    "toast.applicationFailed": "Failed to submit application: ",
+    "toast.signFailed": "Failed to sign: ",
+    "toast.contractSigned": "✅ Contract signed! You can now chat with your employer.",
+    "toast.updateFailed": "Update failed: ",
+    "toast.escrowTopupUnavailable": "Escrow top-up isn’t available yet — coming with FPX/DuitNow integration.",
+    "toast.signInToPostShift": "Sign in to post a shift.",
+    "toast.shiftFieldsRequired": "Title, date, and start/end times are required.",
+    "toast.maxPayGteMinPay": "Max pay must be ≥ min pay.",
+    "toast.postShiftFailed": "Failed to post shift: ",
+    "toast.shiftPublished": "Shift published! Workers will start applying shortly.",
+    "toast.contractSent": "✅ Contract sent to worker for signature!",
+    "chat.signInTitle": "Sign in to view messages",
+    "chat.signInHint": "Messages with employers appear here once you're signed in and have an accepted bid.",
+    "chat.title": "💬 Messages",
+    "chat.emptyTitleWorker": "No accepted shifts yet.",
+    "chat.emptyHintWorker": "Messages appear here once an employer accepts your bid.",
+    "chat.emptyTitleEmployer": "No accepted applications yet.",
+    "chat.emptyHintEmployer": "Chats appear here once you accept a worker's bid.",
+    "chat.employerSubtitle": "Chat with workers on accepted shifts",
+    "chat.loading": "Loading...",
+    "chat.inputPlaceholder": "Type a message…",
+    "chat.send": "Send",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -87,6 +115,34 @@ const TRANSLATIONS = {
     "common.submitBid": "Hantar Tawaran →",
     "common.placeBid": "Buat Tawaran →",
     "common.signInToBid": "Log Masuk untuk Menawar →",
+    "toast.avatarUpdated": "Gambar profil dikemas kini.",
+    "toast.avatarUpdateFailed": "Gagal kemas kini gambar: ",
+    "toast.sendFailed": "Gagal hantar: ",
+    "toast.checkinSimulated": "Daftar masuk pada 18:02 · Kebolehpercayaan dikekalkan (tepat masa)",
+    "toast.maxBidPrefix": "Tawaran maksimum ialah RM",
+    "toast.sampleShiftBidInfo": "Ini syif contoh sahaja. Mohon syif sebenar untuk hantar tawaran.",
+    "toast.applicationFailed": "Gagal hantar permohonan: ",
+    "toast.signFailed": "Gagal tandatangan: ",
+    "toast.contractSigned": "✅ Kontrak ditandatangani! Anda kini boleh berbual dengan majikan.",
+    "toast.updateFailed": "Gagal kemas kini: ",
+    "toast.escrowTopupUnavailable": "Tambah nilai escrow belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
+    "toast.signInToPostShift": "Log masuk untuk siarkan syif.",
+    "toast.shiftFieldsRequired": "Tajuk, tarikh, dan masa mula/tamat diperlukan.",
+    "toast.maxPayGteMinPay": "Gaji maksimum mesti ≥ gaji minimum.",
+    "toast.postShiftFailed": "Gagal siarkan syif: ",
+    "toast.shiftPublished": "Syif disiarkan! Pekerja akan mula memohon tidak lama lagi.",
+    "toast.contractSent": "✅ Kontrak dihantar kepada pekerja untuk tandatangan!",
+    "chat.signInTitle": "Log masuk untuk lihat mesej",
+    "chat.signInHint": "Mesej dengan majikan akan muncul di sini setelah anda log masuk dan tawaran anda diterima.",
+    "chat.title": "💬 Mesej",
+    "chat.emptyTitleWorker": "Belum ada syif diterima.",
+    "chat.emptyHintWorker": "Mesej akan muncul di sini setelah majikan menerima tawaran anda.",
+    "chat.emptyTitleEmployer": "Belum ada permohonan diterima.",
+    "chat.emptyHintEmployer": "Sembang akan muncul di sini setelah anda terima tawaran pekerja.",
+    "chat.employerSubtitle": "Berbual dengan pekerja untuk syif yang diterima",
+    "chat.loading": "Memuatkan...",
+    "chat.inputPlaceholder": "Taip mesej…",
+    "chat.send": "Hantar",
   },
 };
 
@@ -1741,9 +1797,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         { onConflict: "id" }
       );
       await onUserUpdated();
-      toast("Profile picture updated.", "success");
+      toast(t("toast.avatarUpdated"), "success");
     } catch (err) {
-      toast(`Could not update photo: ${err.message}`, "error");
+      toast(`${t("toast.avatarUpdateFailed")}${err.message}`, "error");
     }
     setAvatarUploading(false);
   };
@@ -1867,7 +1923,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       content,
     });
     if (error) {
-      toast('Failed to send: ' + error.message, 'error');
+      toast(t('toast.sendFailed') + error.message, 'error');
       setChatInput(content); // restore on failure
     }
   };
@@ -2177,7 +2233,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           </div>
         </div>
         <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
-        <Btn onClick={() => { setShowQR(false); toast("Checked in at 18:02 · Reliability maintained (on time)", "success"); }}>Simulate Successful Check-in</Btn>
+        <Btn onClick={() => { setShowQR(false); toast(t("toast.checkinSimulated"), "success"); }}>Simulate Successful Check-in</Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
       </div>
       <div style={navBarStyle}>
@@ -2220,11 +2276,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               <Btn onClick={() => {
                 (async () => {
                   if (!bidAmount) return;
-                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`Max bid is RM${(selectedShift.wageMax * 1.5).toFixed(0)}/h`, "error"); return; }
+                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`${t("toast.maxBidPrefix")}${(selectedShift.wageMax * 1.5).toFixed(0)}/h`, "error"); return; }
                   if (!user) { setShowBidModal(false); onRequireAuth("signin"); return; }
                   // Guard: mock shifts use numeric ids — require a real UUID id to insert
                   if (typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) {
-                    toast("This is a sample shift. Apply to a live shift to submit a bid.", "info");
+                    toast(t("toast.sampleShiftBidInfo"), "info");
                     return;
                   }
 
@@ -2237,7 +2293,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   const { data, error } = await supabase.from('applications').insert(payload).select();
                   if (error) {
                     // Unique constraint or FK errors will appear here
-                    toast("Failed to submit application: " + error.message, "error");
+                    toast(t("toast.applicationFailed") + error.message, "error");
                     return;
                   }
 
@@ -2593,20 +2649,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           <AuthGate
             onRequireAuth={onRequireAuth}
             icon="💬"
-            title="Sign in to view messages"
-            hint="Messages with employers appear here once you're signed in and have an accepted bid."
+            title={t("chat.signInTitle")}
+            hint={t("chat.signInHint")}
           />
         )}
 
         {tab === 'chat' && user && (
           <div style={{padding:'0 0 80px'}}>
-            <h2 style={{fontSize:18, fontWeight:700, color:'#1e293b', margin:'16px 0 12px'}}>💬 Messages</h2>
+            <h2 style={{fontSize:18, fontWeight:700, color:'#1e293b', margin:'16px 0 12px'}}>{t("chat.title")}</h2>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
                 <div style={{textAlign:'center', color:'#94a3b8', marginTop:48}}>
                   <div style={{fontSize:40}}>💬</div>
-                  <div style={{marginTop:8}}>No accepted shifts yet.</div>
-                  <div style={{fontSize:12, marginTop:4}}>Messages appear here once an employer accepts your bid.</div>
+                  <div style={{marginTop:8}}>{t("chat.emptyTitleWorker")}</div>
+                  <div style={{fontSize:12, marginTop:4}}>{t("chat.emptyHintWorker")}</div>
                 </div>
               ) : (
                 chatConversations.map(conv => (
@@ -2632,7 +2688,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   </div>
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
-                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>Loading...</div>}
+                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>{t("chat.loading")}</div>}
                   {chatMessages.map(msg => {
                     const isMe = msg.sender_id === user.id;
                     return (
@@ -2652,12 +2708,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   <input
                     value={chatInput} onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    placeholder="Type a message…"
+                    placeholder={t("chat.inputPlaceholder")}
                     style={{flex:1, padding:'10px 12px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:14}}
                   />
                   <button onClick={sendMessage}
                     style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-                    Send
+                    {t("chat.send")}
                   </button>
                 </div>
               </div>
@@ -3023,8 +3079,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 .from('applications')
                 .update({ worker_signed_at: new Date().toISOString() })
                 .eq('id', workerContractModal.applicationId);
-              if (error) { toast('Failed to sign: ' + error.message, 'error'); return; }
-              toast('✅ Contract signed! You can now chat with your employer.', 'success');
+              if (error) { toast(t('toast.signFailed') + error.message, 'error'); return; }
+              toast(t('toast.contractSigned'), 'success');
               setLiveApplications(prev => prev.map(a =>
                 a.id === workerContractModal.applicationId ? { ...a, workerSignedAt: new Date().toISOString() } : a
               ));
@@ -3187,7 +3243,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       content,
     });
     if (error) {
-      toast('Failed to send: ' + error.message, 'error');
+      toast(t('toast.sendFailed') + error.message, 'error');
       setChatInput(content); // restore on failure
     }
   };
@@ -3324,7 +3380,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       .from('applications')
       .update({ status: action, updated_at: new Date().toISOString(), ...(action === 'accepted' ? { employer_signed_at: new Date().toISOString() } : {}) })
       .eq('id', id);
-    if (error) { toast('Update failed: ' + error.message, 'error'); return; }
+    if (error) { toast(t('toast.updateFailed') + error.message, 'error'); return; }
     setLiveApplicants(prev => prev ? prev.map(a => a.id === id ? { ...a, status: action } : a) : prev);
     setApplicantAction(prev => ({ ...prev, [id]: action }));
     if (action === 'accepted') {
@@ -3371,7 +3427,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
           <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Committed to Workers</div>
           <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
-          <Btn size="xs" variant="ghost" onClick={() => toast('Escrow top-up isn’t available yet — coming with FPX/DuitNow integration.', 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Top Up (soon)</Btn>
+          <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Top Up (soon)</Btn>
           <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Return to Worker App</Btn>
         </div>
       </div>
@@ -3665,15 +3721,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                     <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
                     <Btn onClick={async () => {
-                      if (!user) { toast('Sign in to post a shift.', 'error'); return; }
+                      if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
                       if (!form.title || !form.date || !form.timeStart || !form.timeEnd) {
-                        toast('Title, date, and start/end times are required.', 'error'); return;
+                        toast(t('toast.shiftFieldsRequired'), 'error'); return;
                       }
                       const startAt = new Date(`${form.date}T${form.timeStart}:00+08:00`).toISOString();
                       const endAt   = new Date(`${form.date}T${form.timeEnd}:00+08:00`).toISOString();
                       const wageMin = parseFloat(form.wageMin) || 0;
                       const wageMax = parseFloat(form.wageMax) || 0;
-                      if (wageMax < wageMin) { toast('Max pay must be ≥ min pay.', 'error'); return; }
+                      if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
                       const { error } = await supabase.from('shifts').insert({
                         employer_id: user.id,
                         title:       form.title.trim(),
@@ -3689,8 +3745,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         // TODO: add address_visibility column to shifts migration
                         address_visibility: form.addressVisibility || 'public',
                       });
-                      if (error) { toast('Failed to post shift: ' + error.message, 'error'); return; }
-                      toast('Shift published! Workers will start applying shortly.', 'success');
+                      if (error) { toast(t('toast.postShiftFailed') + error.message, 'error'); return; }
+                      toast(t('toast.shiftPublished'), 'success');
                       setView('shifts');
                       setPostStep(1);
                     }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
@@ -3711,7 +3767,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
               Escrow top-ups aren't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.
             </div>
-            <Btn onClick={() => toast('Escrow top-up isn’t available yet — coming with FPX/DuitNow integration.', 'info')} style={{ marginBottom: 24 }}>+ Top Up Escrow (soon)</Btn>
+            <Btn onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginBottom: 24 }}>+ Top Up Escrow (soon)</Btn>
             <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Payout Ledger</div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -3818,14 +3874,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === 'chat' && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>💬 Messages</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16 }}>Chat with workers on accepted shifts</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("chat.title")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16 }}>{t("chat.employerSubtitle")}</div>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
                 <div style={{textAlign:'center', color:'#94a3b8', marginTop:48}}>
                   <div style={{fontSize:40}}>💬</div>
-                  <div style={{marginTop:8}}>No accepted applications yet.</div>
-                  <div style={{fontSize:12, marginTop:4}}>Chats appear here once you accept a worker's bid.</div>
+                  <div style={{marginTop:8}}>{t("chat.emptyTitleEmployer")}</div>
+                  <div style={{fontSize:12, marginTop:4}}>{t("chat.emptyHintEmployer")}</div>
                 </div>
               ) : (
                 chatConversations.map(conv => (
@@ -3851,7 +3907,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
-                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>Loading...</div>}
+                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>{t("chat.loading")}</div>}
                   {chatMessages.map(msg => {
                     const isMe = msg.sender_id === user?.id;
                     return (
@@ -3871,12 +3927,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <input
                     value={chatInput} onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    placeholder="Type a message…"
+                    placeholder={t("chat.inputPlaceholder")}
                     style={{flex:1, padding:'10px 12px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:14}}
                   />
                   <button onClick={sendMessage}
                     style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-                    Send
+                    {t("chat.send")}
                   </button>
                 </div>
               </div>
@@ -3921,7 +3977,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 Cancel
               </button>
               <button onClick={() => {
-                toast('✅ Contract sent to worker for signature!', 'success');
+                toast(t('toast.contractSent'), 'success');
                 setContractModal(null);
               }}
                 style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
