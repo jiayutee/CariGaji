@@ -108,6 +108,7 @@ const TRANSLATIONS = {
     "shiftDetail.atMaxRate": "at max rate",
     "shiftDetail.transportAllowance": "Transport Allowance",
     "shiftDetail.title": "Shift Details",
+    "shiftDetail.aboutRole": "About this role",
     "shiftDetail.location": "📍 Location",
     "shiftDetail.date": "🗓 Date",
     "shiftDetail.time": "⏰ Time",
@@ -341,6 +342,7 @@ const TRANSLATIONS = {
     "shiftDetail.atMaxRate": "pada kadar maksimum",
     "shiftDetail.transportAllowance": "Elaun Pengangkutan",
     "shiftDetail.title": "Butiran Syif",
+    "shiftDetail.aboutRole": "Tentang peranan ini",
     "shiftDetail.location": "📍 Lokasi",
     "shiftDetail.date": "🗓 Tarikh",
     "shiftDetail.time": "⏰ Masa",
@@ -2518,7 +2520,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, worker_signed_at, shift:shifts(id, title, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status)')
+        .select('id, shift_id, wage_ask, status, applied_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status)')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -2542,6 +2544,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         shiftWageMax: Number(a.shift?.wage_max ?? 0),
         shiftHeadcount: a.shift?.headcount ?? 1,
         shiftDress: a.shift?.dress_code ?? '',
+        shiftDescription: a.shift?.description ?? '',
         shiftStipend: Number(a.shift?.transport_allowance ?? 0),
         shiftStatus: a.shift?.status ?? null,
       })));
@@ -2568,7 +2571,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, category, location, start_at, end_at, wage_min, wage_max, headcount, filled_count, status, transport_allowance')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, filled_count, status, transport_allowance')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -2576,6 +2579,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         setLiveShifts((data ?? []).map(s => ({
           id: s.id,
           title: s.title,
+          description: s.description || '',
           category: s.category,
           employer: 'Employer',
           location: s.location,
@@ -2593,7 +2597,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           status: s.status,
           addressVisibility: s.address_visibility || 'public',
           totalApplicants: 0,
-          dress: '',
+          dress: s.dress_code || '',
           stipend: Number(s.transport_allowance) || 0,
           travelTime: '',
           distance: 0,
@@ -2958,6 +2962,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Stat label={t("shiftDetail.estimatedGross")} value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub={t("shiftDetail.atMaxRate")} color={BRAND.green} />
             <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : "Not provided"} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
+          {selectedShift.description && (
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("shiftDetail.aboutRole")}</div>
+              <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{selectedShift.description}</div>
+            </Card>
+          )}
           {(() => {
             // Exact address is shown when the employer made it public, or when
             // this worker has been accepted for the shift. Otherwise only the
@@ -3298,6 +3308,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
                 This shift was cancelled by the employer. No further action is needed.
               </div>
+            )}
+            {a.shiftDescription && (
+              <Card style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("shiftDetail.aboutRole")}</div>
+                <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.shiftDescription}</div>
+              </Card>
             )}
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
@@ -3802,7 +3818,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
-  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "" });
+  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
   const [applicantAction, setApplicantAction] = useState({});
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerProfile, setEmployerProfile] = useState(null);
@@ -3895,7 +3911,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const beginNewShift = () => {
     setEditingShiftId(null);
     setSelectedShift(null);
-    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "" });
+    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
     setView("postshift");
     setPostStep(1);
   };
@@ -3904,7 +3920,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const startEditShift = async (shiftId) => {
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance')
       .eq('id', shiftId)
       .single();
     if (error || !data) { toast('Could not load shift for editing.', 'error'); return; }
@@ -3915,6 +3931,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     const transportAmt = Number(data.transport_allowance) || 0;
     setForm({
       title: data.title || '',
+      description: data.description || '',
       category: data.category || 'F&B',
       date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '',
       timeStart: hhmm(start),
@@ -4448,6 +4465,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               {postStep === 1 && (
                 <div>
                   <Input label="Shift title" placeholder="e.g. F&B Server – Corporate Dinner" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Job description</label>
+                    <textarea
+                      placeholder="Describe the role, responsibilities, and what a good day looks like…"
+                      value={form.description}
+                      onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", height: 80, resize: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
                   <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={["F&B", "Retail", "Event", "Logistics", "Other"].map(v => ({ value: v, label: v }))} />
                   <LocationAutocomplete label="Location" value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
                   <div style={{marginTop:8, marginBottom:16}}>
@@ -4570,6 +4596,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
                       const payload = {
                         title:       form.title.trim(),
+                        description: form.description ? form.description.trim() : null,
                         category:    form.category || 'Other',
                         location:    (form.location || '').trim() || 'Kuala Lumpur',
                         dress_code:  form.dress ? form.dress.trim() : null,
