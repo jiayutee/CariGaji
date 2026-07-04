@@ -2336,10 +2336,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   }, [user]);
 
   useEffect(() => {
-    // Logged-out visitors can't fetch shifts (RLS requires auth) — show the
-    // empty state, not an infinite "Loading…" spinner (the old demo-data
-    // fallback used to mask this).
-    if (!user) { setLiveShifts([]); return; }
+    // Open shifts are publicly browsable (anon RLS policy) so visitors can
+    // see listings before signing up. Runs for both anon and signed-in users.
     let active = true;
     supabase
       .from('shifts')
