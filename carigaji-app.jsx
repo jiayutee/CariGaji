@@ -762,6 +762,66 @@ const Input = ({ label, placeholder, value, onChange, type = "text", style = {},
   </div>
 );
 
+// Loads the Google Maps JS API (Places library) once, on demand.
+const loadGoogleMaps = (() => {
+  let promise = null;
+  return (apiKey) => {
+    if (typeof window === "undefined") return Promise.reject(new Error("no window"));
+    if (window.google?.maps?.places) return Promise.resolve(window.google);
+    if (promise) return promise;
+    promise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      s.async = true;
+      s.defer = true;
+      s.onload = () => (window.google?.maps?.places ? resolve(window.google) : reject(new Error("places missing")));
+      s.onerror = () => reject(new Error("maps script failed"));
+      document.head.appendChild(s);
+    });
+    return promise;
+  };
+})();
+
+// Location field with Google Places autocomplete (Malaysia-restricted).
+// Falls back to a plain text input when no API key is configured.
+const LocationAutocomplete = ({ label = "Location", value, onChange, error = false }) => {
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const inputRef = useRef(null);
+  useEffect(() => {
+    if (!apiKey || !inputRef.current) return;
+    let cancelled = false;
+    let listener = null;
+    loadGoogleMaps(apiKey).then(google => {
+      if (cancelled || !inputRef.current) return;
+      const ac = new google.maps.places.Autocomplete(inputRef.current, {
+        componentRestrictions: { country: "my" },
+        fields: ["formatted_address", "name"],
+      });
+      listener = ac.addListener("place_changed", () => {
+        const place = ac.getPlace();
+        onChange(place.formatted_address || place.name || inputRef.current.value);
+      });
+    }).catch(() => {}); // silent fallback to manual typing
+    return () => { cancelled = true; if (listener) listener.remove(); };
+  }, [apiKey]);
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={apiKey ? "Start typing an address or place…" : "e.g. KLCC, Kuala Lumpur"}
+        style={{
+          width: "100%", padding: "10px 14px", borderRadius: 10,
+          border: `1.5px solid ${error ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit",
+          color: BRAND.text, background: BRAND.input, outline: "none", boxSizing: "border-box",
+        }}
+      />
+    </div>
+  );
+};
+
 const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideToggle = false, error = false }) => {
   const [show, setShow] = useState(false);
   return (
@@ -3939,7 +3999,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <div>
                   <Input label="Shift title" placeholder="e.g. F&B Server – Corporate Dinner" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
                   <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={["F&B", "Retail", "Event", "Logistics", "Other"].map(v => ({ value: v, label: v }))} />
-                  <Input label="Location" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} />
+                  <LocationAutocomplete label="Location" value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
                   <div style={{marginTop:8, marginBottom:16}}>
                     <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>Address visibility</div>
                     <div style={{display:'flex', gap:12}}>
