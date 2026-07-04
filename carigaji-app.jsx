@@ -1254,6 +1254,12 @@ const Icons = {
       <circle cx="12" cy="13" r="4" stroke="#374151" strokeWidth="1.4" />
     </svg>
   ),
+  Edit: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 20h9" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
   Chat: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -3470,6 +3476,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [selectedShift, setSelectedShift] = useState(null);
   const [liveApplicants, setLiveApplicants] = useState(null);
   const [postStep, setPostStep] = useState(1);
+  const [editingShiftId, setEditingShiftId] = useState(null);
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public" });
   const [applicantAction, setApplicantAction] = useState({});
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
@@ -3517,6 +3524,46 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     load();
     return () => { active = false; };
   }, [user]);
+
+  // Start a fresh shift post (clears any edit state + form).
+  const beginNewShift = () => {
+    setEditingShiftId(null);
+    setSelectedShift(null);
+    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public" });
+    setView("postshift");
+    setPostStep(1);
+  };
+
+  // Load an existing shift into the form for editing.
+  const startEditShift = async (shiftId) => {
+    const { data, error } = await supabase
+      .from('shifts')
+      .select('id, title, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility')
+      .eq('id', shiftId)
+      .single();
+    if (error || !data) { toast('Could not load shift for editing.', 'error'); return; }
+    const pad = n => String(n).padStart(2, '0');
+    const start = data.start_at ? new Date(data.start_at) : null;
+    const end = data.end_at ? new Date(data.end_at) : null;
+    const hhmm = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+    setForm({
+      title: data.title || '',
+      category: data.category || 'F&B',
+      date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '',
+      timeStart: hhmm(start),
+      timeEnd: hhmm(end),
+      wageMin: data.wage_min != null ? String(data.wage_min) : '',
+      wageMax: data.wage_max != null ? String(data.wage_max) : '',
+      headcount: data.headcount || 1,
+      dress: data.dress_code || '',
+      location: data.location || '',
+      addressVisibility: data.address_visibility || 'public',
+    });
+    setEditingShiftId(shiftId);
+    setSelectedShift(null);
+    setView('postshift');
+    setPostStep(1);
+  };
 
   useEffect(() => {
     if (!selectedShift?.id || typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) return;
@@ -3779,7 +3826,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>Employer Console</div>
         </div>
         {navItems.map(n => (
-          <button key={n} onClick={() => { setView(n.toLowerCase().replace(" ", "")); setSelectedShift(null); setPostStep(1); }}
+          <button key={n} onClick={() => { setView(n.toLowerCase().replace(" ", "")); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); }}
             style={{
               display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
               background: view === n.toLowerCase().replace(" ", "") ? BRAND.primaryLight : "none",
@@ -3842,7 +3889,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Quick Actions</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <Btn onClick={() => { setView("postshift"); setPostStep(1); }} style={{ justifyContent: "center" }}>+ Post New Shift</Btn>
+                  <Btn onClick={beginNewShift} style={{ justifyContent: "center" }}>+ Post New Shift</Btn>
                   <Card style={{ padding: 14 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>Recent Activity</div>
                     {["Ahmad Firdaus bid RM14/h for Wedding Banquet", "Nurul Ain shortlisted for Wedding Banquet", "Shift 'Kitchen Helper' completed"].map((a, i) => (
@@ -3862,7 +3909,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>My Shifts</div>
                 <div style={{ fontSize: 14, color: BRAND.textMuted }}>Manage all your posted shifts</div>
               </div>
-              <Btn onClick={() => { setView("postshift"); setPostStep(1); }}>+ Post Shift</Btn>
+              <Btn onClick={beginNewShift}>+ Post Shift</Btn>
             </div>
             {(liveEmployerShifts ?? []).length === 0 && (
               <EmptyState
@@ -3902,7 +3949,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         {view === "shifts" && selectedShift && (
           <div>
             <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label="Back to shifts">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back to shifts</span></button>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{selectedShift.title}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
+              <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ flexShrink: 0, padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>Edit shift</span></Btn>
+            </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "completed" ? "green" : "gray"} />
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.date}</span>
@@ -3982,8 +4032,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "postshift" && (
           <div style={{ maxWidth: 600 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("common.postAShift")}</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Fill in shift details and required workers</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{editingShiftId ? "Edit Shift" : t("common.postAShift")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{editingShiftId ? "Update the details of your posted shift" : "Fill in shift details and required workers"}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -4095,8 +4145,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       const wageMin = parseFloat(form.wageMin) || 0;
                       const wageMax = parseFloat(form.wageMax) || 0;
                       if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
-                      const { error } = await supabase.from('shifts').insert({
-                        employer_id: user.id,
+                      const payload = {
                         title:       form.title.trim(),
                         category:    form.category || 'Other',
                         location:    (form.location || '').trim() || 'Kuala Lumpur',
@@ -4106,15 +4155,20 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         wage_min:    wageMin,
                         wage_max:    wageMax || wageMin,
                         headcount:   parseInt(form.headcount) || 1,
-                        status:      'open',
-                        // TODO: add address_visibility column to shifts migration
                         address_visibility: form.addressVisibility || 'public',
-                      });
-                      if (error) { toast(t('toast.postShiftFailed') + error.message, 'error'); return; }
-                      toast(t('toast.shiftPublished'), 'success');
+                      };
+                      let error;
+                      if (editingShiftId) {
+                        ({ error } = await supabase.from('shifts').update(payload).eq('id', editingShiftId));
+                      } else {
+                        ({ error } = await supabase.from('shifts').insert({ employer_id: user.id, status: 'open', ...payload }));
+                      }
+                      if (error) { toast((editingShiftId ? 'Failed to update shift: ' : t('toast.postShiftFailed')) + error.message, 'error'); return; }
+                      toast(editingShiftId ? 'Shift updated!' : t('toast.shiftPublished'), 'success');
+                      setEditingShiftId(null);
                       setView('shifts');
                       setPostStep(1);
-                    }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>Publish Shift</span></Btn>
+                    }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>{editingShiftId ? "Save Changes" : "Publish Shift"}</span></Btn>
                   </div>
                 </div>
               )}
