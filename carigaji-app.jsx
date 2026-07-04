@@ -89,6 +89,128 @@ const TRANSLATIONS = {
     "chat.loading": "Loading...",
     "chat.inputPlaceholder": "Type a message…",
     "chat.send": "Send",
+    "common.back": "Back",
+    "common.cancel": "Cancel",
+    "shiftDetail.placeBidTitle": "Place Your Bid",
+    "shiftDetail.employerRange": "Employer range: RM",
+    "shiftDetail.maxBid": " · Max bid: RM",
+    "shiftDetail.wageAskLabel": "Your wage ask (RM/hour)",
+    "shiftDetail.estimatedTotalPay": "Estimated total pay",
+    "shiftDetail.transportAllowanceSuffix": " transport allowance",
+    "shiftDetail.bidSubmitted": "Bid Submitted!",
+    "shiftDetail.bidSubmittedHint": "You'll be notified when shortlisted",
+    "shiftDetail.positions": "Positions",
+    "shiftDetail.applied": "Applied",
+    "shiftDetail.wageRange": "Wage Range",
+    "shiftDetail.perHour": "per hour",
+    "shiftDetail.shiftDuration": "Shift Duration",
+    "shiftDetail.estimatedGross": "Estimated Gross",
+    "shiftDetail.atMaxRate": "at max rate",
+    "shiftDetail.transportAllowance": "Transport Allowance",
+    "shiftDetail.title": "Shift Details",
+    "shiftDetail.location": "📍 Location",
+    "shiftDetail.date": "🗓 Date",
+    "shiftDetail.time": "⏰ Time",
+    "shiftDetail.dressCode": "👗 Dress Code",
+    "shiftDetail.headcount": "👥 Headcount",
+    "shiftDetail.workersNeeded": "workers needed",
+    "shiftDetail.employerScore": "🏢 Employer Score",
+    "shiftDetail.locationNote": "Exact address revealed once your application is accepted.",
+    "shiftDetail.employerReliability": "Employer Reliability",
+    "shiftDetail.applicants": "applicants",
+    "profile.signInTitle": "Sign in to view your profile",
+    "profile.signInHint": "Your KYC status, reliability score, ratings, and shift history live here once you sign in.",
+    "profile.changePhoto": "Change profile picture",
+    "profile.standardKyc": "Standard KYC",
+    "profile.reliabilitySuffix": "Reliability",
+    "profile.shiftsDone": "Shifts done",
+    "profile.rating": "Rating",
+    "profile.strikes": "Strikes",
+    "profile.cleanRecord": "Clean record",
+    "profile.onTimeRate": "On-time rate",
+    "profile.kycVerification": "KYC Verification",
+    "profile.kycBasic": "Basic (Phone/Email)",
+    "profile.kycStandard": "Standard (MyKad + Selfie)",
+    "profile.kycAdvanced": "Advanced (Certifications)",
+    "profile.verified": "✓ Verified",
+    "profile.reliabilityScoreLabel": "Reliability Score: ",
+    "profile.reliabilityExcellent": "Excellent — top 15% of workers 🏆",
+    "profile.reliabilityGood": "Good standing — keep it up 👍",
+    "profile.reliabilityBuilding": "Building your reputation 📈",
+    "profile.reliabilityLow": "Complete more shifts to improve your score",
+    "profile.recentRatings": "Recent Ratings",
+    "auth.signinSubtitle": "Use your email and password to access CariGaji.",
+    "auth.registerTitle": "Register",
+    "auth.registerSubtitle": "Create your account and complete your profile and KYC details.",
+    "auth.resetTitle": "Reset password",
+    "auth.resetSubtitle": "We will send a password reset email to your inbox.",
+    "auth.sendResetEmail": "Send reset email",
+    "auth.emailAddress": "Email address",
+    "auth.password": "Password",
+    "auth.forgetPassword": "Forget password?",
+    "auth.noAccountYet": "No account yet? Register Here",
+    "auth.resetHint": "We will email you a secure link to reset your password.",
+    "auth.fullName": "Full name *",
+    "auth.country": "Country *",
+    "auth.phoneNumber": "Phone number *",
+    "auth.emailAddressReq": "Email address *",
+    "auth.passwordReq": "Password *",
+    "auth.createPassword": "Create a password",
+    "auth.confirmPasswordReq": "Confirm password *",
+    "auth.retypePassword": "Re-type your password",
+    "auth.passwordsNoMatch": "Passwords do not match.",
+    "auth.identityType": "Identity type *",
+    "auth.icMyKad": "IC (MyKad)",
+    "auth.passport": "Passport",
+    "auth.myPR": "MyPR",
+    "auth.myKadNumber": "MyKad Number *",
+    "auth.myPRNumber": "MyPR Number *",
+    "auth.passportNumber": "Passport Number *",
+    "auth.dateOfBirth": "Date of birth *",
+    "auth.underageWarning": "You must be at least {age} years old to register and work on CariGaji.",
+    "auth.kycLevelNote": "Your KYC level will be assigned based on uploaded documents.",
+    "auth.address": "Address *",
+    "auth.addressPlaceholder": "Street, city, state",
+    "auth.uploadDocuments": "Upload documents",
+    "auth.uploadDocumentsHint": "Upload clear photos of your {doc}. The identity number must be readable and match what you entered above.",
+    "auth.passportDoc": "passport",
+    "auth.myPRCardDoc": "MyPR card",
+    "auth.myKadDoc": "MyKad",
+    "auth.uploadFrontHelper": "Upload a photo or PDF of the front side.",
+    "auth.uploadBackHelper": "Upload a photo or PDF of the back side.",
+    "auth.ocrChecking": "Checking the ID number on your photo…",
+    "auth.ocrMatch": "✓ The identity number on your photo matches what you entered.",
+    "auth.ocrMismatchTitle": "We couldn't match the ID number on your photo to what you typed.",
+    "auth.ocrMismatchHint": "This usually means one of:",
+    "auth.ocrMismatchReason1": "the photo is blurry or the number isn't fully visible,",
+    "auth.ocrMismatchReason2": "the identity number you entered has a typo, or",
+    "auth.ocrMismatchReason3": "the wrong document photo was uploaded.",
+    "auth.ocrMismatchAction": "Please double-check both. You can still submit — our team will verify manually.",
+    "auth.selfie": "Selfie *",
+    "auth.selfieHelper": "Upload a clear selfie for identity verification.",
+    "auth.certification": "Certification",
+    "auth.certificationHelper": "Optional: food handler, first aid, or other certifications.",
+    "auth.finalRegisterHint": "Add your personal and KYC details now. Selected files will be uploaded to Supabase Storage during registration.",
+    "auth.pleaseCompleteFields": "Please complete the highlighted fields:",
+    "auth.docMyKadFront": "MyKad (front)",
+    "auth.docMyKadBack": "MyKad (back)",
+    "auth.docMyPRFront": "MyPR card (front)",
+    "auth.docMyPRBack": "MyPR card (back)",
+    "auth.docPassportFront": "Passport photo page",
+    "auth.docPassportBack": "Passport back page",
+    "auth.docIdFront": "ID document (front)",
+    "auth.docIdBack": "ID document (back)",
+    "auth.fieldFullName": "Full name",
+    "auth.fieldPhone": "Phone number",
+    "auth.fieldEmail": "Email address",
+    "auth.fieldPassword": "Password",
+    "auth.fieldConfirmPassword": "Confirm password",
+    "auth.fieldIdNumber": "Identity number",
+    "auth.fieldDateOfBirth": "Date of birth",
+    "auth.fieldDateOfBirthAge": "Date of birth (must be {age}+)",
+    "auth.fieldAddress": "Address",
+    "auth.fieldSelfie": "Selfie",
+    "auth.fieldTnC": "Terms & Conditions consent",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -143,6 +265,128 @@ const TRANSLATIONS = {
     "chat.loading": "Memuatkan...",
     "chat.inputPlaceholder": "Taip mesej…",
     "chat.send": "Hantar",
+    "common.back": "Kembali",
+    "common.cancel": "Batal",
+    "shiftDetail.placeBidTitle": "Buat Tawaran Anda",
+    "shiftDetail.employerRange": "Julat majikan: RM",
+    "shiftDetail.maxBid": " · Tawaran maksimum: RM",
+    "shiftDetail.wageAskLabel": "Kadar gaji yang anda mahu (RM/jam)",
+    "shiftDetail.estimatedTotalPay": "Anggaran jumlah gaji",
+    "shiftDetail.transportAllowanceSuffix": " elaun pengangkutan",
+    "shiftDetail.bidSubmitted": "Tawaran Dihantar!",
+    "shiftDetail.bidSubmittedHint": "Anda akan diberitahu apabila disenarai pendek",
+    "shiftDetail.positions": "Kekosongan",
+    "shiftDetail.applied": "Memohon",
+    "shiftDetail.wageRange": "Julat Gaji",
+    "shiftDetail.perHour": "sejam",
+    "shiftDetail.shiftDuration": "Tempoh Syif",
+    "shiftDetail.estimatedGross": "Anggaran Kasar",
+    "shiftDetail.atMaxRate": "pada kadar maksimum",
+    "shiftDetail.transportAllowance": "Elaun Pengangkutan",
+    "shiftDetail.title": "Butiran Syif",
+    "shiftDetail.location": "📍 Lokasi",
+    "shiftDetail.date": "🗓 Tarikh",
+    "shiftDetail.time": "⏰ Masa",
+    "shiftDetail.dressCode": "👗 Kod Pakaian",
+    "shiftDetail.headcount": "👥 Bilangan Pekerja",
+    "shiftDetail.workersNeeded": "pekerja diperlukan",
+    "shiftDetail.employerScore": "🏢 Skor Majikan",
+    "shiftDetail.locationNote": "Alamat sebenar akan didedahkan setelah permohonan anda diterima.",
+    "shiftDetail.employerReliability": "Kebolehpercayaan Majikan",
+    "shiftDetail.applicants": "pemohon",
+    "profile.signInTitle": "Log masuk untuk lihat profil anda",
+    "profile.signInHint": "Status KYC, skor kebolehpercayaan, penilaian, dan sejarah syif anda akan dipaparkan di sini setelah anda log masuk.",
+    "profile.changePhoto": "Tukar gambar profil",
+    "profile.standardKyc": "KYC Standard",
+    "profile.reliabilitySuffix": "Kebolehpercayaan",
+    "profile.shiftsDone": "Syif selesai",
+    "profile.rating": "Penilaian",
+    "profile.strikes": "Amaran",
+    "profile.cleanRecord": "Rekod bersih",
+    "profile.onTimeRate": "Kadar tepat masa",
+    "profile.kycVerification": "Pengesahan KYC",
+    "profile.kycBasic": "Asas (Telefon/E-mel)",
+    "profile.kycStandard": "Standard (MyKad + Selfie)",
+    "profile.kycAdvanced": "Lanjutan (Sijil)",
+    "profile.verified": "✓ Disahkan",
+    "profile.reliabilityScoreLabel": "Skor Kebolehpercayaan: ",
+    "profile.reliabilityExcellent": "Cemerlang — 15% teratas pekerja 🏆",
+    "profile.reliabilityGood": "Kedudukan baik — teruskan begini 👍",
+    "profile.reliabilityBuilding": "Membina reputasi anda 📈",
+    "profile.reliabilityLow": "Selesaikan lebih banyak syif untuk tingkatkan skor anda",
+    "profile.recentRatings": "Penilaian Terkini",
+    "auth.signinSubtitle": "Gunakan e-mel dan kata laluan anda untuk mengakses CariGaji.",
+    "auth.registerTitle": "Daftar",
+    "auth.registerSubtitle": "Cipta akaun anda dan lengkapkan profil serta butiran KYC anda.",
+    "auth.resetTitle": "Tetapkan semula kata laluan",
+    "auth.resetSubtitle": "Kami akan menghantar e-mel tetapan semula kata laluan ke peti masuk anda.",
+    "auth.sendResetEmail": "Hantar e-mel tetapan semula",
+    "auth.emailAddress": "Alamat e-mel",
+    "auth.password": "Kata laluan",
+    "auth.forgetPassword": "Lupa kata laluan?",
+    "auth.noAccountYet": "Belum ada akaun? Daftar Di Sini",
+    "auth.resetHint": "Kami akan e-mel pautan selamat untuk tetapkan semula kata laluan anda.",
+    "auth.fullName": "Nama penuh *",
+    "auth.country": "Negara *",
+    "auth.phoneNumber": "Nombor telefon *",
+    "auth.emailAddressReq": "Alamat e-mel *",
+    "auth.passwordReq": "Kata laluan *",
+    "auth.createPassword": "Cipta kata laluan",
+    "auth.confirmPasswordReq": "Sahkan kata laluan *",
+    "auth.retypePassword": "Taip semula kata laluan anda",
+    "auth.passwordsNoMatch": "Kata laluan tidak sepadan.",
+    "auth.identityType": "Jenis identiti *",
+    "auth.icMyKad": "IC (MyKad)",
+    "auth.passport": "Pasport",
+    "auth.myPR": "MyPR",
+    "auth.myKadNumber": "Nombor MyKad *",
+    "auth.myPRNumber": "Nombor MyPR *",
+    "auth.passportNumber": "Nombor Pasport *",
+    "auth.dateOfBirth": "Tarikh lahir *",
+    "auth.underageWarning": "Anda mesti berumur sekurang-kurangnya {age} tahun untuk mendaftar dan bekerja di CariGaji.",
+    "auth.kycLevelNote": "Tahap KYC anda akan ditetapkan berdasarkan dokumen yang dimuat naik.",
+    "auth.address": "Alamat *",
+    "auth.addressPlaceholder": "Jalan, bandar, negeri",
+    "auth.uploadDocuments": "Muat naik dokumen",
+    "auth.uploadDocumentsHint": "Muat naik gambar {doc} anda yang jelas. Nombor identiti mesti boleh dibaca dan sepadan dengan yang anda masukkan di atas.",
+    "auth.passportDoc": "pasport",
+    "auth.myPRCardDoc": "kad MyPR",
+    "auth.myKadDoc": "MyKad",
+    "auth.uploadFrontHelper": "Muat naik gambar atau PDF bahagian hadapan.",
+    "auth.uploadBackHelper": "Muat naik gambar atau PDF bahagian belakang.",
+    "auth.ocrChecking": "Menyemak nombor ID pada gambar anda…",
+    "auth.ocrMatch": "✓ Nombor identiti pada gambar anda sepadan dengan yang anda masukkan.",
+    "auth.ocrMismatchTitle": "Kami tidak dapat memadankan nombor ID pada gambar anda dengan yang anda taip.",
+    "auth.ocrMismatchHint": "Ini biasanya bermaksud salah satu daripada:",
+    "auth.ocrMismatchReason1": "gambar kabur atau nombor tidak kelihatan sepenuhnya,",
+    "auth.ocrMismatchReason2": "nombor identiti yang anda masukkan mempunyai kesilapan taip, atau",
+    "auth.ocrMismatchReason3": "gambar dokumen yang salah telah dimuat naik.",
+    "auth.ocrMismatchAction": "Sila semak semula kedua-duanya. Anda masih boleh hantar — pasukan kami akan sahkan secara manual.",
+    "auth.selfie": "Selfie *",
+    "auth.selfieHelper": "Muat naik selfie yang jelas untuk pengesahan identiti.",
+    "auth.certification": "Sijil",
+    "auth.certificationHelper": "Pilihan: sijil pengendali makanan, bantuan kecemasan, atau sijil lain.",
+    "auth.finalRegisterHint": "Tambah butiran peribadi dan KYC anda sekarang. Fail yang dipilih akan dimuat naik ke Supabase Storage semasa pendaftaran.",
+    "auth.pleaseCompleteFields": "Sila lengkapkan medan yang ditanda:",
+    "auth.docMyKadFront": "MyKad (hadapan)",
+    "auth.docMyKadBack": "MyKad (belakang)",
+    "auth.docMyPRFront": "Kad MyPR (hadapan)",
+    "auth.docMyPRBack": "Kad MyPR (belakang)",
+    "auth.docPassportFront": "Muka surat gambar pasport",
+    "auth.docPassportBack": "Muka surat belakang pasport",
+    "auth.docIdFront": "Dokumen identiti (hadapan)",
+    "auth.docIdBack": "Dokumen identiti (belakang)",
+    "auth.fieldFullName": "Nama penuh",
+    "auth.fieldPhone": "Nombor telefon",
+    "auth.fieldEmail": "Alamat e-mel",
+    "auth.fieldPassword": "Kata laluan",
+    "auth.fieldConfirmPassword": "Sahkan kata laluan",
+    "auth.fieldIdNumber": "Nombor identiti",
+    "auth.fieldDateOfBirth": "Tarikh lahir",
+    "auth.fieldDateOfBirthAge": "Tarikh lahir (mesti {age}+)",
+    "auth.fieldAddress": "Alamat",
+    "auth.fieldSelfie": "Selfie",
+    "auth.fieldTnC": "Persetujuan Terma & Syarat",
   },
 };
 
@@ -1493,10 +1737,10 @@ const AuthModal = ({
 
   // Document labels adapt to the selected identity type.
   const DOC_LABELS = {
-    MyKad: { front: "MyKad (front)", back: "MyKad (back)" },
-    MyPR: { front: "MyPR card (front)", back: "MyPR card (back)" },
-    Passport: { front: "Passport photo page", back: "Passport back page" },
-  }[form.identityType] || { front: "ID document (front)", back: "ID document (back)" };
+    MyKad: { front: translate("auth.docMyKadFront"), back: translate("auth.docMyKadBack") },
+    MyPR: { front: translate("auth.docMyPRFront"), back: translate("auth.docMyPRBack") },
+    Passport: { front: translate("auth.docPassportFront"), back: translate("auth.docPassportBack") },
+  }[form.identityType] || { front: translate("auth.docIdFront"), back: translate("auth.docIdBack") };
 
   // Client-side OCR: read the ID off the uploaded front photo and compare with
   // the typed identity number. Runs entirely in the browser (the image is never
@@ -1528,11 +1772,11 @@ const AuthModal = ({
   };
 
   const REGISTER_FIELD_LABELS = {
-    fullName: "Full name", phone: "Phone number", email: "Email address",
-    password: "Password", confirmPassword: "Confirm password", idNumber: "Identity number",
-    dateOfBirth: dobUnderage ? `Date of birth (must be ${LEGAL_WORKING_AGE}+)` : "Date of birth",
-    address: "Address", kycFront: DOC_LABELS.front,
-    kycBack: DOC_LABELS.back, selfie: "Selfie", agreedToTnC: "Terms & Conditions consent",
+    fullName: translate("auth.fieldFullName"), phone: translate("auth.fieldPhone"), email: translate("auth.fieldEmail"),
+    password: translate("auth.fieldPassword"), confirmPassword: translate("auth.fieldConfirmPassword"), idNumber: translate("auth.fieldIdNumber"),
+    dateOfBirth: dobUnderage ? translate("auth.fieldDateOfBirthAge").replace("{age}", LEGAL_WORKING_AGE) : translate("auth.fieldDateOfBirth"),
+    address: translate("auth.fieldAddress"), kycFront: DOC_LABELS.front,
+    kycBack: DOC_LABELS.back, selfie: translate("auth.fieldSelfie"), agreedToTnC: translate("auth.fieldTnC"),
   };
   const registerErrors = {
     fullName: !form.fullName?.trim(),
@@ -1567,18 +1811,18 @@ const AuthModal = ({
   const copy = {
     signin: {
       title: translate("common.signIn"),
-      subtitle: "Use your email and password to access CariGaji.",
+      subtitle: translate("auth.signinSubtitle"),
       action: translate("common.signIn"),
     },
     register: {
-      title: "Register",
-      subtitle: "Create your account and complete your profile and KYC details.",
+      title: translate("auth.registerTitle"),
+      subtitle: translate("auth.registerSubtitle"),
       action: translate("common.createAccount"),
     },
     reset: {
-      title: "Reset password",
-      subtitle: "We will send a password reset email to your inbox.",
-      action: "Send reset email",
+      title: translate("auth.resetTitle"),
+      subtitle: translate("auth.resetSubtitle"),
+      action: translate("auth.sendResetEmail"),
     },
   }[view];
 
@@ -1604,16 +1848,16 @@ const AuthModal = ({
           )}
           {showErrors && hasRegisterErrors && view === "register" && (
             <div style={{ position: "sticky", top: message ? 52 : -20, zIndex: 9, margin: "0 -4px 16px -4px", padding: "12px 16px", borderRadius: 12, background: "#FEF2F2", border: `1.5px solid ${BRAND.red}`, color: BRAND.red, fontSize: 13, lineHeight: 1.6 }}>
-              <strong>Please complete the highlighted fields:</strong> {missingLabels.join(", ")}
+              <strong>{translate("auth.pleaseCompleteFields")}</strong> {missingLabels.join(", ")}
             </div>
           )}
           {view === "signin" && (
             <form onSubmit={onSignIn}>
-              <Input label="Email address" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
-              <PasswordInput label="Password" placeholder="Enter your password" value={form.password} onChange={e => onChange("password", e.target.value)} />
+              <Input label={translate("auth.emailAddress")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
+              <PasswordInput label={translate("auth.password")} placeholder="Enter your password" value={form.password} onChange={e => onChange("password", e.target.value)} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: -6, marginBottom: 16 }}>
-                <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>Forget password?</button>
-                <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>No account yet? Register Here</button>
+                <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.forgetPassword")}</button>
+                <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.noAccountYet")}</button>
               </div>
               <Btn type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{copy.action}</Btn>
             </form>
@@ -1621,10 +1865,10 @@ const AuthModal = ({
 
           {view === "reset" && (
             <form onSubmit={onResetPassword}>
-              <Input label="Email address" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
-              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: -6, marginBottom: 16, lineHeight: 1.5 }}>We will email you a secure link to reset your password.</div>
+              <Input label={translate("auth.emailAddress")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: -6, marginBottom: 16, lineHeight: 1.5 }}>{translate("auth.resetHint")}</div>
               <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>Back</Btn>
+                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>{translate("common.back")}</Btn>
                 <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
               </div>
             </form>
@@ -1633,17 +1877,17 @@ const AuthModal = ({
           {view === "register" && (
             <form onSubmit={handleRegisterSubmit} noValidate>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label="Full name *" placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
-                  <SearchableCountrySelect label="Country *" value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
+                <Input label={translate("auth.fullName")} placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
+                  <SearchableCountrySelect label={translate("auth.country")} value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
               </div>
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Phone number *</label>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{translate("auth.phoneNumber")}</label>
                   <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
                     <div style={{ flex: "0 0 auto" }}>
                       <SearchableCountrySelect value={form.countryCode} onChange={e => onChange("countryCode", e.target.value)} compact showDial />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <Input 
+                      <Input
                         placeholder={COUNTRIES.find(c => c.code === form.countryCode)?.placeholder || "Enter phone number"}
                         value={form.phone}
                         onChange={e => onChange("phone", e.target.value)}
@@ -1654,18 +1898,18 @@ const AuthModal = ({
                   </div>
                 </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label="Email address *" type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
-                <PasswordInput label="Password *" placeholder="Create a password" value={form.password} onChange={e => onChange("password", e.target.value)} error={fieldError("password")} />
+                <Input label={translate("auth.emailAddressReq")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
+                <PasswordInput label={translate("auth.passwordReq")} placeholder={translate("auth.createPassword")} value={form.password} onChange={e => onChange("password", e.target.value)} error={fieldError("password")} />
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <PasswordInput label="Confirm password *" placeholder="Re-type your password" value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} error={fieldError("confirmPassword")} />
+                <PasswordInput label={translate("auth.confirmPasswordReq")} placeholder={translate("auth.retypePassword")} value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} error={fieldError("confirmPassword")} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
-                <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>Passwords do not match.</div>
+                <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>{translate("auth.passwordsNoMatch")}</div>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <Select
-                  label="Identity type *"
+                  label={translate("auth.identityType")}
                   value={form.identityType}
                   onChange={e => {
                     const nextType = e.target.value;
@@ -1673,13 +1917,13 @@ const AuthModal = ({
                     onChange("idNumber", "");
                   }}
                   options={[
-                    { value: "MyKad", label: "IC (MyKad)" },
-                    { value: "Passport", label: "Passport" },
-                    { value: "MyPR", label: "MyPR" },
+                    { value: "MyKad", label: translate("auth.icMyKad") },
+                    { value: "Passport", label: translate("auth.passport") },
+                    { value: "MyPR", label: translate("auth.myPR") },
                   ]}
                 />
                 <Input
-                  label={form.identityType === "MyKad" ? "MyKad Number *" : form.identityType === "MyPR" ? "MyPR Number *" : "Passport Number *"}
+                  label={form.identityType === "MyKad" ? translate("auth.myKadNumber") : form.identityType === "MyPR" ? translate("auth.myPRNumber") : translate("auth.passportNumber")}
                   placeholder={["MyKad", "MyPR"].includes(form.identityType) ? "XXXXXX-XX-XXXX" : "A1234567"}
                   value={form.idNumber}
                   onChange={e => {
@@ -1694,7 +1938,7 @@ const AuthModal = ({
                 />
               </div>
               <Input
-                label="Date of birth *"
+                label={translate("auth.dateOfBirth")}
                 type="date"
                 value={form.dateOfBirth}
                 onChange={e => onChange("dateOfBirth", e.target.value)}
@@ -1704,54 +1948,54 @@ const AuthModal = ({
               />
               {dobUnderage && (
                 <div style={{ fontSize: 12, color: BRAND.red, fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
-                  You must be at least {LEGAL_WORKING_AGE} years old to register and work on CariGaji.
+                  {translate("auth.underageWarning").replace("{age}", LEGAL_WORKING_AGE)}
                 </div>
               )}
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: dobUnderage ? 0 : -12, marginBottom: 16 }}>
-                Your KYC level will be assigned based on uploaded documents.
+                {translate("auth.kycLevelNote")}
               </div>
-              <Input label="Address *" placeholder="Street, city, state" value={form.address} onChange={e => onChange("address", e.target.value)} error={fieldError("address")} />
-              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Upload documents</div>
+              <Input label={translate("auth.address")} placeholder={translate("auth.addressPlaceholder")} value={form.address} onChange={e => onChange("address", e.target.value)} error={fieldError("address")} />
+              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{translate("auth.uploadDocuments")}</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10, lineHeight: 1.5 }}>
-                Upload clear photos of your {form.identityType === "Passport" ? "passport" : form.identityType === "MyPR" ? "MyPR card" : "MyKad"}. The identity number must be readable and match what you entered above.
+                {translate("auth.uploadDocumentsHint").replace("{doc}", form.identityType === "Passport" ? translate("auth.passportDoc") : form.identityType === "MyPR" ? translate("auth.myPRCardDoc") : translate("auth.myKadDoc"))}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label={`${DOC_LABELS.front} *`} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; onChange("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper="Upload a photo or PDF of the front side." error={fieldError("kycFront")} />
-                <FileInput label={`${DOC_LABELS.back} *`} accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper="Upload a photo or PDF of the back side." error={fieldError("kycBack")} />
+                <FileInput label={`${DOC_LABELS.front} *`} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; onChange("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper={translate("auth.uploadFrontHelper")} error={fieldError("kycFront")} />
+                <FileInput label={`${DOC_LABELS.back} *`} accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper={translate("auth.uploadBackHelper")} error={fieldError("kycBack")} />
               </div>
               {idOcr.status === "checking" && (
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{ display: "inline-block", width: 12, height: 12, border: `2px solid ${BRAND.border}`, borderTopColor: BRAND.primary, borderRadius: "50%", animation: "cg-spin 0.7s linear infinite" }} />
-                  Checking the ID number on your photo…
+                  {translate("auth.ocrChecking")}
                 </div>
               )}
               {idOcr.status === "match" && (
                 <div style={{ fontSize: 12, color: BRAND.green, fontWeight: 600, marginBottom: 12, padding: "8px 12px", background: "#ECFDF5", border: `1px solid ${BRAND.green}`, borderRadius: 8 }}>
-                  ✓ The identity number on your photo matches what you entered.
+                  {translate("auth.ocrMatch")}
                 </div>
               )}
               {idOcr.status === "mismatch" && (
                 <div style={{ fontSize: 12, color: "#B45309", marginBottom: 12, padding: "10px 12px", background: "#FFFBEB", border: "1px solid #F59E0B", borderRadius: 8, lineHeight: 1.6 }}>
-                  <strong>We couldn't match the ID number on your photo to what you typed.</strong> This usually means one of:
+                  <strong>{translate("auth.ocrMismatchTitle")}</strong> {translate("auth.ocrMismatchHint")}
                   <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
-                    <li>the photo is blurry or the number isn't fully visible,</li>
-                    <li>the identity number you entered has a typo, or</li>
-                    <li>the wrong document photo was uploaded.</li>
+                    <li>{translate("auth.ocrMismatchReason1")}</li>
+                    <li>{translate("auth.ocrMismatchReason2")}</li>
+                    <li>{translate("auth.ocrMismatchReason3")}</li>
                   </ul>
-                  <div style={{ marginTop: 6 }}>Please double-check both. You can still submit — our team will verify manually.</div>
+                  <div style={{ marginTop: 6 }}>{translate("auth.ocrMismatchAction")}</div>
                 </div>
               )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label="Selfie *" accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper="Upload a clear selfie for identity verification." error={fieldError("selfie")} />
-                <FileInput label="Certification" accept="image/*,application/pdf" onChange={e => onChange("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper="Optional: food handler, first aid, or other certifications." />
+                <FileInput label={translate("auth.selfie")} accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper={translate("auth.selfieHelper")} error={fieldError("selfie")} />
+                <FileInput label={translate("auth.certification")} accept="image/*,application/pdf" onChange={e => onChange("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper={translate("auth.certificationHelper")} />
               </div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
-                Add your personal and KYC details now. Selected files will be uploaded to Supabase Storage during registration.
+                {translate("auth.finalRegisterHint")}
               </div>
               {/* T&C consent — PDPA 2010 (Act 709), Employment Act 1955 (Act 265) */}
               <TnCConsent checked={form.agreedToTnC} onChange={v => onChange("agreedToTnC", v)} error={fieldError("agreedToTnC")} />
               <div style={{ display: "flex", gap: 10 }}>
-                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>Back</Btn>
+                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>{translate("common.back")}</Btn>
                 <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
               </div>
             </form>
@@ -2259,20 +2503,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       {showBidModal && (
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
           <div style={{ background: BRAND.surface, borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
-            <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.text, marginBottom: 4 }}>Place Your Bid</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.text, marginBottom: 4 }}>{t("shiftDetail.placeBidTitle")}</div>
             <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>
-              Employer range: RM{selectedShift.wageMin}–RM{selectedShift.wageMax}/h · Max bid: RM{(selectedShift.wageMax * 1.5).toFixed(0)}/h
+              {t("shiftDetail.employerRange")}{selectedShift.wageMin}–RM{selectedShift.wageMax}/h{t("shiftDetail.maxBid")}{(selectedShift.wageMax * 1.5).toFixed(0)}/h
             </div>
-            <Input label="Your wage ask (RM/hour)" type="number" placeholder={`e.g. ${selectedShift.wageMin + 1}`} value={bidAmount} onChange={e => setBidAmount(e.target.value)} />
+            <Input label={t("shiftDetail.wageAskLabel")} type="number" placeholder={`e.g. ${selectedShift.wageMin + 1}`} value={bidAmount} onChange={e => setBidAmount(e.target.value)} />
             {bidAmount && (
               <div style={{ background: BRAND.grayLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
-                <div style={{ fontSize: 13, color: BRAND.textMuted }}>Estimated total pay</div>
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("shiftDetail.estimatedTotalPay")}</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.green }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
-                <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend} transport allowance</div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend}{t("shiftDetail.transportAllowanceSuffix")}</div>
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
-              <Btn variant="secondary" onClick={() => setShowBidModal(false)} style={{ flex: 1 }}>Cancel</Btn>
+              <Btn variant="secondary" onClick={() => setShowBidModal(false)} style={{ flex: 1 }}>{t("common.cancel")}</Btn>
               <Btn onClick={() => {
                 (async () => {
                   if (!bidAmount) return;
@@ -2312,28 +2556,28 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
           <div style={{ background: BRAND.surface, borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
             <div style={{ fontSize: isMobile ? 40 : 48, marginBottom: 12 }}>🎉</div>
-            <div style={{ fontWeight: 800, fontSize: isMobile ? 18 : 20, color: BRAND.text }}>Bid Submitted!</div>
-            <div style={{ color: BRAND.textMuted, fontSize: isMobile ? 12 : 14, marginTop: 8 }}>RM{bidAmount}/h · You'll be notified when shortlisted</div>
+            <div style={{ fontWeight: 800, fontSize: isMobile ? 18 : 20, color: BRAND.text }}>{t("shiftDetail.bidSubmitted")}</div>
+            <div style={{ color: BRAND.textMuted, fontSize: isMobile ? 12 : 14, marginTop: 8 }}>RM{bidAmount}/h · {t("shiftDetail.bidSubmittedHint")}</div>
           </div>
         </div>
       )}
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: navPadding, display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
-          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label="Back">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></button>
+          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label="Back">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{selectedShift.category}</Badge>
-            <Badge color="green">Positions {selectedShift.headcount}</Badge>
-            <Badge color="blue">Applied {selectedShift.totalApplicants}</Badge>
+            <Badge color="green">{t("shiftDetail.positions")} {selectedShift.headcount}</Badge>
+            <Badge color="blue">{t("shiftDetail.applied")} {selectedShift.totalApplicants}</Badge>
           </div>
           <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
           <div style={{ fontSize: isMobile ? 12 : 14, color: "rgba(255,255,255,0.85)" }}>{selectedShift.employer}</div>
         </div>
         <div style={{ padding: isMobile ? 14 : 20 }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: isMobile ? 8 : 10, marginBottom: 16 }}>
-            <Stat label="Wage Range" value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub="per hour" color={BRAND.text} />
-            <Stat label="Shift Duration" value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
-            <Stat label="Estimated Gross" value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub="at max rate" color={BRAND.green} />
-            <Stat label="Transport Allowance" value={`RM${selectedShift.stipend}`} color={BRAND.blue} />
+            <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
+            <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
+            <Stat label={t("shiftDetail.estimatedGross")} value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub={t("shiftDetail.atMaxRate")} color={BRAND.green} />
+            <Stat label={t("shiftDetail.transportAllowance")} value={`RM${selectedShift.stipend}`} color={BRAND.blue} />
           </div>
           {(() => {
             // Exact address is shown when the employer made it public, or when
@@ -2342,17 +2586,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             const acceptedForShift = selectedShift.myStatus === "accepted";
             const canSeeExact = selectedShift.addressVisibility !== "accepted_only" || acceptedForShift;
             const detailLocation = canSeeExact ? selectedShift.location : overviewLocation(selectedShift.location);
-            const locationNote = canSeeExact ? null : "Exact address revealed once your application is accepted.";
+            const locationNote = canSeeExact ? null : t("shiftDetail.locationNote");
             return (
           <Card style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
             {[
-              ["📍 Location", detailLocation, locationNote],
-              ["🗓 Date", selectedShift.date],
-              ["⏰ Time", selectedShift.time],
-              ["👗 Dress Code", selectedShift.dress],
-              ["👥 Headcount", `${selectedShift.headcount} workers needed`],
-              ["🏢 Employer Score", `${selectedShift.reliabilityScore}/100`],
+              [t("shiftDetail.location"), detailLocation, locationNote],
+              [t("shiftDetail.date"), selectedShift.date],
+              [t("shiftDetail.time"), selectedShift.time],
+              [t("shiftDetail.dressCode"), selectedShift.dress],
+              [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
+              [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`],
             ].map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted, width: 130, flexShrink: 0 }}>{k}</span>
@@ -2366,14 +2610,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             );
           })()}
           <Card style={{ marginBottom: 20, background: BRAND.grayLight, border: "none" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: BRAND.text }}>Employer Reliability</div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: BRAND.text }}>{t("shiftDetail.employerReliability")}</div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
               <div style={{ flex: 1 }}><Progress value={selectedShift.reliabilityScore} color={selectedShift.reliabilityScore > 90 ? BRAND.green : selectedShift.reliabilityScore > 75 ? BRAND.accent : BRAND.red} /></div>
               <span style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>{selectedShift.reliabilityScore}/100</span>
             </div>
             <div style={{ display: "flex", gap: 16 }}>
               <StarRating value={selectedShift.rating} />
-              <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} applicants</span>
+              <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
           </Card>
           <Btn onClick={() => user ? setShowBidModal(true) : onRequireAuth("signin")} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
@@ -2783,8 +3027,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           <AuthGate
             onRequireAuth={onRequireAuth}
             icon="👤"
-            title="Sign in to view your profile"
-            hint="Your KYC status, reliability score, ratings, and shift history live here once you sign in."
+            title={t("profile.signInTitle")}
+            hint={t("profile.signInHint")}
           />
         )}
 
@@ -2799,7 +3043,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                   display: "flex", alignItems: "center", justifyContent: "center",
                   cursor: avatarUploading ? "wait" : "pointer", fontSize: 13,
                   border: `2px solid ${BRAND.surface}`,
-                }} title="Change profile picture">
+                }} title={t("profile.changePhoto")}>
                   {avatarUploading ? "…" : "✎"}
                   <input type="file" accept="image/*" disabled={avatarUploading}
                     onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
@@ -2809,35 +3053,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
-                <Badge color="teal">Standard KYC</Badge>
-                <Badge color="green">🛡️ {profileStats.reliability_score}/100 Reliability</Badge>
+                <Badge color="teal">{t("profile.standardKyc")}</Badge>
+                <Badge color="green">🛡️ {profileStats.reliability_score}/100 {t("profile.reliabilitySuffix")}</Badge>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label="Shifts done" value="38" color={BRAND.primary} />
-              <Stat label="Rating" value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
-              <Stat label="Strikes" value="0" sub="Clean record" color={BRAND.green} />
-              <Stat label="On-time rate" value="96%" color={BRAND.blue} />
+              <Stat label={t("profile.shiftsDone")} value="38" color={BRAND.primary} />
+              <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
+              <Stat label={t("profile.strikes")} value="0" sub={t("profile.cleanRecord")} color={BRAND.green} />
+              <Stat label={t("profile.onTimeRate")} value="96%" color={BRAND.blue} />
             </div>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>KYC Verification</div>
-              {[{ tier: "Basic (Phone/Email)", status: "verified" }, { tier: "Standard (MyKad + Selfie)", status: "verified" }, { tier: "Advanced (Certifications)", status: "not started" }].map((v, i) => (
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.kycVerification")}</div>
+              {[{ tier: t("profile.kycBasic"), status: "verified" }, { tier: t("profile.kycStandard"), status: "verified" }, { tier: t("profile.kycAdvanced"), status: "not started" }].map((v, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? `1px solid ${BRAND.border}` : "none" }}>
                   <span style={{ fontSize: 13, color: BRAND.text }}>{v.tier}</span>
-                  <Pill label={v.status === "verified" ? "✓ Verified" : "—"} color={v.status === "verified" ? "green" : "gray"} />
+                  <Pill label={v.status === "verified" ? t("profile.verified") : "—"} color={v.status === "verified" ? "green" : "gray"} />
                 </div>
               ))}
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Reliability Score: {profileStats.reliability_score}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("profile.reliabilityScoreLabel")}{profileStats.reliability_score}</div>
               <Progress value={Math.min(100, Math.max(0, profileStats.reliability_score))} color={profileStats.reliability_score > 90 ? BRAND.green : profileStats.reliability_score > 75 ? BRAND.accent : BRAND.red} />
-              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>{profileStats.reliability_score >= 90 ? "Excellent — top 15% of workers 🏆" :
- profileStats.reliability_score >= 75 ? "Good standing — keep it up 👍" :
- profileStats.reliability_score >= 50 ? "Building your reputation 📈" :
- "Complete more shifts to improve your score"}</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>{profileStats.reliability_score >= 90 ? t("profile.reliabilityExcellent") :
+ profileStats.reliability_score >= 75 ? t("profile.reliabilityGood") :
+ profileStats.reliability_score >= 50 ? t("profile.reliabilityBuilding") :
+ t("profile.reliabilityLow")}</div>
             </Card>
             <Card>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Recent Ratings</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
               {[{ from: "Grand Hyatt KL", stars: 5, note: "Excellent service, very professional", date: "10 Jun" }, { from: "Live Nation MY", stars: 4, note: "Reliable and hardworking", date: "28 May" }].map((r, i) => (
                 <div key={i} style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
