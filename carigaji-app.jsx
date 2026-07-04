@@ -1213,6 +1213,76 @@ const StarRating = ({ value = 4.5, size = 14 }) => {
   return <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>({value})</span></span>;
 };
 
+// Vertical scroll-snap number picker for choosing an hourly bid rate.
+// Renders every RM value from `min` to `max` (inclusive) and reports the
+// value nearest the centre as the user scrolls, like an iOS picker wheel.
+const WageRatePicker = ({ min, max, value, onChange, step = 1 }) => {
+  const containerRef = useRef(null);
+  const ITEM_H = 40;
+  const VISIBLE = 3; // odd number so one item sits centred
+  const values = useMemo(() => {
+    const out = [];
+    for (let v = Math.ceil(min); v <= Math.floor(max); v += step) out.push(v);
+    if (out.length === 0) out.push(Math.round(min));
+    return out;
+  }, [min, max, step]);
+
+  // Scroll to the current value whenever the picker mounts or the value is
+  // set externally (e.g. modal reopened).
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const idx = Math.max(0, values.indexOf(Number(value)));
+    containerRef.current.scrollTop = idx * ITEM_H;
+  }, [values]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const idx = Math.round(containerRef.current.scrollTop / ITEM_H);
+    const clamped = Math.min(values.length - 1, Math.max(0, idx));
+    const v = values[clamped];
+    if (v !== undefined && v !== Number(value)) onChange(v);
+  };
+
+  const padding = (ITEM_H * (VISIBLE - 1)) / 2;
+
+  return (
+    <div style={{ position: "relative", height: ITEM_H * VISIBLE }}>
+      {/* Centre selection band */}
+      <div style={{
+        position: "absolute", top: padding, left: 0, right: 0, height: ITEM_H,
+        background: BRAND.primaryLight, borderRadius: 10, pointerEvents: "none",
+        border: `1.5px solid ${BRAND.primary}`,
+      }} />
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        style={{
+          height: "100%", overflowY: "auto", scrollSnapType: "y mandatory",
+          WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
+        }}
+      >
+        <div style={{ height: padding }} />
+        {values.map(v => (
+          <div
+            key={v}
+            onClick={() => { onChange(v); if (containerRef.current) containerRef.current.scrollTop = values.indexOf(v) * ITEM_H; }}
+            style={{
+              height: ITEM_H, scrollSnapAlign: "center", display: "flex", alignItems: "center",
+              justifyContent: "center", fontSize: v === Number(value) ? 20 : 15,
+              fontWeight: v === Number(value) ? 800 : 500,
+              color: v === Number(value) ? BRAND.primary : BRAND.textMuted,
+              cursor: "pointer", transition: "font-size 0.1s, color 0.1s",
+            }}
+          >
+            RM{v}/h
+          </div>
+        ))}
+        <div style={{ height: padding }} />
+      </div>
+    </div>
+  );
+};
+
 const Icons = {
   Search: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2193,6 +2263,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
   const [liveApplications, setLiveApplications] = useState(null);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [cancellingBid, setCancellingBid] = useState(false);
   const [workerBanking, setWorkerBanking] = useState(null);
   const [workerBankForm, setWorkerBankForm] = useState({
     bankName: MALAYSIAN_BANK_OPTIONS[0],
@@ -2314,7 +2386,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, wage_ask, status, applied_at, worker_signed_at, shift:shifts(title, start_at, employer_id)')
+        .select('id, shift_id, wage_ask, status, applied_at, worker_signed_at, shift:shifts(id, title, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status)')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -2326,14 +2398,37 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
         date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : 'TBA',
         wageBid: Number(a.wage_ask ?? 0),
         status: a.status,
+        appliedAt: a.applied_at,
         workerSignedAt: a.worker_signed_at ?? null,
-        shiftId: a.shift?.id ?? null,
+        shiftId: a.shift_id ?? a.shift?.id ?? null,
         employerId: a.shift?.employer_id ?? null,
+        shiftStartAt: a.shift?.start_at ?? null,
+        shiftEndAt: a.shift?.end_at ?? null,
+        shiftLocation: a.shift?.location ?? '',
+        shiftCategory: a.shift?.category ?? '',
+        shiftWageMin: Number(a.shift?.wage_min ?? 0),
+        shiftWageMax: Number(a.shift?.wage_max ?? 0),
+        shiftHeadcount: a.shift?.headcount ?? 1,
+        shiftDress: a.shift?.dress_code ?? '',
+        shiftStipend: Number(a.shift?.transport_allowance ?? 0),
+        shiftStatus: a.shift?.status ?? null,
       })));
     };
     loadApplications();
     return () => { active = false; };
   }, [user]);
+
+  // Cancel (withdraw) a pending bid. Matches the RLS policy: worker may
+  // update their own application from 'pending' to 'withdrawn' only.
+  const cancelBid = async (applicationId) => {
+    setCancellingBid(true);
+    const { error } = await supabase.from('applications').update({ status: 'withdrawn' }).eq('id', applicationId);
+    setCancellingBid(false);
+    if (error) { toast('Failed to cancel bid: ' + error.message, 'error'); return; }
+    toast('Bid cancelled.', 'success');
+    setLiveApplications(prev => (prev ?? []).filter(a => a.id !== applicationId));
+    setSelectedApplication(null);
+  };
 
   useEffect(() => {
     // Open shifts are publicly browsable (anon RLS policy) so visitors can
@@ -2505,8 +2600,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
 
   const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
   const shiftsSource = liveShifts ?? [];
+  // Shifts the worker has an active (still-pending-decision) bid on should not
+  // reappear in Discover — they can only place one bid per shift, and the
+  // shift already lives in My Bids.
+  const appliedShiftIds = useMemo(
+    () => new Set((liveApplications ?? []).filter(a => ['pending', 'shortlisted', 'accepted'].includes(a.status)).map(a => a.shiftId)),
+    [liveApplications]
+  );
   const filtered = useMemo(() => {
-    let s = shiftsSource;
+    let s = shiftsSource.filter(x => !appliedShiftIds.has(x.id));
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
     if (filterCity) s = s.filter(x => resolveCity(x.location) === filterCity);
     if (filterArea) s = s.filter(x => x.location.toLowerCase().includes(filterArea.toLowerCase()));
@@ -2519,7 +2621,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
     if (filterTimeStart) s = s.filter(x => x.startTime && x.startTime >= filterTimeStart);
     if (filterTimeEnd) s = s.filter(x => x.endTime && x.endTime <= filterTimeEnd);
     return s;
-  }, [shiftsSource, filterCat, filterCity, filterArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
+  }, [shiftsSource, appliedShiftIds, filterCat, filterCity, filterArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => ({
@@ -2641,7 +2743,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>
               {t("shiftDetail.employerRange")}{selectedShift.wageMin}–RM{selectedShift.wageMax}/h{t("shiftDetail.maxBid")}{(selectedShift.wageMax * 1.5).toFixed(0)}/h
             </div>
-            <Input label={t("shiftDetail.wageAskLabel")} type="number" placeholder={`e.g. ${selectedShift.wageMin + 1}`} value={bidAmount} onChange={e => setBidAmount(e.target.value)} />
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("shiftDetail.wageAskLabel")}</label>
+              <WageRatePicker
+                min={selectedShift.wageMin}
+                max={selectedShift.wageMax * 1.5}
+                value={bidAmount || selectedShift.wageMin}
+                onChange={v => setBidAmount(String(v))}
+              />
+              <div style={{ fontSize: 11, color: BRAND.textMuted, textAlign: "center", marginTop: 4 }}>Scroll or tap to choose your rate</div>
+            </div>
             {bidAmount && (
               <div style={{ background: BRAND.grayLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("shiftDetail.estimatedTotalPay")}</div>
@@ -2756,7 +2867,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
           </Card>
-          <Btn onClick={() => user ? setShowBidModal(true) : onRequireAuth("signin")} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
+          <Btn onClick={() => { if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); } else { onRequireAuth("signin"); } }} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
             {user ? t("common.placeBid") : t("common.signInToBid")}
           </Btn>
         </div>
@@ -2967,7 +3078,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
           />
         )}
 
-        {tab === "applications" && user && (
+        {tab === "applications" && user && !selectedApplication && (
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>My Bids</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -2979,13 +3090,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                 />
               )}
               {(liveApplications ?? []).map(a => (
-                <Card key={a.id}>
+                <Card key={a.id} onClick={() => setSelectedApplication(a)} hover>
+                  {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.grayLight, fontSize: 11, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>
+                      ⏳ Employer decides by {new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 2 }}>{a.shiftTitle}</div>
                       <div style={{ fontSize: 12, color: BRAND.textMuted }}>{a.employer} · {a.date}</div>
                     </div>
-                    <Pill label={a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : "Pending"} color={a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : "gray"} />
+                    <Pill
+                      label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "rejected" ? "Not selected" : "Pending"}
+                      color={a.shiftStatus === "cancelled" ? "red" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : "gray"}
+                    />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
@@ -2993,10 +3112,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                       <span style={{ fontSize: 15, fontWeight: 700, color: BRAND.text }}>RM{a.wageBid}/h</span>
                     </div>
                     {a.status === "shortlisted" && (
-                      <Btn size="sm" onClick={() => setTab('chat')}>Chat →</Btn>
+                      <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>Chat →</Btn>
                     )}
                     {a.status === "accepted" && (
-                      <Btn size="sm" variant="success" onClick={() => setShowQR(true)}>Check In</Btn>
+                      <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setShowQR(true); }}>Check In</Btn>
                     )}
                   </div>
                   {a.status === "shortlisted" && (
@@ -3005,13 +3124,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
                     </div>
                   )}
                   {a.status === 'accepted' && !a.workerSignedAt && (
-                    <button onClick={() => setWorkerContractModal({
+                    <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                         applicationId: a.id,
                         shiftTitle: a.shiftTitle,
                         shiftDate: a.date,
                         wageAsk: a.wageBid,
                         employerName: a.employer,
-                      })}
+                      }); }}
                       style={{marginTop:6, padding:'6px 14px', borderRadius:6, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
                       ✍️ Sign Contract
                     </button>
@@ -3024,6 +3143,72 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, onRequireAu
             </div>
           </div>
         )}
+
+        {tab === "applications" && user && selectedApplication && (() => {
+          const a = selectedApplication;
+          return (
+          <div>
+            <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label="Back to my bids">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back to My Bids</span></button>
+            {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.grayLight, fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>
+                ⏳ Employer decides by {new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
+            <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              <Pill
+                label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "rejected" ? "Not selected" : "Pending"}
+                color={a.shiftStatus === "cancelled" ? "red" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : "gray"}
+              />
+              {a.shiftCategory && <Badge color="amber">{a.shiftCategory}</Badge>}
+            </div>
+            {a.shiftStatus === "cancelled" && (
+              <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
+                This shift was cancelled by the employer. No further action is needed.
+              </div>
+            )}
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
+              {[
+                ["📍 Location", a.shiftLocation || "TBA"],
+                ["🗓 Date", a.date],
+                ["⏰ Time", a.shiftStartAt && a.shiftEndAt ? `${new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}–${new Date(a.shiftEndAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}` : 'TBA'],
+                ["👗 Dress code", a.shiftDress || "None specified"],
+                ["👥 Headcount", `${a.shiftHeadcount} workers needed`],
+                ["💰 Employer range", a.shiftWageMin && a.shiftWageMax ? `RM${a.shiftWageMin}–${a.shiftWageMax}/h` : "N/A"],
+                ["🚌 Transport allowance", a.shiftStipend > 0 ? `RM${a.shiftStipend}` : "Not provided"],
+                ["Your bid", `RM${a.wageBid}/h`],
+              ].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: BRAND.textMuted, width: 150, flexShrink: 0 }}>{k}</span>
+                  <span style={{ fontSize: 13, color: BRAND.text, fontWeight: 500 }}>{v}</span>
+                </div>
+              ))}
+            </Card>
+            {a.status === "shortlisted" && (
+              <div style={{ padding: "10px 14px", background: BRAND.amberLight, borderRadius: 10, fontSize: 12, color: BRAND.amber, marginBottom: 16 }}>
+                🎉 You've been shortlisted! Open chat to discuss and receive your offer.
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 10 }}>
+              {a.status === "pending" && a.shiftStatus !== "cancelled" && (
+                <Btn variant="secondary" disabled={cancellingBid} onClick={() => cancelBid(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.red }}>
+                  {cancellingBid ? "Cancelling…" : "Cancel Bid"}
+                </Btn>
+              )}
+              {a.status === "shortlisted" && a.shiftStatus !== "cancelled" && (
+                <Btn onClick={() => setTab('chat')} style={{ flex: 1, justifyContent: "center" }}>Chat →</Btn>
+              )}
+              {a.status === "accepted" && !a.workerSignedAt && a.shiftStatus !== "cancelled" && (
+                <Btn onClick={() => setWorkerContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>✍️ Sign Contract</Btn>
+              )}
+              {a.status === "accepted" && a.workerSignedAt && a.shiftStatus !== "cancelled" && (
+                <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>Check In</Btn>
+              )}
+            </div>
+          </div>
+          );
+        })()}
 
         {tab === 'chat' && !user && (
           <AuthGate
@@ -3477,9 +3662,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [liveApplicants, setLiveApplicants] = useState(null);
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
+  const [cancellingShift, setCancellingShift] = useState(false);
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "" });
   const [applicantAction, setApplicantAction] = useState({});
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
+  const [employerProfile, setEmployerProfile] = useState(null);
+  const [recentActivity, setRecentActivity] = useState([]);
   const [employerBanking, setEmployerBanking] = useState(null);
   const [employerBankForm, setEmployerBankForm] = useState({
     bankName: MALAYSIAN_BANK_OPTIONS[0],
@@ -3524,6 +3712,45 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     load();
     return () => { active = false; };
   }, [user]);
+
+  // Employer's own profile (real name + reliability score for the dashboard
+  // greeting/stats — replaces the old hardcoded "Grand Hyatt KL" demo copy).
+  useEffect(() => {
+    let active = true;
+    if (!user) { setEmployerProfile(null); return; }
+    supabase.from('profiles').select('full_name, reliability_score').eq('id', user.id).maybeSingle()
+      .then(({ data }) => { if (active) setEmployerProfile(data ?? null); });
+    return () => { active = false; };
+  }, [user]);
+
+  // Real applicant counts per shift + a recent-activity feed, both computed
+  // from live applications data (no mock numbers).
+  useEffect(() => {
+    let active = true;
+    const shiftIds = (liveEmployerShifts ?? []).map(s => s.id);
+    if (shiftIds.length === 0) { setRecentActivity([]); return; }
+    supabase
+      .from('applications')
+      .select('id, wage_ask, status, applied_at, shift_id, worker:profiles(full_name)')
+      .in('shift_id', shiftIds)
+      .order('applied_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!active || error) return;
+        const rows = data ?? [];
+        const counts = {};
+        rows.forEach(a => { counts[a.shift_id] = (counts[a.shift_id] || 0) + 1; });
+        setLiveEmployerShifts(prev => (prev ?? []).map(s => ({ ...s, applicants: counts[s.id] || 0 })));
+        setRecentActivity(rows.slice(0, 5).map(a => {
+          const shiftTitle = (liveEmployerShifts ?? []).find(s => s.id === a.shift_id)?.title || 'a shift';
+          const who = a.worker?.full_name || 'A worker';
+          if (a.status === 'accepted') return `${who} was accepted for ${shiftTitle}`;
+          if (a.status === 'rejected') return `${who}'s bid for ${shiftTitle} was declined`;
+          return `${who} bid RM${a.wage_ask}/h for ${shiftTitle}`;
+        }));
+      });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveEmployerShifts === null ? null : liveEmployerShifts.map(s => s.id).join(',')]);
 
   // Start a fresh shift post (clears any edit state + form).
   const beginNewShift = () => {
@@ -3853,12 +4080,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         {view === "dashboard" && (
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Dashboard</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Good morning, Grand Hyatt KL</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Good morning, {employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Active shifts" value="2" color={BRAND.primary} />
-              <Stat label="Total applicants" value="23" color={BRAND.blue} />
-              <Stat label="Filled slots" value="9/17" color={BRAND.green} />
-              <Stat label="Reliability score" value="94" sub="/100" color={BRAND.accent} />
+              <Stat label="Active shifts" value={(liveEmployerShifts ?? []).filter(s => s.status === "open").length} color={BRAND.primary} />
+              <Stat label="Total applicants" value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
+              <Stat label="Filled slots" value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
+              <Stat label="Reliability score" value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
               <div>
@@ -3895,8 +4122,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <Btn onClick={beginNewShift} style={{ justifyContent: "center" }}>+ Post New Shift</Btn>
                   <Card style={{ padding: 14 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>Recent Activity</div>
-                    {["Ahmad Firdaus bid RM14/h for Wedding Banquet", "Nurul Ain shortlisted for Wedding Banquet", "Shift 'Kitchen Helper' completed"].map((a, i) => (
-                      <div key={i} style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0", borderBottom: i < 2 ? `1px solid ${BRAND.border}` : "none" }}>{a}</div>
+                    {recentActivity.length === 0 && (
+                      <div style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0" }}>No activity yet — post a shift to start hiring.</div>
+                    )}
+                    {recentActivity.map((a, i) => (
+                      <div key={i} style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0", borderBottom: i < recentActivity.length - 1 ? `1px solid ${BRAND.border}` : "none" }}>{a}</div>
                     ))}
                   </Card>
                 </div>
@@ -3954,10 +4184,31 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label="Back to shifts">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back to shifts</span></button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
-              <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ flexShrink: 0, padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>Edit shift</span></Btn>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>Edit shift</span></Btn>
+                {selectedShift.status !== "cancelled" && selectedShift.status !== "completed" && (
+                  <Btn
+                    variant="secondary"
+                    disabled={cancellingShift}
+                    onClick={async () => {
+                      if (!window.confirm(`Cancel "${selectedShift.title}"? All applicants will be notified.`)) return;
+                      setCancellingShift(true);
+                      const { error } = await supabase.from('shifts').update({ status: 'cancelled' }).eq('id', selectedShift.id);
+                      setCancellingShift(false);
+                      if (error) { toast('Failed to cancel shift: ' + error.message, 'error'); return; }
+                      toast('Shift cancelled. Applicants have been notified.', 'success');
+                      setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === selectedShift.id ? { ...s, status: 'cancelled' } : s));
+                      setSelectedShift(prev => prev ? { ...prev, status: 'cancelled' } : prev);
+                    }}
+                    style={{ padding: "8px 14px", color: BRAND.red }}
+                  >
+                    {cancellingShift ? "Cancelling…" : "Cancel shift"}
+                  </Btn>
+                )}
+              </div>
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-              <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "completed" ? "green" : "gray"} />
+              <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.date}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
