@@ -4406,7 +4406,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             }}>{n.label}</button>
         ))}
         <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
-          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Committed to Workers</div>
+          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Paid to Workers</div>
           <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
           <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Top Up (soon)</Btn>
           <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Return to Worker App</Btn>
@@ -4844,7 +4844,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
-              <Stat label="Committed to workers" value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
+              <Stat label="Pending payout" value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
               <Stat label="Total paid out" value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
             </div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
