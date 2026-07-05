@@ -2527,7 +2527,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('applications')
-      .select('shift_id, shift:shifts(id, title, start_at, employer_id)')
+      .select('shift_id, shift:shifts(id, title, start_at, employer_id, employer:profiles(full_name))')
       .eq('worker_id', user.id)
       .eq('status', 'accepted')
       .then(({ data }) => {
@@ -2537,7 +2537,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           title: a.shift?.title ?? 'Shift',
           date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : '',
           otherUserId: a.shift?.employer_id,
-          otherUserLabel: 'Employer',
+          otherUserLabel: a.shift?.employer?.full_name ? `${a.shift.employer.full_name} (Employer)` : 'Employer',
         })));
       });
     return () => { active = false; };
@@ -2547,10 +2547,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (!activeChatShift || !user) return;
     setChatLoading(true);
     let active = true;
+    // A shift can have multiple accepted workers, all sharing the same
+    // shift_id — scope to this specific worker<->employer pair so different
+    // workers' conversations on the same shift don't bleed into each other.
+    const isBetweenPair = (m) =>
+      (m.sender_id === user.id && m.recipient_id === activeChatShift.otherUserId) ||
+      (m.sender_id === activeChatShift.otherUserId && m.recipient_id === user.id);
     supabase
       .from('messages')
       .select('id, sender_id, content, created_at, read_at')
       .eq('shift_id', activeChatShift.shiftId)
+      .or(`and(sender_id.eq.${user.id},recipient_id.eq.${activeChatShift.otherUserId}),and(sender_id.eq.${activeChatShift.otherUserId},recipient_id.eq.${user.id})`)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (!active) return;
@@ -2558,15 +2565,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         setChatLoading(false);
       });
     const channel = supabase
-      .channel(`chat-${activeChatShift.shiftId}`)
+      .channel(`chat-${activeChatShift.shiftId}-${activeChatShift.otherUserId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `shift_id=eq.${activeChatShift.shiftId}`,
       }, payload => {
+        if (!active || !isBetweenPair(payload.new)) return;
         // De-dupe against the sender's own optimistic insert below.
-        if (active) setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
+        setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
       })
       .subscribe();
     return () => {
@@ -3554,7 +3562,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {chatMessages.map(msg => {
                     const isMe = msg.sender_id === user.id;
                     return (
-                      <div key={msg.id} style={{display:'flex', justifyContent: isMe ? 'flex-end' : 'flex-start'}}>
+                      <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
+                        <div style={{fontSize:11, fontWeight:600, color:'#64748b', margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
+                          {isMe ? 'You' : activeChatShift.otherUserLabel}
+                        </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                           background: isMe ? '#2563EB' : '#f1f5f9', color: isMe ? '#fff' : '#1e293b', fontSize:14}}>
                           <div>{msg.content}</div>
@@ -3941,9 +3952,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 .eq('id', workerContractModal.applicationId);
               if (error) { toast(t('toast.signFailed') + error.message, 'error'); return; }
               toast(t('toast.contractSigned'), 'success');
+              const signedAt = new Date().toISOString();
               setLiveApplications(prev => prev.map(a =>
-                a.id === workerContractModal.applicationId ? { ...a, workerSignedAt: new Date().toISOString() } : a
+                a.id === workerContractModal.applicationId ? { ...a, workerSignedAt: signedAt } : a
               ));
+              // selectedApplication is a separate snapshot (not derived from
+              // liveApplications), so it must be updated too — otherwise the
+              // detail view keeps showing the "Sign Contract" button until
+              // the page is refreshed and re-fetches fresh data.
+              setSelectedApplication(prev =>
+                prev && prev.id === workerContractModal.applicationId ? { ...prev, workerSignedAt: signedAt } : prev
+              );
               setWorkerContractModal(null);
             }}
               style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
@@ -4164,7 +4183,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           title: a.shift?.title ?? 'Shift',
           date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : '',
           otherUserId: a.worker_id,
-          otherUserLabel: a.worker?.full_name ?? 'Worker',
+          otherUserLabel: a.worker?.full_name ? `${a.worker.full_name} (Worker)` : 'Worker',
         })));
       });
     return () => { active = false; };
@@ -4174,10 +4193,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (!activeChatShift || !user) return;
     setChatLoading(true);
     let active = true;
+    // A shift can have multiple accepted workers, all sharing the same
+    // shift_id — scope to this specific worker<->employer pair so different
+    // workers' conversations on the same shift don't bleed into each other.
+    const isBetweenPair = (m) =>
+      (m.sender_id === user.id && m.recipient_id === activeChatShift.otherUserId) ||
+      (m.sender_id === activeChatShift.otherUserId && m.recipient_id === user.id);
     supabase
       .from('messages')
       .select('id, sender_id, content, created_at, read_at')
       .eq('shift_id', activeChatShift.shiftId)
+      .or(`and(sender_id.eq.${user.id},recipient_id.eq.${activeChatShift.otherUserId}),and(sender_id.eq.${activeChatShift.otherUserId},recipient_id.eq.${user.id})`)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (!active) return;
@@ -4185,15 +4211,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         setChatLoading(false);
       });
     const channel = supabase
-      .channel(`employer-chat-${activeChatShift.shiftId}`)
+      .channel(`employer-chat-${activeChatShift.shiftId}-${activeChatShift.otherUserId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `shift_id=eq.${activeChatShift.shiftId}`,
       }, payload => {
+        if (!active || !isBetweenPair(payload.new)) return;
         // De-dupe against the sender's own optimistic insert below.
-        if (active) setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
+        setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
       })
       .subscribe();
     return () => {
@@ -5012,7 +5039,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   {chatMessages.map(msg => {
                     const isMe = msg.sender_id === user?.id;
                     return (
-                      <div key={msg.id} style={{display:'flex', justifyContent: isMe ? 'flex-end' : 'flex-start'}}>
+                      <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
+                        <div style={{fontSize:11, fontWeight:600, color:'#64748b', margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
+                          {isMe ? 'You' : activeChatShift.otherUserLabel}
+                        </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                           background: isMe ? '#2563EB' : '#f1f5f9', color: isMe ? '#fff' : '#1e293b', fontSize:14}}>
                           <div>{msg.content}</div>
