@@ -2661,8 +2661,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           totalApplicants: 0,
           dress: s.dress_code || '',
           stipend: Number(s.transport_allowance) || 0,
-          travelTime: '',
-          distance: 0,
           startTime: s.start_at ? (() => { const d = new Date(s.start_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
           endTime: s.end_at ? (() => { const d = new Date(s.end_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
           date: s.start_at ? new Date(s.start_at).toISOString().slice(0, 10) : '',
