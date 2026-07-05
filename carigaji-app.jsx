@@ -5667,6 +5667,237 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   );
 };
 
+// Minimal inline on/off switch styled with BRAND tokens — there's no
+// reusable Switch/Toggle component elsewhere in this file (only unrelated
+// hits for "toggle": PasswordInput's show/hide eye and a settings button
+// labelled "Toggles"), so this is built fresh for the cookie categories tab.
+const CookieToggleRow = ({ label, description, checked, disabled = false, onChange }) => (
+  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text }}>{label}</div>
+      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{description}</div>
+    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => { if (!disabled && onChange) onChange(!checked); }}
+      style={{
+        flexShrink: 0, width: 40, height: 24, borderRadius: 12, border: "none",
+        background: checked ? BRAND.primary : BRAND.grayLight,
+        position: "relative", cursor: disabled ? "not-allowed" : "pointer",
+        padding: 0, opacity: disabled ? 0.7 : 1,
+        transition: "background 0.15s",
+      }}
+    >
+      <span style={{
+        position: "absolute", top: 2, left: checked ? 18 : 2,
+        width: 20, height: 20, borderRadius: "50%", background: "#fff",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.3)", transition: "left 0.15s",
+      }} />
+    </button>
+  </div>
+);
+
+// Cookie consent banner + configurator. Mounted once at the root, inside
+// LanguageProvider/ToastProvider, so it persists across the worker/employer/
+// admin portals and isn't tied to any specific view. Renders through
+// createPortal(..., document.body) — same fix as the Help modal above: a
+// fixed-position descendant inside a backdropFilter ancestor (the app header)
+// gets clipped to that ancestor's box instead of the viewport, so this has
+// to escape via a body portal too.
+//
+// Scope note: this is UI + local persistence only. There is no analytics/
+// consent-mode SDK anywhere in this codebase (grepped for gtag/fbq/mixpanel/
+// analytics — no hits), so the "Analytics & Marketing" category is reserved
+// for future use and stays off by default; toggling it today has no effect
+// beyond being remembered.
+const DEFAULT_COOKIE_DRAFT = { functional: true, analytics: false };
+
+const CookieConsentManager = ({ isMobile }) => {
+  const { t } = useLanguage();
+  const [consent, setConsent] = useState(() => readCookieConsent());
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("categories");
+  const [draft, setDraft] = useState(() => {
+    const stored = readCookieConsent();
+    return stored ? { functional: !!stored.functional, analytics: !!stored.analytics } : DEFAULT_COOKIE_DRAFT;
+  });
+
+  const openPanel = (tab) => {
+    const base = consent || DEFAULT_COOKIE_DRAFT;
+    setDraft({ functional: !!base.functional, analytics: !!base.analytics });
+    setActiveTab(tab || "categories");
+    setPanelOpen(true);
+  };
+
+  const persist = (decision) => {
+    const payload = {
+      essential: true,
+      functional: !!decision.functional,
+      analytics: !!decision.analytics,
+      version: COOKIE_CONSENT_VERSION,
+      decidedAt: new Date().toISOString(),
+    };
+    writeCookieConsent(payload);
+    setConsent(payload);
+    setPanelOpen(false);
+  };
+
+  const handleAcceptAll = () => persist({ functional: true, analytics: true });
+  const handleDeclineAll = () => persist({ functional: false, analytics: false });
+  const handleSavePreferences = () => persist(draft);
+
+  const bannerVisible = consent === null && !panelOpen;
+  const bubbleVisible = consent !== null && !panelOpen;
+
+  // The mobile bottom nav is a *sticky* (not fixed) bar, but it still ends up
+  // pinned to the physical bottom of the viewport on mobile (navBaseHeight
+  // 60px + safe-area inset — see navHeight above in WorkerPortal). Clear it
+  // with extra offset on mobile so the banner/bubble never collides with it;
+  // desktop just needs a modest edge buffer.
+  const edgeBottom = isMobile
+    ? "calc(60px + env(safe-area-inset-bottom, 0px) + 16px)"
+    : "24px";
+
+  const tabs = ["categories", "services", "about"];
+
+  return (
+    <>
+      {bannerVisible && createPortal(
+        <div style={{ position: "fixed", left: 16, right: 16, bottom: edgeBottom, zIndex: 1300, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+          <div style={{
+            pointerEvents: "auto",
+            background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 16,
+            boxShadow: `0 12px 32px ${BRAND.shadow}`, padding: 20, maxWidth: 560, width: "100%",
+            display: "flex", flexDirection: "column", gap: 12,
+          }}>
+            <div style={{ fontSize: 13.5, color: BRAND.text, lineHeight: 1.5 }}>
+              <strong style={{ display: "block", marginBottom: 4, fontSize: 15 }}>{t("cookie.bannerTitle")}</strong>
+              {t("cookie.bannerBody")}
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              <Btn variant="secondary" size="sm" onClick={() => openPanel("categories")}>{t("cookie.configure")}</Btn>
+              <Btn variant="ghost" size="sm" onClick={handleDeclineAll}>{t("cookie.declineAll")}</Btn>
+              <Btn variant="primary" size="sm" onClick={handleAcceptAll}>{t("cookie.acceptAll")}</Btn>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {bubbleVisible && createPortal(
+        <button
+          onClick={() => openPanel("categories")}
+          aria-label={t("cookie.reopen")}
+          title={t("cookie.reopen")}
+          style={{
+            position: "fixed", left: 20, bottom: edgeBottom, zIndex: 900,
+            width: 48, height: 48, borderRadius: "50%",
+            background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
+            boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 20, padding: 0,
+          }}
+        >
+          <span aria-hidden="true">🍪</span>
+        </button>,
+        document.body
+      )}
+
+      {panelOpen && createPortal(
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1400, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          onClick={() => setPanelOpen(false)}
+        >
+          <div
+            style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 520, width: "100%", maxHeight: "85vh", overflowY: "auto" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>🍪 {t("cookie.panelTitle")}</h3>
+              <button onClick={() => setPanelOpen(false)} aria-label="Close" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+            </div>
+
+            <div style={{ display: "flex", gap: 6, marginBottom: 18, borderBottom: `1px solid ${BRAND.border}` }}>
+              {tabs.map((tabKey) => (
+                <button
+                  key={tabKey}
+                  onClick={() => setActiveTab(tabKey)}
+                  style={{
+                    border: "none", background: "transparent", cursor: "pointer",
+                    padding: "8px 12px", fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                    color: activeTab === tabKey ? BRAND.primary : BRAND.textMuted,
+                    borderBottom: activeTab === tabKey ? `2px solid ${BRAND.primary}` : "2px solid transparent",
+                    marginBottom: -1,
+                  }}
+                >
+                  {t(`cookie.tab.${tabKey}`)}
+                </button>
+              ))}
+            </div>
+
+            {activeTab === "categories" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <CookieToggleRow
+                  label={t("cookie.essentialTitle")}
+                  description={t("cookie.essentialDesc")}
+                  checked={true}
+                  disabled={true}
+                />
+                <CookieToggleRow
+                  label={t("cookie.functionalTitle")}
+                  description={t("cookie.functionalDesc")}
+                  checked={draft.functional}
+                  onChange={(next) => setDraft((d) => ({ ...d, functional: next }))}
+                />
+                <CookieToggleRow
+                  label={t("cookie.analyticsTitle")}
+                  description={t("cookie.analyticsDesc")}
+                  checked={draft.analytics}
+                  onChange={(next) => setDraft((d) => ({ ...d, analytics: next }))}
+                />
+              </div>
+            )}
+
+            {activeTab === "services" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14, fontSize: 13, color: BRAND.text, lineHeight: 1.5 }}>
+                <div>
+                  <strong>{t("cookie.essentialTitle")}</strong>
+                  <div style={{ color: BRAND.textMuted, marginTop: 2 }}>{t("cookie.servicesEssential")}</div>
+                </div>
+                <div>
+                  <strong>{t("cookie.functionalTitle")}</strong>
+                  <div style={{ color: BRAND.textMuted, marginTop: 2 }}>{t("cookie.servicesFunctional")}</div>
+                </div>
+                <div>
+                  <strong>{t("cookie.analyticsTitle")}</strong>
+                  <div style={{ color: BRAND.textMuted, marginTop: 2 }}>{t("cookie.servicesAnalytics")}</div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "about" && (
+              <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6 }}>
+                {t("cookie.aboutBody")}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 20, flexWrap: "wrap" }}>
+              <Btn variant="ghost" size="sm" onClick={handleDeclineAll}>{t("cookie.declineAll")}</Btn>
+              <Btn variant="secondary" size="sm" onClick={handleAcceptAll}>{t("cookie.acceptAll")}</Btn>
+              <Btn variant="primary" size="sm" onClick={handleSavePreferences}>{t("cookie.savePreferences")}</Btn>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+};
+
 // Small header-level component so it can read the language context — the
 // root CariGaji component below is the one that *creates* LanguageProvider,
 // so it can't consume its own provider's value; this child can.
@@ -6066,16 +6297,7 @@ export default function CariGaji() {
                 onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }}
               />
             ) : (
-              <>
-                <Btn
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => openAuthModal("register", "employer")}
-                >
-                  {isMobile ? "Hire" : "Hire workers"}
-                </Btn>
-                <HeaderSignInButton onClick={() => openAuthModal("signin")} />
-              </>
+              <HeaderSignInButton onClick={() => openAuthModal("signin")} />
             )}
           </div>
         </div>
@@ -6115,6 +6337,7 @@ export default function CariGaji() {
         onResetPassword={handleResetPassword}
         onOAuth={handleOAuth}
       />
+      <CookieConsentManager isMobile={isMobile} />
     </div>
     </ToastProvider>
     </LanguageProvider>
