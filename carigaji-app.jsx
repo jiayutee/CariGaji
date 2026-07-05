@@ -3555,7 +3555,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
         {tab === 'chat' && user && (
           <div style={{padding:'0 0 80px'}}>
-            <h2 style={{fontSize:18, fontWeight:700, color:BRAND.text, margin:'16px 0 12px'}}>{t("chat.title")}</h2>
+            <h2 style={{fontSize: isMobile ? 18 : 20, fontWeight:800, color:BRAND.text, margin:'16px 0 12px'}}>{t("chat.title")}</h2>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
                 <div style={{textAlign:'center', color:BRAND.textMuted, marginTop:48}}>
