@@ -2565,7 +2565,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         table: 'messages',
         filter: `shift_id=eq.${activeChatShift.shiftId}`,
       }, payload => {
-        if (active) setChatMessages(prev => [...prev, payload.new]);
+        // De-dupe against the sender's own optimistic insert below.
+        if (active) setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
       })
       .subscribe();
     return () => {
@@ -2578,16 +2579,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (!chatInput.trim() || !activeChatShift || !user) return;
     const content = chatInput.trim();
     setChatInput('');
-    const { error } = await supabase.from('messages').insert({
+    // Insert-then-select so the sender sees their own message immediately,
+    // instead of waiting on the Realtime round-trip (which was the cause of
+    // messages only appearing after a page refresh).
+    const { data, error } = await supabase.from('messages').insert({
       shift_id:     activeChatShift.shiftId,
       sender_id:    user.id,
       recipient_id: activeChatShift.otherUserId,
       content,
-    });
+    }).select('id, sender_id, content, created_at, read_at').single();
     if (error) {
       toast(t('toast.sendFailed') + error.message, 'error');
       setChatInput(content); // restore on failure
+      return;
     }
+    setChatMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
   };
 
   useEffect(() => {
@@ -4186,7 +4192,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         table: 'messages',
         filter: `shift_id=eq.${activeChatShift.shiftId}`,
       }, payload => {
-        if (active) setChatMessages(prev => [...prev, payload.new]);
+        // De-dupe against the sender's own optimistic insert below.
+        if (active) setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
       })
       .subscribe();
     return () => {
@@ -4199,16 +4206,21 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (!chatInput.trim() || !activeChatShift || !user) return;
     const content = chatInput.trim();
     setChatInput('');
-    const { error } = await supabase.from('messages').insert({
+    // Insert-then-select so the sender sees their own message immediately,
+    // instead of waiting on the Realtime round-trip (which was the cause of
+    // messages only appearing after a page refresh).
+    const { data, error } = await supabase.from('messages').insert({
       shift_id:     activeChatShift.shiftId,
       sender_id:    user.id,
       recipient_id: activeChatShift.otherUserId,
       content,
-    });
+    }).select('id, sender_id, content, created_at, read_at').single();
     if (error) {
       toast(t('toast.sendFailed') + error.message, 'error');
       setChatInput(content); // restore on failure
+      return;
     }
+    setChatMessages(prev => prev.some(m => m.id === data.id) ? prev : [...prev, data]);
   };
 
   useEffect(() => {
