@@ -3946,7 +3946,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (shiftIds.length === 0) { setRecentActivity([]); return; }
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, shift_id, worker:profiles(full_name)')
+      .select('id, wage_ask, status, applied_at, shift_id, worker:profiles!applications_worker_id_profiles_fkey(full_name)')
       .in('shift_id', shiftIds)
       .order('applied_at', { ascending: false })
       .then(({ data, error }) => {
@@ -4016,7 +4016,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     let active = true;
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, worker:profiles(full_name, kyc_level, reliability_score, rating)')
+      .select('id, wage_ask, status, applied_at, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -4043,7 +4043,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     let active = true;
     supabase
       .from('applications')
-      .select('shift_id, worker_id, shift:shifts(id, title, start_at), worker:profiles(full_name)')
+      .select('shift_id, worker_id, shift:shifts(id, title, start_at), worker:profiles!applications_worker_id_profiles_fkey(full_name)')
       .eq('status', 'accepted')
       .then(({ data }) => {
         if (!active) return;
