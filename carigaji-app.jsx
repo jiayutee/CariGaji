@@ -911,7 +911,15 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
       });
       listener = ac.addListener("place_changed", () => {
         const place = ac.getPlace();
-        onChange(place.formatted_address || place.name || inputRef.current.value);
+        const name = place.name || "";
+        const address = place.formatted_address || "";
+        // Google's formatted_address often omits the venue name (e.g. "1 Utama
+        // Shopping Centre"), showing only the street address. Prepend the name
+        // so workers see the place, not just an address, on shift listings.
+        const combined = name && address && !address.toLowerCase().startsWith(name.toLowerCase())
+          ? `${name}, ${address}`
+          : (address || name || inputRef.current.value);
+        onChange(combined);
       });
     }).catch(() => {}); // silent fallback to manual typing
     return () => { cancelled = true; if (listener) listener.remove(); };
