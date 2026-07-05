@@ -645,6 +645,20 @@ const validateMalaysianBankAccount = (bankName, accountNumber) => {
 
 const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 
+// Confirm-or-decline window for a shift offer, scaled to how soon the shift
+// starts: >2 days away -> 24h to respond, 1-2 days -> 6h, <1 day -> 2h.
+// Always capped so the window can never extend past the shift's start time
+// (with a 30min safety buffer, floor of 15min so a window is never zero).
+const computeOfferDeadline = (shiftStartAt) => {
+  const now = Date.now();
+  const start = shiftStartAt ? new Date(shiftStartAt).getTime() : now + 999 * 3600000;
+  const hoursUntilShift = (start - now) / 3600000;
+  let windowHours = hoursUntilShift > 48 ? 24 : hoursUntilShift > 24 ? 6 : 2;
+  const cappedByShift = Math.max(0.25, hoursUntilShift - 0.5);
+  windowHours = Math.min(windowHours, cappedByShift);
+  return new Date(now + windowHours * 3600000).toISOString();
+};
+
 const mapVerificationPillColor = (status) => {
   if (status === "verified") return "green";
   if (status === "rejected") return "red";
@@ -2582,7 +2596,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status)')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status)')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -2595,6 +2609,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         wageBid: Number(a.wage_ask ?? 0),
         status: a.status,
         appliedAt: a.applied_at,
+        offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
         shiftId: a.shift_id ?? a.shift?.id ?? null,
         employerId: a.shift?.employer_id ?? null,
@@ -2614,6 +2629,41 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     loadApplications();
     return () => { active = false; };
   }, [user]);
+
+  // Best-effort expiry sweep: flip any of the worker's own offers whose
+  // deadline has passed to 'expired' (permitted by applications_expire_offer).
+  useEffect(() => {
+    const stale = (liveApplications ?? []).filter(a => a.status === 'offered' && a.offerExpiresAt && new Date(a.offerExpiresAt) < new Date());
+    if (stale.length === 0) return;
+    stale.forEach(a => {
+      supabase.from('applications').update({ status: 'expired' }).eq('id', a.id).then(({ error }) => {
+        if (!error) setLiveApplications(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, status: 'expired' } : x));
+      });
+    });
+  }, [liveApplications]);
+
+  const [respondingOffer, setRespondingOffer] = useState(false);
+  // Worker confirms a shift offer -> status becomes 'accepted', which then
+  // unlocks the existing digital-contract signing step (Sign Contract button).
+  const confirmOffer = async (applicationId) => {
+    setRespondingOffer(true);
+    const { error } = await supabase.from('applications').update({ status: 'accepted' }).eq('id', applicationId);
+    setRespondingOffer(false);
+    if (error) { toast('Failed to confirm: ' + error.message, 'error'); return; }
+    toast('Shift confirmed! Sign the contract to finish.', 'success');
+    setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, status: 'accepted' } : a));
+    setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, status: 'accepted' } : prev);
+  };
+  // Worker declines an offer -> employer is notified (via DB trigger) to pick a substitute.
+  const declineOffer = async (applicationId) => {
+    setRespondingOffer(true);
+    const { error } = await supabase.from('applications').update({ status: 'rejected' }).eq('id', applicationId);
+    setRespondingOffer(false);
+    if (error) { toast('Failed to decline: ' + error.message, 'error'); return; }
+    toast('Offer declined.', 'success');
+    setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, status: 'rejected' } : a));
+    setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, status: 'rejected' } : prev);
+  };
 
   // Cancel (withdraw) a pending bid. Matches the RLS policy: worker may
   // update their own application from 'pending' to 'withdrawn' only.
@@ -2800,7 +2850,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // reappear in Discover — they can only place one bid per shift, and the
   // shift already lives in My Bids.
   const appliedShiftIds = useMemo(
-    () => new Set((liveApplications ?? []).filter(a => ['pending', 'shortlisted', 'accepted'].includes(a.status)).map(a => a.shiftId)),
+    () => new Set((liveApplications ?? []).filter(a => ['pending', 'shortlisted', 'offered', 'accepted'].includes(a.status)).map(a => a.shiftId)),
     [liveApplications]
   );
   const filtered = useMemo(() => {
@@ -3298,14 +3348,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       ⏳ Employer decides by {new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   )}
+                  {a.status === "offered" && a.offerExpiresAt && (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.blueLight, fontSize: 11, fontWeight: 600, color: BRAND.blue, marginBottom: 8 }}>
+                      🎉 Respond by {new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 2 }}>{a.shiftTitle}</div>
                       <div style={{ fontSize: 12, color: BRAND.textMuted }}>{a.employer} · {a.date}</div>
                     </div>
                     <Pill
-                      label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "rejected" ? "Not selected" : "Pending"}
-                      color={a.shiftStatus === "cancelled" ? "red" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : "gray"}
+                      label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "offered" ? "Confirm now" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "expired" ? "Offer expired" : a.status === "rejected" ? "Not selected" : "Pending"}
+                      color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
                     />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3356,17 +3411,32 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 ⏳ Employer decides by {new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
               </div>
             )}
+            {a.status === "offered" && a.offerExpiresAt && (
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.blueLight, fontSize: 12, fontWeight: 600, color: BRAND.blue, marginBottom: 10 }}>
+                🎉 Respond by {new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
             <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill
-                label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "rejected" ? "Not selected" : "Pending"}
-                color={a.shiftStatus === "cancelled" ? "red" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : "gray"}
+                label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "offered" ? "Confirm now" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "expired" ? "Offer expired" : a.status === "rejected" ? "Not selected" : "Pending"}
+                color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
               />
               {a.shiftCategory && <Badge color="amber">{a.shiftCategory}</Badge>}
             </div>
             {a.shiftStatus === "cancelled" && (
               <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
                 This shift was cancelled by the employer. No further action is needed.
+              </div>
+            )}
+            {a.status === "offered" && a.shiftStatus !== "cancelled" && (
+              <div style={{ padding: "10px 14px", background: BRAND.blueLight, borderRadius: 10, fontSize: 12, color: BRAND.blue, marginBottom: 16 }}>
+                🎉 You've been selected! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.
+              </div>
+            )}
+            {a.status === "expired" && (
+              <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
+                This offer expired because it wasn't confirmed in time.
               </div>
             )}
             {a.shiftDescription && (
@@ -3406,6 +3476,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               )}
               {a.status === "shortlisted" && a.shiftStatus !== "cancelled" && (
                 <Btn onClick={() => setTab('chat')} style={{ flex: 1, justifyContent: "center" }}>Chat →</Btn>
+              )}
+              {a.status === "offered" && a.shiftStatus !== "cancelled" && (
+                <>
+                  <Btn variant="secondary" disabled={respondingOffer} onClick={() => declineOffer(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.red }}>
+                    {respondingOffer ? "…" : "Decline"}
+                  </Btn>
+                  <Btn variant="success" disabled={respondingOffer} onClick={() => confirmOffer(a.id)} style={{ flex: 1, justifyContent: "center" }}>
+                    {respondingOffer ? "…" : "Confirm Shift"}
+                  </Btn>
+                </>
               )}
               {a.status === "accepted" && !a.workerSignedAt && a.shiftStatus !== "cancelled" && (
                 <Btn onClick={() => setWorkerContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>✍️ Sign Contract</Btn>
@@ -3880,6 +3960,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [cancellingShift, setCancellingShift] = useState(false);
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
   const [applicantAction, setApplicantAction] = useState({});
+  const [selectedApplicantIds, setSelectedApplicantIds] = useState([]);
+  const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [offering, setOffering] = useState(false);
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerProfile, setEmployerProfile] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
@@ -3914,6 +3997,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setLiveEmployerShifts((data ?? []).map(s => ({
         id: s.id,
         title: s.title,
+        startAt: s.start_at,
         date: s.start_at ? new Date(s.start_at).toLocaleDateString('en-MY') : 'TBA',
         time: s.start_at && s.end_at ? `${new Date(s.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${new Date(s.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'TBA',
         headcount: s.headcount ?? 1,
@@ -4016,7 +4100,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     let active = true;
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
+      .select('id, wage_ask, status, applied_at, offer_expires_at, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -4033,10 +4117,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           completedShifts: 0,
           status: a.status,
           appliedAt: a.applied_at,
+          offerExpiresAt: a.offer_expires_at,
         })));
       });
     return () => { active = false; };
   }, [selectedShift]);
+
+  // Best-effort expiry sweep: whenever the applicant pool loads, flip any
+  // offers whose deadline has passed to 'expired' (permitted by the
+  // applications_expire_offer RLS policy). Not a real-time cron — resolves
+  // the next time either side opens the relevant screen.
+  useEffect(() => {
+    const stale = (liveApplicants ?? []).filter(a => a.status === 'offered' && a.offerExpiresAt && new Date(a.offerExpiresAt) < new Date());
+    if (stale.length === 0) return;
+    stale.forEach(a => {
+      supabase.from('applications').update({ status: 'expired' }).eq('id', a.id).then(({ error }) => {
+        if (!error) setLiveApplicants(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, status: 'expired' } : x));
+      });
+    });
+  }, [liveApplicants]);
 
   useEffect(() => {
     if (!user || view !== 'chat') return;
@@ -4240,27 +4339,44 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   ];
 
   const handleApplicantAction = async (id, action) => {
-    if (!['shortlisted', 'accepted', 'rejected'].includes(action)) return;
+    if (!['shortlisted', 'rejected'].includes(action)) return;
     const { error } = await supabase
       .from('applications')
-      .update({ status: action, updated_at: new Date().toISOString(), ...(action === 'accepted' ? { employer_signed_at: new Date().toISOString() } : {}) })
+      .update({ status: action, updated_at: new Date().toISOString() })
       .eq('id', id);
     if (error) { toast(t('toast.updateFailed') + error.message, 'error'); return; }
     setLiveApplicants(prev => prev ? prev.map(a => a.id === id ? { ...a, status: action } : a) : prev);
     setApplicantAction(prev => ({ ...prev, [id]: action }));
-    if (action === 'accepted') {
-      const app = liveApplicants?.find(a => a.id === id);
-      setContractModal({
-        applicationId: id,
-        workerName: app?.name ?? 'Worker',
-        shiftTitle: selectedShift?.title ?? 'Shift',
-        shiftDate: selectedShift?.date ?? '',
-        shiftTime: selectedShift?.time ?? '',
-        wageAsk: app?.wage ?? 0,
-        headcount: selectedShift?.headcount ?? 1,
-        location: selectedShift?.location ?? '',
-      });
+  };
+
+  // Slots still open on this shift = headcount minus already-accepted workers.
+  const openSlotsRemaining = () => {
+    const acceptedCount = (liveApplicants ?? []).filter(a => a.status === 'accepted').length;
+    return Math.max(0, (selectedShift?.headcount ?? 1) - acceptedCount);
+  };
+
+  // Offer the shift to one or more applicants: moves them to 'offered' with a
+  // deadline computed from how soon the shift starts. The worker must confirm
+  // (which then unlocks the existing digital-contract signing step) or
+  // decline within that window; a lazy sweep expires unanswered offers.
+  const makeOffer = async (ids) => {
+    const openSlots = openSlotsRemaining();
+    if (ids.length > openSlots) {
+      toast(`Only ${openSlots} position${openSlots === 1 ? '' : 's'} still open — select ${openSlots} or fewer.`, 'error');
+      return;
     }
+    setOffering(true);
+    const deadline = computeOfferDeadline(selectedShift?.startAt);
+    const { error } = await supabase
+      .from('applications')
+      .update({ status: 'offered', offer_expires_at: deadline, employer_signed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .in('id', ids);
+    setOffering(false);
+    if (error) { toast(t('toast.updateFailed') + error.message, 'error'); return; }
+    setLiveApplicants(prev => (prev ?? []).map(a => ids.includes(a.id) ? { ...a, status: 'offered', offerExpiresAt: deadline } : a));
+    setSelectedApplicantIds([]);
+    setBulkSelectMode(false);
+    toast(ids.length > 1 ? `Offer sent to ${ids.length} workers.` : 'Offer sent — waiting for the worker to confirm.', 'success');
   };
 
   const committedPayoutTotal = employerPayoutItems
@@ -4443,10 +4559,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 4 }}>Applicant pool</div>
-                <div style={{ fontSize: 13, color: BRAND.textMuted }}>Choose from all applied users, even when applications exceed the number of needed workers.</div>
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{openSlotsRemaining()} of {selectedShift.headcount} position{selectedShift.headcount === 1 ? '' : 's'} still open.</div>
               </div>
-              <Badge color="blue">{selectedShift.applicants} applied</Badge>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <Badge color="blue">{selectedShift.applicants} applied</Badge>
+                {openSlotsRemaining() > 0 && (
+                  <Btn size="xs" variant="secondary" onClick={() => { setBulkSelectMode(m => !m); setSelectedApplicantIds([]); }}>
+                    {bulkSelectMode ? 'Cancel' : 'Select multiple'}
+                  </Btn>
+                )}
+              </div>
             </div>
+            {bulkSelectMode && (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BRAND.primaryLight, borderRadius: 10, marginBottom: 12 }}>
+                <span style={{ fontSize: 12, color: BRAND.primary, fontWeight: 600 }}>{selectedApplicantIds.length} / {openSlotsRemaining()} selected</span>
+                <Btn size="xs" disabled={selectedApplicantIds.length === 0 || offering} onClick={() => makeOffer(selectedApplicantIds)}>
+                  {offering ? 'Sending…' : `Offer to ${selectedApplicantIds.length || ''} worker${selectedApplicantIds.length === 1 ? '' : 's'}`}
+                </Btn>
+              </div>
+            )}
             {(liveApplicants ?? []).length === 0 && (
               <EmptyState
                 icon="👥"
@@ -4458,16 +4589,28 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <table style={{ width: "100%", borderCollapse: "collapse", background: BRAND.surface, borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
-                  {["Worker", "KYC", "Reliability", "Rating", "Bid (RM/h)", "Status", "Action"].map(h => (
-                    <th key={h} style={{ padding: "12px 14px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
+                  {[bulkSelectMode ? "" : null, "Worker", "KYC", "Reliability", "Rating", "Bid (RM/h)", "Status", "Action"].filter(h => h !== null).map((h, i) => (
+                    <th key={h || `col${i}`} style={{ padding: "12px 14px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {(liveApplicants ?? []).map(a => {
                   const action = applicantAction[a.id] || a.status;
+                  const isSelectable = ['pending', 'shortlisted'].includes(action);
+                  const isChecked = selectedApplicantIds.includes(a.id);
                   return (
                     <tr key={a.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
+                      {bulkSelectMode && (
+                        <td style={{ padding: "12px 14px" }}>
+                          <input
+                            type="checkbox"
+                            disabled={!isSelectable || (!isChecked && selectedApplicantIds.length >= openSlotsRemaining())}
+                            checked={isChecked}
+                            onChange={e => setSelectedApplicantIds(prev => e.target.checked ? [...prev, a.id] : prev.filter(id => id !== a.id))}
+                          />
+                        </td>
+                      )}
                       <td style={{ padding: "12px 14px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <Avatar name={a.name} size={28} color={BRAND.blue} />
@@ -4486,17 +4629,27 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       </td>
                       <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} size={11} /></td>
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primary, fontSize: 14 }}>RM{a.wageBid}</td>
-                      <td style={{ padding: "12px 14px" }}><Pill label={action} color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "rejected" ? "red" : "gray"} /></td>
                       <td style={{ padding: "12px 14px" }}>
-                        {action !== "accepted" && action !== "rejected" && (
+                        <Pill
+                          label={action === 'offered' ? 'Awaiting response' : action}
+                          color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
+                        />
+                        {action === 'offered' && a.offerExpiresAt && (
+                          <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {new Date(a.offerExpiresAt).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                        )}
+                      </td>
+                      <td style={{ padding: "12px 14px" }}>
+                        {isSelectable && !bulkSelectMode && (
                           <div style={{ display: "flex", gap: 6 }}>
                             {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>Shortlist</Btn>}
-                            <Btn size="xs" variant="success" onClick={() => handleApplicantAction(a.id, "accepted")}>{t("common.accept")}</Btn>
+                            <Btn size="xs" variant="success" disabled={offering || openSlotsRemaining() === 0} onClick={() => makeOffer([a.id])}>Select</Btn>
                             <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
                           </div>
                         )}
-                        {action === "accepted" && <span style={{ fontSize: 12, color: BRAND.green }}>✓ Hired</span>}
-                        {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>✗ Rejected</span>}
+                        {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>⏳ Waiting on worker</span>}
+                        {action === "accepted" && <span style={{ fontSize: 12, color: BRAND.green }}>✓ Confirmed</span>}
+                        {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>✗ Not selected</span>}
+                        {action === "expired" && <span style={{ fontSize: 12, color: BRAND.red }}>⏱ Offer expired</span>}
                       </td>
                     </tr>
                   );
