@@ -5919,6 +5919,13 @@ export default function CariGaji() {
           background: BRAND.panel,
           backdropFilter: "blur(16px)",
           flexShrink: 0,
+          // backdropFilter creates its own stacking context, which traps the
+          // NotificationBell dropdown's z-index inside the header — without
+          // an explicit position + z-index here, the desktop top nav bar
+          // (WorkerPortal, z-index 20, a sibling stacking context) always
+          // paints on top of it, partially covering the dropdown.
+          position: "relative",
+          zIndex: 30,
         }}>
           <button
             onClick={() => { setPortal("worker"); setHomeSignal(s => s + 1); }}
