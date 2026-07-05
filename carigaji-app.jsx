@@ -1084,9 +1084,23 @@ const SkeletonRow = memo(({ height = 64 }) => (
   }} />
 ));
 
+const HELP_FAQS = [
+  { q: "How does CariGaji work?", a: "Employers post short shifts with a wage range. Workers browse open shifts and place a bid within the allowed range. If the employer accepts your bid, you both sign a contract in-app and the shift is confirmed." },
+  { q: "How do I get paid?", a: "Employers commit funds for accepted workers before the shift starts. After the shift is completed, payment is released to your registered bank account — check the Earnings tab for your payout history." },
+  { q: "What are the KYC levels?", a: "Basic: email verified only. Standard: ID document uploaded. Advanced: ID + selfie + supporting document verified. Higher KYC levels unlock higher-paying shifts and build trust with employers." },
+  { q: "Why can't I see the exact shift location?", a: "Some employers reveal the exact address only to accepted workers, showing just the city/region publicly for safety. Once you're accepted, the full address appears on the shift details page." },
+  { q: "What if something goes wrong during a shift?", a: "Contact customer support using the option in this menu and our team will help resolve the issue directly." },
+];
+
+const openMailtoSupport = () => {
+  window.location.href = "mailto:support@carigaji.com?subject=CariGaji%20Support%20Request";
+};
+
 const ProfileMenu = ({ user, onSignOut }) => {
   const toast = useToast();
   const [open, setOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -1101,10 +1115,25 @@ const ProfileMenu = ({ user, onSignOut }) => {
   const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Account";
   const avatarUrl = getAvatarUrl(user.user_metadata?.avatar_url);
 
+  const shareReferralLink = async () => {
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "https://jiayutee.github.io/CariGaji/";
+    const shareText = "Find or post flexible shift work in Malaysia with CariGaji:";
+    if (navigator.share) {
+      try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
+      return;
+    }
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      toast("Invite link copied! Share it with friends.", "success");
+      return;
+    }
+    toast(shareUrl, "info", 8000);
+  };
+
   const items = [
-    { label: "Help", icon: "❓", onClick: () => toast("Help centre is coming soon.", "info") },
-    { label: "Contact customer support", icon: "💬", onClick: () => toast("Support: support@carigaji.com", "info", 6000) },
-    { label: "Refer friends", icon: "🎁", onClick: () => toast("Referral programme launching soon.", "info") },
+    { label: "Help", icon: "❓", onClick: () => setHelpOpen(true) },
+    { label: "Contact customer support", icon: "💬", onClick: openMailtoSupport },
+    { label: "Refer friends", icon: "🎁", onClick: shareReferralLink },
     { label: "Sign out", icon: "↩️", danger: true, onClick: onSignOut },
   ];
 
@@ -1153,6 +1182,31 @@ const ProfileMenu = ({ user, onSignOut }) => {
               <span>{it.label}</span>
             </button>
           ))}
+        </div>
+      )}
+      {helpOpen && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setHelpOpen(false)}>
+          <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ Help Centre</h3>
+              <button onClick={() => setHelpOpen(false)} aria-label="Close" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+            </div>
+            {HELP_FAQS.map((faq, i) => (
+              <div key={faq.q} style={{ borderBottom: `1px solid ${BRAND.border}`, padding: "10px 0" }}>
+                <button onClick={() => setOpenFaq((o) => (o === i ? null : i))} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, fontSize: 13, fontWeight: 600, color: BRAND.text }}>
+                  <span>{faq.q}</span>
+                  <span aria-hidden="true">{openFaq === i ? "−" : "+"}</span>
+                </button>
+                {openFaq === i && <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.6 }}>{faq.a}</div>}
+              </div>
+            ))}
+            <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
+              Still need help?{" "}
+              <button onClick={() => { setHelpOpen(false); openMailtoSupport(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
+                Contact support
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
