@@ -1,21 +1,25 @@
 // Supabase Edge Function: sends a real email via Resend whenever a row is
-// inserted into public.notifications. Wire it up with a Database Webhook
-// (Dashboard -> Database -> Webhooks -> Create) on notifications INSERT
-// pointing at this function's URL. See the setup notes at the bottom.
+// inserted into public.notifications. Invoked directly by a Postgres
+// trigger (via pg_net) rather than the Dashboard Webhooks UI — see
+// supabase/migrations/20260705b_notification_email_trigger.sql. Deployed
+// with --no-verify-jwt since pg_net calls aren't a normal user session；
+// a shared secret header replaces JWT auth for this internal-only endpoint.
 //
-// Required secrets (Dashboard -> Edge Functions -> send-notification-email
-// -> Secrets, or `supabase secrets set`):
-//   RESEND_API_KEY        - from resend.com (free tier: 3,000 emails/month)
-//   SUPABASE_URL          - already available by default in Edge Functions
-//   SUPABASE_SERVICE_ROLE_KEY - already available by default
-//   EMAIL_FROM            - e.g. "CariGaji <notifications@yourdomain.com>"
-//                            (Resend requires a verified sending domain;
-//                            for testing you can use their shared
-//                            "onboarding@resend.dev" sender)
+// Required secrets (`supabase secrets set NAME=value`):
+//   RESEND_API_KEY   - from resend.com (free tier: 3,000 emails/month)
+//   WEBHOOK_SECRET    - any random string; must match the one stored in
+//                       Supabase Vault as 'webhook_secret' (set once via
+//                       SQL Editor, see the migration file)
+//   EMAIL_FROM        - e.g. "CariGaji <notifications@yourdomain.com>"
+//                       (Resend requires a verified sending domain; for
+//                       testing use the shared "onboarding@resend.dev")
+// Auto-provided by the platform, no action needed:
+//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
+const WEBHOOK_SECRET = Deno.env.get("WEBHOOK_SECRET")!;
 const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || "CariGaji <onboarding@resend.dev>";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -36,8 +40,15 @@ const SUBJECTS: Record<string, string> = {
 
 Deno.serve(async (req) => {
   try {
+    // Shared-secret check in place of JWT auth (this function is deployed
+    // with --no-verify-jwt so pg_net, which has no user session, can call it).
+    const incomingSecret = req.headers.get("x-webhook-secret");
+    if (!WEBHOOK_SECRET || incomingSecret !== WEBHOOK_SECRET) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+    }
+
     const payload = await req.json();
-    // Database Webhook payload shape: { type: "INSERT", table, record, ... }
+    // Trigger payload shape: { record: {...new notification row...} }
     const record = payload.record ?? payload;
     const { user_id, type, title, body } = record;
 
@@ -86,15 +97,19 @@ Deno.serve(async (req) => {
 });
 
 /*
- * SETUP (one-time, owner action):
+ * SETUP (one-time, owner action) — see supabase/migrations/20260705b_notification_email_trigger.sql
+ * for the pg_net trigger that calls this function (no Dashboard Webhooks UI needed):
  * 1. Create a free account at https://resend.com and grab an API key.
- * 2. supabase login                      (if not already linked)
- * 3. supabase link --project-ref <your-project-ref>
- * 4. supabase secrets set RESEND_API_KEY=re_xxx
- * 5. supabase functions deploy send-notification-email
- * 6. Supabase Dashboard -> Database -> Webhooks -> Create a new webhook
- *      Table: notifications | Events: INSERT
- *      Type: Supabase Edge Functions | Function: send-notification-email
+ * 2. Pick any random string as your webhook secret, e.g. generate one with:
+ *      openssl rand -hex 32
+ * 3. supabase secrets set RESEND_API_KEY=re_xxx
+ *    supabase secrets set WEBHOOK_SECRET=<the random string from step 2>
+ * 4. supabase functions deploy send-notification-email --no-verify-jwt
+ * 5. In Supabase SQL Editor, store that SAME random string in Vault (never
+ *    commit this command to git — run it directly in the dashboard):
+ *      select vault.create_secret('<the random string from step 2>', 'webhook_secret');
+ * 6. Run supabase/migrations/20260705b_notification_email_trigger.sql — it
+ *    creates the trigger that calls this function on every new notification.
  * 7. (Optional but recommended) verify your own sending domain in Resend
  *    and set EMAIL_FROM to an address on it, instead of the shared
  *    onboarding@resend.dev sender, which has stricter rate limits.
