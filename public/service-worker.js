@@ -1,4 +1,4 @@
-const CACHE_NAME = "carigaji-cache-v1";
+const CACHE_NAME = "carigaji-cache-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
