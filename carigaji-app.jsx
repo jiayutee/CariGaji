@@ -4,6 +4,11 @@ import { supabase } from "./src/lib/supabase.js";
 import { runInternalPayoutScheduling } from "./src/lib/payouts/scheduler.js";
 import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTheme, readThemePreference, resolveThemeMode, writeThemePreference } from "./src/lib/theme.js";
 
+// ─── Shift categories ────────────────────────────────────────────────────────
+// Kept in sync with the shifts_category_check DB constraint (see
+// supabase/migrations/20260705g_widen_shift_categories.sql).
+const SHIFT_CATEGORIES = ["F&B", "Retail", "Event", "Promotion", "Warehouse", "Office", "Security", "Production", "Market Research", "Student", "Logistics", "Other"];
+
 // ─── Design tokens ─────────────────────────────────────────────────────────
 const BRAND = {
   primary: "#2563EB",
@@ -2890,7 +2895,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setBankingMessage("SecureSign verification completed.");
   };
 
-  const cats = ["All", "F&B", "Retail", "Event", "Logistics"];
+  const cats = ["All", ...SHIFT_CATEGORIES];
   const shiftsSource = liveShifts ?? [];
   // Shifts the worker has an active (still-pending-decision) bid on should not
   // reappear in Discover — they can only place one bid per shift, and the
@@ -3262,11 +3267,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff'}}>
                         <option value="All">All types</option>
-                        <option value="F&B">F&B</option>
-                        <option value="Retail">Retail</option>
-                        <option value="Event">Event</option>
-                        <option value="Logistics">Logistics</option>
-                        <option value="Other">Other</option>
+                        {SHIFT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>
@@ -4761,7 +4762,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", height: 80, resize: "none", boxSizing: "border-box" }}
                     />
                   </div>
-                  <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={["F&B", "Retail", "Event", "Logistics", "Other"].map(v => ({ value: v, label: v }))} />
+                  <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: v }))} />
                   <LocationAutocomplete label="Location" value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
                   <div style={{marginTop:8, marginBottom:16}}>
                     <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>Address visibility</div>
@@ -5634,9 +5635,10 @@ export default function CariGaji() {
   });
   const [viewport, setViewport] = useState({ width: typeof window !== "undefined" ? window.innerWidth : 0, height: typeof window !== "undefined" ? window.innerHeight : 0 });
 
-  const openAuthModal = (view = "signin") => {
+  const openAuthModal = (view = "signin", accountRole = null) => {
     setAuthView(view);
     setAuthMessage("");
+    if (accountRole) setAuthForm(prev => ({ ...prev, accountRole }));
     setAuthOpen(true);
   };
 
@@ -5990,7 +5992,16 @@ export default function CariGaji() {
                 onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }}
               />
             ) : (
-              <HeaderSignInButton onClick={() => openAuthModal("signin")} />
+              <>
+                <Btn
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => openAuthModal("register", "employer")}
+                >
+                  {isMobile ? "Hire" : "Hire workers"}
+                </Btn>
+                <HeaderSignInButton onClick={() => openAuthModal("signin")} />
+              </>
             )}
           </div>
         </div>
