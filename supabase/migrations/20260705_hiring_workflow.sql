@@ -15,11 +15,11 @@
 --   pending/shortlisted -> rejected (marked "not selected" once the shift
 --     is fully staffed, or manually rejected by employer)
 
--- ── applications: widen status + add offer deadline ─────────────────────────
-alter table public.applications drop constraint if exists applications_status_check;
-alter table public.applications
-  add constraint applications_status_check
-  check (status in ('pending','shortlisted','offered','accepted','rejected','withdrawn','expired'));
+-- ── applications: status values + offer deadline ────────────────────────────
+-- NOTE: applications.status is a native Postgres enum (application_status),
+-- not text+check. The 'offered'/'expired' values must already be added via
+-- supabase/migrations/20260705d_widen_application_status_enum.sql — RUN THAT
+-- FILE FIRST, in its own separate execution, before this one.
 
 alter table public.applications
   add column if not exists offer_expires_at timestamptz;
