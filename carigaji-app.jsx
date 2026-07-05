@@ -3555,10 +3555,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
         {tab === 'chat' && user && (
           <div style={{padding:'0 0 80px'}}>
-            <h2 style={{fontSize:18, fontWeight:700, color:'#1e293b', margin:'16px 0 12px'}}>{t("chat.title")}</h2>
+            <h2 style={{fontSize:18, fontWeight:700, color:BRAND.text, margin:'16px 0 12px'}}>{t("chat.title")}</h2>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
-                <div style={{textAlign:'center', color:'#94a3b8', marginTop:48}}>
+                <div style={{textAlign:'center', color:BRAND.textMuted, marginTop:48}}>
                   <div style={{fontSize:40}}>💬</div>
                   <div style={{marginTop:8}}>{t("chat.emptyTitleWorker")}</div>
                   <div style={{fontSize:12, marginTop:4}}>{t("chat.emptyHintWorker")}</div>
@@ -3566,13 +3566,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               ) : (
                 chatConversations.map(conv => (
                   <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
-                    style={{padding:14, background:'#fff', borderRadius:10, border:'1px solid #e2e8f0',
+                    style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                     <div>
-                      <div style={{fontWeight:600, color:'#1e293b'}}>{conv.title}</div>
-                      <div style={{fontSize:12, color:'#64748b'}}>{conv.date} · {conv.otherUserLabel}</div>
+                      <div style={{fontWeight:600, color:BRAND.text}}>{conv.title}</div>
+                      <div style={{fontSize:12, color:BRAND.textMuted}}>{conv.date} · {conv.otherUserLabel}</div>
                     </div>
-                    <span style={{color:'#94a3b8'}}>›</span>
+                    <span style={{color:BRAND.textMuted}}>›</span>
                   </div>
                 ))
               )
@@ -3582,21 +3582,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
                   <div>
-                    <div style={{fontWeight:600, color:'#1e293b'}}>{activeChatShift.title}</div>
-                    <div style={{fontSize:12, color:'#64748b'}}>{activeChatShift.otherUserLabel}</div>
+                    <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
+                    <div style={{fontSize:12, color:BRAND.textMuted}}>{activeChatShift.otherUserLabel}</div>
                   </div>
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
-                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>{t("chat.loading")}</div>}
+                  {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
                   {chatMessages.map(msg => {
                     const isMe = msg.sender_id === user.id;
                     return (
                       <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
-                        <div style={{fontSize:11, fontWeight:600, color:'#64748b', margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
+                        <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
                           {isMe ? 'You' : activeChatShift.otherUserLabel}
                         </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                          background: isMe ? '#2563EB' : '#f1f5f9', color: isMe ? '#fff' : '#1e293b', fontSize:14}}>
+                          background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
                           <div>{msg.content}</div>
                           <div style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
                             {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
@@ -3606,12 +3606,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     );
                   })}
                 </div>
-                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:'1px solid #e2e8f0'}}>
+                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:`1px solid ${BRAND.border}`}}>
                   <input
                     value={chatInput} onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                     placeholder={t("chat.inputPlaceholder")}
-                    style={{flex:1, padding:'10px 12px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:14}}
+                    style={{flex:1, padding:'10px 12px', borderRadius:8, border:`1px solid ${BRAND.border}`, fontSize:14, background:BRAND.input, color:BRAND.text}}
                   />
                   <button onClick={sendMessage}
                     style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
@@ -5035,7 +5035,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16 }}>{t("chat.employerSubtitle")}</div>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
-                <div style={{textAlign:'center', color:'#94a3b8', marginTop:48}}>
+                <div style={{textAlign:'center', color:BRAND.textMuted, marginTop:48}}>
                   <div style={{fontSize:40}}>💬</div>
                   <div style={{marginTop:8}}>{t("chat.emptyTitleEmployer")}</div>
                   <div style={{fontSize:12, marginTop:4}}>{t("chat.emptyHintEmployer")}</div>
@@ -5043,13 +5043,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               ) : (
                 chatConversations.map(conv => (
                   <div key={conv.shiftId + conv.workerId} onClick={() => setActiveChatShift(conv)}
-                    style={{padding:14, background:'#fff', borderRadius:10, border:'1px solid #e2e8f0',
+                    style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                     <div>
-                      <div style={{fontWeight:600, color:'#1e293b'}}>{conv.title}</div>
-                      <div style={{fontSize:12, color:'#64748b'}}>{conv.date} · {conv.otherUserLabel}</div>
+                      <div style={{fontWeight:600, color:BRAND.text}}>{conv.title}</div>
+                      <div style={{fontSize:12, color:BRAND.textMuted}}>{conv.date} · {conv.otherUserLabel}</div>
                     </div>
-                    <span style={{color:'#94a3b8'}}>›</span>
+                    <span style={{color:BRAND.textMuted}}>›</span>
                   </div>
                 ))
               )
@@ -5059,21 +5059,21 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
                   <div>
-                    <div style={{fontWeight:600, color:'#1e293b'}}>{activeChatShift.title}</div>
-                    <div style={{fontSize:12, color:'#64748b'}}>{activeChatShift.otherUserLabel}</div>
+                    <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
+                    <div style={{fontSize:12, color:BRAND.textMuted}}>{activeChatShift.otherUserLabel}</div>
                   </div>
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
-                  {chatLoading && <div style={{textAlign:'center', color:'#94a3b8', padding:16}}>{t("chat.loading")}</div>}
+                  {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
                   {chatMessages.map(msg => {
                     const isMe = msg.sender_id === user?.id;
                     return (
                       <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
-                        <div style={{fontSize:11, fontWeight:600, color:'#64748b', margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
+                        <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
                           {isMe ? 'You' : activeChatShift.otherUserLabel}
                         </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                          background: isMe ? '#2563EB' : '#f1f5f9', color: isMe ? '#fff' : '#1e293b', fontSize:14}}>
+                          background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
                           <div>{msg.content}</div>
                           <div style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
                             {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
@@ -5083,12 +5083,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     );
                   })}
                 </div>
-                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:'1px solid #e2e8f0'}}>
+                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:`1px solid ${BRAND.border}`}}>
                   <input
                     value={chatInput} onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                     placeholder={t("chat.inputPlaceholder")}
-                    style={{flex:1, padding:'10px 12px', borderRadius:8, border:'1px solid #e2e8f0', fontSize:14}}
+                    style={{flex:1, padding:'10px 12px', borderRadius:8, border:`1px solid ${BRAND.border}`, fontSize:14, background:BRAND.input, color:BRAND.text}}
                   />
                   <button onClick={sendMessage}
                     style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
