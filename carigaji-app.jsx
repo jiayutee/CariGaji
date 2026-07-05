@@ -1242,6 +1242,7 @@ const notificationTimeAgo = (iso) => {
 const NotificationBell = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
+  const [panelPos, setPanelPos] = useState(null); // { top, left } in viewport coords
   const ref = useRef(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -1253,6 +1254,25 @@ const NotificationBell = ({ user }) => {
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  // The panel used to be position:absolute anchored to this tiny 36px bell
+  // wrapper with right:0 — on narrow phones the bell isn't flush with the
+  // screen edge (the account menu sits to its right), so the panel's fixed
+  // 320px width overflowed off the left edge of the viewport. Position it
+  // with fixed viewport coordinates instead, clamped to stay fully on-screen.
+  useEffect(() => {
+    if (!open || !ref.current) return undefined;
+    const panelWidth = Math.min(320, window.innerWidth - 32);
+    const computePosition = () => {
+      const rect = ref.current.getBoundingClientRect();
+      const desiredLeft = rect.right - panelWidth;
+      const clampedLeft = Math.min(Math.max(16, desiredLeft), window.innerWidth - panelWidth - 16);
+      setPanelPos({ top: rect.bottom + 8, left: clampedLeft, width: panelWidth });
+    };
+    computePosition();
+    window.addEventListener("resize", computePosition);
+    return () => window.removeEventListener("resize", computePosition);
   }, [open]);
 
   useEffect(() => {
@@ -1321,10 +1341,10 @@ const NotificationBell = ({ user }) => {
           </span>
         )}
       </button>
-      {open && (
+      {open && panelPos && (
         <div role="menu" style={{
-          position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 400,
-          width: 320, maxWidth: "90vw", background: BRAND.surface, border: `1px solid ${BRAND.border}`,
+          position: "fixed", top: panelPos.top, left: panelPos.left, zIndex: 400,
+          width: panelPos.width, background: BRAND.surface, border: `1px solid ${BRAND.border}`,
           borderRadius: 12, boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
         }}>
           <div style={{
