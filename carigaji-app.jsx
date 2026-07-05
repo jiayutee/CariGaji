@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext, memo } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "./src/lib/supabase.js";
 import { runInternalPayoutScheduling } from "./src/lib/payouts/scheduler.js";
 import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTheme, readThemePreference, resolveThemeMode, writeThemePreference } from "./src/lib/theme.js";
@@ -1198,7 +1199,11 @@ const ProfileMenu = ({ user, onSignOut }) => {
           ))}
         </div>
       )}
-      {helpOpen && (
+      {helpOpen && createPortal(
+        // Rendered via portal into document.body: the header this menu lives in
+        // has backdropFilter, which creates a containing block for position:fixed
+        // descendants — without escaping it, this overlay was sized/clipped to the
+        // header's own box instead of the viewport.
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setHelpOpen(false)}>
           <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -1220,8 +1225,12 @@ const ProfileMenu = ({ user, onSignOut }) => {
                 Contact support
               </button>
             </div>
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+              <Btn size="sm" variant="secondary" onClick={() => setHelpOpen(false)}>Close</Btn>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
