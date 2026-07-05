@@ -2600,7 +2600,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
-      if (error) { setLiveApplications(null); return; }
+      // Fall back to an empty (not null) list on error, so a real query
+      // failure shows "No bids yet" rather than an infinite "Loading…" —
+      // `null` is reserved for the genuine initial-load state.
+      if (error) { console.error('loadApplications failed:', error.message); setLiveApplications([]); return; }
       setLiveApplications((data ?? []).map(a => ({
         id: a.id,
         shiftTitle: a.shift?.title ?? 'Shift',
@@ -3993,7 +3996,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         .eq('employer_id', user.id)
         .order('start_at', { ascending: false });
       if (!active) return;
-      if (error) { setLiveEmployerShifts(null); return; }
+      // Same fix as the worker My Bids loader: empty (not null) on error so
+      // a real failure shows "No shifts posted yet" rather than spinning
+      // forever on "Loading shifts…".
+      if (error) { console.error('liveEmployerShifts load failed:', error.message); setLiveEmployerShifts([]); return; }
       setLiveEmployerShifts((data ?? []).map(s => ({
         id: s.id,
         title: s.title,
@@ -5758,12 +5764,30 @@ export default function CariGaji() {
 
   useEffect(() => {
     const handleResize = () => {
-      setViewport({ width: window.innerWidth, height: window.innerHeight });
+      // Prefer visualViewport when available: in an installed iOS standalone
+      // PWA, dismissing the on-screen keyboard (e.g. right after login)
+      // does not reliably fire a plain `window` resize event, and 100dvh
+      // has a known WebKit bug where it stays pinned to the keyboard-open
+      // height afterwards — leaving the bottom nav pushed off-screen until
+      // something else forces a relayout (hence "restart the app" fixing it).
+      const vv = window.visualViewport;
+      setViewport({
+        width: vv ? vv.width : window.innerWidth,
+        height: vv ? vv.height : window.innerHeight,
+      });
     };
 
     handleResize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize);
+    }
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize);
+      }
+    };
   }, []);
 
   const isMobile = viewport.width < 768;
@@ -5810,9 +5834,14 @@ export default function CariGaji() {
       // Use dynamic viewport height so the shell exactly fills the visible
       // area on mobile. Mixing minHeight:100vh here made the container taller
       // than the screen (100vh counts space behind the browser/system bars),
-      // pushing the sticky bottom nav below the fold.
-      height: "100dvh",
-      minHeight: "100dvh",
+      // pushing the sticky bottom nav below the fold. On mobile we pin to the
+      // JS-measured visualViewport height instead of trusting 100dvh alone —
+      // installed iOS standalone PWAs have a WebKit bug where 100dvh can get
+      // stuck at the on-screen-keyboard-open height after the keyboard closes
+      // (e.g. right after a login form submit), leaving the bottom nav
+      // pushed off-screen until the app is force-restarted.
+      height: isMobile && viewport.height ? `${viewport.height}px` : "100dvh",
+      minHeight: isMobile && viewport.height ? `${viewport.height}px` : "100dvh",
       width: "100%",
       ...themeVars,
       background: isMobile
@@ -5827,7 +5856,7 @@ export default function CariGaji() {
       <div style={{
         width: "100%",
         height: "100%",
-        minHeight: "100dvh",
+        minHeight: isMobile && viewport.height ? `${viewport.height}px` : "100dvh",
         background: isMobile ? BRAND.surface : BRAND.panel,
         borderRadius: 0,
         overflow: "hidden",
