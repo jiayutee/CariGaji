@@ -79,6 +79,15 @@ export const applyThemeToDocument = (resolvedTheme) => {
   document.documentElement.dataset.theme = resolvedTheme;
   document.documentElement.style.colorScheme = resolvedTheme;
   document.documentElement.style.background = palette.page;
+  // Mirror the --cg-* custom properties onto the document root too, not just
+  // the app shell div (buildThemeVars). BRAND.* reads these vars, so content
+  // rendered via createPortal(..., document.body) — e.g. modals that need to
+  // escape a backdrop-filter containing block — would otherwise sit outside
+  // the shell's scope and resolve to transparent/unstyled.
+  const themeVars = buildThemeVars(resolvedTheme);
+  Object.entries(themeVars).forEach(([key, value]) => {
+    if (key.startsWith("--")) document.documentElement.style.setProperty(key, value);
+  });
   if (document.body) {
     document.body.style.background = palette.page;
     document.body.style.color = palette.text;
