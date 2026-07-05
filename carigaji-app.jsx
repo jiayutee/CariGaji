@@ -275,6 +275,27 @@ const TRANSLATIONS = {
     "settings.status": "Status",
     "settings.saveBanking": "Save banking",
     "settings.verifySecureSign": "Verify via SecureSign (Demo)",
+    "cookie.bannerTitle": "We use cookies",
+    "cookie.bannerBody": "We use essential cookies to keep you signed in, plus optional cookies to remember your preferences. Choose what you're comfortable with — you can change this anytime.",
+    "cookie.acceptAll": "Accept All",
+    "cookie.declineAll": "Decline All",
+    "cookie.configure": "Configure",
+    "cookie.reopen": "Cookie preferences",
+    "cookie.panelTitle": "Cookie Preferences",
+    "cookie.tab.categories": "Categories",
+    "cookie.tab.services": "Services",
+    "cookie.tab.about": "About",
+    "cookie.essentialTitle": "Essential",
+    "cookie.essentialDesc": "Required to keep you signed in and the app working. Always on.",
+    "cookie.functionalTitle": "Functional",
+    "cookie.functionalDesc": "Remembers your language and display theme so you don't have to reset them each visit.",
+    "cookie.analyticsTitle": "Analytics & Marketing",
+    "cookie.analyticsDesc": "Would help us understand usage and improve the app. Not currently active — off by default.",
+    "cookie.servicesEssential": "Keeps you signed in via your Supabase authentication session, and stores basic session state needed for the app to function. These can't be switched off.",
+    "cookie.servicesFunctional": "Stores your language choice (English/Bahasa Melayu, key \"carigaji_lang\") and your light/dark theme preference in your browser's local storage.",
+    "cookie.servicesAnalytics": "No analytics or marketing tools are currently active in CariGaji. This category is reserved for future use (e.g. usage analytics) and will stay off until we actually add one — turning it on today has no effect.",
+    "cookie.aboutBody": "CariGaji uses browser local storage — not third-party tracking cookies — to keep you signed in and to remember your preferences on this device. We don't use this data for tracking, and nothing here is shared with advertisers. See our Privacy Policy for the full details on what we collect and why, and our Terms of Service for how the platform works.",
+    "cookie.savePreferences": "Save Preferences",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -509,6 +530,27 @@ const TRANSLATIONS = {
     "settings.status": "Status",
     "settings.saveBanking": "Simpan perbankan",
     "settings.verifySecureSign": "Sahkan melalui SecureSign (Demo)",
+    "cookie.bannerTitle": "Kami menggunakan kuki",
+    "cookie.bannerBody": "Kami menggunakan kuki penting untuk mengekalkan sesi log masuk anda, serta kuki pilihan untuk mengingati keutamaan anda. Pilih apa yang anda selesa dengan — anda boleh menukarnya bila-bila masa.",
+    "cookie.acceptAll": "Terima Semua",
+    "cookie.declineAll": "Tolak Semua",
+    "cookie.configure": "Konfigurasi",
+    "cookie.reopen": "Keutamaan kuki",
+    "cookie.panelTitle": "Keutamaan Kuki",
+    "cookie.tab.categories": "Kategori",
+    "cookie.tab.services": "Perkhidmatan",
+    "cookie.tab.about": "Tentang",
+    "cookie.essentialTitle": "Penting",
+    "cookie.essentialDesc": "Diperlukan untuk mengekalkan sesi log masuk anda dan memastikan aplikasi berfungsi. Sentiasa aktif.",
+    "cookie.functionalTitle": "Fungsian",
+    "cookie.functionalDesc": "Mengingati bahasa dan tema paparan anda supaya anda tidak perlu menetapkannya semula setiap kali melawat.",
+    "cookie.analyticsTitle": "Analitik & Pemasaran",
+    "cookie.analyticsDesc": "Akan membantu kami memahami penggunaan dan menambah baik aplikasi. Belum aktif — dimatikan secara lalai.",
+    "cookie.servicesEssential": "Mengekalkan log masuk anda melalui sesi pengesahan Supabase, dan menyimpan status sesi asas yang diperlukan untuk aplikasi berfungsi. Ini tidak boleh dimatikan.",
+    "cookie.servicesFunctional": "Menyimpan pilihan bahasa anda (Bahasa Inggeris/Bahasa Melayu, kunci \"carigaji_lang\") dan keutamaan tema terang/gelap anda dalam storan tempatan pelayar anda.",
+    "cookie.servicesAnalytics": "Tiada alat analitik atau pemasaran aktif buat masa ini dalam CariGaji. Kategori ini disediakan untuk kegunaan masa hadapan (contohnya analitik penggunaan) dan akan kekal dimatikan sehingga kami benar-benar menambahnya — mengaktifkannya hari ini tidak memberi apa-apa kesan.",
+    "cookie.aboutBody": "CariGaji menggunakan storan tempatan pelayar — bukan kuki penjejakan pihak ketiga — untuk mengekalkan log masuk anda dan mengingati keutamaan anda pada peranti ini. Kami tidak menggunakan data ini untuk penjejakan, dan tiada apa-apa di sini dikongsi dengan pengiklan. Lihat Dasar Privasi kami untuk butiran penuh tentang apa yang kami kumpul dan sebabnya, serta Terma Perkhidmatan kami untuk cara platform ini berfungsi.",
+    "cookie.savePreferences": "Simpan Keutamaan",
   },
 };
 
@@ -706,6 +748,33 @@ const LanguageProvider = ({ children }) => {
   const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+};
+
+// ─── Cookie consent ─────────────────────────────────────────────────────────
+// GDPR/PDPA-style consent: essential storage (Supabase auth session) is
+// always on and can't be switched off; functional (language + theme
+// preference) and analytics/marketing (reserved — no tracker is wired up
+// anywhere in this app yet) are user-controlled. Persisted the same way as
+// LANGUAGE_STORAGE_KEY above, via a single JSON blob.
+const COOKIE_CONSENT_STORAGE_KEY = "carigaji_cookie_consent";
+const COOKIE_CONSENT_VERSION = 1;
+
+const readCookieConsent = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writeCookieConsent = (decision) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(decision));
 };
 
 // ─── Toast system ───────────────────────────────────────────────────────────
@@ -2313,11 +2382,16 @@ const AuthModal = ({
                     <label key={opt.value} style={{
                       display: "block", padding: "10px 12px", borderRadius: 10, cursor: "pointer",
                       border: `1.5px solid ${form.accountRole === opt.value ? BRAND.primary : BRAND.border}`,
-                      background: form.accountRole === opt.value ? BRAND.primaryLight : BRAND.surface,
+                      // A pale, hardcoded-light background (BRAND.primaryLight) with
+                      // BRAND.text was unreadable in dark mode (light text on a pale
+                      // band that reads as near-white in both themes). Use a solid
+                      // primary fill + white text when selected instead, same fix as
+                      // the wage-rate picker's earlier contrast bug.
+                      background: form.accountRole === opt.value ? BRAND.primary : BRAND.surface,
                     }}>
                       <input type="radio" name="accountRole" value={opt.value} checked={form.accountRole === opt.value} onChange={() => onChange("accountRole", opt.value)} style={{ marginRight: 6 }} />
-                      <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{opt.title}</span>
-                      <div style={{ fontSize: 11, color: BRAND.textMuted, marginLeft: 20 }}>{opt.hint}</div>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: form.accountRole === opt.value ? "#fff" : BRAND.text }}>{opt.title}</span>
+                      <div style={{ fontSize: 11, color: form.accountRole === opt.value ? "rgba(255,255,255,0.85)" : BRAND.textMuted, marginLeft: 20 }}>{opt.hint}</div>
                     </label>
                   ))}
                 </div>
