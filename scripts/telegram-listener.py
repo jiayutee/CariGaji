@@ -45,7 +45,10 @@ CLAUDE_TIMEOUT = 300 # max seconds to wait for Claude response
 API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 # ── Instant-reply commands (no Claude call needed) ────────────────────────────
-STATE_FILE = PROJECT_DIR / "scripts" / "state.txt"
+# This must match orchestrator-runner.sh's STATE_FILE — it lives outside the
+# project dir, NOT at scripts/state.txt (that path was a bug: pause/resume
+# commands were writing to a file the orchestrator never reads).
+STATE_FILE = Path.home() / ".claude" / "scheduled-tasks" / "carigaji-orchestrator" / "state.txt"
 
 INSTANT_HELP = """🤖 *CariGaji Bot commands:*
 
