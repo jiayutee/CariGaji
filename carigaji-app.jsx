@@ -71,7 +71,7 @@ const TRANSLATIONS = {
     "toast.signFailed": "Failed to sign: ",
     "toast.contractSigned": "✅ Contract signed! You can now chat with your employer.",
     "toast.updateFailed": "Update failed: ",
-    "toast.escrowTopupUnavailable": "Escrow top-up isn’t available yet — coming with FPX/DuitNow integration.",
+    "toast.escrowTopupUnavailable": "Adding funds isn’t available yet — coming with FPX/DuitNow integration.",
     "toast.signInToPostShift": "Sign in to post a shift.",
     "toast.shiftFieldsRequired": "Title, date, and start/end times are required.",
     "toast.maxPayGteMinPay": "Max pay must be ≥ min pay.",
@@ -246,7 +246,7 @@ const TRANSLATIONS = {
     "employer.stepReview": "Review & Post",
     "employer.saveChanges": "Save Changes",
     "employer.publishShift": "Publish Shift",
-    "employer.billingTitle": "Billing & Escrow",
+    "employer.billingTitle": "Billing & Payouts",
     "employer.accountTitle": "Account",
     "earnings.title": "Earnings",
     "earnings.subtitle": "Live payout schedule and internal settlement status",
@@ -305,7 +305,7 @@ const TRANSLATIONS = {
     "toast.signFailed": "Gagal tandatangan: ",
     "toast.contractSigned": "✅ Kontrak ditandatangani! Anda kini boleh berbual dengan majikan.",
     "toast.updateFailed": "Gagal kemas kini: ",
-    "toast.escrowTopupUnavailable": "Tambah nilai escrow belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
+    "toast.escrowTopupUnavailable": "Tambah dana belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
     "toast.signInToPostShift": "Log masuk untuk siarkan syif.",
     "toast.shiftFieldsRequired": "Tajuk, tarikh, dan masa mula/tamat diperlukan.",
     "toast.maxPayGteMinPay": "Gaji maksimum mesti ≥ gaji minimum.",
@@ -480,7 +480,7 @@ const TRANSLATIONS = {
     "employer.stepReview": "Semak & Siar",
     "employer.saveChanges": "Simpan Perubahan",
     "employer.publishShift": "Siar Syif",
-    "employer.billingTitle": "Bil & Escrow",
+    "employer.billingTitle": "Bil & Bayaran",
     "employer.accountTitle": "Akaun",
     "earnings.title": "Pendapatan",
     "earnings.subtitle": "Jadual bayaran langsung dan status penyelesaian dalaman",
@@ -4333,7 +4333,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>RM{s.escrow} escrow</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>RM{s.escrow} committed</div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 6 }}>
                           <Badge color="green" size="xs">Positions {s.headcount}</Badge>
                           <Badge color="blue" size="xs">Applied {s.applicants}</Badge>
@@ -4385,7 +4385,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
               <Stat label="Applied users" value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label="Slots filled" value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
-              <Stat label="Escrow" value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
+              <Stat label="Committed" value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
               <Stat label="Avg bid" value="RM14.40" color={BRAND.accent} />
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
@@ -4585,7 +4585,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   ))}
                   {form.wageMax && form.headcount && (
                     <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>Estimated escrow required</div>
+                      <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>Estimated amount to reserve</div>
                       <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{(parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * 8).toFixed(0)}</div>
                       <div style={{ fontSize: 11, color: BRAND.amber }}>wage_max × headcount × 8h (estimated) + 15% platform fee</div>
                     </div>
@@ -4643,9 +4643,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Stat label="Total paid out" value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
             </div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
-              Escrow top-ups aren't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.
+              Adding funds isn't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.
             </div>
-            <Btn onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginBottom: 24 }}>+ Top Up Escrow (soon)</Btn>
+            <Btn onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginBottom: 24 }}>+ Add Funds (soon)</Btn>
             <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Payout Ledger</div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
