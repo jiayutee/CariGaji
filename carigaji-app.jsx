@@ -3417,8 +3417,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted }}>{s.employer}</div>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
-                        <div style={{ fontWeight: 800, fontSize: isMobile ? 15 : 18, color: BRAND.primary }}>RM{s.wageMin}–{s.wageMax}</div>
-                        <div style={{ fontSize: isMobile ? 10 : 11, color: BRAND.textMuted }}>/hour</div>
+                        {/* Estimated total for the shift (lower-bound rate × hours) is the
+                            headline figure; the hourly range drops to the small muted line. */}
+                        <div style={{ fontWeight: 800, fontSize: isMobile ? 15 : 18, color: BRAND.primary }}>~RM{Math.round(s.wageMin * s.hours)}</div>
+                        <div style={{ fontSize: isMobile ? 10 : 11, color: BRAND.textMuted }}>RM{s.wageMin}–{s.wageMax}/hour</div>
                       </div>
                     </div>
                   </div>
