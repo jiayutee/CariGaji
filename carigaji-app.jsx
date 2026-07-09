@@ -6296,7 +6296,7 @@ export default function CariGaji() {
             {user ? (
               <ProfileMenu
                 user={user}
-                onSignOut={async () => { await supabase.auth.signOut(); setUser(null); }}
+                onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
               />
             ) : (
               <HeaderSignInButton onClick={() => openAuthModal("signin")} />
