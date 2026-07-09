@@ -204,6 +204,7 @@ const TRANSLATIONS = {
     "settings.privacy": "Privacy",
     "settings.privacyValue": "Standard worker mode",
     "common.signIn": "Sign in",
+    "common.signUp": "Sign up",
     "common.createAccount": "Create account",
     "common.postAShift": "Post a Shift",
     "common.accept": "Accept",
@@ -241,6 +242,7 @@ const TRANSLATIONS = {
     "chat.send": "Send",
     "common.back": "Back",
     "common.cancel": "Cancel",
+    "common.pluralSuffix": "s",
     "shiftDetail.placeBidTitle": "Place Your Bid",
     "shiftDetail.employerRange": "Employer range: RM",
     "shiftDetail.maxBid": " · Max bid: RM",
@@ -269,6 +271,39 @@ const TRANSLATIONS = {
     "shiftDetail.locationNote": "Exact address revealed once your application is accepted.",
     "shiftDetail.employerReliability": "Employer Reliability",
     "shiftDetail.applicants": "applicants",
+    "shiftDetail.notProvided": "Not provided",
+    "shiftDetail.tba": "TBA",
+    "shiftDetail.dressCodeNone": "None specified",
+    "shiftDetail.notApplicable": "N/A",
+    "shiftDetail.yourBid": "Your bid",
+    "myBids.transportAllowanceRow": "🚌 Transport allowance",
+    "myBids.employerRangeRow": "💰 Employer range",
+    "myBids.shortlistedBanner": "🎉 You've been shortlisted! Open chat to discuss and receive your offer.",
+    "myBids.loadingBids": "Loading your bids…",
+    "myBids.noBidsYet": "No bids yet",
+    "myBids.loadingBidsHint": "Hang tight while we fetch your bids.",
+    "myBids.noBidsHint": "Head to Discover and place a bid on a shift to see it here.",
+    "myBids.employerDecidesByPrefix": "⏳ Employer decides by ",
+    "myBids.respondByPrefix": "🎉 Respond by ",
+    "myBids.pillShiftCancelled": "Shift Cancelled",
+    "myBids.pillConfirmNow": "Confirm now",
+    "myBids.pillShortlisted": "Shortlisted",
+    "myBids.pillAccepted": "Accepted",
+    "myBids.pillOfferExpired": "Offer expired",
+    "myBids.pillNotSelected": "Not selected",
+    "myBids.pillPending": "Pending",
+    "myBids.yourBidPrefix": "Your bid: ",
+    "myBids.chatBtn": "Chat →",
+    "worker.checkInBtn": "Check In",
+    "myBids.signContractBtn": "✍️ Sign Contract",
+    "myBids.contractSignedBadge": "✅ Contract signed",
+    "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
+    "myBids.selectedNotice": "🎉 You've been selected! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.",
+    "myBids.offerExpiredNotice": "This offer expired because it wasn't confirmed in time.",
+    "myBids.cancelling": "Cancelling…",
+    "myBids.cancelBidBtn": "Cancel Bid",
+    "myBids.declineBtn": "Decline",
+    "myBids.confirmShiftBtn": "Confirm Shift",
     "profile.signInTitle": "Sign in to view your profile",
     "profile.signInHint": "Your KYC status, reliability score, ratings, and shift history live here once you sign in.",
     "profile.changePhoto": "Change profile picture",
@@ -461,6 +496,258 @@ const TRANSLATIONS = {
     "cookie.servicesAnalytics": "No analytics or marketing tools are currently active in CariGaji. This category is reserved for future use (e.g. usage analytics) and will stay off until we actually add one — turning it on today has no effect.",
     "cookie.aboutBody": "CariGaji uses browser local storage — not third-party tracking cookies — to keep you signed in and to remember your preferences on this device. We don't use this data for tracking, and nothing here is shared with advertisers. See our Privacy Policy for the full details on what we collect and why, and our Terms of Service for how the platform works.",
     "cookie.savePreferences": "Save Preferences",
+    "common.close": "Close",
+    "account.menuLabel": "Account menu",
+    "account.help": "Help",
+    "account.contactSupport": "Contact customer support",
+    "account.referFriends": "Refer friends",
+    "account.signOut": "Sign out",
+    "account.referShareText": "Find or post flexible shift work in Malaysia with CariGaji:",
+    "toast.inviteLinkCopied": "Invite link copied! Share it with friends.",
+    "help.title": "Help Centre",
+    "help.faqWorkQ": "How does CariGaji work?",
+    "help.faqWorkA": "Employers post short shifts with a wage range. Workers browse open shifts and place a bid within the allowed range. If the employer accepts your bid, you both sign a contract in-app and the shift is confirmed.",
+    "help.faqPaidQ": "How do I get paid?",
+    "help.faqPaidA": "Employers commit funds for accepted workers before the shift starts. After the shift is completed, payment is released to your registered bank account — check the Earnings tab for your payout history.",
+    "help.faqKycQ": "What are the KYC levels?",
+    "help.faqKycA": "Basic: email verified only. Standard: ID document uploaded. Advanced: ID + selfie + supporting document verified. Higher KYC levels unlock higher-paying shifts and build trust with employers.",
+    "help.faqLocationQ": "Why can't I see the exact shift location?",
+    "help.faqLocationA": "Some employers reveal the exact address only to accepted workers, showing just the city/region publicly for safety. Once you're accepted, the full address appears on the shift details page.",
+    "help.faqWrongQ": "What if something goes wrong during a shift?",
+    "help.faqWrongA": "Contact customer support using the option in this menu and our team will help resolve the issue directly.",
+    "help.stillNeedHelp": "Still need help?",
+    "help.contactSupportLink": "Contact support",
+    "notification.title": "Notifications",
+    "notification.markAllRead": "Mark all as read",
+    "notification.empty": "No notifications yet",
+    "notification.justNow": "Just now",
+    "notification.minAgo": "{n}m ago",
+    "notification.hourAgo": "{n}h ago",
+    "notification.dayAgo": "{n}d ago",
+    "discover.filtersLabel": "Filters",
+    "discover.hideFiltersLabel": "Hide Filters",
+    "discover.filterCity": "City",
+    "discover.anyCity": "Any city",
+    "discover.filterAreaPlaceholder": "Area e.g. Bukit Bintang",
+    "discover.filterDate": "Date",
+    "discover.filterMaxDuration": "Max Duration (hrs)",
+    "discover.filterJobType": "Job Type",
+    "discover.allTypes": "All types",
+    "discover.filterMinPay": "Min Pay (RM/hr)",
+    "discover.filterMaxPay": "Max Pay (RM/hr)",
+    "discover.filterStartsAfter": "Starts after",
+    "discover.filterEndsBy": "Ends by",
+    "discover.highBookingChance": "🔥 High booking chance",
+    "discover.weekendsOnly": "📅 Weekends only",
+    "discover.clearAll": "Clear all",
+    "discover.loadingShifts": "Loading shifts…",
+    "discover.loadingShiftsHint": "Hang tight while we fetch open shifts.",
+    "discover.noShiftsMatch": "No shifts match right now",
+    "discover.noShiftsMatchHint": "Try widening your filters, or check back soon — new shifts are posted regularly.",
+    "worker.checkinTitle": "Check-in QR Scanner",
+    "worker.checkinSubtitle": "Point your camera at the QR code at the venue entrance",
+    "worker.cameraViewfinder": "Camera viewfinder",
+    "worker.simulateCheckin": "Simulate Successful Check-in",
+    "shiftDetail.rateHelperText": "Scroll or tap to choose your rate",
+    "myBids.signInTitle": "Sign in to view your bids",
+    "myBids.signInHint": "Track the shifts you've applied to and their status once you're signed in.",
+    "myBids.backToBids": "Back to My Bids",
+    "earnings.signInTitle": "Sign in to view earnings",
+    "earnings.signInHint": "Track your payouts, internal settlement status, and bank verification once you're signed in.",
+    "toast.confirmOfferFailed": "Failed to confirm: ",
+    "toast.shiftConfirmed": "Shift confirmed! Sign the contract to finish.",
+    "toast.declineOfferFailed": "Failed to decline: ",
+    "toast.offerDeclined": "Offer declined.",
+    "toast.cancelBidFailed": "Failed to cancel bid: ",
+    "toast.bidCancelled": "Bid cancelled.",
+    "employer.fieldShiftTitle": "Shift title",
+    "employer.shiftTitlePlaceholder": "e.g. F&B Server – Corporate Dinner",
+    "employer.fieldJobDescription": "Job description",
+    "employer.jobDescriptionPlaceholder": "Describe the role, responsibilities, and what a good day looks like…",
+    "employer.labelCategory": "Category",
+    "employer.labelLocation": "Location",
+    "employer.addressVisibilityLabel": "Address visibility",
+    "employer.addressVisibilityPublic": "Show full address on listing",
+    "employer.addressVisibilityPrivate": "Reveal only to accepted workers",
+    "employer.labelDate": "Date",
+    "employer.labelHeadcount": "Headcount",
+    "employer.fieldStartTime": "Start time",
+    "employer.fieldEndTime": "End time",
+    "employer.wageRangeLabel": "Wage Range (RM/hour)",
+    "employer.wageMinPlaceholder": "Min e.g. 12",
+    "employer.wageMaxPlaceholder": "Max e.g. 16",
+    "employer.bidCapHint": "Workers can bid up to RM{amount}/h (150% of max)",
+    "employer.offerTransportAllowance": "Offer a transport allowance",
+    "employer.transportAllowanceHint": "Optional flat amount (RM) paid on top of hourly wage to help cover workers' travel costs.",
+    "employer.nextRequirements": "Next: Requirements →",
+    "employer.labelDressCode": "Dress code",
+    "employer.dressCodePlaceholder": "e.g. All black formal",
+    "employer.requiredDocumentsLabel": "Required documents",
+    "employer.docIcPassport": "IC / Passport",
+    "employer.docFoodHandler": "Food Handler Certificate",
+    "employer.docFirstAid": "First Aid Certification",
+    "employer.docDrivingLicense": "Driving License",
+    "employer.specialRequirementsLabel": "Special requirements",
+    "employer.specialRequirementsPlaceholder": "Any additional requirements…",
+    "employer.nextReview": "Next: Review →",
+    "employer.reviewYourShift": "Review your shift",
+    "employer.reviewLabelTitle": "Title",
+    "employer.reviewNotSet": "(not set)",
+    "employer.reviewLabelWageRange": "Wage range",
+    "employer.reviewLabelTransportAllowance": "Transport allowance",
+    "employer.transportNotOffered": "Not offered",
+    "employer.dressCodeNone": "None",
+    "employer.estimatedReserveLabel": "Estimated amount to reserve",
+    "employer.estimatedReserveFormula": "wage_max × headcount × 8h (estimated) + 15% platform fee",
+    "employer.tagline": "Employer Console",
+    "employer.paidToWorkers": "Paid to Workers",
+    "employer.topUpSoon": "Top Up (soon)",
+    "employer.returnToWorkerApp": "Return to Worker App",
+    "employer.manageShiftsSubtitle": "Manage all your posted shifts",
+    "employer.loadingShifts": "Loading shifts…",
+    "employer.loadingShiftsHint": "Hang tight while we fetch your shifts.",
+    "employer.noActiveShifts": "No active shifts",
+    "employer.noActiveShiftsHint": "Post a shift to start hiring workers.",
+    "employer.noShiftsPostedYet": "No shifts posted yet",
+    "employer.noShiftsPostedYetHint": "Post your first shift to start hiring workers.",
+    "employer.backToShifts": "Back to shifts",
+    "employer.toastLoadShiftFailed": "Could not load shift for editing.",
+    "employer.confirmCancelShift": "Cancel \"{title}\"? All applicants will be notified.",
+    "employer.toastCancelShiftFailed": "Failed to cancel shift: ",
+    "employer.toastShiftCancelled": "Shift cancelled. Applicants have been notified.",
+    "employer.statAppliedUsers": "Applied users",
+    "employer.statSlotsFilled": "Slots filled",
+    "employer.statCommitted": "Committed",
+    "employer.statAvgBid": "Avg bid",
+    "employer.positionsOpenHint": "{open} of {total} position{plural} still open.",
+    "employer.appliedBadge": "{count} applied",
+    "employer.selectMultiple": "Select multiple",
+    "employer.selectedOfTotal": "{selected} / {total} selected",
+    "employer.sendingOffer": "Sending…",
+    "employer.offerToWorkers": "Offer to {count} worker{plural}",
+    "employer.loadingApplicants": "Loading applicants…",
+    "employer.loadingApplicantsHint": "Hang tight while we fetch applicants.",
+    "employer.noApplicantsYet": "No applicants yet",
+    "employer.noApplicantsHint": "Applicants will appear here once workers bid on this shift.",
+    "employer.colWorker": "Worker",
+    "employer.colKYC": "KYC",
+    "employer.colReliability": "Reliability",
+    "employer.colRating": "Rating",
+    "employer.colBidRate": "Bid (RM/h)",
+    "employer.colStatus": "Status",
+    "employer.colAction": "Action",
+    "employer.shiftsDoneSuffix": "shifts done",
+    "employer.awaitingResponse": "Awaiting response",
+    "employer.shortlistBtn": "Shortlist",
+    "employer.selectBtn": "Select",
+    "employer.waitingOnWorker": "⏳ Waiting on worker",
+    "employer.confirmedStatus": "✓ Confirmed",
+    "employer.notSelected": "✗ Not selected",
+    "employer.offerExpiredStatus": "⏱ Offer expired",
+    "toast.offerSentMultiple": "Offer sent to {count} workers.",
+    "toast.offerSentSingle": "Offer sent — waiting for the worker to confirm.",
+    "toast.tooManySelected": "Only {open} position{plural} still open — select {open} or fewer.",
+    "employer.bulkUploadCsvHeading": "Upload your shifts CSV",
+    "employer.bulkStatusReady": "Ready",
+    "employer.bulkStatusNeedsFix": "Needs fix",
+    "employer.bulkStatusPublished": "Published",
+    "employer.bulkStatusFailed": "Failed",
+    "employer.bulkColTitle": "Title",
+    "employer.bulkColCategory": "Category",
+    "employer.bulkColDate": "Date",
+    "employer.bulkColStart": "Start",
+    "employer.bulkColEnd": "End",
+    "employer.bulkColMinWage": "Min RM/h",
+    "employer.bulkColMaxWage": "Max RM/h",
+    "employer.bulkColHeadcount": "Headcount",
+    "employer.bulkColLocation": "Location",
+    "employer.bulkColDressCode": "Dress code",
+    "employer.bulkColTransport": "Transport (RM)",
+    "employer.bulkSelectCategoryPlaceholder": "— Select —",
+    "employer.bulkRetry": "Retry",
+    "employer.bulkUntitled": "(untitled)",
+    "settings.bankingSignInTitle": "Sign in to manage banking",
+    "settings.bankingSignInHint": "Add and verify your bank details for salary payouts after signing in.",
+    "settings.accountHolderPlaceholder": "As per bank account",
+    "settings.accountNumberPlaceholder": "Enter bank account number",
+    "settings.secureSignPending": "SecureSign pending",
+    "settings.accessOtherConsoles": "Access other consoles",
+    "settings.accessOtherConsolesHint": "These are hidden from the main app and can only be opened here.",
+    "settings.openEmployerConsole": "Open Employer Console",
+    "settings.openAdminDashboard": "Open Admin Dashboard",
+    "employer.companyDetailsTitle": "Company Details",
+    "employer.companyNameLabel": "Company name",
+    "employer.companyNamePlaceholder": "e.g. Grand Hyatt Kuala Lumpur",
+    "employer.ssmNumberLabel": "SSM registration number",
+    "employer.ssmNumberPlaceholder": "e.g. 1234567-A",
+    "employer.contactEmailLabel": "Contact email",
+    "employer.bankingSectionTitle": "Employer Banking (Salary Funding)",
+    "employer.bankingSectionHint": "Funding account must be verified through SecureSign before payouts can move to ready state.",
+    "employer.accountHolderPlaceholder": "Company account holder",
+    "employer.accountNumberPlaceholder": "Employer funding account",
+    "employer.fundingReadyLabel": "Funding account has sufficient balance for this cycle",
+    "employer.verificationLabel": "Verification",
+    "employer.outgoingObligationsTitle": "Outgoing Salary Obligations",
+    "employer.noPayoutObligations": "No payout obligations yet for this employer account.",
+    "employer.savedAccountPrefix": "Saved account: ••••",
+    "employer.tbaShort": "TBA",
+    "employer.pendingPayout": "Pending payout",
+    "employer.totalPaidOut": "Total paid out",
+    "employer.escrowUnavailableNote": "Adding funds isn't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.",
+    "employer.addFundsSoon": "+ Add Funds (soon)",
+    "employer.payoutLedgerTitle": "Payout Ledger",
+    "employer.colDateShort": "Date",
+    "employer.colAmount": "Amount",
+    "auth.oauthDivider": "or",
+    "auth.oauthConnector": "{label} with {provider}",
+    "auth.iWantTo": "I want to…",
+    "auth.roleWorkerTitle": "Find shift work",
+    "auth.roleWorkerHint": "Browse and bid on shifts",
+    "auth.roleEmployerTitle": "Hire workers",
+    "auth.roleEmployerHint": "Post shifts and manage applicants",
+    "auth.socialSignupHint": "Signing up with Google, Apple, or Facebook creates your account instantly. You'll be asked to complete identity (KYC) verification afterwards to start working.",
+    "auth.tncAgreeText": "I have read and agree to the",
+    "auth.tncLinkText": "Terms & Conditions and Privacy Notice",
+    "auth.tncSuffixText": ", including the collection and use of my identity document (MyKad/passport) for employment verification purposes.",
+    "auth.selectShort": "Select",
+    "auth.selectCountry": "Select country",
+    "auth.searchCountryPlaceholder": "Search by name or code...",
+    "auth.enterYourPassword": "Enter your password",
+    "contract.workerTitle": "📄 Your Employment Contract",
+    "contract.readCarefully": "Please read carefully before signing.",
+    "contract.agreementHeading": "CariGaji Platform — Shift Work Agreement",
+    "contract.employerLabel": "Employer:",
+    "contract.workerLabel": "Worker:",
+    "contract.youLabel": "You",
+    "contract.roleLabel": "Role:",
+    "contract.dateLabel": "Date:",
+    "contract.agreedWageLabel": "Agreed wage:",
+    "contract.agreeToTermsHeading": "By signing you agree to:",
+    "contract.workerClause1": "Attend the shift punctually and perform the assigned duties.",
+    "contract.workerClause2": "Accept the agreed wage as full payment for hours worked.",
+    "contract.workerClause3": "Notify the employer promptly if you are unable to attend.",
+    "contract.workerClause4": "Comply with the employer's workplace rules and safety requirements.",
+    "contract.workerClause5": "This is a casual short-term engagement. You are responsible for declaring your own income tax to LHDN if applicable.",
+    "contract.workerClause6": "CariGaji acts as a marketplace intermediary and is not your employer.",
+    "contract.workerClause7": "Governed by Malaysian law including the Employment Act 1955.",
+    "contract.signBtn": "✍️ I have read and agree — Sign",
+    "contract.employerTitle": "📄 Employment Contract",
+    "contract.employerSubtitle": "Auto-generated upon bid acceptance. Both parties must sign.",
+    "contract.enteredBetween": "This agreement is entered into between:",
+    "contract.employerOnFile": "(your business name on file)",
+    "contract.shiftDetailsHeading": "Shift Details:",
+    "contract.locationLabel": "Location:",
+    "contract.timeLabel": "Time:",
+    "contract.termsHeading": "Terms:",
+    "contract.employerClause1": "This is a short-term casual engagement and does not constitute permanent employment.",
+    "contract.employerClause2": "The employer will pay the agreed wage rate for all hours worked, no less than the Malaysian minimum wage of RM8.72/hr.",
+    "contract.employerClause3": "The employer is responsible for EPF, SOCSO, and EIS contributions as required by Malaysian law.",
+    "contract.employerClause4": "The worker agrees to attend the shift punctually and perform the duties as described.",
+    "contract.employerClause5": "Either party may cancel with reasonable notice. Last-minute cancellation may result in platform penalties.",
+    "contract.employerClause6": "CariGaji acts as a marketplace intermediary and is not the employer in this arrangement.",
+    "contract.employerClause7": "This agreement is governed by Malaysian law including the Employment Act 1955 and Gig Workers Act 2025.",
+    "contract.confirmSendNote": "By clicking \"Confirm & Send to Worker\", you agree to these terms and the contract will be sent to {name} for their signature.",
+    "contract.confirmSendBtn": "Confirm & Send to Worker",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -480,6 +767,7 @@ const TRANSLATIONS = {
     "settings.privacy": "Privasi",
     "settings.privacyValue": "Mod pekerja standard",
     "common.signIn": "Log Masuk",
+    "common.signUp": "Daftar",
     "common.createAccount": "Daftar Akaun",
     "common.postAShift": "Siarkan Syif",
     "common.accept": "Terima",
@@ -517,6 +805,7 @@ const TRANSLATIONS = {
     "chat.send": "Hantar",
     "common.back": "Kembali",
     "common.cancel": "Batal",
+    "common.pluralSuffix": "",
     "shiftDetail.placeBidTitle": "Buat Tawaran Anda",
     "shiftDetail.employerRange": "Julat majikan: RM",
     "shiftDetail.maxBid": " · Tawaran maksimum: RM",
@@ -545,6 +834,39 @@ const TRANSLATIONS = {
     "shiftDetail.locationNote": "Alamat sebenar akan didedahkan setelah permohonan anda diterima.",
     "shiftDetail.employerReliability": "Kebolehpercayaan Majikan",
     "shiftDetail.applicants": "pemohon",
+    "shiftDetail.notProvided": "Tidak disediakan",
+    "shiftDetail.tba": "Belum Ditetapkan",
+    "shiftDetail.dressCodeNone": "Tiada dinyatakan",
+    "shiftDetail.notApplicable": "T/B",
+    "shiftDetail.yourBid": "Tawaran anda",
+    "myBids.transportAllowanceRow": "🚌 Elaun pengangkutan",
+    "myBids.employerRangeRow": "💰 Julat majikan",
+    "myBids.shortlistedBanner": "🎉 Anda telah disenarai pendek! Buka sembang untuk berbincang dan terima tawaran anda.",
+    "myBids.loadingBids": "Memuatkan tawaran anda…",
+    "myBids.noBidsYet": "Belum ada tawaran",
+    "myBids.loadingBidsHint": "Tunggu sebentar semasa kami dapatkan tawaran anda.",
+    "myBids.noBidsHint": "Pergi ke Terokai dan buat tawaran pada syif untuk lihat di sini.",
+    "myBids.employerDecidesByPrefix": "⏳ Majikan membuat keputusan menjelang ",
+    "myBids.respondByPrefix": "🎉 Respons menjelang ",
+    "myBids.pillShiftCancelled": "Syif Dibatalkan",
+    "myBids.pillConfirmNow": "Sahkan sekarang",
+    "myBids.pillShortlisted": "Disenarai pendek",
+    "myBids.pillAccepted": "Diterima",
+    "myBids.pillOfferExpired": "Tawaran tamat tempoh",
+    "myBids.pillNotSelected": "Tidak dipilih",
+    "myBids.pillPending": "Tertunda",
+    "myBids.yourBidPrefix": "Tawaran anda: ",
+    "myBids.chatBtn": "Sembang →",
+    "worker.checkInBtn": "Daftar Masuk",
+    "myBids.signContractBtn": "✍️ Tandatangan Kontrak",
+    "myBids.contractSignedBadge": "✅ Kontrak ditandatangani",
+    "myBids.shiftCancelledNotice": "Syif ini telah dibatalkan oleh majikan. Tiada tindakan lanjut diperlukan.",
+    "myBids.selectedNotice": "🎉 Anda telah dipilih! Sahkan atau tolak sebelum tarikh akhir di atas — jika anda tidak bertindak balas tepat pada masanya, tawaran akan dilepaskan secara automatik kembali kepada majikan.",
+    "myBids.offerExpiredNotice": "Tawaran ini telah tamat tempoh kerana tidak disahkan tepat pada masanya.",
+    "myBids.cancelling": "Membatalkan…",
+    "myBids.cancelBidBtn": "Batalkan Tawaran",
+    "myBids.declineBtn": "Tolak",
+    "myBids.confirmShiftBtn": "Sahkan Syif",
     "profile.signInTitle": "Log masuk untuk lihat profil anda",
     "profile.signInHint": "Status KYC, skor kebolehpercayaan, penilaian, dan sejarah syif anda akan dipaparkan di sini setelah anda log masuk.",
     "profile.changePhoto": "Tukar gambar profil",
@@ -737,6 +1059,258 @@ const TRANSLATIONS = {
     "cookie.servicesAnalytics": "Tiada alat analitik atau pemasaran aktif buat masa ini dalam CariGaji. Kategori ini disediakan untuk kegunaan masa hadapan (contohnya analitik penggunaan) dan akan kekal dimatikan sehingga kami benar-benar menambahnya — mengaktifkannya hari ini tidak memberi apa-apa kesan.",
     "cookie.aboutBody": "CariGaji menggunakan storan tempatan pelayar — bukan kuki penjejakan pihak ketiga — untuk mengekalkan log masuk anda dan mengingati keutamaan anda pada peranti ini. Kami tidak menggunakan data ini untuk penjejakan, dan tiada apa-apa di sini dikongsi dengan pengiklan. Lihat Dasar Privasi kami untuk butiran penuh tentang apa yang kami kumpul dan sebabnya, serta Terma Perkhidmatan kami untuk cara platform ini berfungsi.",
     "cookie.savePreferences": "Simpan Keutamaan",
+    "common.close": "Tutup",
+    "account.menuLabel": "Menu akaun",
+    "account.help": "Bantuan",
+    "account.contactSupport": "Hubungi khidmat pelanggan",
+    "account.referFriends": "Rujuk rakan",
+    "account.signOut": "Log keluar",
+    "account.referShareText": "Cari atau siarkan kerja syif fleksibel di Malaysia dengan CariGaji:",
+    "toast.inviteLinkCopied": "Pautan jemputan disalin! Kongsi dengan rakan-rakan.",
+    "help.title": "Pusat Bantuan",
+    "help.faqWorkQ": "Bagaimana CariGaji berfungsi?",
+    "help.faqWorkA": "Majikan menyiarkan syif pendek dengan julat gaji. Pekerja menyemak imbas syif terbuka dan membuat tawaran dalam julat yang dibenarkan. Jika majikan menerima tawaran anda, kedua-dua pihak menandatangani kontrak dalam aplikasi dan syif itu disahkan.",
+    "help.faqPaidQ": "Bagaimana saya menerima bayaran?",
+    "help.faqPaidA": "Majikan mengikat dana untuk pekerja yang diterima sebelum syif bermula. Selepas syif selesai, bayaran dilepaskan ke akaun bank berdaftar anda — semak tab Pendapatan untuk sejarah bayaran anda.",
+    "help.faqKycQ": "Apakah tahap KYC?",
+    "help.faqKycA": "Asas: e-mel disahkan sahaja. Standard: dokumen pengenalan dimuat naik. Lanjutan: ID + swafoto + dokumen sokongan disahkan. Tahap KYC yang lebih tinggi membuka syif bergaji lebih tinggi dan membina kepercayaan dengan majikan.",
+    "help.faqLocationQ": "Kenapa saya tidak dapat lihat lokasi syif yang tepat?",
+    "help.faqLocationA": "Sesetengah majikan hanya mendedahkan alamat penuh kepada pekerja yang diterima, dan hanya menunjukkan bandar/kawasan secara umum demi keselamatan. Sebaik sahaja anda diterima, alamat penuh akan dipaparkan pada halaman butiran syif.",
+    "help.faqWrongQ": "Bagaimana jika sesuatu tidak kena semasa syif?",
+    "help.faqWrongA": "Hubungi khidmat pelanggan menggunakan pilihan dalam menu ini dan pasukan kami akan bantu selesaikan isu tersebut secara terus.",
+    "help.stillNeedHelp": "Masih perlukan bantuan?",
+    "help.contactSupportLink": "Hubungi khidmat pelanggan",
+    "notification.title": "Notifikasi",
+    "notification.markAllRead": "Tanda semua sudah dibaca",
+    "notification.empty": "Belum ada notifikasi",
+    "notification.justNow": "Baru sahaja",
+    "notification.minAgo": "{n}m lalu",
+    "notification.hourAgo": "{n}j lalu",
+    "notification.dayAgo": "{n}h lalu",
+    "discover.filtersLabel": "Penapis",
+    "discover.hideFiltersLabel": "Sembunyi Penapis",
+    "discover.filterCity": "Bandar",
+    "discover.anyCity": "Mana-mana bandar",
+    "discover.filterAreaPlaceholder": "Kawasan cth. Bukit Bintang",
+    "discover.filterDate": "Tarikh",
+    "discover.filterMaxDuration": "Tempoh Maksimum (jam)",
+    "discover.filterJobType": "Jenis Kerja",
+    "discover.allTypes": "Semua jenis",
+    "discover.filterMinPay": "Gaji Min (RM/jam)",
+    "discover.filterMaxPay": "Gaji Maks (RM/jam)",
+    "discover.filterStartsAfter": "Bermula selepas",
+    "discover.filterEndsBy": "Berakhir sebelum",
+    "discover.highBookingChance": "🔥 Peluang tempahan tinggi",
+    "discover.weekendsOnly": "📅 Hujung minggu sahaja",
+    "discover.clearAll": "Kosongkan semua",
+    "discover.loadingShifts": "Memuatkan syif…",
+    "discover.loadingShiftsHint": "Tunggu sebentar semasa kami dapatkan syif terbuka.",
+    "discover.noShiftsMatch": "Tiada syif sepadan buat masa ini",
+    "discover.noShiftsMatchHint": "Cuba luaskan penapis anda, atau semak semula tidak lama lagi — syif baharu disiarkan secara berkala.",
+    "worker.checkinTitle": "Pengimbas QR Daftar Masuk",
+    "worker.checkinSubtitle": "Arahkan kamera anda ke kod QR di pintu masuk tempat acara",
+    "worker.cameraViewfinder": "Pandangan kamera",
+    "worker.simulateCheckin": "Simulasi Daftar Masuk Berjaya",
+    "shiftDetail.rateHelperText": "Tatal atau ketik untuk pilih kadar anda",
+    "myBids.signInTitle": "Log masuk untuk lihat tawaran anda",
+    "myBids.signInHint": "Jejaki syif yang anda mohon dan statusnya sebaik sahaja anda log masuk.",
+    "myBids.backToBids": "Kembali ke Tawaran Saya",
+    "earnings.signInTitle": "Log masuk untuk lihat pendapatan",
+    "earnings.signInHint": "Jejaki bayaran anda, status penyelesaian dalaman, dan pengesahan bank sebaik sahaja anda log masuk.",
+    "toast.confirmOfferFailed": "Gagal mengesahkan: ",
+    "toast.shiftConfirmed": "Syif disahkan! Tandatangani kontrak untuk selesaikan.",
+    "toast.declineOfferFailed": "Gagal menolak: ",
+    "toast.offerDeclined": "Tawaran ditolak.",
+    "toast.cancelBidFailed": "Gagal batalkan tawaran: ",
+    "toast.bidCancelled": "Tawaran dibatalkan.",
+    "employer.fieldShiftTitle": "Tajuk syif",
+    "employer.shiftTitlePlaceholder": "cth. Pelayan F&B – Makan Malam Korporat",
+    "employer.fieldJobDescription": "Penerangan kerja",
+    "employer.jobDescriptionPlaceholder": "Terangkan peranan, tanggungjawab, dan bagaimana rupa hari yang baik…",
+    "employer.labelCategory": "Kategori",
+    "employer.labelLocation": "Lokasi",
+    "employer.addressVisibilityLabel": "Keterlihatan alamat",
+    "employer.addressVisibilityPublic": "Tunjukkan alamat penuh pada penyenaraian",
+    "employer.addressVisibilityPrivate": "Dedahkan hanya kepada pekerja yang diterima",
+    "employer.labelDate": "Tarikh",
+    "employer.labelHeadcount": "Bilangan pekerja",
+    "employer.fieldStartTime": "Masa mula",
+    "employer.fieldEndTime": "Masa tamat",
+    "employer.wageRangeLabel": "Julat Gaji (RM/jam)",
+    "employer.wageMinPlaceholder": "Min cth. 12",
+    "employer.wageMaxPlaceholder": "Maks cth. 16",
+    "employer.bidCapHint": "Pekerja boleh menawar sehingga RM{amount}/j (150% daripada maksimum)",
+    "employer.offerTransportAllowance": "Tawarkan elaun pengangkutan",
+    "employer.transportAllowanceHint": "Jumlah tetap pilihan (RM) dibayar tambahan kepada gaji sejam untuk bantu tampung kos perjalanan pekerja.",
+    "employer.nextRequirements": "Seterusnya: Keperluan →",
+    "employer.labelDressCode": "Kod pakaian",
+    "employer.dressCodePlaceholder": "cth. Formal hitam sepenuhnya",
+    "employer.requiredDocumentsLabel": "Dokumen diperlukan",
+    "employer.docIcPassport": "IC / Pasport",
+    "employer.docFoodHandler": "Sijil Pengendali Makanan",
+    "employer.docFirstAid": "Sijil Bantuan Pertama",
+    "employer.docDrivingLicense": "Lesen Memandu",
+    "employer.specialRequirementsLabel": "Keperluan khas",
+    "employer.specialRequirementsPlaceholder": "Sebarang keperluan tambahan…",
+    "employer.nextReview": "Seterusnya: Semak →",
+    "employer.reviewYourShift": "Semak syif anda",
+    "employer.reviewLabelTitle": "Tajuk",
+    "employer.reviewNotSet": "(belum ditetapkan)",
+    "employer.reviewLabelWageRange": "Julat gaji",
+    "employer.reviewLabelTransportAllowance": "Elaun pengangkutan",
+    "employer.transportNotOffered": "Tidak ditawarkan",
+    "employer.dressCodeNone": "Tiada",
+    "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
+    "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × 8j (anggaran) + 15% yuran platform",
+    "employer.tagline": "Konsol Majikan",
+    "employer.paidToWorkers": "Dibayar kepada Pekerja",
+    "employer.topUpSoon": "Tambah Nilai (akan datang)",
+    "employer.returnToWorkerApp": "Kembali ke Aplikasi Pekerja",
+    "employer.manageShiftsSubtitle": "Urus semua syif yang anda siarkan",
+    "employer.loadingShifts": "Memuatkan syif…",
+    "employer.loadingShiftsHint": "Tunggu sebentar semasa kami dapatkan syif anda.",
+    "employer.noActiveShifts": "Tiada syif aktif",
+    "employer.noActiveShiftsHint": "Siarkan syif untuk mula mengambil pekerja.",
+    "employer.noShiftsPostedYet": "Belum ada syif disiarkan",
+    "employer.noShiftsPostedYetHint": "Siarkan syif pertama anda untuk mula mengambil pekerja.",
+    "employer.backToShifts": "Kembali ke syif",
+    "employer.toastLoadShiftFailed": "Tidak dapat memuatkan syif untuk disunting.",
+    "employer.confirmCancelShift": "Batalkan \"{title}\"? Semua pemohon akan dimaklumkan.",
+    "employer.toastCancelShiftFailed": "Gagal membatalkan syif: ",
+    "employer.toastShiftCancelled": "Syif dibatalkan. Pemohon telah dimaklumkan.",
+    "employer.statAppliedUsers": "Pengguna memohon",
+    "employer.statSlotsFilled": "Slot diisi",
+    "employer.statCommitted": "Direzab",
+    "employer.statAvgBid": "Purata tawaran",
+    "employer.positionsOpenHint": "{open} daripada {total} kekosongan{plural} masih terbuka.",
+    "employer.appliedBadge": "{count} memohon",
+    "employer.selectMultiple": "Pilih berbilang",
+    "employer.selectedOfTotal": "{selected} / {total} dipilih",
+    "employer.sendingOffer": "Menghantar…",
+    "employer.offerToWorkers": "Tawar kepada {count} pekerja{plural}",
+    "employer.loadingApplicants": "Memuatkan pemohon…",
+    "employer.loadingApplicantsHint": "Tunggu sebentar semasa kami dapatkan pemohon.",
+    "employer.noApplicantsYet": "Belum ada pemohon",
+    "employer.noApplicantsHint": "Pemohon akan dipaparkan di sini sebaik sahaja pekerja menawar syif ini.",
+    "employer.colWorker": "Pekerja",
+    "employer.colKYC": "KYC",
+    "employer.colReliability": "Kebolehpercayaan",
+    "employer.colRating": "Penilaian",
+    "employer.colBidRate": "Tawaran (RM/j)",
+    "employer.colStatus": "Status",
+    "employer.colAction": "Tindakan",
+    "employer.shiftsDoneSuffix": "syif selesai",
+    "employer.awaitingResponse": "Menunggu respons",
+    "employer.shortlistBtn": "Senarai pendek",
+    "employer.selectBtn": "Pilih",
+    "employer.waitingOnWorker": "⏳ Menunggu pekerja",
+    "employer.confirmedStatus": "✓ Disahkan",
+    "employer.notSelected": "✗ Tidak dipilih",
+    "employer.offerExpiredStatus": "⏱ Tawaran tamat tempoh",
+    "toast.offerSentMultiple": "Tawaran dihantar kepada {count} pekerja.",
+    "toast.offerSentSingle": "Tawaran dihantar — menunggu pengesahan pekerja.",
+    "toast.tooManySelected": "Hanya {open} kekosongan{plural} masih terbuka — pilih {open} atau kurang.",
+    "employer.bulkUploadCsvHeading": "Muat naik CSV syif anda",
+    "employer.bulkStatusReady": "Sedia",
+    "employer.bulkStatusNeedsFix": "Perlu dibetulkan",
+    "employer.bulkStatusPublished": "Disiarkan",
+    "employer.bulkStatusFailed": "Gagal",
+    "employer.bulkColTitle": "Tajuk",
+    "employer.bulkColCategory": "Kategori",
+    "employer.bulkColDate": "Tarikh",
+    "employer.bulkColStart": "Mula",
+    "employer.bulkColEnd": "Tamat",
+    "employer.bulkColMinWage": "Min RM/j",
+    "employer.bulkColMaxWage": "Maks RM/j",
+    "employer.bulkColHeadcount": "Bilangan pekerja",
+    "employer.bulkColLocation": "Lokasi",
+    "employer.bulkColDressCode": "Kod pakaian",
+    "employer.bulkColTransport": "Pengangkutan (RM)",
+    "employer.bulkSelectCategoryPlaceholder": "— Pilih —",
+    "employer.bulkRetry": "Cuba lagi",
+    "employer.bulkUntitled": "(tiada tajuk)",
+    "settings.bankingSignInTitle": "Log masuk untuk urus perbankan",
+    "settings.bankingSignInHint": "Tambah dan sahkan butiran bank anda untuk bayaran gaji selepas log masuk.",
+    "settings.accountHolderPlaceholder": "Seperti pada akaun bank",
+    "settings.accountNumberPlaceholder": "Masukkan nombor akaun bank",
+    "settings.secureSignPending": "SecureSign tertunda",
+    "settings.accessOtherConsoles": "Akses konsol lain",
+    "settings.accessOtherConsolesHint": "Ini disembunyikan daripada aplikasi utama dan hanya boleh dibuka di sini.",
+    "settings.openEmployerConsole": "Buka Konsol Majikan",
+    "settings.openAdminDashboard": "Buka Papan Pemuka Admin",
+    "employer.companyDetailsTitle": "Butiran Syarikat",
+    "employer.companyNameLabel": "Nama syarikat",
+    "employer.companyNamePlaceholder": "cth. Grand Hyatt Kuala Lumpur",
+    "employer.ssmNumberLabel": "Nombor pendaftaran SSM",
+    "employer.ssmNumberPlaceholder": "cth. 1234567-A",
+    "employer.contactEmailLabel": "E-mel hubungan",
+    "employer.bankingSectionTitle": "Perbankan Majikan (Pembiayaan Gaji)",
+    "employer.bankingSectionHint": "Akaun pembiayaan mesti disahkan melalui SecureSign sebelum bayaran boleh bersedia untuk dilepaskan.",
+    "employer.accountHolderPlaceholder": "Pemegang akaun syarikat",
+    "employer.accountNumberPlaceholder": "Akaun pembiayaan majikan",
+    "employer.fundingReadyLabel": "Akaun pembiayaan mempunyai baki yang mencukupi untuk kitaran ini",
+    "employer.verificationLabel": "Pengesahan",
+    "employer.outgoingObligationsTitle": "Tanggungan Gaji Keluar",
+    "employer.noPayoutObligations": "Belum ada tanggungan bayaran untuk akaun majikan ini.",
+    "employer.savedAccountPrefix": "Akaun disimpan: ••••",
+    "employer.tbaShort": "Belum Ditetapkan",
+    "employer.pendingPayout": "Bayaran tertunda",
+    "employer.totalPaidOut": "Jumlah dibayar",
+    "employer.escrowUnavailableNote": "Menambah dana belum tersedia lagi — ini adalah pratonton sehingga get pembayaran sebenar (FPX/DuitNow) disepadukan.",
+    "employer.addFundsSoon": "+ Tambah Dana (akan datang)",
+    "employer.payoutLedgerTitle": "Lejar Bayaran",
+    "employer.colDateShort": "Tarikh",
+    "employer.colAmount": "Jumlah",
+    "auth.oauthDivider": "atau",
+    "auth.oauthConnector": "{label} dengan {provider}",
+    "auth.iWantTo": "Saya mahu…",
+    "auth.roleWorkerTitle": "Cari kerja syif",
+    "auth.roleWorkerHint": "Semak imbas dan tawar syif",
+    "auth.roleEmployerTitle": "Ambil pekerja",
+    "auth.roleEmployerHint": "Siarkan syif dan urus pemohon",
+    "auth.socialSignupHint": "Mendaftar dengan Google, Apple, atau Facebook mencipta akaun anda serta-merta. Anda akan diminta melengkapkan pengesahan identiti (KYC) selepas itu untuk mula bekerja.",
+    "auth.tncAgreeText": "Saya telah membaca dan bersetuju dengan",
+    "auth.tncLinkText": "Terma & Syarat dan Notis Privasi",
+    "auth.tncSuffixText": ", termasuk pengumpulan dan penggunaan dokumen pengenalan saya (MyKad/pasport) untuk tujuan pengesahan pekerjaan.",
+    "auth.selectShort": "Pilih",
+    "auth.selectCountry": "Pilih negara",
+    "auth.searchCountryPlaceholder": "Cari mengikut nama atau kod...",
+    "auth.enterYourPassword": "Masukkan kata laluan anda",
+    "contract.workerTitle": "📄 Kontrak Pekerjaan Anda",
+    "contract.readCarefully": "Sila baca dengan teliti sebelum menandatangani.",
+    "contract.agreementHeading": "Platform CariGaji — Perjanjian Kerja Syif",
+    "contract.employerLabel": "Majikan:",
+    "contract.workerLabel": "Pekerja:",
+    "contract.youLabel": "Anda",
+    "contract.roleLabel": "Peranan:",
+    "contract.dateLabel": "Tarikh:",
+    "contract.agreedWageLabel": "Gaji dipersetujui:",
+    "contract.agreeToTermsHeading": "Dengan menandatangani, anda bersetuju untuk:",
+    "contract.workerClause1": "Hadir ke syif tepat pada masanya dan menjalankan tugas yang diberikan.",
+    "contract.workerClause2": "Menerima gaji yang dipersetujui sebagai bayaran penuh untuk jam bekerja.",
+    "contract.workerClause3": "Memaklumkan majikan dengan segera jika anda tidak dapat hadir.",
+    "contract.workerClause4": "Mematuhi peraturan tempat kerja dan keperluan keselamatan majikan.",
+    "contract.workerClause5": "Ini adalah penglibatan kasual jangka pendek. Anda bertanggungjawab untuk mengisytiharkan cukai pendapatan anda sendiri kepada LHDN jika berkenaan.",
+    "contract.workerClause6": "CariGaji bertindak sebagai orang tengah pasaran dan bukan majikan anda.",
+    "contract.workerClause7": "Tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955.",
+    "contract.signBtn": "✍️ Saya telah membaca dan bersetuju — Tandatangan",
+    "contract.employerTitle": "📄 Kontrak Pekerjaan",
+    "contract.employerSubtitle": "Dijana secara automatik selepas tawaran diterima. Kedua-dua pihak perlu menandatangani.",
+    "contract.enteredBetween": "Perjanjian ini dimeterai antara:",
+    "contract.employerOnFile": "(nama perniagaan anda dalam rekod)",
+    "contract.shiftDetailsHeading": "Butiran Syif:",
+    "contract.locationLabel": "Lokasi:",
+    "contract.timeLabel": "Masa:",
+    "contract.termsHeading": "Terma:",
+    "contract.employerClause1": "Ini adalah penglibatan kasual jangka pendek dan tidak membentuk pekerjaan tetap.",
+    "contract.employerClause2": "Majikan akan membayar kadar gaji yang dipersetujui untuk semua jam bekerja, tidak kurang daripada gaji minimum Malaysia sebanyak RM8.72/jam.",
+    "contract.employerClause3": "Majikan bertanggungjawab terhadap caruman KWSP, PERKESO, dan SIP seperti yang dikehendaki oleh undang-undang Malaysia.",
+    "contract.employerClause4": "Pekerja bersetuju untuk hadir ke syif tepat pada masanya dan menjalankan tugas seperti yang dinyatakan.",
+    "contract.employerClause5": "Mana-mana pihak boleh membatalkan dengan notis munasabah. Pembatalan saat akhir mungkin mengakibatkan penalti platform.",
+    "contract.employerClause6": "CariGaji bertindak sebagai orang tengah pasaran dan bukan majikan dalam susunan ini.",
+    "contract.employerClause7": "Perjanjian ini tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955 dan Akta Pekerja Gig 2025.",
+    "contract.confirmSendNote": "Dengan mengklik \"Sahkan & Hantar kepada Pekerja\", anda bersetuju dengan terma ini dan kontrak akan dihantar kepada {name} untuk tandatangan mereka.",
+    "contract.confirmSendBtn": "Sahkan & Hantar kepada Pekerja",
   },
 };
 
@@ -1360,11 +1934,11 @@ const SkeletonRow = memo(({ height = 64 }) => (
 ));
 
 const HELP_FAQS = [
-  { q: "How does CariGaji work?", a: "Employers post short shifts with a wage range. Workers browse open shifts and place a bid within the allowed range. If the employer accepts your bid, you both sign a contract in-app and the shift is confirmed." },
-  { q: "How do I get paid?", a: "Employers commit funds for accepted workers before the shift starts. After the shift is completed, payment is released to your registered bank account — check the Earnings tab for your payout history." },
-  { q: "What are the KYC levels?", a: "Basic: email verified only. Standard: ID document uploaded. Advanced: ID + selfie + supporting document verified. Higher KYC levels unlock higher-paying shifts and build trust with employers." },
-  { q: "Why can't I see the exact shift location?", a: "Some employers reveal the exact address only to accepted workers, showing just the city/region publicly for safety. Once you're accepted, the full address appears on the shift details page." },
-  { q: "What if something goes wrong during a shift?", a: "Contact customer support using the option in this menu and our team will help resolve the issue directly." },
+  { qKey: "help.faqWorkQ", aKey: "help.faqWorkA" },
+  { qKey: "help.faqPaidQ", aKey: "help.faqPaidA" },
+  { qKey: "help.faqKycQ", aKey: "help.faqKycA" },
+  { qKey: "help.faqLocationQ", aKey: "help.faqLocationA" },
+  { qKey: "help.faqWrongQ", aKey: "help.faqWrongA" },
 ];
 
 const openMailtoSupport = () => {
@@ -1373,6 +1947,7 @@ const openMailtoSupport = () => {
 
 const ProfileMenu = ({ user, onSignOut }) => {
   const toast = useToast();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -1392,24 +1967,24 @@ const ProfileMenu = ({ user, onSignOut }) => {
 
   const shareReferralLink = async () => {
     const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "https://jiayutee.github.io/CariGaji/";
-    const shareText = "Find or post flexible shift work in Malaysia with CariGaji:";
+    const shareText = t("account.referShareText");
     if (navigator.share) {
       try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
       return;
     }
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-      toast("Invite link copied! Share it with friends.", "success");
+      toast(t("toast.inviteLinkCopied"), "success");
       return;
     }
     toast(shareUrl, "info", 8000);
   };
 
   const items = [
-    { label: "Help", icon: "❓", onClick: () => setHelpOpen(true) },
-    { label: "Contact customer support", icon: "💬", onClick: openMailtoSupport },
-    { label: "Refer friends", icon: "🎁", onClick: shareReferralLink },
-    { label: "Sign out", icon: "↩️", danger: true, onClick: onSignOut },
+    { label: t("account.help"), icon: "❓", onClick: () => setHelpOpen(true) },
+    { label: t("account.contactSupport"), icon: "💬", onClick: openMailtoSupport },
+    { label: t("account.referFriends"), icon: "🎁", onClick: shareReferralLink },
+    { label: t("account.signOut"), icon: "↩️", danger: true, onClick: onSignOut },
   ];
 
   return (
@@ -1418,7 +1993,7 @@ const ProfileMenu = ({ user, onSignOut }) => {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Account menu"
+        aria-label={t("account.menuLabel")}
         style={{
           display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
           border: `1px solid ${BRAND.border}`, background: BRAND.surface,
@@ -1467,26 +2042,26 @@ const ProfileMenu = ({ user, onSignOut }) => {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setHelpOpen(false)}>
           <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ Help Centre</h3>
-              <button onClick={() => setHelpOpen(false)} aria-label="Close" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
+              <button onClick={() => setHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
             </div>
             {HELP_FAQS.map((faq, i) => (
-              <div key={faq.q} style={{ borderBottom: `1px solid ${BRAND.border}`, padding: "10px 0" }}>
+              <div key={faq.qKey} style={{ borderBottom: `1px solid ${BRAND.border}`, padding: "10px 0" }}>
                 <button onClick={() => setOpenFaq((o) => (o === i ? null : i))} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, fontSize: 13, fontWeight: 600, color: BRAND.text }}>
-                  <span>{faq.q}</span>
+                  <span>{t(faq.qKey)}</span>
                   <span aria-hidden="true">{openFaq === i ? "−" : "+"}</span>
                 </button>
-                {openFaq === i && <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.6 }}>{faq.a}</div>}
+                {openFaq === i && <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.6 }}>{t(faq.aKey)}</div>}
               </div>
             ))}
             <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
-              Still need help?{" "}
+              {t("help.stillNeedHelp")}{" "}
               <button onClick={() => { setHelpOpen(false); openMailtoSupport(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
-                Contact support
+                {t("help.contactSupportLink")}
               </button>
             </div>
             <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
-              <Btn size="sm" variant="secondary" onClick={() => setHelpOpen(false)}>Close</Btn>
+              <Btn size="sm" variant="secondary" onClick={() => setHelpOpen(false)}>{t("common.close")}</Btn>
             </div>
           </div>
         </div>,
@@ -1496,19 +2071,20 @@ const ProfileMenu = ({ user, onSignOut }) => {
   );
 };
 
-const notificationTimeAgo = (iso) => {
+const notificationTimeAgo = (iso, t) => {
   const diffMs = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t("notification.justNow");
+  if (mins < 60) return t("notification.minAgo").replace("{n}", mins);
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("notification.hourAgo").replace("{n}", hours);
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return t("notification.dayAgo").replace("{n}", days);
   return new Date(iso).toLocaleDateString("en-MY");
 };
 
 const NotificationBell = ({ user }) => {
+  const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [panelPos, setPanelPos] = useState(null); // { top, left } in viewport coords
@@ -1591,7 +2167,7 @@ const NotificationBell = ({ user }) => {
         onClick={() => setOpen((o) => !o)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Notifications"
+        aria-label={t("notification.title")}
         style={{
           position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
           width: 36, height: 36, cursor: "pointer",
@@ -1620,7 +2196,7 @@ const NotificationBell = ({ user }) => {
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}`,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>Notifications</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{t("notification.title")}</div>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
@@ -1629,14 +2205,14 @@ const NotificationBell = ({ user }) => {
                   fontSize: 11, fontWeight: 600, color: BRAND.primary, padding: 0,
                 }}
               >
-                Mark all as read
+                {t("notification.markAllRead")}
               </button>
             )}
           </div>
           <div style={{ maxHeight: 360, overflowY: "auto" }}>
             {notifications.length === 0 ? (
               <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 12, color: BRAND.textMuted }}>
-                No notifications yet
+                {t("notification.empty")}
               </div>
             ) : (
               notifications.map((n) => (
@@ -1664,7 +2240,7 @@ const NotificationBell = ({ user }) => {
                     {n.body && (
                       <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>
                     )}
-                    <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at)}</div>
+                    <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at, t)}</div>
                   </div>
                 </button>
               ))
@@ -2123,6 +2699,7 @@ const uploadKycFile = async (userId, file, label) => {
   ];
 
   const SearchableCountrySelect = ({ label, value, onChange, compact = false, showDial = false }) => {
+    const { t } = useLanguage();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const inputRef = useRef(null);
@@ -2164,7 +2741,7 @@ const uploadKycFile = async (userId, file, label) => {
             justifyContent: compact ? "flex-start" : "space-between",
           }}
         >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>{selected ? (showDial ? <><span>{selected.flag}</span><span style={{ fontWeight: 700 }}>{selected.dialCode}</span></> : selected.name) : (showDial ? "Select" : "Select country")}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>{selected ? (showDial ? <><span>{selected.flag}</span><span style={{ fontWeight: 700 }}>{selected.dialCode}</span></> : selected.name) : (showDial ? t("auth.selectShort") : t("auth.selectCountry"))}</span>
           {!compact && <span style={{ display: "inline-flex", transform: open ? "rotate(180deg)" : "none" }}>{Icons.ChevronDown({ size: 14 })}</span>}
         </button>
         {open && (
@@ -2184,7 +2761,7 @@ const uploadKycFile = async (userId, file, label) => {
           }}>
             <input
               type="text"
-              placeholder="Search by name or code..."
+              placeholder={t("auth.searchCountryPlaceholder")}
               value={search}
               onChange={e => setSearch(e.target.value)}
               autoFocus
@@ -2237,6 +2814,7 @@ const uploadKycFile = async (userId, file, label) => {
   };
 
 const TnCConsent = ({ checked, onChange, error = false }) => {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
   return (
     <div style={{ marginBottom: 16, ...(error ? { border: `1.5px solid ${BRAND.red}`, borderRadius: 10, padding: 10 } : {}) }}>
@@ -2248,7 +2826,7 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
           style={{ marginTop: 2, accentColor: BRAND.primary, flexShrink: 0, width: 16, height: 16 }}
         />
         <span style={{ fontSize: 12, color: error ? BRAND.red : BRAND.text, lineHeight: 1.5 }}>
-          I have read and agree to the{" "}
+          {t("auth.tncAgreeText")}{" "}
           <span
             role="button"
             tabIndex={0}
@@ -2256,13 +2834,16 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
             onKeyDown={e => e.key === "Enter" && setExpanded(v => !v)}
             style={{ color: BRAND.primary, textDecoration: "underline", cursor: "pointer" }}
           >
-            Terms & Conditions and Privacy Notice
+            {t("auth.tncLinkText")}
           </span>
-          , including the collection and use of my identity document (MyKad/passport) for employment verification purposes.
+          {t("auth.tncSuffixText")}
         </span>
       </label>
       {expanded && (
         <div style={{ marginTop: 10, padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7 }}>
+          {/* NOTE: the expanded PDPA legal detail below is intentionally left in English —
+              dense statutory legal text; translating risks inaccuracy. Deferred, same as
+              the Malaysian Labor Law summary panel in Settings. */}
           <strong style={{ color: BRAND.text, fontSize: 12 }}>Privacy Notice & Terms of Consent</strong>
           <p style={{ marginTop: 8 }}>
             <strong>1. Data Controller</strong><br />
@@ -2308,6 +2889,7 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
 };
 
 const SocialAuthButtons = ({ onOAuth, label = "Continue" }) => {
+  const { t } = useLanguage();
   const providers = [
     {
       id: "google", name: "Google",
@@ -2341,7 +2923,7 @@ const SocialAuthButtons = ({ onOAuth, label = "Continue" }) => {
     <div style={{ marginBottom: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "4px 0 14px" }}>
         <div style={{ flex: 1, height: 1, background: BRAND.border }} />
-        <span style={{ fontSize: 12, color: BRAND.textMuted }}>or</span>
+        <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("auth.oauthDivider")}</span>
         <div style={{ flex: 1, height: 1, background: BRAND.border }} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -2359,7 +2941,7 @@ const SocialAuthButtons = ({ onOAuth, label = "Continue" }) => {
             }}
           >
             {p.icon}
-            <span>{label} with {p.name}</span>
+            <span>{t("auth.oauthConnector").replace("{label}", label).replace("{provider}", p.name)}</span>
           </button>
         ))}
       </div>
@@ -2518,7 +3100,7 @@ const AuthModal = ({
             <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{copy.title}</div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>
           </div>
-          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }} aria-label="Close">{Icons.Close({ size: 20 })}</button>
+          <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }} aria-label={translate("common.close")}>{Icons.Close({ size: 20 })}</button>
         </div>
 
         <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column" }}>
@@ -2535,13 +3117,13 @@ const AuthModal = ({
           {view === "signin" && (
             <form onSubmit={onSignIn}>
               <Input label={translate("auth.emailAddress")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
-              <PasswordInput label={translate("auth.password")} placeholder="Enter your password" value={form.password} onChange={e => onChange("password", e.target.value)} />
+              <PasswordInput label={translate("auth.password")} placeholder={translate("auth.enterYourPassword")} value={form.password} onChange={e => onChange("password", e.target.value)} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: -6, marginBottom: 16 }}>
                 <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.forgetPassword")}</button>
                 <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.noAccountYet")}</button>
               </div>
               <Btn type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{copy.action}</Btn>
-              <SocialAuthButtons onOAuth={onOAuth} label="Sign in" />
+              <SocialAuthButtons onOAuth={onOAuth} label={translate("common.signIn")} />
             </form>
           )}
 
@@ -2559,11 +3141,11 @@ const AuthModal = ({
           {view === "register" && (
             <form onSubmit={handleRegisterSubmit} noValidate>
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>I want to…</label>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{translate("auth.iWantTo")}</label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {[
-                    { value: "worker", title: "Find shift work", hint: "Browse and bid on shifts" },
-                    { value: "employer", title: "Hire workers", hint: "Post shifts and manage applicants" },
+                    { value: "worker", title: translate("auth.roleWorkerTitle"), hint: translate("auth.roleWorkerHint") },
+                    { value: "employer", title: translate("auth.roleEmployerTitle"), hint: translate("auth.roleEmployerHint") },
                   ].map(opt => (
                     <label key={opt.value} style={{
                       display: "block", padding: "10px 12px", borderRadius: 10, cursor: "pointer",
@@ -2704,9 +3286,9 @@ const AuthModal = ({
                 <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>{translate("common.back")}</Btn>
                 <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
               </div>
-              <SocialAuthButtons onOAuth={onOAuth} label="Sign up" />
+              <SocialAuthButtons onOAuth={onOAuth} label={translate("common.signUp")} />
               <div style={{ fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 4, textAlign: "center" }}>
-                Signing up with Google, Apple, or Facebook creates your account instantly. You'll be asked to complete identity (KYC) verification afterwards to start working.
+                {translate("auth.socialSignupHint")}
               </div>
             </form>
           )}
@@ -2960,8 +3542,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setRespondingOffer(true);
     const { error } = await supabase.from('applications').update({ status: 'accepted' }).eq('id', applicationId);
     setRespondingOffer(false);
-    if (error) { toast('Failed to confirm: ' + error.message, 'error'); return; }
-    toast('Shift confirmed! Sign the contract to finish.', 'success');
+    if (error) { toast(t('toast.confirmOfferFailed') + error.message, 'error'); return; }
+    toast(t('toast.shiftConfirmed'), 'success');
     setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, status: 'accepted' } : a));
     setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, status: 'accepted' } : prev);
   };
@@ -2970,8 +3552,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setRespondingOffer(true);
     const { error } = await supabase.from('applications').update({ status: 'rejected' }).eq('id', applicationId);
     setRespondingOffer(false);
-    if (error) { toast('Failed to decline: ' + error.message, 'error'); return; }
-    toast('Offer declined.', 'success');
+    if (error) { toast(t('toast.declineOfferFailed') + error.message, 'error'); return; }
+    toast(t('toast.offerDeclined'), 'success');
     setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, status: 'rejected' } : a));
     setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, status: 'rejected' } : prev);
   };
@@ -2982,8 +3564,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setCancellingBid(true);
     const { error } = await supabase.from('applications').update({ status: 'withdrawn' }).eq('id', applicationId);
     setCancellingBid(false);
-    if (error) { toast('Failed to cancel bid: ' + error.message, 'error'); return; }
-    toast('Bid cancelled.', 'success');
+    if (error) { toast(t('toast.cancelBidFailed') + error.message, 'error'); return; }
+    toast(t('toast.bidCancelled'), 'success');
     setLiveApplications(prev => (prev ?? []).filter(a => a.id !== applicationId));
     setSelectedApplication(null);
   };
@@ -3261,17 +3843,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   if (showQR) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>Check-in QR Scanner</div>
-        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>Point your camera at the QR code at the venue entrance</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>{t("worker.checkinTitle")}</div>
+        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>{t("worker.checkinSubtitle")}</div>
         <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: 48 }}>{Icons.Camera({ size: 48 })}</div>
-            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>Camera viewfinder</div>
+            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>{t("worker.cameraViewfinder")}</div>
           </div>
         </div>
         <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
-        <Btn onClick={() => { setShowQR(false); toast(t("toast.checkinSimulated"), "success"); }}>Simulate Successful Check-in</Btn>
-        <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>Back</Btn>
+        <Btn onClick={() => { setShowQR(false); toast(t("toast.checkinSimulated"), "success"); }}>{t("worker.simulateCheckin")}</Btn>
+        <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>{t("common.back")}</Btn>
       </div>
       <div style={navBarStyle}>
         {navItems.map(n => (
@@ -3308,7 +3890,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 value={bidAmount || selectedShift.wageMin}
                 onChange={v => setBidAmount(String(v))}
               />
-              <div style={{ fontSize: 11, color: BRAND.textMuted, textAlign: "center", marginTop: 4 }}>Scroll or tap to choose your rate</div>
+              <div style={{ fontSize: 11, color: BRAND.textMuted, textAlign: "center", marginTop: 4 }}>{t("shiftDetail.rateHelperText")}</div>
             </div>
             {bidAmount && (
               <div style={{ background: BRAND.grayLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
@@ -3381,7 +3963,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
             <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
             <Stat label={t("shiftDetail.estimatedGross")} value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub={t("shiftDetail.atMaxRate")} color={BRAND.green} />
-            <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : "Not provided"} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
+            <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
           {selectedShift.description && (
             <Card style={{ marginBottom: 16 }}>
@@ -3486,7 +4068,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       onClick={() => setShowFilters(f => !f)}
                       style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #e2e8f0',background:'#f8fafc',cursor:'pointer',color:'#64748b'}}
                     >
-                      {showFilters ? 'Hide Filters ▲' : `Filters${activeFilterCount > 0 ? ` (${activeFilterCount})` : ''} ▼`}
+                      {showFilters ? `${t("discover.hideFiltersLabel")} ▲` : `${t("discover.filtersLabel")}${activeFilterCount > 0 ? ` (${activeFilterCount})` : ''} ▼`}
                     </button>
                   </div>
                 );
@@ -3496,26 +4078,26 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {/* Row 1: Location, Date, Duration */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>City</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterCity")}</div>
                       <select value={filterCity} onChange={e=>{ setFilterCity(e.target.value); setFilterArea(''); }}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff', marginBottom:4}}>
-                        <option value="">Any city</option>
+                        <option value="">{t("discover.anyCity")}</option>
                         {Object.keys(CITY_REGIONS).map(city => (
                           <option key={city} value={city}>{city}</option>
                         ))}
                       </select>
                       {filterCity && (
-                        <input placeholder="Area e.g. Bukit Bintang" value={filterArea} onChange={e=>setFilterArea(e.target.value)}
+                        <input placeholder={t("discover.filterAreaPlaceholder")} value={filterArea} onChange={e=>setFilterArea(e.target.value)}
                           style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:12, boxSizing:'border-box', color:'#64748b'}} />
                       )}
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Date</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterDate")}</div>
                       <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Max Duration (hrs)</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMaxDuration")}</div>
                       <input type="number" min="0" placeholder="e.g. 8" value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
@@ -3523,20 +4105,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {/* Row 2: Job type, Min pay, Max pay */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Job Type</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterJobType")}</div>
                       <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff'}}>
-                        <option value="All">All types</option>
+                        <option value="All">{t("discover.allTypes")}</option>
                         {SHIFT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Min Pay (RM/hr)</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMinPay")}</div>
                       <input type="number" min="0" placeholder="e.g. 10" value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Max Pay (RM/hr)</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMaxPay")}</div>
                       <input type="number" min="0" placeholder="e.g. 25" value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
@@ -3544,12 +4126,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {/* Row 3: Start time, End time */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Starts after</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterStartsAfter")}</div>
                       <input type="time" value={filterTimeStart} onChange={e=>setFilterTimeStart(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>Ends by</div>
+                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterEndsBy")}</div>
                       <input type="time" value={filterTimeEnd} onChange={e=>setFilterTimeEnd(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
@@ -3559,12 +4141,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:'#374151'}}>
                       <input type="checkbox" checked={filterHighBooking} onChange={e=>setFilterHighBooking(e.target.checked)}
                         style={{width:15, height:15, accentColor:'#2563EB'}} />
-                      🔥 High booking chance
+                      {t("discover.highBookingChance")}
                     </label>
                     <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:'#374151'}}>
                       <input type="checkbox" checked={filterWeekend} onChange={e=>setFilterWeekend(e.target.checked)}
                         style={{width:15, height:15, accentColor:'#2563EB'}} />
-                      📅 Weekends only
+                      {t("discover.weekendsOnly")}
                     </label>
                   </div>
                   {/* Clear all button */}
@@ -3576,7 +4158,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         setFilterHighBooking(false); setFilterWeekend(false);
                         setFilterTimeStart(''); setFilterTimeEnd('');
                       }} style={{fontSize:12, padding:'5px 14px', borderRadius:6, border:'1px solid #fca5a5', background:'#fef2f2', cursor:'pointer', color:'#ef4444'}}>
-                        Clear all
+                        {t("discover.clearAll")}
                       </button>
                     )}
                   </div>
@@ -3587,8 +4169,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {filtered.length === 0 && (
                 <EmptyState
                   icon="🔍"
-                  title={liveShifts === null ? "Loading shifts…" : "No shifts match right now"}
-                  hint={liveShifts === null ? "Hang tight while we fetch open shifts." : "Try widening your filters, or check back soon — new shifts are posted regularly."}
+                  title={liveShifts === null ? t("discover.loadingShifts") : t("discover.noShiftsMatch")}
+                  hint={liveShifts === null ? t("discover.loadingShiftsHint") : t("discover.noShiftsMatchHint")}
                 />
               )}
               {filtered.map(s => (
@@ -3634,8 +4216,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <AuthGate
             onRequireAuth={onRequireAuth}
             icon="📄"
-            title="Sign in to view your bids"
-            hint="Track the shifts you've applied to and their status once you're signed in."
+            title={t("myBids.signInTitle")}
+            hint={t("myBids.signInHint")}
           />
         )}
 
@@ -3646,20 +4228,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {(liveApplications ?? []).length === 0 && (
                 <EmptyState
                   icon="📄"
-                  title={liveApplications === null ? "Loading your bids…" : "No bids yet"}
-                  hint={liveApplications === null ? "Hang tight while we fetch your bids." : "Head to Discover and place a bid on a shift to see it here."}
+                  title={liveApplications === null ? t("myBids.loadingBids") : t("myBids.noBidsYet")}
+                  hint={liveApplications === null ? t("myBids.loadingBidsHint") : t("myBids.noBidsHint")}
                 />
               )}
               {(liveApplications ?? []).map(a => (
                 <Card key={a.id} onClick={() => setSelectedApplication(a)} hover>
                   {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.grayLight, fontSize: 11, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>
-                      ⏳ Employer decides by {new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                      {t("myBids.employerDecidesByPrefix")}{new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   )}
                   {a.status === "offered" && a.offerExpiresAt && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.blueLight, fontSize: 11, fontWeight: 600, color: BRAND.blue, marginBottom: 8 }}>
-                      🎉 Respond by {new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                      {t("myBids.respondByPrefix")}{new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -3668,25 +4250,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <div style={{ fontSize: 12, color: BRAND.textMuted }}>{a.employer} · {a.date}</div>
                     </div>
                     <Pill
-                      label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "offered" ? "Confirm now" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "expired" ? "Offer expired" : a.status === "rejected" ? "Not selected" : "Pending"}
+                      label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
                       color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
                     />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <span style={{ fontSize: 13, color: BRAND.textMuted }}>Your bid: </span>
+                      <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</span>
                       <span style={{ fontSize: 15, fontWeight: 700, color: BRAND.text }}>RM{a.wageBid}/h</span>
                     </div>
                     {a.status === "shortlisted" && (
-                      <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>Chat →</Btn>
+                      <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
                     )}
                     {a.status === "accepted" && (
-                      <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setShowQR(true); }}>Check In</Btn>
+                      <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>
                     )}
                   </div>
                   {a.status === "shortlisted" && (
                     <div style={{ marginTop: 12, padding: "8px 12px", background: BRAND.amberLight, borderRadius: 8, fontSize: 12, color: BRAND.amber }}>
-                      🎉 You've been shortlisted! Open chat to discuss and receive your offer.
+                      {t("myBids.shortlistedBanner")}
                     </div>
                   )}
                   {a.status === 'accepted' && !a.workerSignedAt && (
@@ -3698,11 +4280,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         employerName: a.employer,
                       }); }}
                       style={{marginTop:6, padding:'6px 14px', borderRadius:6, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
-                      ✍️ Sign Contract
+                      {t("myBids.signContractBtn")}
                     </button>
                   )}
                   {a.status === 'accepted' && a.workerSignedAt && (
-                    <span style={{fontSize:11, color:'#16a34a', marginTop:4, display:'block'}}>✅ Contract signed</span>
+                    <span style={{fontSize:11, color:'#16a34a', marginTop:4, display:'block'}}>{t("myBids.contractSignedBadge")}</span>
                   )}
                 </Card>
               ))}
@@ -3714,38 +4296,38 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           const a = selectedApplication;
           return (
           <div>
-            <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label="Back to my bids">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back to My Bids</span></button>
+            <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("myBids.backToBids")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("myBids.backToBids")}</span></button>
             {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.grayLight, fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>
-                ⏳ Employer decides by {new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                {t("myBids.employerDecidesByPrefix")}{new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
               </div>
             )}
             {a.status === "offered" && a.offerExpiresAt && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.blueLight, fontSize: 12, fontWeight: 600, color: BRAND.blue, marginBottom: 10 }}>
-                🎉 Respond by {new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                {t("myBids.respondByPrefix")}{new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
               </div>
             )}
             <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill
-                label={a.shiftStatus === "cancelled" ? "Shift Cancelled" : a.status === "offered" ? "Confirm now" : a.status === "shortlisted" ? "Shortlisted" : a.status === "accepted" ? "Accepted" : a.status === "expired" ? "Offer expired" : a.status === "rejected" ? "Not selected" : "Pending"}
+                label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
                 color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
               />
               {a.shiftCategory && <Badge color="amber">{a.shiftCategory}</Badge>}
             </div>
             {a.shiftStatus === "cancelled" && (
               <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
-                This shift was cancelled by the employer. No further action is needed.
+                {t("myBids.shiftCancelledNotice")}
               </div>
             )}
             {a.status === "offered" && a.shiftStatus !== "cancelled" && (
               <div style={{ padding: "10px 14px", background: BRAND.blueLight, borderRadius: 10, fontSize: 12, color: BRAND.blue, marginBottom: 16 }}>
-                🎉 You've been selected! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.
+                {t("myBids.selectedNotice")}
               </div>
             )}
             {a.status === "expired" && (
               <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
-                This offer expired because it wasn't confirmed in time.
+                {t("myBids.offerExpiredNotice")}
               </div>
             )}
             {a.shiftDescription && (
@@ -3755,16 +4337,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </Card>
             )}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Shift Details</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
               {[
-                ["📍 Location", a.shiftLocation || "TBA"],
-                ["🗓 Date", a.date],
-                ["⏰ Time", a.shiftStartAt && a.shiftEndAt ? `${new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}–${new Date(a.shiftEndAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}` : 'TBA'],
-                ["👗 Dress code", a.shiftDress || "None specified"],
-                ["👥 Headcount", `${a.shiftHeadcount} workers needed`],
-                ["💰 Employer range", a.shiftWageMin && a.shiftWageMax ? `RM${a.shiftWageMin}–${a.shiftWageMax}/h` : "N/A"],
-                ["🚌 Transport allowance", a.shiftStipend > 0 ? `RM${a.shiftStipend}` : "Not provided"],
-                ["Your bid", `RM${a.wageBid}/h`],
+                [t("shiftDetail.location"), a.shiftLocation || t("shiftDetail.tba")],
+                [t("shiftDetail.date"), a.date],
+                [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}–${new Date(a.shiftEndAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}` : t("shiftDetail.tba")],
+                [t("shiftDetail.dressCode"), a.shiftDress || t("shiftDetail.dressCodeNone")],
+                [t("shiftDetail.headcount"), `${a.shiftHeadcount} ${t("shiftDetail.workersNeeded")}`],
+                [t("myBids.employerRangeRow"), a.shiftWageMin && a.shiftWageMax ? `RM${a.shiftWageMin}–${a.shiftWageMax}/h` : t("shiftDetail.notApplicable")],
+                [t("myBids.transportAllowanceRow"), a.shiftStipend > 0 ? `RM${a.shiftStipend}` : t("shiftDetail.notProvided")],
+                [t("shiftDetail.yourBid"), `RM${a.wageBid}/h`],
               ].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                   <span style={{ fontSize: 13, color: BRAND.textMuted, width: 150, flexShrink: 0 }}>{k}</span>
@@ -3774,33 +4356,33 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </Card>
             {a.status === "shortlisted" && (
               <div style={{ padding: "10px 14px", background: BRAND.amberLight, borderRadius: 10, fontSize: 12, color: BRAND.amber, marginBottom: 16 }}>
-                🎉 You've been shortlisted! Open chat to discuss and receive your offer.
+                {t("myBids.shortlistedBanner")}
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
               {a.status === "pending" && a.shiftStatus !== "cancelled" && (
                 <Btn variant="secondary" disabled={cancellingBid} onClick={() => cancelBid(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.red }}>
-                  {cancellingBid ? "Cancelling…" : "Cancel Bid"}
+                  {cancellingBid ? t("myBids.cancelling") : t("myBids.cancelBidBtn")}
                 </Btn>
               )}
               {a.status === "shortlisted" && a.shiftStatus !== "cancelled" && (
-                <Btn onClick={() => setTab('chat')} style={{ flex: 1, justifyContent: "center" }}>Chat →</Btn>
+                <Btn onClick={() => setTab('chat')} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.chatBtn")}</Btn>
               )}
               {a.status === "offered" && a.shiftStatus !== "cancelled" && (
                 <>
                   <Btn variant="secondary" disabled={respondingOffer} onClick={() => declineOffer(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.red }}>
-                    {respondingOffer ? "…" : "Decline"}
+                    {respondingOffer ? "…" : t("myBids.declineBtn")}
                   </Btn>
                   <Btn variant="success" disabled={respondingOffer} onClick={() => confirmOffer(a.id)} style={{ flex: 1, justifyContent: "center" }}>
-                    {respondingOffer ? "…" : "Confirm Shift"}
+                    {respondingOffer ? "…" : t("myBids.confirmShiftBtn")}
                   </Btn>
                 </>
               )}
               {a.status === "accepted" && !a.workerSignedAt && a.shiftStatus !== "cancelled" && (
-                <Btn onClick={() => setWorkerContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>✍️ Sign Contract</Btn>
+                <Btn onClick={() => setWorkerContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.signContractBtn")}</Btn>
               )}
               {a.status === "accepted" && a.workerSignedAt && a.shiftStatus !== "cancelled" && (
-                <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>Check In</Btn>
+                <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
               )}
             </div>
           </div>
@@ -3890,8 +4472,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <AuthGate
             onRequireAuth={onRequireAuth}
             icon="💸"
-            title="Sign in to view earnings"
-            hint="Track your payouts, internal settlement status, and bank verification once you're signed in."
+            title={t("earnings.signInTitle")}
+            hint={t("earnings.signInHint")}
           />
         )}
 
@@ -4046,12 +4628,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </Card>
             {!user && (
               <Card style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>Salary Banking Details</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
                 <AuthGate
                   onRequireAuth={onRequireAuth}
                   icon="🏦"
-                  title="Sign in to manage banking"
-                  hint="Add and verify your bank details for salary payouts after signing in."
+                  title={t("settings.bankingSignInTitle")}
+                  hint={t("settings.bankingSignInHint")}
                 />
               </Card>
             )}
@@ -4069,26 +4651,26 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               />
               <Input
                 label={t("settings.accountHolderName")}
-                placeholder="As per bank account"
+                placeholder={t("settings.accountHolderPlaceholder")}
                 value={workerBankForm.accountHolderName}
                 onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, accountHolderName: e.target.value }))}
               />
               <Input
                 label={t("settings.accountNumber")}
-                placeholder="Enter bank account number"
+                placeholder={t("settings.accountNumberPlaceholder")}
                 value={workerBankForm.accountNumber}
                 onChange={(e) => setWorkerBankForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
               />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("settings.status")}</span>
                 <Pill
-                  label={workerBanking?.verification_status ? `SecureSign ${workerBanking.verification_status}` : "SecureSign pending"}
+                  label={workerBanking?.verification_status ? `SecureSign ${workerBanking.verification_status}` : t("settings.secureSignPending")}
                   color={mapVerificationPillColor(workerBanking?.verification_status)}
                 />
               </div>
               {workerBanking?.account_number_last4 && (
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
-                  Saved account: •••• {workerBanking.account_number_last4}
+                  {t("employer.savedAccountPrefix")} {workerBanking.account_number_last4}
                 </div>
               )}
               {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
@@ -4104,11 +4686,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               if (!canSeeEmployer && !isAdminAccount) return null;
               return (
                 <Card style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Access other consoles</div>
-                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 14 }}>These are hidden from the main app and can only be opened here.</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("settings.accessOtherConsoles")}</div>
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 14 }}>{t("settings.accessOtherConsolesHint")}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {canSeeEmployer && <Btn variant="secondary" onClick={() => onOpenPortal?.("employer")}>Open Employer Console</Btn>}
-                    {isAdminAccount && <Btn variant="secondary" onClick={() => onOpenPortal?.("admin")}>Open Admin Dashboard</Btn>}
+                    {canSeeEmployer && <Btn variant="secondary" onClick={() => onOpenPortal?.("employer")}>{t("settings.openEmployerConsole")}</Btn>}
+                    {isAdminAccount && <Btn variant="secondary" onClick={() => onOpenPortal?.("admin")}>{t("settings.openAdminDashboard")}</Btn>}
                   </div>
                 </Card>
               );
@@ -4211,31 +4793,31 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {workerContractModal && (
       <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div style={{background:'#fff', borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-          <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>📄 Your Employment Contract</h3>
-          <p style={{fontSize:12, color:'#6b7280', marginBottom:16}}>Please read carefully before signing.</p>
+          <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>{t("contract.workerTitle")}</h3>
+          <p style={{fontSize:12, color:'#6b7280', marginBottom:16}}>{t("contract.readCarefully")}</p>
 
           <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
-            <p><strong>CariGaji Platform — Shift Work Agreement</strong></p>
-            <p>• <strong>Employer:</strong> {workerContractModal.employerName}</p>
-            <p>• <strong>Worker:</strong> You</p>
-            <p>• <strong>Role:</strong> {workerContractModal.shiftTitle}</p>
-            <p>• <strong>Date:</strong> {workerContractModal.shiftDate}</p>
-            <p>• <strong>Agreed wage:</strong> RM {workerContractModal.wageAsk}/hr</p>
+            <p><strong>{t("contract.agreementHeading")}</strong></p>
+            <p>• <strong>{t("contract.employerLabel")}</strong> {workerContractModal.employerName}</p>
+            <p>• <strong>{t("contract.workerLabel")}</strong> {t("contract.youLabel")}</p>
+            <p>• <strong>{t("contract.roleLabel")}</strong> {workerContractModal.shiftTitle}</p>
+            <p>• <strong>{t("contract.dateLabel")}</strong> {workerContractModal.shiftDate}</p>
+            <p>• <strong>{t("contract.agreedWageLabel")}</strong> RM {workerContractModal.wageAsk}/hr</p>
             <br/>
-            <p><strong>By signing you agree to:</strong></p>
-            <p>1. Attend the shift punctually and perform the assigned duties.</p>
-            <p>2. Accept the agreed wage as full payment for hours worked.</p>
-            <p>3. Notify the employer promptly if you are unable to attend.</p>
-            <p>4. Comply with the employer's workplace rules and safety requirements.</p>
-            <p>5. This is a casual short-term engagement. You are responsible for declaring your own income tax to LHDN if applicable.</p>
-            <p>6. CariGaji acts as a marketplace intermediary and is not your employer.</p>
-            <p>7. Governed by Malaysian law including the Employment Act 1955.</p>
+            <p><strong>{t("contract.agreeToTermsHeading")}</strong></p>
+            <p>1. {t("contract.workerClause1")}</p>
+            <p>2. {t("contract.workerClause2")}</p>
+            <p>3. {t("contract.workerClause3")}</p>
+            <p>4. {t("contract.workerClause4")}</p>
+            <p>5. {t("contract.workerClause5")}</p>
+            <p>6. {t("contract.workerClause6")}</p>
+            <p>7. {t("contract.workerClause7")}</p>
           </div>
 
           <div style={{display:'flex', gap:8}}>
             <button onClick={() => setWorkerContractModal(null)}
               style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
-              Cancel
+              {t("common.cancel")}
             </button>
             <button onClick={async () => {
               const { error } = await supabase
@@ -4258,7 +4840,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               setWorkerContractModal(null);
             }}
               style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-              ✍️ I have read and agree — Sign
+              {t("contract.signBtn")}
             </button>
           </div>
         </div>
@@ -4514,7 +5096,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance')
       .eq('id', shiftId)
       .single();
-    if (error || !data) { toast('Could not load shift for editing.', 'error'); return; }
+    if (error || !data) { toast(t('employer.toastLoadShiftFailed'), 'error'); return; }
     const pad = n => String(n).padStart(2, '0');
     const start = data.start_at ? new Date(data.start_at) : null;
     const end = data.end_at ? new Date(data.end_at) : null;
@@ -4823,7 +5405,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const makeOffer = async (ids) => {
     const openSlots = openSlotsRemaining();
     if (ids.length > openSlots) {
-      toast(`Only ${openSlots} position${openSlots === 1 ? '' : 's'} still open — select ${openSlots} or fewer.`, 'error');
+      toast(t('toast.tooManySelected').replace(/{open}/g, openSlots).replace('{plural}', openSlots === 1 ? '' : t('common.pluralSuffix')), 'error');
       return;
     }
     setOffering(true);
@@ -4837,7 +5419,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setLiveApplicants(prev => (prev ?? []).map(a => ids.includes(a.id) ? { ...a, status: 'offered', offerExpiresAt: deadline } : a));
     setSelectedApplicantIds([]);
     setBulkSelectMode(false);
-    toast(ids.length > 1 ? `Offer sent to ${ids.length} workers.` : 'Offer sent — waiting for the worker to confirm.', 'success');
+    toast(ids.length > 1 ? t('toast.offerSentMultiple').replace('{count}', ids.length) : t('toast.offerSentSingle'), 'success');
   };
 
   const committedPayoutTotal = employerPayoutItems
@@ -4853,7 +5435,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       <div style={{ width: compact ? "100%" : 180, borderRight: compact ? "none" : `1px solid ${BRAND.border}`, borderBottom: compact ? `1px solid ${BRAND.border}` : "none", padding: "24px 0", background: BRAND.surface, flexShrink: 0, display: "flex", flexDirection: "column" }}>
         <div style={{ padding: "0 20px 24px" }}>
           <div style={{ fontWeight: 900, fontSize: 20, color: BRAND.primary }}>CariGaji</div>
-          <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>Employer Console</div>
+          <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>{t("employer.tagline")}</div>
         </div>
         {navItems.map(n => (
           <button key={n.id} onClick={() => { setView(n.id); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); }}
@@ -4867,10 +5449,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             }}>{n.label}</button>
         ))}
         <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
-          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>Paid to Workers</div>
+          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
           <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
-          <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Top Up (soon)</Btn>
-          <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Return to Worker App</Btn>
+          <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpSoon")}</Btn>
+          <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
         </div>
       </div>
 
@@ -4893,8 +5475,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").length === 0 && (
                   <EmptyState
                     icon="📋"
-                    title={liveEmployerShifts === null ? "Loading shifts…" : "No active shifts"}
-                    hint={liveEmployerShifts === null ? "Hang tight while we fetch your shifts." : "Post a shift to start hiring workers."}
+                    title={liveEmployerShifts === null ? t("employer.loadingShifts") : t("employer.noActiveShifts")}
+                    hint={liveEmployerShifts === null ? t("employer.loadingShiftsHint") : t("employer.noActiveShiftsHint")}
                   />
                 )}
                 {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").map(s => (
@@ -4941,7 +5523,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{t("employer.shiftsTitle")}</div>
-                <div style={{ fontSize: 14, color: BRAND.textMuted }}>Manage all your posted shifts</div>
+                <div style={{ fontSize: 14, color: BRAND.textMuted }}>{t("employer.manageShiftsSubtitle")}</div>
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <Btn variant="secondary" onClick={beginBulkUpload}>{t("employer.bulkUploadBtn")}</Btn>
@@ -4951,8 +5533,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             {(liveEmployerShifts ?? []).length === 0 && (
               <EmptyState
                 icon="📋"
-                title={liveEmployerShifts === null ? "Loading shifts…" : "No shifts posted yet"}
-                hint={liveEmployerShifts === null ? "Hang tight while we fetch your shifts." : "Post your first shift to start hiring workers."}
+                title={liveEmployerShifts === null ? t("employer.loadingShifts") : t("employer.noShiftsPostedYet")}
+                hint={liveEmployerShifts === null ? t("employer.loadingShiftsHint") : t("employer.noShiftsPostedYetHint")}
               />
             )}
             {(liveEmployerShifts ?? []).map(s => (
@@ -4985,7 +5567,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "shifts" && selectedShift && (
           <div>
-            <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label="Back to shifts">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back to shifts</span></button>
+            <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("employer.backToShifts")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("employer.backToShifts")}</span></button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
@@ -4995,12 +5577,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     variant="secondary"
                     disabled={cancellingShift}
                     onClick={async () => {
-                      if (!window.confirm(`Cancel "${selectedShift.title}"? All applicants will be notified.`)) return;
+                      if (!window.confirm(t('employer.confirmCancelShift').replace('{title}', selectedShift.title))) return;
                       setCancellingShift(true);
                       const { error } = await supabase.from('shifts').update({ status: 'cancelled' }).eq('id', selectedShift.id);
                       setCancellingShift(false);
-                      if (error) { toast('Failed to cancel shift: ' + error.message, 'error'); return; }
-                      toast('Shift cancelled. Applicants have been notified.', 'success');
+                      if (error) { toast(t('employer.toastCancelShiftFailed') + error.message, 'error'); return; }
+                      toast(t('employer.toastShiftCancelled'), 'success');
                       setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === selectedShift.id ? { ...s, status: 'cancelled' } : s));
                       setSelectedShift(prev => prev ? { ...prev, status: 'cancelled' } : prev);
                     }}
@@ -5016,45 +5598,45 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.date}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
-              <Stat label="Applied users" value={selectedShift.applicants} color={BRAND.blue} />
-              <Stat label="Slots filled" value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
-              <Stat label="Committed" value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
-              <Stat label="Avg bid" value="RM14.40" color={BRAND.accent} />
+              <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
+              <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
+              <Stat label={t("employer.statCommitted")} value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
+              <Stat label={t("employer.statAvgBid")} value="RM14.40" color={BRAND.accent} />
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 4 }}>Applicant pool</div>
-                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{openSlotsRemaining()} of {selectedShift.headcount} position{selectedShift.headcount === 1 ? '' : 's'} still open.</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 4 }}>{t("employer.applicantPool")}</div>
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("employer.positionsOpenHint").replace("{open}", openSlotsRemaining()).replace("{total}", selectedShift.headcount).replace("{plural}", selectedShift.headcount === 1 ? '' : t("common.pluralSuffix"))}</div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <Badge color="blue">{selectedShift.applicants} applied</Badge>
+                <Badge color="blue">{t("employer.appliedBadge").replace("{count}", selectedShift.applicants)}</Badge>
                 {openSlotsRemaining() > 0 && (
                   <Btn size="xs" variant="secondary" onClick={() => { setBulkSelectMode(m => !m); setSelectedApplicantIds([]); }}>
-                    {bulkSelectMode ? 'Cancel' : 'Select multiple'}
+                    {bulkSelectMode ? t("common.cancel") : t("employer.selectMultiple")}
                   </Btn>
                 )}
               </div>
             </div>
             {bulkSelectMode && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BRAND.primaryLight, borderRadius: 10, marginBottom: 12 }}>
-                <span style={{ fontSize: 12, color: BRAND.primary, fontWeight: 600 }}>{selectedApplicantIds.length} / {openSlotsRemaining()} selected</span>
+                <span style={{ fontSize: 12, color: BRAND.primary, fontWeight: 600 }}>{t("employer.selectedOfTotal").replace("{selected}", selectedApplicantIds.length).replace("{total}", openSlotsRemaining())}</span>
                 <Btn size="xs" disabled={selectedApplicantIds.length === 0 || offering} onClick={() => makeOffer(selectedApplicantIds)}>
-                  {offering ? 'Sending…' : `Offer to ${selectedApplicantIds.length || ''} worker${selectedApplicantIds.length === 1 ? '' : 's'}`}
+                  {offering ? t("employer.sendingOffer") : t("employer.offerToWorkers").replace("{count}", selectedApplicantIds.length || '').replace("{plural}", selectedApplicantIds.length === 1 ? '' : t("common.pluralSuffix"))}
                 </Btn>
               </div>
             )}
             {(liveApplicants ?? []).length === 0 && (
               <EmptyState
                 icon="👥"
-                title={liveApplicants === null ? "Loading applicants…" : "No applicants yet"}
-                hint={liveApplicants === null ? "Hang tight while we fetch applicants." : "Applicants will appear here once workers bid on this shift."}
+                title={liveApplicants === null ? t("employer.loadingApplicants") : t("employer.noApplicantsYet")}
+                hint={liveApplicants === null ? t("employer.loadingApplicantsHint") : t("employer.noApplicantsHint")}
               />
             )}
             {(liveApplicants ?? []).length > 0 && (
             <table style={{ width: "100%", borderCollapse: "collapse", background: BRAND.surface, borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
-                  {[bulkSelectMode ? "" : null, "Worker", "KYC", "Reliability", "Rating", "Bid (RM/h)", "Status", "Action"].filter(h => h !== null).map((h, i) => (
+                  {[bulkSelectMode ? "" : null, t("employer.colWorker"), t("employer.colKYC"), t("employer.colReliability"), t("employer.colRating"), t("employer.colBidRate"), t("employer.colStatus"), t("employer.colAction")].filter(h => h !== null).map((h, i) => (
                     <th key={h || `col${i}`} style={{ padding: "12px 14px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                   ))}
                 </tr>
@@ -5081,7 +5663,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                           <Avatar name={a.name} size={28} color={BRAND.blue} />
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{a.name}</div>
-                            <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} shifts done</div>
+                            <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
                           </div>
                         </div>
                       </td>
@@ -5096,7 +5678,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primary, fontSize: 14 }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>
                         <Pill
-                          label={action === 'offered' ? 'Awaiting response' : action}
+                          label={action === 'offered' ? t("employer.awaitingResponse") : action}
                           color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
                         />
                         {action === 'offered' && a.offerExpiresAt && (
@@ -5106,15 +5688,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <td style={{ padding: "12px 14px" }}>
                         {isSelectable && !bulkSelectMode && (
                           <div style={{ display: "flex", gap: 6 }}>
-                            {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>Shortlist</Btn>}
-                            <Btn size="xs" variant="success" disabled={offering || openSlotsRemaining() === 0} onClick={() => makeOffer([a.id])}>Select</Btn>
+                            {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>{t("employer.shortlistBtn")}</Btn>}
+                            <Btn size="xs" variant="success" disabled={offering || openSlotsRemaining() === 0} onClick={() => makeOffer([a.id])}>{t("employer.selectBtn")}</Btn>
                             <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
                           </div>
                         )}
-                        {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>⏳ Waiting on worker</span>}
-                        {action === "accepted" && <span style={{ fontSize: 12, color: BRAND.green }}>✓ Confirmed</span>}
-                        {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>✗ Not selected</span>}
-                        {action === "expired" && <span style={{ fontSize: 12, color: BRAND.red }}>⏱ Offer expired</span>}
+                        {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>{t("employer.waitingOnWorker")}</span>}
+                        {action === "accepted" && <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>}
+                        {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.notSelected")}</span>}
+                        {action === "expired" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.offerExpiredStatus")}</span>}
                       </td>
                     </tr>
                   );
@@ -5142,50 +5724,50 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <Card>
               {postStep === 1 && (
                 <div>
-                  <Input label="Shift title" placeholder="e.g. F&B Server – Corporate Dinner" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                  <Input label={t("employer.fieldShiftTitle")} placeholder={t("employer.shiftTitlePlaceholder")} value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Job description</label>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.fieldJobDescription")}</label>
                     <textarea
-                      placeholder="Describe the role, responsibilities, and what a good day looks like…"
+                      placeholder={t("employer.jobDescriptionPlaceholder")}
                       value={form.description}
                       onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                       style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }}
                     />
                   </div>
-                  <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: v }))} />
-                  <LocationAutocomplete label="Location" value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
+                  <Select label={t("employer.labelCategory")} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: v }))} />
+                  <LocationAutocomplete label={t("employer.labelLocation")} value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
                   <div style={{marginTop:8, marginBottom:16}}>
-                    <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>Address visibility</div>
+                    <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>{t("employer.addressVisibilityLabel")}</div>
                     <div style={{display:'flex', gap:12}}>
                       <label style={{display:'flex', alignItems:'center', gap:5, fontSize:13, cursor:'pointer'}}>
                         <input type="radio" name="addrVisibility" value="public"
                           checked={form.addressVisibility !== 'accepted_only'}
                           onChange={() => setForm(f=>({...f, addressVisibility:'public'}))} />
-                        Show full address on listing
+                        {t("employer.addressVisibilityPublic")}
                       </label>
                       <label style={{display:'flex', alignItems:'center', gap:5, fontSize:13, cursor:'pointer'}}>
                         <input type="radio" name="addrVisibility" value="accepted_only"
                           checked={form.addressVisibility === 'accepted_only'}
                           onChange={() => setForm(f=>({...f, addressVisibility:'accepted_only'}))} />
-                        Reveal only to accepted workers
+                        {t("employer.addressVisibilityPrivate")}
                       </label>
                     </div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <Input label="Date" type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-                    <Input label="Headcount" type="number" value={form.headcount} onChange={e => setForm(f => ({ ...f, headcount: e.target.value }))} />
-                    <Input label="Start time" type="time" value={form.timeStart} onChange={e => setForm(f => ({ ...f, timeStart: e.target.value }))} />
-                    <Input label="End time" type="time" value={form.timeEnd} onChange={e => setForm(f => ({ ...f, timeEnd: e.target.value }))} />
+                    <Input label={t("employer.labelDate")} type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+                    <Input label={t("employer.labelHeadcount")} type="number" value={form.headcount} onChange={e => setForm(f => ({ ...f, headcount: e.target.value }))} />
+                    <Input label={t("employer.fieldStartTime")} type="time" value={form.timeStart} onChange={e => setForm(f => ({ ...f, timeStart: e.target.value }))} />
+                    <Input label={t("employer.fieldEndTime")} type="time" value={form.timeEnd} onChange={e => setForm(f => ({ ...f, timeEnd: e.target.value }))} />
                   </div>
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Wage Range (RM/hour)</label>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.wageRangeLabel")}</label>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                      <Input placeholder="Min e.g. 12" type="number" value={form.wageMin} onChange={e => setForm(f => ({ ...f, wageMin: e.target.value }))} />
-                      <Input placeholder="Max e.g. 16" type="number" value={form.wageMax} onChange={e => setForm(f => ({ ...f, wageMax: e.target.value }))} />
+                      <Input placeholder={t("employer.wageMinPlaceholder")} type="number" value={form.wageMin} onChange={e => setForm(f => ({ ...f, wageMin: e.target.value }))} />
+                      <Input placeholder={t("employer.wageMaxPlaceholder")} type="number" value={form.wageMax} onChange={e => setForm(f => ({ ...f, wageMax: e.target.value }))} />
                     </div>
                     {form.wageMin && form.wageMax && (
                       <div style={{ background: BRAND.primaryLight, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: BRAND.primary }}>
-                        Workers can bid up to RM{(parseFloat(form.wageMax || 0) * 1.5).toFixed(0)}/h (150% of max)
+                        {t("employer.bidCapHint").replace("{amount}", (parseFloat(form.wageMax || 0) * 1.5).toFixed(0))}
                       </div>
                     )}
                   </div>
@@ -5196,7 +5778,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         checked={form.offersTransportAllowance}
                         onChange={e => setForm(f => ({ ...f, offersTransportAllowance: e.target.checked, transportAllowance: e.target.checked ? f.transportAllowance : "" }))}
                       />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>Offer a transport allowance</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("employer.offerTransportAllowance")}</span>
                     </label>
                     {form.offersTransportAllowance && (
                       <Input
@@ -5208,45 +5790,45 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       />
                     )}
                     <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>
-                      Optional flat amount (RM) paid on top of hourly wage to help cover workers' travel costs.
+                      {t("employer.transportAllowanceHint")}
                     </div>
                   </div>
-                  <Btn onClick={() => setPostStep(2)} style={{ width: "100%", justifyContent: "center" }}>Next: Requirements →</Btn>
+                  <Btn onClick={() => setPostStep(2)} style={{ width: "100%", justifyContent: "center" }}>{t("employer.nextRequirements")}</Btn>
                 </div>
               )}
               {postStep === 2 && (
                 <div>
-                  <Input label="Dress code" placeholder="e.g. All black formal" value={form.dress} onChange={e => setForm(f => ({ ...f, dress: e.target.value }))} />
+                  <Input label={t("employer.labelDressCode")} placeholder={t("employer.dressCodePlaceholder")} value={form.dress} onChange={e => setForm(f => ({ ...f, dress: e.target.value }))} />
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>Required documents</label>
-                    {["IC / Passport", "Food Handler Certificate", "First Aid Certification", "Driving License"].map(doc => (
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.requiredDocumentsLabel")}</label>
+                    {[t("employer.docIcPassport"), t("employer.docFoodHandler"), t("employer.docFirstAid"), t("employer.docDrivingLicense")].map(doc => (
                       <label key={doc} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13, color: BRAND.text }}>
                         <input type="checkbox" /> {doc}
                       </label>
                     ))}
                   </div>
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Special requirements</label>
-                    <textarea placeholder="Any additional requirements…" style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }} />
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.specialRequirementsLabel")}</label>
+                    <textarea placeholder={t("employer.specialRequirementsPlaceholder")} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }} />
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
-                    <Btn variant="secondary" onClick={() => setPostStep(1)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
-                    <Btn onClick={() => setPostStep(3)} style={{ flex: 1, justifyContent: "center" }}>Next: Review →</Btn>
+                    <Btn variant="secondary" onClick={() => setPostStep(1)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></Btn>
+                    <Btn onClick={() => setPostStep(3)} style={{ flex: 1, justifyContent: "center" }}>{t("employer.nextReview")}</Btn>
                   </div>
                 </div>
               )}
               {postStep === 3 && (
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, marginBottom: 16 }}>Review your shift</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, marginBottom: 16 }}>{t("employer.reviewYourShift")}</div>
                   {[
-                    ["Title", form.title || "(not set)"],
-                    ["Category", form.category],
-                    ["Location", form.location],
-                    ["Date", form.date || "(not set)"],
-                    ["Headcount", form.headcount],
-                    ["Wage range", form.wageMin && form.wageMax ? `RM${form.wageMin}–RM${form.wageMax}/h` : "(not set)"],
-                    ["Transport allowance", form.offersTransportAllowance && form.transportAllowance ? `RM${form.transportAllowance}` : "Not offered"],
-                    ["Dress code", form.dress || "None"],
+                    [t("employer.reviewLabelTitle"), form.title || t("employer.reviewNotSet")],
+                    [t("employer.labelCategory"), form.category],
+                    [t("employer.labelLocation"), form.location],
+                    [t("employer.labelDate"), form.date || t("employer.reviewNotSet")],
+                    [t("employer.labelHeadcount"), form.headcount],
+                    [t("employer.reviewLabelWageRange"), form.wageMin && form.wageMax ? `RM${form.wageMin}–RM${form.wageMax}/h` : t("employer.reviewNotSet")],
+                    [t("employer.reviewLabelTransportAllowance"), form.offersTransportAllowance && form.transportAllowance ? `RM${form.transportAllowance}` : t("employer.transportNotOffered")],
+                    [t("employer.labelDressCode"), form.dress || t("employer.dressCodeNone")],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
                       <span style={{ color: BRAND.textMuted }}>{k}</span>
@@ -5255,13 +5837,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   ))}
                   {form.wageMax && form.headcount && (
                     <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>Estimated amount to reserve</div>
+                      <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
                       <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{(parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * 8).toFixed(0)}</div>
-                      <div style={{ fontSize: 11, color: BRAND.amber }}>wage_max × headcount × 8h (estimated) + 15% platform fee</div>
+                      <div style={{ fontSize: 11, color: BRAND.amber }}>{t("employer.estimatedReserveFormula")}</div>
                     </div>
                   )}
                   <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
-                    <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
+                    <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></Btn>
                     <Btn onClick={async () => {
                       if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
                       if (!form.title || !form.date || !form.timeStart || !form.timeEnd) {
@@ -5322,7 +5904,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             {bulkUploadStep === 1 && (
               <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>Upload your shifts CSV</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>{t("employer.bulkUploadCsvHeading")}</div>
                   <Btn variant="ghost" size="sm" onClick={downloadBulkUploadTemplate}>{t("employer.bulkDownloadTemplate")}</Btn>
                 </div>
                 <FileInput
@@ -5345,7 +5927,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               const total = bulkUploadRows.length;
               const pillFor = (status) => (
                 <Pill
-                  label={status === "ready" ? "Ready" : status === "needs_fix" ? "Needs fix" : status === "published" ? "Published" : "Failed"}
+                  label={status === "ready" ? t("employer.bulkStatusReady") : status === "needs_fix" ? t("employer.bulkStatusNeedsFix") : status === "published" ? t("employer.bulkStatusPublished") : t("employer.bulkStatusFailed")}
                   color={status === "ready" ? "green" : status === "needs_fix" ? "amber" : status === "published" ? "blue" : "red"}
                 />
               );
@@ -5358,7 +5940,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1280 }}>
                       <thead>
                         <tr style={{ background: BRAND.grayLight }}>
-                          {[t("employer.bulkColRow"), t("employer.bulkColStatus"), "Title", "Category", "Date", "Start", "End", "Min RM/h", "Max RM/h", "Headcount", "Location", "Dress code", "Transport (RM)", ""].map(h => (
+                          {[t("employer.bulkColRow"), t("employer.bulkColStatus"), t("employer.bulkColTitle"), t("employer.bulkColCategory"), t("employer.bulkColDate"), t("employer.bulkColStart"), t("employer.bulkColEnd"), t("employer.bulkColMinWage"), t("employer.bulkColMaxWage"), t("employer.bulkColHeadcount"), t("employer.bulkColLocation"), t("employer.bulkColDressCode"), t("employer.bulkColTransport"), ""].map(h => (
                             <th key={h} style={{ padding: "10px 12px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}`, whiteSpace: "nowrap" }}>{h}</th>
                           ))}
                         </tr>
@@ -5378,7 +5960,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                               </td>
                               <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.title} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "title", e.target.value)} style={{ marginBottom: 0 }} error={!row.title.trim()} /></td>
                               <td style={{ padding: "8px 12px", minWidth: 140 }}>
-                                <Select value={row.category} onChange={e => updateBulkUploadRow(row._rowNum, "category", e.target.value)} options={[{ value: "", label: "— Select —" }, ...SHIFT_CATEGORIES.map(c => ({ value: c, label: c }))]} style={{ marginBottom: 0 }} />
+                                <Select value={row.category} onChange={e => updateBulkUploadRow(row._rowNum, "category", e.target.value)} options={[{ value: "", label: t("employer.bulkSelectCategoryPlaceholder") }, ...SHIFT_CATEGORIES.map(c => ({ value: c, label: c }))]} style={{ marginBottom: 0 }} />
                               </td>
                               <td style={{ padding: "8px 12px", minWidth: 140 }}><Input type="date" value={row.date} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "date", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{4}-\d{2}-\d{2}$/.test(row.date)} /></td>
                               <td style={{ padding: "8px 12px", minWidth: 100 }}><Input type="time" value={row.timeStart} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "timeStart", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{2}:\d{2}$/.test(row.timeStart)} /></td>
@@ -5391,7 +5973,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                               <td style={{ padding: "8px 12px", minWidth: 90 }}><Input type="number" value={row.transportAllowance} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "transportAllowance", e.target.value)} style={{ marginBottom: 0 }} /></td>
                               <td style={{ padding: "8px 12px" }}>
                                 {row._status === "failed" && (
-                                  <Btn size="xs" variant="secondary" onClick={() => retryBulkUploadRow(row._rowNum)}>Retry</Btn>
+                                  <Btn size="xs" variant="secondary" onClick={() => retryBulkUploadRow(row._rowNum)}>{t("employer.bulkRetry")}</Btn>
                                 )}
                               </td>
                             </tr>
@@ -5433,11 +6015,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, maxHeight: 280, overflowY: "auto" }}>
                     {bulkUploadRows.map(row => (
                       <div key={row._rowNum} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: BRAND.grayLight, borderRadius: 8, gap: 12 }}>
-                        <div style={{ fontSize: 13, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>#{row._rowNum} {row.title || "(untitled)"}</div>
+                        <div style={{ fontSize: 13, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>#{row._rowNum} {row.title || t("employer.bulkUntitled")}</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                           {row._status === "failed" && row._error && <span style={{ fontSize: 11, color: BRAND.red }}>{row._error}</span>}
                           <Pill
-                            label={row._status === "ready" ? "Ready" : row._status === "needs_fix" ? "Needs fix" : row._status === "published" ? "Published" : "Failed"}
+                            label={row._status === "ready" ? t("employer.bulkStatusReady") : row._status === "needs_fix" ? t("employer.bulkStatusNeedsFix") : row._status === "published" ? t("employer.bulkStatusPublished") : t("employer.bulkStatusFailed")}
                             color={row._status === "ready" ? "green" : row._status === "needs_fix" ? "amber" : row._status === "published" ? "blue" : "red"}
                           />
                         </div>
@@ -5464,30 +6046,30 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
-              <Stat label="Pending payout" value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
-              <Stat label="Total paid out" value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
+              <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
+              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
             </div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
-              Adding funds isn't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.
+              {t("employer.escrowUnavailableNote")}
             </div>
-            <Btn onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginBottom: 24 }}>+ Add Funds (soon)</Btn>
-            <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>Payout Ledger</div>
+            <Btn onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginBottom: 24 }}>{t("employer.addFundsSoon")}</Btn>
+            <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.payoutLedgerTitle")}</div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: BRAND.grayLight }}>
-                    {["Date", "Status", "Amount"].map(h => (
+                    {[t("employer.colDateShort"), t("employer.colStatus"), t("employer.colAmount")].map(h => (
                       <th key={h} style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {employerPayoutItems.length === 0 && (
-                    <tr><td colSpan={3} style={{ padding: "16px", fontSize: 13, color: BRAND.textMuted, textAlign: "center" }}>No payout obligations yet for this employer account.</td></tr>
+                    <tr><td colSpan={3} style={{ padding: "16px", fontSize: 13, color: BRAND.textMuted, textAlign: "center" }}>{t("employer.noPayoutObligations")}</td></tr>
                   )}
                   {employerPayoutItems.map(item => (
                     <tr key={item.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
-                      <td style={{ padding: "12px 16px", fontSize: 13, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString('en-MY') : 'TBA'}</td>
+                      <td style={{ padding: "12px 16px", fontSize: 13, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString('en-MY') : t("employer.tbaShort")}</td>
                       <td style={{ padding: "12px 16px" }}><Pill label={String(item.status || 'queued').replaceAll('_', ' ')} color={mapPayoutPillColor(item.status)} /></td>
                       <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: BRAND.text }}>{toCurrency(item.amount)}</td>
                     </tr>
@@ -5502,31 +6084,31 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div style={{ maxWidth: 500 }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>Company Details</div>
-              <Input label="Company name" placeholder="e.g. Grand Hyatt Kuala Lumpur" value={employerProfile?.full_name || user?.user_metadata?.full_name || ""} onChange={() => {}} />
-              <Input label="SSM registration number" placeholder="e.g. 1234567-A" value="" onChange={() => {}} />
-              <Input label="Contact email" placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} />
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("employer.companyDetailsTitle")}</div>
+              <Input label={t("employer.companyNameLabel")} placeholder={t("employer.companyNamePlaceholder")} value={employerProfile?.full_name || user?.user_metadata?.full_name || ""} onChange={() => {}} />
+              <Input label={t("employer.ssmNumberLabel")} placeholder={t("employer.ssmNumberPlaceholder")} value="" onChange={() => {}} />
+              <Input label={t("employer.contactEmailLabel")} placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} />
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Employer Banking (Salary Funding)</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("employer.bankingSectionTitle")}</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
-                Funding account must be verified through SecureSign before payouts can move to ready state.
+                {t("employer.bankingSectionHint")}
               </div>
               <Select
-                label="Bank"
+                label={t("settings.bankLabel")}
                 value={employerBankForm.bankName}
                 onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, bankName: e.target.value }))}
                 options={MALAYSIAN_BANK_OPTIONS.map((name) => ({ value: name, label: name }))}
               />
               <Input
-                label="Account holder name"
-                placeholder="Company account holder"
+                label={t("settings.accountHolderName")}
+                placeholder={t("employer.accountHolderPlaceholder")}
                 value={employerBankForm.accountHolderName}
                 onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, accountHolderName: e.target.value }))}
               />
               <Input
-                label="Account number"
-                placeholder="Employer funding account"
+                label={t("settings.accountNumber")}
+                placeholder={t("employer.accountNumberPlaceholder")}
                 value={employerBankForm.accountNumber}
                 onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
               />
@@ -5536,42 +6118,42 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   checked={employerBankForm.fundingReady}
                   onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, fundingReady: e.target.checked }))}
                 />
-                Funding account has sufficient balance for this cycle
+                {t("employer.fundingReadyLabel")}
               </label>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 12, color: BRAND.textMuted }}>Verification</span>
+                <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("employer.verificationLabel")}</span>
                 <Pill
-                  label={employerBanking?.verification_status ? `SecureSign ${employerBanking.verification_status}` : "SecureSign pending"}
+                  label={employerBanking?.verification_status ? `SecureSign ${employerBanking.verification_status}` : t("settings.secureSignPending")}
                   color={mapVerificationPillColor(employerBanking?.verification_status)}
                 />
               </div>
               {employerBanking?.account_number_last4 && (
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>
-                  Saved account: •••• {employerBanking.account_number_last4}
+                  {t("employer.savedAccountPrefix")} {employerBanking.account_number_last4}
                 </div>
               )}
               {bankingMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{bankingMessage}</div>}
               <div style={{ display: "flex", gap: 8 }}>
-                <Btn variant="secondary" onClick={saveEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Save banking</Btn>
-                <Btn onClick={verifyEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>Verify via SecureSign (Demo)</Btn>
+                <Btn variant="secondary" onClick={saveEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>{t("settings.saveBanking")}</Btn>
+                <Btn onClick={verifyEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>{t("settings.verifySecureSign")}</Btn>
               </div>
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>Outgoing Salary Obligations</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("employer.outgoingObligationsTitle")}</div>
               {employerPayoutItems.length === 0 && (
-                <div style={{ fontSize: 12, color: BRAND.textMuted }}>No payout obligations yet for this employer account.</div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("employer.noPayoutObligations")}</div>
               )}
               {employerPayoutItems.map((item) => (
                 <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{toCurrency(item.amount)}</div>
-                    <div style={{ fontSize: 11, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</div>
+                    <div style={{ fontSize: 11, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString("en-MY") : t("employer.tbaShort")}</div>
                   </div>
                   <Pill label={String(item.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(item.status)} />
                 </div>
               ))}
             </Card>
-            <Btn style={{ width: "100%", justifyContent: "center" }}>Save Changes</Btn>
+            <Btn style={{ width: "100%", justifyContent: "center" }}>{t("employer.saveChanges")}</Btn>
           </div>
         )}
 
@@ -5650,44 +6232,44 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       {contractModal && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
           <div style={{background:'#fff', borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'80vh', overflowY:'auto'}}>
-            <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>📄 Employment Contract</h3>
-            <p style={{fontSize:12, color:'#64748b', marginBottom:16}}>Auto-generated upon bid acceptance. Both parties must sign.</p>
+            <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>{t("contract.employerTitle")}</h3>
+            <p style={{fontSize:12, color:'#64748b', marginBottom:16}}>{t("contract.employerSubtitle")}</p>
             <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
-              <p><strong>CariGaji Platform — Shift Work Agreement</strong></p>
-              <p>This agreement is entered into between:</p>
-              <p>• <strong>Employer:</strong> (your business name on file)</p>
-              <p>• <strong>Worker:</strong> {contractModal.workerName}</p>
+              <p><strong>{t("contract.agreementHeading")}</strong></p>
+              <p>{t("contract.enteredBetween")}</p>
+              <p>• <strong>{t("contract.employerLabel")}</strong> {t("contract.employerOnFile")}</p>
+              <p>• <strong>{t("contract.workerLabel")}</strong> {contractModal.workerName}</p>
               <br/>
-              <p><strong>Shift Details:</strong></p>
-              <p>• Role: {contractModal.shiftTitle}</p>
-              <p>• Date: {contractModal.shiftDate}</p>
-              <p>• Time: {contractModal.shiftTime}</p>
-              <p>• Location: {contractModal.location}</p>
-              <p>• Agreed wage: RM {contractModal.wageAsk}/hr</p>
+              <p><strong>{t("contract.shiftDetailsHeading")}</strong></p>
+              <p>• {t("contract.roleLabel")} {contractModal.shiftTitle}</p>
+              <p>• {t("contract.dateLabel")} {contractModal.shiftDate}</p>
+              <p>• {t("contract.timeLabel")} {contractModal.shiftTime}</p>
+              <p>• {t("contract.locationLabel")} {contractModal.location}</p>
+              <p>• {t("contract.agreedWageLabel")} RM {contractModal.wageAsk}/hr</p>
               <br/>
-              <p><strong>Terms:</strong></p>
-              <p>1. This is a short-term casual engagement and does not constitute permanent employment.</p>
-              <p>2. The employer will pay the agreed wage rate for all hours worked, no less than the Malaysian minimum wage of RM8.72/hr.</p>
-              <p>3. The employer is responsible for EPF, SOCSO, and EIS contributions as required by Malaysian law.</p>
-              <p>4. The worker agrees to attend the shift punctually and perform the duties as described.</p>
-              <p>5. Either party may cancel with reasonable notice. Last-minute cancellation may result in platform penalties.</p>
-              <p>6. CariGaji acts as a marketplace intermediary and is not the employer in this arrangement.</p>
-              <p>7. This agreement is governed by Malaysian law including the Employment Act 1955 and Gig Workers Act 2025.</p>
+              <p><strong>{t("contract.termsHeading")}</strong></p>
+              <p>1. {t("contract.employerClause1")}</p>
+              <p>2. {t("contract.employerClause2")}</p>
+              <p>3. {t("contract.employerClause3")}</p>
+              <p>4. {t("contract.employerClause4")}</p>
+              <p>5. {t("contract.employerClause5")}</p>
+              <p>6. {t("contract.employerClause6")}</p>
+              <p>7. {t("contract.employerClause7")}</p>
             </div>
             <p style={{fontSize:12, color:'#64748b', marginBottom:12}}>
-              By clicking "Confirm & Send to Worker", you agree to these terms and the contract will be sent to {contractModal.workerName} for their signature.
+              {t("contract.confirmSendNote").replace("{name}", contractModal.workerName)}
             </p>
             <div style={{display:'flex', gap:8}}>
               <button onClick={() => setContractModal(null)}
                 style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button onClick={() => {
                 toast(t('toast.contractSent'), 'success');
                 setContractModal(null);
               }}
                 style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-                Confirm & Send to Worker
+                {t("contract.confirmSendBtn")}
               </button>
             </div>
           </div>
@@ -6269,7 +6851,7 @@ const CookieConsentManager = ({ isMobile }) => {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>🍪 {t("cookie.panelTitle")}</h3>
-              <button onClick={() => setPanelOpen(false)} aria-label="Close" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+              <button onClick={() => setPanelOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
             </div>
 
             <div style={{ display: "flex", gap: 6, marginBottom: 18, borderBottom: `1px solid ${BRAND.border}` }}>
