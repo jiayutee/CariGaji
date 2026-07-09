@@ -446,7 +446,6 @@ const TRANSLATIONS = {
     "cookie.acceptAll": "Accept All",
     "cookie.declineAll": "Decline All",
     "cookie.configure": "Configure",
-    "cookie.reopen": "Cookie preferences",
     "cookie.panelTitle": "Cookie Preferences",
     "cookie.tab.categories": "Categories",
     "cookie.tab.services": "Services",
@@ -723,7 +722,6 @@ const TRANSLATIONS = {
     "cookie.acceptAll": "Terima Semua",
     "cookie.declineAll": "Tolak Semua",
     "cookie.configure": "Konfigurasi",
-    "cookie.reopen": "Keutamaan kuki",
     "cookie.panelTitle": "Keutamaan Kuki",
     "cookie.tab.categories": "Kategori",
     "cookie.tab.services": "Perkhidmatan",
@@ -6224,7 +6222,6 @@ const CookieConsentManager = ({ isMobile }) => {
   const handleSavePreferences = () => persist(draft);
 
   const bannerVisible = consent === null && !panelOpen;
-  const bubbleVisible = consent !== null && !panelOpen;
 
   // The mobile bottom nav is a *sticky* (not fixed) bar, but it still ends up
   // pinned to the physical bottom of the viewport on mobile (navBaseHeight
@@ -6258,25 +6255,6 @@ const CookieConsentManager = ({ isMobile }) => {
             </div>
           </div>
         </div>,
-        document.body
-      )}
-
-      {bubbleVisible && createPortal(
-        <button
-          onClick={() => openPanel("categories")}
-          aria-label={t("cookie.reopen")}
-          title={t("cookie.reopen")}
-          style={{
-            position: "fixed", left: 20, bottom: edgeBottom, zIndex: 900,
-            width: 48, height: 48, borderRadius: "50%",
-            background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
-            boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 20, padding: 0,
-          }}
-        >
-          <span aria-hidden="true">🍪</span>
-        </button>,
         document.body
       )}
 
