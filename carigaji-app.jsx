@@ -4835,7 +4835,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       placeholder="Describe the role, responsibilities, and what a good day looks like…"
                       value={form.description}
                       onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", height: 80, resize: "none", boxSizing: "border-box" }}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }}
                     />
                   </div>
                   <Select label="Category" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: v }))} />
@@ -4913,7 +4913,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>Special requirements</label>
-                    <textarea placeholder="Any additional requirements…" style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", height: 80, resize: "none", boxSizing: "border-box" }} />
+                    <textarea placeholder="Any additional requirements…" style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }} />
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
                     <Btn variant="secondary" onClick={() => setPostStep(1)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>Back</span></Btn>
