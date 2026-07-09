@@ -43,6 +43,23 @@ POLL_INTERVAL = 3    # seconds between getUpdates calls
 CLAUDE_TIMEOUT = 300 # max seconds to wait for Claude response
 
 API = f"https://api.telegram.org/bot{BOT_TOKEN}"
+ALLOWED_TOOLS_FILE = PROJECT_DIR / "scripts" / "allowed-tools.txt"
+
+
+def load_allowed_tools() -> str:
+    """Same source of truth orchestrator-runner.sh uses (scripts/allowed-tools.txt),
+    so a Telegram command actually gets the same tool grant (including Agent) as
+    the scheduled orchestrator — without this, the headless `claude --print` call
+    below falls back to the narrow global ~/.claude/settings.json permissions
+    (Notion MCP + WebFetch only), which silently blocks Agent/Bash/Edit/Write."""
+    if ALLOWED_TOOLS_FILE.exists():
+        lines = [
+            line.strip() for line in ALLOWED_TOOLS_FILE.read_text().splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        ]
+        if lines:
+            return ",".join(lines)
+    return "Bash,Read,Edit,Write,Agent,WebFetch,WebSearch"
 
 # ── Instant-reply commands (no Claude call needed) ────────────────────────────
 # This must match orchestrator-runner.sh's STATE_FILE — it lives outside the
@@ -144,7 +161,7 @@ def run_orchestrator(user_message: str) -> str:
     try:
         claude_bin = os.environ.get("CLAUDE_BIN", "/Users/jiayutee/.local/bin/claude")
         result = subprocess.run(
-            [claude_bin, "--print", "--max-turns", "30", "-p", prompt],
+            [claude_bin, "--print", "--allowedTools", load_allowed_tools(), "--max-turns", "30", "-p", prompt],
             capture_output=True, text=True,
             timeout=CLAUDE_TIMEOUT,
             cwd=str(PROJECT_DIR),
