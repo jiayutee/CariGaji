@@ -9,6 +9,150 @@ import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTh
 // supabase/migrations/20260705g_widen_shift_categories.sql).
 const SHIFT_CATEGORIES = ["F&B", "Retail", "Event", "Promotion", "Warehouse", "Office", "Security", "Production", "Market Research", "Student", "Logistics", "Other"];
 
+// ─── Bulk shift upload (CSV) ─────────────────────────────────────────────────
+// Normalized header (lowercase, trimmed, stripped to [a-z0-9]) → form field.
+// Used to fuzzy-match whatever column names an employer's spreadsheet has.
+const BULK_UPLOAD_FIELD_SYNONYMS = {
+  title: "title", jobtitle: "title", shifttitle: "title",
+  description: "description", jobdescription: "description", desc: "description",
+  category: "category",
+  location: "location", address: "location",
+  dresscode: "dress", dress: "dress",
+  date: "date",
+  starttime: "timeStart", start: "timeStart",
+  endtime: "timeEnd", end: "timeEnd",
+  minwage: "wageMin", wagemin: "wageMin",
+  maxwage: "wageMax", wagemax: "wageMax",
+  headcount: "headcount", positions: "headcount", numberofworkers: "headcount",
+  transportallowance: "transportAllowance",
+};
+const BULK_UPLOAD_MANDATORY_FIELDS = ["title", "date", "timeStart", "timeEnd"];
+const BULK_UPLOAD_MAX_ROWS = 200;
+const BULK_UPLOAD_MAX_FILE_BYTES = 2 * 1024 * 1024; // 2MB cap
+
+const normalizeBulkHeader = (h) => String(h ?? "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
+
+// Minimal RFC4180-ish CSV parser: handles quoted fields containing commas,
+// newlines, and escaped ("") quotes. Returns an array of string-cell rows.
+const parseCSVText = (text) => {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+      continue;
+    }
+    if (c === '"') { inQuotes = true; continue; }
+    if (c === ",") { row.push(field); field = ""; continue; }
+    if (c === "\r") { continue; }
+    if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; continue; }
+    field += c;
+  }
+  if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+};
+
+// Quotes a CSV field only when needed, doubling embedded quotes.
+const csvEscapeField = (v) => {
+  const s = String(v ?? "");
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+const serializeCSV = (rows) => rows.map(r => r.map(csvEscapeField).join(",")).join("\r\n");
+
+// Anti-CSV-injection: if a free-text value starts with a character a
+// spreadsheet app would interpret as a formula trigger, prefix it with an
+// apostrophe so it's stored/re-exported as inert text.
+const sanitizeBulkTextValue = (v) => {
+  const trimmed = String(v ?? "").trim();
+  return /^[=+\-@\t\r]/.test(trimmed) ? `'${trimmed}` : trimmed;
+};
+
+// Row-level readiness check, shared between initial parse and inline edits.
+const evaluateBulkRowStatus = (row) => {
+  const problems = [];
+  if (!row.title || !row.title.trim()) problems.push("title");
+  if (!row.date || !/^\d{4}-\d{2}-\d{2}$/.test(row.date.trim())) problems.push("date");
+  if (!row.timeStart || !/^\d{2}:\d{2}$/.test(row.timeStart.trim())) problems.push("timeStart");
+  if (!row.timeEnd || !/^\d{2}:\d{2}$/.test(row.timeEnd.trim())) problems.push("timeEnd");
+  if (!row.category) problems.push("category");
+  const wageMinNum = parseFloat(row.wageMin);
+  const wageMaxNum = parseFloat(row.wageMax);
+  if (row.wageMin !== "" && row.wageMax !== "" && !isNaN(wageMinNum) && !isNaN(wageMaxNum) && wageMaxNum < wageMinNum) {
+    problems.push("wage");
+  }
+  return problems.length > 0 ? "needs_fix" : "ready";
+};
+
+// Parses an uploaded bulk-shift CSV into draft row objects, or returns
+// { fatalError } if the file can't be used at all (missing mandatory
+// columns, too many rows, no data rows).
+const parseBulkShiftCSV = (text) => {
+  const rows = parseCSVText(text).filter(r => r.some(c => c.trim() !== ""));
+  if (rows.length === 0) return { fatalError: "The file is empty." };
+  const [headerRow, ...dataRows] = rows;
+  const normalizedHeaders = headerRow.map(normalizeBulkHeader);
+  const fieldToCol = {};
+  normalizedHeaders.forEach((h, i) => {
+    const field = BULK_UPLOAD_FIELD_SYNONYMS[h];
+    if (field && fieldToCol[field] === undefined) fieldToCol[field] = i;
+  });
+  const missingCols = BULK_UPLOAD_MANDATORY_FIELDS.filter(f => fieldToCol[f] === undefined);
+  if (missingCols.length > 0) {
+    return { fatalError: `Missing required column(s): ${missingCols.join(", ")}. Download the template for the exact format.` };
+  }
+  if (dataRows.length === 0) return { fatalError: "No data rows found in the file." };
+  if (dataRows.length > BULK_UPLOAD_MAX_ROWS) {
+    return { fatalError: `Too many rows (${dataRows.length}). The bulk uploader supports up to ${BULK_UPLOAD_MAX_ROWS} shifts per file.` };
+  }
+  const draftRows = dataRows.map((cells, idx) => {
+    const get = (field) => { const c = fieldToCol[field]; return c !== undefined ? (cells[c] ?? "") : ""; };
+    const rawCategory = get("category").trim();
+    const matchedCategory = SHIFT_CATEGORIES.find(c => c.toLowerCase() === rawCategory.toLowerCase()) || "";
+    const row = {
+      _rowNum: idx + 1,
+      _error: null,
+      title: sanitizeBulkTextValue(get("title")),
+      description: sanitizeBulkTextValue(get("description")),
+      category: matchedCategory,
+      location: sanitizeBulkTextValue(get("location")),
+      dress: sanitizeBulkTextValue(get("dress")),
+      date: get("date").trim(),
+      timeStart: get("timeStart").trim(),
+      timeEnd: get("timeEnd").trim(),
+      wageMin: get("wageMin").trim(),
+      wageMax: get("wageMax").trim(),
+      headcount: get("headcount").trim() || "1",
+      transportAllowance: get("transportAllowance").trim(),
+    };
+    row._status = evaluateBulkRowStatus(row);
+    return row;
+  });
+  return { rows: draftRows };
+};
+
+const BULK_UPLOAD_TEMPLATE_HEADER = ["Title", "Description", "Category", "Location", "Dress Code", "Date", "Start Time", "End Time", "Min Wage", "Max Wage", "Headcount", "Transport Allowance"];
+const BULK_UPLOAD_TEMPLATE_EXAMPLE = ["F&B Server – Corporate Dinner", "Serve drinks and canapés at a corporate dinner event.", "F&B", "KLCC, KL City Centre", "All black formal", "2026-08-15", "18:00", "23:00", "12", "16", "3", "10"];
+
+const downloadBulkUploadTemplate = () => {
+  const csv = serializeCSV([BULK_UPLOAD_TEMPLATE_HEADER, BULK_UPLOAD_TEMPLATE_EXAMPLE]);
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "carigaji-bulk-shift-template.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
 // ─── Design tokens ─────────────────────────────────────────────────────────
 const BRAND = {
   primary: "#2563EB",
@@ -252,6 +396,28 @@ const TRANSLATIONS = {
     "employer.stepReview": "Review & Post",
     "employer.saveChanges": "Save Changes",
     "employer.publishShift": "Publish Shift",
+    "employer.bulkUploadBtn": "Bulk Upload",
+    "employer.bulkUploadTitle": "Bulk Upload Shifts",
+    "employer.bulkUploadSubtitle": "Upload a CSV of multiple shifts at once",
+    "employer.bulkStepUpload": "Upload",
+    "employer.bulkStepReview": "Review & Fix",
+    "employer.bulkStepPublish": "Publish",
+    "employer.bulkChooseFile": "Shift CSV file",
+    "employer.bulkChooseFileHelper": "CSV only, up to 2MB, up to 200 shifts per file.",
+    "employer.bulkDownloadTemplate": "Download CSV template",
+    "employer.bulkFileTooLarge": "That file is larger than 2MB. Please split it into smaller batches.",
+    "employer.bulkInvalidFileType": "Please select a .csv file.",
+    "employer.bulkParseFailed": "Couldn't read that CSV: ",
+    "employer.bulkRowsSummary": "{ready} of {total} rows ready to publish, {needsFix} need fixes",
+    "employer.bulkBackToUpload": "← Back to upload",
+    "employer.bulkContinueToPublish": "Continue: Publish →",
+    "employer.bulkPublishReady": "Publish ready rows",
+    "employer.bulkPublishing": "Publishing {done} of {total}…",
+    "employer.bulkPublishSummary": "{published} published, {failed} failed",
+    "employer.bulkBackToFix": "← Back to fix rows",
+    "employer.bulkDone": "Done",
+    "employer.bulkColRow": "Row",
+    "employer.bulkColStatus": "Status",
     "employer.billingTitle": "Billing & Payouts",
     "employer.accountTitle": "Account",
     "earnings.title": "Earnings",
@@ -507,6 +673,28 @@ const TRANSLATIONS = {
     "employer.stepReview": "Semak & Siar",
     "employer.saveChanges": "Simpan Perubahan",
     "employer.publishShift": "Siar Syif",
+    "employer.bulkUploadBtn": "Muat Naik Pukal",
+    "employer.bulkUploadTitle": "Muat Naik Syif Secara Pukal",
+    "employer.bulkUploadSubtitle": "Muat naik fail CSV untuk siarkan beberapa syif sekali gus",
+    "employer.bulkStepUpload": "Muat Naik",
+    "employer.bulkStepReview": "Semak & Betulkan",
+    "employer.bulkStepPublish": "Siar",
+    "employer.bulkChooseFile": "Fail CSV syif",
+    "employer.bulkChooseFileHelper": "CSV sahaja, sehingga 2MB, sehingga 200 syif setiap fail.",
+    "employer.bulkDownloadTemplate": "Muat turun templat CSV",
+    "employer.bulkFileTooLarge": "Fail itu melebihi 2MB. Sila bahagikan kepada kelompok yang lebih kecil.",
+    "employer.bulkInvalidFileType": "Sila pilih fail .csv.",
+    "employer.bulkParseFailed": "Gagal membaca fail CSV itu: ",
+    "employer.bulkRowsSummary": "{ready} daripada {total} baris sedia disiarkan, {needsFix} perlu dibetulkan",
+    "employer.bulkBackToUpload": "← Kembali ke muat naik",
+    "employer.bulkContinueToPublish": "Teruskan: Siar →",
+    "employer.bulkPublishReady": "Siarkan baris yang sedia",
+    "employer.bulkPublishing": "Menyiarkan {done} daripada {total}…",
+    "employer.bulkPublishSummary": "{published} disiarkan, {failed} gagal",
+    "employer.bulkBackToFix": "← Kembali betulkan baris",
+    "employer.bulkDone": "Selesai",
+    "employer.bulkColRow": "Baris",
+    "employer.bulkColStatus": "Status",
     "employer.billingTitle": "Bil & Bayaran",
     "employer.accountTitle": "Akaun",
     "earnings.title": "Pendapatan",
@@ -4093,6 +4281,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
   const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
+  // Bulk shift upload (CSV) — separate from the single-shift `form` above.
+  const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
+  const [bulkUploadRows, setBulkUploadRows] = useState([]);
+  const [bulkUploadFileName, setBulkUploadFileName] = useState("");
+  const [bulkUploadFileError, setBulkUploadFileError] = useState("");
+  const [bulkUploadPublishing, setBulkUploadPublishing] = useState(false);
+  const [bulkUploadProgress, setBulkUploadProgress] = useState({ done: 0, total: 0 });
   const [applicantAction, setApplicantAction] = useState({});
   const [selectedApplicantIds, setSelectedApplicantIds] = useState([]);
   const [bulkSelectMode, setBulkSelectMode] = useState(false);
@@ -4195,6 +4390,123 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
     setView("postshift");
     setPostStep(1);
+  };
+
+  // Start a fresh bulk-upload session (create-only, no edit path).
+  const beginBulkUpload = () => {
+    setBulkUploadStep(1);
+    setBulkUploadRows([]);
+    setBulkUploadFileName("");
+    setBulkUploadFileError("");
+    setBulkUploadPublishing(false);
+    setBulkUploadProgress({ done: 0, total: 0 });
+    setView("bulkupload");
+  };
+
+  const handleBulkUploadFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setBulkUploadFileError("");
+    setBulkUploadFileName(file.name);
+    // Extension is the primary gate (MIME sniffing for CSV is unreliable
+    // across browsers/OSes — Windows Excel reports "application/vnd.ms-excel").
+    const looksLikeCsv = /\.csv$/i.test(file.name) && (file.type === "" || /csv|excel|text/i.test(file.type));
+    if (!looksLikeCsv) {
+      setBulkUploadFileError(t("employer.bulkInvalidFileType"));
+      setBulkUploadRows([]);
+      return;
+    }
+    if (file.size > BULK_UPLOAD_MAX_FILE_BYTES) {
+      setBulkUploadFileError(t("employer.bulkFileTooLarge"));
+      setBulkUploadRows([]);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const { rows, fatalError } = parseBulkShiftCSV(String(reader.result || ""));
+      if (fatalError) {
+        setBulkUploadFileError(fatalError);
+        setBulkUploadRows([]);
+        return;
+      }
+      setBulkUploadRows(rows);
+      setBulkUploadStep(2);
+    };
+    reader.onerror = () => setBulkUploadFileError(t("employer.bulkParseFailed") + "could not read the file.");
+    reader.readAsText(file);
+  };
+
+  // Edits a single cell of a draft bulk row and re-validates that row.
+  // (Free-text fields were already sanitized once at CSV parse time; manual
+  // edits here are typed directly by the employer, not re-imported, so no
+  // further sanitization is needed.)
+  const updateBulkUploadRow = (rowNum, field, value) => {
+    setBulkUploadRows(rows => rows.map(r => {
+      if (r._rowNum !== rowNum || r._status === "published") return r;
+      const updated = { ...r, [field]: value, _error: null };
+      updated._status = evaluateBulkRowStatus(updated);
+      return updated;
+    }));
+  };
+
+  // Re-checks a failed row's readiness without requiring the employer to
+  // touch a field first (e.g. after a transient network error).
+  const retryBulkUploadRow = (rowNum) => {
+    setBulkUploadRows(rows => rows.map(r => (r._rowNum === rowNum ? { ...r, _status: evaluateBulkRowStatus(r), _error: null } : r)));
+  };
+
+  // Publishes all currently-"ready" rows, one insert per row, in small
+  // concurrency-capped chunks so a single bad row can't fail the batch and
+  // so we get per-row error attribution back for the employer to fix + retry.
+  const publishBulkUploadRows = async () => {
+    if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
+    const readyRows = bulkUploadRows.filter(r => r._status === "ready");
+    if (readyRows.length === 0) return;
+    setBulkUploadPublishing(true);
+    setBulkUploadProgress({ done: 0, total: readyRows.length });
+    const chunkSize = 5;
+    let doneCount = 0;
+    for (let i = 0; i < readyRows.length; i += chunkSize) {
+      const chunk = readyRows.slice(i, i + chunkSize);
+      const results = await Promise.allSettled(chunk.map(async (row) => {
+        const startAt = new Date(`${row.date}T${row.timeStart}:00+08:00`).toISOString();
+        const endAt = new Date(`${row.date}T${row.timeEnd}:00+08:00`).toISOString();
+        if (isNaN(new Date(startAt).getTime()) || isNaN(new Date(endAt).getTime())) {
+          throw new Error("Invalid date/time.");
+        }
+        const wageMin = parseFloat(row.wageMin) || 0;
+        const wageMax = parseFloat(row.wageMax) || wageMin;
+        if (wageMax < wageMin) throw new Error("Max pay must be ≥ min pay.");
+        const payload = {
+          title: row.title.trim(),
+          description: row.description ? row.description.trim() : null,
+          category: row.category,
+          location: (row.location || "").trim() || "Kuala Lumpur",
+          dress_code: row.dress ? row.dress.trim() : null,
+          start_at: startAt,
+          end_at: endAt,
+          wage_min: wageMin,
+          wage_max: wageMax,
+          headcount: parseInt(row.headcount) || 1,
+          address_visibility: "public",
+          transport_allowance: parseFloat(row.transportAllowance) || 0,
+        };
+        const { error } = await supabase.from('shifts').insert({ employer_id: user.id, status: 'open', ...payload });
+        if (error) throw new Error(error.message);
+        return true;
+      }));
+      setBulkUploadRows(rows => rows.map(r => {
+        const idx = chunk.findIndex(c => c._rowNum === r._rowNum);
+        if (idx === -1) return r;
+        const res = results[idx];
+        return res.status === "fulfilled"
+          ? { ...r, _status: "published", _error: null }
+          : { ...r, _status: "failed", _error: res.reason?.message || "Failed to publish." };
+      }));
+      doneCount += chunk.length;
+      setBulkUploadProgress({ done: doneCount, total: readyRows.length });
+    }
+    setBulkUploadPublishing(false);
   };
 
   // Load an existing shift into the form for editing.
@@ -4610,6 +4922,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.quickActions")}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <Btn onClick={beginNewShift} style={{ justifyContent: "center" }}>{t("employer.postNewShift")}</Btn>
+                  <Btn variant="secondary" onClick={beginBulkUpload} style={{ justifyContent: "center" }}>{t("employer.bulkUploadBtn")}</Btn>
                   <Card style={{ padding: 14 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.recentActivity")}</div>
                     {recentActivity.length === 0 && (
@@ -4632,7 +4945,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{t("employer.shiftsTitle")}</div>
                 <div style={{ fontSize: 14, color: BRAND.textMuted }}>Manage all your posted shifts</div>
               </div>
-              <Btn onClick={beginNewShift}>{t("employer.postShiftBtn")}</Btn>
+              <div style={{ display: "flex", gap: 10 }}>
+                <Btn variant="secondary" onClick={beginBulkUpload}>{t("employer.bulkUploadBtn")}</Btn>
+                <Btn onClick={beginNewShift}>{t("employer.postShiftBtn")}</Btn>
+              </div>
             </div>
             {(liveEmployerShifts ?? []).length === 0 && (
               <EmptyState
@@ -4988,6 +5304,161 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </div>
               )}
             </Card>
+          </div>
+        )}
+
+        {view === "bulkupload" && (
+          <div style={{ maxWidth: bulkUploadStep === 1 ? 600 : 1160 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("employer.bulkUploadTitle")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.bulkUploadSubtitle")}</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
+              {[1, 2, 3].map(s => (
+                <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: bulkUploadStep >= s ? BRAND.primary : BRAND.border, color: bulkUploadStep >= s ? "#fff" : BRAND.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
+                  <span style={{ fontSize: 12, color: bulkUploadStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: bulkUploadStep === s ? 700 : 400 }}>{[t("employer.bulkStepUpload"), t("employer.bulkStepReview"), t("employer.bulkStepPublish")][s - 1]}</span>
+                  {s < 3 && <span style={{ color: BRAND.border, fontSize: 18 }}>→</span>}
+                </div>
+              ))}
+            </div>
+
+            {bulkUploadStep === 1 && (
+              <Card>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>Upload your shifts CSV</div>
+                  <Btn variant="ghost" size="sm" onClick={downloadBulkUploadTemplate}>{t("employer.bulkDownloadTemplate")}</Btn>
+                </div>
+                <FileInput
+                  label={t("employer.bulkChooseFile")}
+                  accept=".csv"
+                  onChange={handleBulkUploadFileChange}
+                  helper={t("employer.bulkChooseFileHelper")}
+                  fileName={bulkUploadFileName}
+                  error={!!bulkUploadFileError}
+                />
+                {bulkUploadFileError && (
+                  <div style={{ fontSize: 12, color: BRAND.red, marginTop: -8, marginBottom: 8 }}>{bulkUploadFileError}</div>
+                )}
+              </Card>
+            )}
+
+            {bulkUploadStep === 2 && (() => {
+              const readyCount = bulkUploadRows.filter(r => r._status === "ready").length;
+              const needsFixCount = bulkUploadRows.filter(r => r._status === "needs_fix").length;
+              const total = bulkUploadRows.length;
+              const pillFor = (status) => (
+                <Pill
+                  label={status === "ready" ? "Ready" : status === "needs_fix" ? "Needs fix" : status === "published" ? "Published" : "Failed"}
+                  color={status === "ready" ? "green" : status === "needs_fix" ? "amber" : status === "published" ? "blue" : "red"}
+                />
+              );
+              return (
+                <div>
+                  <div style={{ background: needsFixCount > 0 ? BRAND.amberLight : BRAND.greenLight, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600, color: needsFixCount > 0 ? BRAND.amber : BRAND.green }}>
+                    {t("employer.bulkRowsSummary").replace("{ready}", readyCount).replace("{total}", total).replace("{needsFix}", needsFixCount)}
+                  </div>
+                  <Card style={{ padding: 0, overflow: "auto", marginBottom: 16 }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1280 }}>
+                      <thead>
+                        <tr style={{ background: BRAND.grayLight }}>
+                          {[t("employer.bulkColRow"), t("employer.bulkColStatus"), "Title", "Category", "Date", "Start", "End", "Min RM/h", "Max RM/h", "Headcount", "Location", "Dress code", "Transport (RM)", ""].map(h => (
+                            <th key={h} style={{ padding: "10px 12px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}`, whiteSpace: "nowrap" }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bulkUploadRows.map(row => {
+                          const locked = row._status === "published";
+                          const wageBad = row.wageMin !== "" && row.wageMax !== "" && parseFloat(row.wageMax) < parseFloat(row.wageMin);
+                          return (
+                            <tr key={row._rowNum} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
+                              <td style={{ padding: "8px 12px", fontSize: 12, color: BRAND.textMuted }}>{row._rowNum}</td>
+                              <td style={{ padding: "8px 12px" }}>
+                                {pillFor(row._status)}
+                                {row._status === "failed" && row._error && (
+                                  <div style={{ fontSize: 11, color: BRAND.red, marginTop: 4, maxWidth: 140 }}>{row._error}</div>
+                                )}
+                              </td>
+                              <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.title} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "title", e.target.value)} style={{ marginBottom: 0 }} error={!row.title.trim()} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 140 }}>
+                                <Select value={row.category} onChange={e => updateBulkUploadRow(row._rowNum, "category", e.target.value)} options={[{ value: "", label: "— Select —" }, ...SHIFT_CATEGORIES.map(c => ({ value: c, label: c }))]} style={{ marginBottom: 0 }} />
+                              </td>
+                              <td style={{ padding: "8px 12px", minWidth: 140 }}><Input type="date" value={row.date} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "date", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{4}-\d{2}-\d{2}$/.test(row.date)} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 100 }}><Input type="time" value={row.timeStart} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "timeStart", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{2}:\d{2}$/.test(row.timeStart)} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 100 }}><Input type="time" value={row.timeEnd} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "timeEnd", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{2}:\d{2}$/.test(row.timeEnd)} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 90 }}><Input type="number" value={row.wageMin} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "wageMin", e.target.value)} style={{ marginBottom: 0 }} error={wageBad} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 90 }}><Input type="number" value={row.wageMax} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "wageMax", e.target.value)} style={{ marginBottom: 0 }} error={wageBad} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 90 }}><Input type="number" value={row.headcount} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "headcount", e.target.value)} style={{ marginBottom: 0 }} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.location} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "location", e.target.value)} style={{ marginBottom: 0 }} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 150 }}><Input value={row.dress} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "dress", e.target.value)} style={{ marginBottom: 0 }} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 90 }}><Input type="number" value={row.transportAllowance} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "transportAllowance", e.target.value)} style={{ marginBottom: 0 }} /></td>
+                              <td style={{ padding: "8px 12px" }}>
+                                {row._status === "failed" && (
+                                  <Btn size="xs" variant="secondary" onClick={() => retryBulkUploadRow(row._rowNum)}>Retry</Btn>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </Card>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <Btn variant="secondary" onClick={beginBulkUpload} style={{ flex: 1, justifyContent: "center" }}>{t("employer.bulkBackToUpload")}</Btn>
+                    <Btn onClick={() => setBulkUploadStep(3)} disabled={readyCount === 0} style={{ flex: 1, justifyContent: "center" }}>{t("employer.bulkContinueToPublish")}</Btn>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {bulkUploadStep === 3 && (() => {
+              const readyCount = bulkUploadRows.filter(r => r._status === "ready").length;
+              const publishedCount = bulkUploadRows.filter(r => r._status === "published").length;
+              const failedCount = bulkUploadRows.filter(r => r._status === "failed").length;
+              const needsFixCount = bulkUploadRows.filter(r => r._status === "needs_fix").length;
+              const allSettled = !bulkUploadPublishing && readyCount === 0 && needsFixCount === 0 && (publishedCount > 0 || failedCount > 0);
+              return (
+                <Card>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, marginBottom: 12 }}>{t("employer.bulkStepPublish")}</div>
+                  <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 16 }}>
+                    {t("employer.bulkRowsSummary").replace("{ready}", readyCount).replace("{total}", bulkUploadRows.length).replace("{needsFix}", needsFixCount)}
+                  </div>
+                  {bulkUploadPublishing && (
+                    <div style={{ background: BRAND.primaryLight, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600, color: BRAND.primary }}>
+                      {t("employer.bulkPublishing").replace("{done}", bulkUploadProgress.done).replace("{total}", bulkUploadProgress.total)}
+                    </div>
+                  )}
+                  {!bulkUploadPublishing && (publishedCount > 0 || failedCount > 0) && (
+                    <div style={{ background: failedCount > 0 ? BRAND.amberLight : BRAND.greenLight, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600, color: failedCount > 0 ? BRAND.amber : BRAND.green }}>
+                      {t("employer.bulkPublishSummary").replace("{published}", publishedCount).replace("{failed}", failedCount)}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16, maxHeight: 280, overflowY: "auto" }}>
+                    {bulkUploadRows.map(row => (
+                      <div key={row._rowNum} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: BRAND.grayLight, borderRadius: 8, gap: 12 }}>
+                        <div style={{ fontSize: 13, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>#{row._rowNum} {row.title || "(untitled)"}</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                          {row._status === "failed" && row._error && <span style={{ fontSize: 11, color: BRAND.red }}>{row._error}</span>}
+                          <Pill
+                            label={row._status === "ready" ? "Ready" : row._status === "needs_fix" ? "Needs fix" : row._status === "published" ? "Published" : "Failed"}
+                            color={row._status === "ready" ? "green" : row._status === "needs_fix" ? "amber" : row._status === "published" ? "blue" : "red"}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <Btn variant="secondary" onClick={() => setBulkUploadStep(2)} style={{ flex: 1, justifyContent: "center" }}>{t("employer.bulkBackToFix")}</Btn>
+                    {allSettled ? (
+                      <Btn onClick={beginBulkUpload} style={{ flex: 1, justifyContent: "center" }}>{t("employer.bulkDone")}</Btn>
+                    ) : (
+                      <Btn onClick={publishBulkUploadRows} disabled={bulkUploadPublishing || readyCount === 0} style={{ flex: 1, justifyContent: "center" }}>
+                        {bulkUploadPublishing ? t("employer.bulkPublishing").replace("{done}", bulkUploadProgress.done).replace("{total}", bulkUploadProgress.total) : t("employer.bulkPublishReady")}
+                      </Btn>
+                    )}
+                  </div>
+                </Card>
+              );
+            })()}
           </div>
         )}
 
