@@ -496,6 +496,17 @@ const TRANSLATIONS = {
     "cookie.servicesAnalytics": "No analytics or marketing tools are currently active in CariGaji. This category is reserved for future use (e.g. usage analytics) and will stay off until we actually add one — turning it on today has no effect.",
     "cookie.aboutBody": "CariGaji uses browser local storage — not third-party tracking cookies — to keep you signed in and to remember your preferences on this device. We don't use this data for tracking, and nothing here is shared with advertisers. See our Privacy Policy for the full details on what we collect and why, and our Terms of Service for how the platform works.",
     "cookie.savePreferences": "Save Preferences",
+    "supportChat.title": "CariGaji Support",
+    "supportChat.greeting": "Hi! I'm the CariGaji support assistant. Ask me anything about shifts, bidding, KYC, payments, or your account.",
+    "supportChat.inputPlaceholder": "Type your question…",
+    "supportChat.send": "Send",
+    "supportChat.minimize": "Minimize",
+    "supportChat.close": "Close chat",
+    "supportChat.restore": "Open support chat",
+    "supportChat.thinking": "Typing…",
+    "supportChat.escalateText": "Still need help? Our team can take it from here.",
+    "supportChat.emailSupport": "Email support",
+    "supportChat.errorMessage": "Something went wrong. Please try again or email our support team.",
     "common.close": "Close",
     "account.menuLabel": "Account menu",
     "account.help": "Help",
@@ -1077,6 +1088,17 @@ const TRANSLATIONS = {
     "cookie.servicesAnalytics": "Tiada alat analitik atau pemasaran aktif buat masa ini dalam CariGaji. Kategori ini disediakan untuk kegunaan masa hadapan (contohnya analitik penggunaan) dan akan kekal dimatikan sehingga kami benar-benar menambahnya — mengaktifkannya hari ini tidak memberi apa-apa kesan.",
     "cookie.aboutBody": "CariGaji menggunakan storan tempatan pelayar — bukan kuki penjejakan pihak ketiga — untuk mengekalkan log masuk anda dan mengingati keutamaan anda pada peranti ini. Kami tidak menggunakan data ini untuk penjejakan, dan tiada apa-apa di sini dikongsi dengan pengiklan. Lihat Dasar Privasi kami untuk butiran penuh tentang apa yang kami kumpul dan sebabnya, serta Terma Perkhidmatan kami untuk cara platform ini berfungsi.",
     "cookie.savePreferences": "Simpan Keutamaan",
+    "supportChat.title": "Sokongan CariGaji",
+    "supportChat.greeting": "Hai! Saya pembantu sokongan CariGaji. Tanya saya apa-apa tentang syif, bidaan, KYC, pembayaran, atau akaun anda.",
+    "supportChat.inputPlaceholder": "Taip soalan anda…",
+    "supportChat.send": "Hantar",
+    "supportChat.minimize": "Kecilkan",
+    "supportChat.close": "Tutup sembang",
+    "supportChat.restore": "Buka sembang sokongan",
+    "supportChat.thinking": "Menaip…",
+    "supportChat.escalateText": "Masih perlukan bantuan? Pasukan kami boleh bantu dari sini.",
+    "supportChat.emailSupport": "E-mel sokongan",
+    "supportChat.errorMessage": "Sesuatu tidak kena. Sila cuba lagi atau e-mel pasukan sokongan kami.",
     "common.close": "Tutup",
     "account.menuLabel": "Menu akaun",
     "account.help": "Bantuan",
@@ -1982,7 +2004,7 @@ const openMailtoSupport = () => {
   window.location.href = "mailto:support@carigaji.com?subject=CariGaji%20Support%20Request";
 };
 
-const ProfileMenu = ({ user, onSignOut }) => {
+const ProfileMenu = ({ user, onSignOut, onOpenSupportChat }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -2019,7 +2041,7 @@ const ProfileMenu = ({ user, onSignOut }) => {
 
   const items = [
     { label: t("account.help"), icon: "❓", onClick: () => setHelpOpen(true) },
-    { label: t("account.contactSupport"), icon: "💬", onClick: openMailtoSupport },
+    { label: t("account.contactSupport"), icon: "💬", onClick: onOpenSupportChat },
     { label: t("account.referFriends"), icon: "🎁", onClick: shareReferralLink },
     { label: t("account.signOut"), icon: "↩️", danger: true, onClick: onSignOut },
   ];
@@ -6791,6 +6813,219 @@ const CookieToggleRow = ({ label, description, checked, disabled = false, onChan
   </div>
 );
 
+// Customer-support chat widget. Mounted once at the root (same pattern as
+// CookieConsentManager below) so it survives navigation across portals.
+// State machine: 'closed' -> 'open' -> 'minimized' -> 'open' | 'closed'.
+// Conversation history lives in this component's own state (not persisted
+// to a DB) — lost on page reload by design for this first version; see
+// support-chat/index.ts for why (keeps the MVP small; revisit if abuse
+// monitoring needs a durable transcript later).
+//
+// Desktop: 'open' is a fixed bottom-right card; 'minimized' collapses to a
+// small pill/tab in the same corner. Mobile: 'open' is a full-screen
+// overlay; 'minimized' collapses to a round bubble (bottom-right, mirroring
+// the cookie-consent bubble which sits bottom-left so the two never
+// collide). Both render via createPortal(..., document.body) for the same
+// backdropFilter-containing-block reason as the Help modal and cookie
+// banner above.
+const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
+  const { t } = useLanguage();
+  const [mode, setMode] = useState("closed"); // 'closed' | 'open' | 'minimized'
+  const [messages, setMessages] = useState([]); // [{role:'user'|'assistant', content}]
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+  const [escalate, setEscalate] = useState(false);
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (open) setMode("open");
+  }, [open]);
+
+  useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+  }, [messages, sending, mode]);
+
+  const closeWidget = () => {
+    setMode("closed");
+    onOpenChange(false);
+  };
+
+  const sendMessage = async () => {
+    const content = input.trim();
+    if (!content || sending) return;
+    const nextMessages = [...messages, { role: "user", content }];
+    setMessages(nextMessages);
+    setInput("");
+    setSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("support-chat", {
+        body: { messages: nextMessages },
+      });
+      if (error) throw error;
+      setMessages(prev => [...prev, { role: "assistant", content: data.reply }]);
+      if (data.escalate) setEscalate(true);
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: t("supportChat.errorMessage") }]);
+      setEscalate(true);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (mode === "closed") return null;
+
+  const bubbleBottom = isMobile ? "calc(60px + env(safe-area-inset-bottom, 0px) + 16px)" : "24px";
+
+  // ── Minimized states ────────────────────────────────────────────────────
+  if (mode === "minimized") {
+    if (isMobile) {
+      return createPortal(
+        <button
+          onClick={() => setMode("open")}
+          aria-label={t("supportChat.restore")}
+          title={t("supportChat.restore")}
+          style={{
+            position: "fixed", right: 20, bottom: bubbleBottom, zIndex: 900,
+            width: 48, height: 48, borderRadius: "50%",
+            background: BRAND.primary, border: "none",
+            boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 20, padding: 0, color: "#fff",
+          }}
+        >
+          <span aria-hidden="true">💬</span>
+        </button>,
+        document.body
+      );
+    }
+    return createPortal(
+      <button
+        onClick={() => setMode("open")}
+        style={{
+          position: "fixed", right: 24, bottom: 24, zIndex: 900,
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "10px 16px", borderRadius: 99,
+          background: BRAND.primary, border: "none", color: "#fff",
+          boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
+          fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+        }}
+      >
+        <span aria-hidden="true">💬</span>
+        <span>{t("supportChat.title")}</span>
+      </button>,
+      document.body
+    );
+  }
+
+  // ── Open state ───────────────────────────────────────────────────────────
+  const containerStyle = isMobile
+    ? { position: "fixed", inset: 0, zIndex: 1300, background: BRAND.surface, display: "flex", flexDirection: "column" }
+    : {
+        position: "fixed", right: 24, bottom: 24, zIndex: 1300,
+        width: 360, height: 500, maxHeight: "80vh",
+        background: BRAND.surface, border: `1px solid ${BRAND.border}`, borderRadius: 16,
+        boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
+        display: "flex", flexDirection: "column",
+      };
+
+  return createPortal(
+    <div style={containerStyle}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "14px 16px", borderBottom: `1px solid ${BRAND.border}`, flexShrink: 0,
+        background: BRAND.panel,
+      }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, display: "flex", alignItems: "center", gap: 8 }}>
+          <span aria-hidden="true">💬</span> {t("supportChat.title")}
+        </div>
+        <div style={{ display: "flex", gap: 4 }}>
+          <button
+            onClick={() => setMode("minimized")}
+            aria-label={t("supportChat.minimize")}
+            title={t("supportChat.minimize")}
+            style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 16, color: BRAND.textMuted, width: 28, height: 28, borderRadius: 6, lineHeight: 1 }}
+          >−</button>
+          <button
+            onClick={closeWidget}
+            aria-label={t("supportChat.close")}
+            title={t("supportChat.close")}
+            style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 18, color: BRAND.textMuted, width: 28, height: 28, borderRadius: 6, lineHeight: 1 }}
+          >×</button>
+        </div>
+      </div>
+
+      <div ref={listRef} style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+          <div style={{ maxWidth: "85%", padding: "10px 12px", borderRadius: "12px 12px 12px 2px", background: BRAND.grayLight, color: BRAND.text, fontSize: 13.5, lineHeight: 1.5 }}>
+            {t("supportChat.greeting")}
+          </div>
+        </div>
+        {messages.map((m, i) => {
+          const isMe = m.role === "user";
+          return (
+            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start" }}>
+              <div style={{
+                maxWidth: "85%", padding: "10px 12px", fontSize: 13.5, lineHeight: 1.5,
+                borderRadius: isMe ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
+                background: isMe ? BRAND.primary : BRAND.grayLight,
+                color: isMe ? "#fff" : BRAND.text,
+                whiteSpace: "pre-wrap",
+              }}>
+                {m.content}
+              </div>
+            </div>
+          );
+        })}
+        {sending && (
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div style={{ padding: "10px 12px", borderRadius: "12px 12px 12px 2px", background: BRAND.grayLight, color: BRAND.textMuted, fontSize: 12.5 }}>
+              {t("supportChat.thinking")}
+            </div>
+          </div>
+        )}
+        {escalate && (
+          <div style={{ marginTop: 4, padding: "10px 12px", borderRadius: 10, background: BRAND.amberLight, color: BRAND.amber, fontSize: 12.5, display: "flex", flexDirection: "column", gap: 8 }}>
+            <span>{t("supportChat.escalateText")}</span>
+            <button
+              onClick={openMailtoSupport}
+              style={{
+                alignSelf: "flex-start", border: "none", borderRadius: 8, padding: "6px 12px",
+                background: BRAND.amber, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              {t("supportChat.emailSupport")}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, padding: 12, borderTop: `1px solid ${BRAND.border}`, flexShrink: 0 }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
+          placeholder={t("supportChat.inputPlaceholder")}
+          disabled={sending}
+          style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: `1px solid ${BRAND.border}`, fontSize: 13.5, background: BRAND.input, color: BRAND.text, fontFamily: "inherit" }}
+        />
+        <button
+          onClick={sendMessage}
+          disabled={sending || !input.trim()}
+          style={{
+            padding: "10px 16px", borderRadius: 8, border: "none", fontFamily: "inherit",
+            background: BRAND.primary, color: "#fff", fontWeight: 700, fontSize: 13,
+            cursor: sending || !input.trim() ? "not-allowed" : "pointer",
+            opacity: sending || !input.trim() ? 0.6 : 1,
+          }}
+        >
+          {t("supportChat.send")}
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 // Cookie consent banner + configurator. Mounted once at the root, inside
 // LanguageProvider/ToastProvider, so it persists across the worker/employer/
 // admin portals and isn't tied to any specific view. Renders through
@@ -7035,6 +7270,7 @@ export default function CariGaji() {
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
   const [user, setUser] = useState(null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [authView, setAuthView] = useState("signin");
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
@@ -7396,6 +7632,7 @@ export default function CariGaji() {
               <ProfileMenu
                 user={user}
                 onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+                onOpenSupportChat={() => setSupportChatOpen(true)}
               />
             ) : (
               <HeaderSignInButton onClick={() => openAuthModal("signin")} />
@@ -7429,6 +7666,7 @@ export default function CariGaji() {
         onResetPassword={handleResetPassword}
         onOAuth={handleOAuth}
       />
+      <SupportChatWidget isMobile={isMobile} open={supportChatOpen} onOpenChange={setSupportChatOpen} />
       <CookieConsentManager isMobile={isMobile} />
     </div>
     </ToastProvider>
