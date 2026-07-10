@@ -748,6 +748,24 @@ const TRANSLATIONS = {
     "contract.employerClause7": "This agreement is governed by Malaysian law including the Employment Act 1955 and Gig Workers Act 2025.",
     "contract.confirmSendNote": "By clicking \"Confirm & Send to Worker\", you agree to these terms and the contract will be sent to {name} for their signature.",
     "contract.confirmSendBtn": "Confirm & Send to Worker",
+    "auth.showPassword": "Show password",
+    "auth.hidePassword": "Hide password",
+    "auth.fullNamePlaceholder": "e.g. Nurul Ain Hassan",
+    "discover.filterMaxDurationPlaceholder": "e.g. 8",
+    "discover.filterMinPayPlaceholder": "e.g. 10",
+    "discover.filterMaxPayPlaceholder": "e.g. 25",
+    "employer.transportAllowancePlaceholder": "e.g. 10",
+    "app.tagline": "Verified shift marketplace",
+    "app.homeAriaLabel": "CariGaji home — go to Discover",
+    "theme.system": "System",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
+    "theme.ariaLabel": "Theme: {mode}. Click to change.",
+    "theme.title": "Theme: {mode}",
+    "admin.accessRequiredTitle": "Admin access required",
+    "admin.notAdminHint": "Your account is not an administrator.",
+    "admin.signInHint": "Sign in with an administrator account to continue.",
+    "admin.backToWorkerApp": "Back to Worker App",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -1311,6 +1329,24 @@ const TRANSLATIONS = {
     "contract.employerClause7": "Perjanjian ini tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955 dan Akta Pekerja Gig 2025.",
     "contract.confirmSendNote": "Dengan mengklik \"Sahkan & Hantar kepada Pekerja\", anda bersetuju dengan terma ini dan kontrak akan dihantar kepada {name} untuk tandatangan mereka.",
     "contract.confirmSendBtn": "Sahkan & Hantar kepada Pekerja",
+    "auth.showPassword": "Tunjuk kata laluan",
+    "auth.hidePassword": "Sembunyi kata laluan",
+    "auth.fullNamePlaceholder": "cth. Nurul Ain Hassan",
+    "discover.filterMaxDurationPlaceholder": "cth. 8",
+    "discover.filterMinPayPlaceholder": "cth. 10",
+    "discover.filterMaxPayPlaceholder": "cth. 25",
+    "employer.transportAllowancePlaceholder": "cth. 10",
+    "app.tagline": "Pasaran syif yang disahkan",
+    "app.homeAriaLabel": "Laman utama CariGaji — pergi ke Terokai",
+    "theme.system": "Sistem",
+    "theme.light": "Terang",
+    "theme.dark": "Gelap",
+    "theme.ariaLabel": "Tema: {mode}. Klik untuk tukar.",
+    "theme.title": "Tema: {mode}",
+    "admin.accessRequiredTitle": "Akses admin diperlukan",
+    "admin.notAdminHint": "Akaun anda bukan pentadbir.",
+    "admin.signInHint": "Log masuk dengan akaun pentadbir untuk teruskan.",
+    "admin.backToWorkerApp": "Kembali ke Aplikasi Pekerja",
   },
 };
 
@@ -1793,6 +1829,7 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
 
 const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideToggle = false, error = false }) => {
   const [show, setShow] = useState(false);
+  const { t } = useLanguage();
   return (
     <div style={{ marginBottom: 16, position: "relative", ...style }}>
       {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
@@ -1810,7 +1847,7 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
           }}
         />
         {!hideToggle && (
-          <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? "Hide password" : "Show password"} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+          <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? t("auth.hidePassword") : t("auth.showPassword")} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
             {show ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M3 3L21 21" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -3165,7 +3202,7 @@ const AuthModal = ({
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label={translate("auth.fullName")} placeholder="e.g. Nurul Ain Hassan" value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
+                <Input label={translate("auth.fullName")} placeholder={translate("auth.fullNamePlaceholder")} value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
                   <SearchableCountrySelect label={translate("auth.country")} value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
               </div>
                 <div style={{ marginBottom: 16 }}>
@@ -3949,7 +3986,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       )}
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: navPadding, display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
-          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label="Back">{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
+          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label={t("common.back")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{selectedShift.category}</Badge>
             <Badge color="green">{t("shiftDetail.positions")} {selectedShift.headcount}</Badge>
@@ -4098,7 +4135,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </div>
                     <div>
                       <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMaxDuration")}</div>
-                      <input type="number" min="0" placeholder="e.g. 8" value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
+                      <input type="number" min="0" placeholder={t("discover.filterMaxDurationPlaceholder")} value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                   </div>
@@ -4114,12 +4151,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </div>
                     <div>
                       <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMinPay")}</div>
-                      <input type="number" min="0" placeholder="e.g. 10" value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
+                      <input type="number" min="0" placeholder={t("discover.filterMinPayPlaceholder")} value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                     <div>
                       <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMaxPay")}</div>
-                      <input type="number" min="0" placeholder="e.g. 25" value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
+                      <input type="number" min="0" placeholder={t("discover.filterMaxPayPlaceholder")} value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
                     </div>
                   </div>
@@ -5782,7 +5819,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     </label>
                     {form.offersTransportAllowance && (
                       <Input
-                        placeholder="e.g. 10"
+                        placeholder={t("employer.transportAllowancePlaceholder")}
                         type="number"
                         value={form.transportAllowance}
                         onChange={e => setForm(f => ({ ...f, transportAllowance: e.target.value }))}
@@ -6939,6 +6976,56 @@ const HeaderSignInButton = ({ onClick }) => {
   return <Btn size="sm" variant="primary" onClick={onClick}>{t("common.signIn")}</Btn>;
 };
 
+// Same reasoning as HeaderSignInButton above — these need to read the
+// language context that the root CariGaji component itself creates.
+const AppBrandHeader = ({ onClick, isMobile }) => {
+  const { t } = useLanguage();
+  return (
+    <button
+      onClick={onClick}
+      aria-label={t("app.homeAriaLabel")}
+      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+    >
+      <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.03em" }}>
+        Cari<span style={{ color: BRAND.primary }}>Gaji</span>
+      </div>
+      <div style={{ fontSize: isMobile ? 10 : 12, color: BRAND.textMuted }}>{t("app.tagline")}</div>
+    </button>
+  );
+};
+
+const ThemeToggleButton = ({ themePreference, onClick }) => {
+  const { t } = useLanguage();
+  const label = themePreference === "system" ? t("theme.system") : themePreference === "light" ? t("theme.light") : t("theme.dark");
+  return (
+    <Btn
+      size="sm"
+      variant="secondary"
+      onClick={onClick}
+      aria-label={t("theme.ariaLabel").replace("{mode}", themePreference)}
+      title={t("theme.title").replace("{mode}", themePreference)}
+      style={{ width: 112, justifyContent: "center", gap: 7 }}
+    >
+      <span aria-hidden="true">{themePreference === "system" ? "🖥️" : themePreference === "light" ? "☀️" : "🌙"}</span>
+      <span>{label}</span>
+    </Btn>
+  );
+};
+
+const AdminAccessRequired = ({ user, onBack }) => {
+  const { t } = useLanguage();
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
+      <div style={{ fontSize: 40 }} aria-hidden="true">🚫</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{t("admin.accessRequiredTitle")}</div>
+      <div style={{ fontSize: 13, color: BRAND.textMuted, maxWidth: 320 }}>
+        {user ? t("admin.notAdminHint") : t("admin.signInHint")}
+      </div>
+      <Btn variant="secondary" onClick={onBack}>{t("admin.backToWorkerApp")}</Btn>
+    </div>
+  );
+};
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
@@ -7296,33 +7383,14 @@ export default function CariGaji() {
           position: "relative",
           zIndex: 30,
         }}>
-          <button
-            onClick={() => { setPortal("worker"); setHomeSignal(s => s + 1); }}
-            aria-label="CariGaji home — go to Discover"
-            style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
-          >
-            <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.03em" }}>
-              Cari<span style={{ color: BRAND.primary }}>Gaji</span>
-            </div>
-            <div style={{ fontSize: isMobile ? 10 : 12, color: BRAND.textMuted }}>Verified shift marketplace</div>
-          </button>
+          <AppBrandHeader onClick={() => { setPortal("worker"); setHomeSignal(s => s + 1); }} isMobile={isMobile} />
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {!isMobile && (
               <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
                 {cfg.label}
               </Badge>
             )}
-            <Btn
-              size="sm"
-              variant="secondary"
-              onClick={() => setThemePreference(current => cycleThemePreference(current))}
-              aria-label={`Theme: ${themePreference}. Click to change.`}
-              title={`Theme: ${themePreference}`}
-              style={{ width: 112, justifyContent: "center", gap: 7 }}
-            >
-              <span aria-hidden="true">{themePreference === "system" ? "🖥️" : themePreference === "light" ? "☀️" : "🌙"}</span>
-              <span>{themePreference === "system" ? "System" : themePreference === "light" ? "Light" : "Dark"}</span>
-            </Btn>
+            <ThemeToggleButton themePreference={themePreference} onClick={() => setThemePreference(current => cycleThemePreference(current))} />
             {user && <NotificationBell user={user} />}
             {user ? (
               <ProfileMenu
@@ -7340,16 +7408,7 @@ export default function CariGaji() {
           {portal === "admin" && (
             isAdmin
               ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
-              : (
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
-                  <div style={{ fontSize: 40 }} aria-hidden="true">🚫</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>Admin access required</div>
-                  <div style={{ fontSize: 13, color: BRAND.textMuted, maxWidth: 320 }}>
-                    {user ? "Your account is not an administrator." : "Sign in with an administrator account to continue."}
-                  </div>
-                  <Btn variant="secondary" onClick={() => setPortal("worker")}>Back to Worker App</Btn>
-                </div>
-              )
+              : <AdminAccessRequired user={user} onBack={() => setPortal("worker")} />
           )}
         </div>
       </div>
