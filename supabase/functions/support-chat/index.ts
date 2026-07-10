@@ -29,6 +29,23 @@ const MAX_HISTORY_MESSAGES = 20;
 
 const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
+// Called directly from the browser (supabase.functions.invoke), which means
+// the browser sends a CORS preflight (OPTIONS) before the real POST, since
+// the request is cross-origin (the app's origin vs *.supabase.co) and
+// carries a custom Authorization header. Unlike send-notification-email
+// (only ever called server-to-server via a Database Webhook, never from a
+// browser), this function must explicitly answer that preflight and attach
+// CORS headers to every response, or the browser silently blocks the whole
+// request before it ever reaches this code — which is exactly why every
+// call was failing with a generic "something went wrong" client-side error.
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } });
+
 const SYSTEM_PROMPT = `You are CariGaji Support, a helpful assistant for CariGaji — a Malaysian shift-work marketplace app connecting workers ("Workers") with businesses hiring temporary staff ("Employers").
 
 YOUR SCOPE — only help with:
@@ -50,22 +67,26 @@ ESCALATION: If you cannot resolve the user's issue (it needs a human to look at 
 Keep replies short and friendly — 2 to 4 sentences unless the user needs a short list of steps.`;
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   try {
     if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+      return json({ error: "Method not allowed" }, 405);
     }
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const jwt = authHeader.replace(/^Bearer\s+/i, "");
     const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(jwt);
     if (userError || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+      return json({ error: "Unauthorized" }, 401);
     }
     const userId = userData.user.id;
 
     const { messages } = await req.json();
     if (!Array.isArray(messages) || messages.length === 0) {
-      return new Response(JSON.stringify({ error: "messages array required" }), { status: 400 });
+      return json({ error: "messages array required" }, 400);
     }
 
     // ── Rate limit: per-user, per-day message cap ──────────────────────────
@@ -79,11 +100,11 @@ Deno.serve(async (req) => {
 
     const currentCount = usageRow?.message_count ?? 0;
     if (currentCount >= DAILY_MESSAGE_CAP) {
-      return new Response(JSON.stringify({
+      return json({
         reply: "You've reached today's message limit for the support chat. Please email us directly and our team will help.",
         escalate: true,
         rateLimited: true,
-      }), { status: 200 });
+      });
     }
 
     await supabaseAdmin
@@ -112,7 +133,7 @@ Deno.serve(async (req) => {
 
     if (!groqResp.ok) {
       const errText = await groqResp.text();
-      return new Response(JSON.stringify({ error: "LLM request failed", detail: errText }), { status: 502 });
+      return json({ error: "LLM request failed", detail: errText }, 502);
     }
 
     const groqData = await groqResp.json();
@@ -125,9 +146,9 @@ Deno.serve(async (req) => {
       reply = "Sorry, I couldn't process that. Please try rephrasing, or email our support team directly.";
     }
 
-    return new Response(JSON.stringify({ reply, escalate }), { status: 200 });
+    return json({ reply, escalate });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500 });
+    return json({ error: String(e) }, 500);
   }
 });
 
