@@ -6,10 +6,17 @@
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 APP="$REPO_ROOT/carigaji-app.jsx"
 
+# esbuild lives in the main repo's node_modules, not per-worktree. core.hooksPath
+# is shared across worktrees as an absolute path to this script's directory, so
+# resolve the binary relative to the hook itself rather than $REPO_ROOT (which
+# is the calling worktree's root when a commit comes from an agent worktree).
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MAIN_REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
+
 # Only run when the app file is staged.
 if git diff --cached --name-only | grep -q "carigaji-app.jsx"; then
     echo "pre-commit: checking carigaji-app.jsx syntax…"
-    ESBUILD="$REPO_ROOT/node_modules/.bin/esbuild"
+    ESBUILD="$MAIN_REPO_ROOT/node_modules/.bin/esbuild"
     if [ ! -x "$ESBUILD" ]; then
         ESBUILD="npx --no-install esbuild"
     fi
