@@ -9,6 +9,11 @@ import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTh
 // supabase/migrations/20260705g_widen_shift_categories.sql).
 const SHIFT_CATEGORIES = ["F&B", "Retail", "Event", "Promotion", "Warehouse", "Office", "Security", "Production", "Market Research", "Student", "Logistics", "Other"];
 
+// ─── Shift language requirements ─────────────────────────────────────────────
+// Kept in sync with the shifts_language_requirements_check DB constraint (see
+// supabase/migrations/20260711_shift_language_requirements.sql).
+const SHIFT_LANGUAGES = ["Bahasa Melayu", "English", "Mandarin", "Tamil", "Other"];
+
 // ─── Bulk shift upload (CSV) ─────────────────────────────────────────────────
 // Normalized header (lowercase, trimmed, stripped to [a-z0-9]) → form field.
 // Used to fuzzy-match whatever column names an employer's spreadsheet has.
@@ -265,6 +270,7 @@ const TRANSLATIONS = {
     "shiftDetail.date": "🗓 Date",
     "shiftDetail.time": "⏰ Time",
     "shiftDetail.dressCode": "👗 Dress Code",
+    "shiftDetail.languagesRequired": "🗣️ Languages Required",
     "shiftDetail.headcount": "👥 Headcount",
     "shiftDetail.workersNeeded": "workers needed",
     "shiftDetail.employerScore": "🏢 Employer Score",
@@ -600,6 +606,7 @@ const TRANSLATIONS = {
     "employer.docFoodHandler": "Food Handler Certificate",
     "employer.docFirstAid": "First Aid Certification",
     "employer.docDrivingLicense": "Driving License",
+    "employer.labelLanguageRequirements": "Language Requirements",
     "employer.specialRequirementsLabel": "Special requirements",
     "employer.specialRequirementsPlaceholder": "Any additional requirements…",
     "employer.nextReview": "Next: Review →",
@@ -608,6 +615,7 @@ const TRANSLATIONS = {
     "employer.reviewNotSet": "(not set)",
     "employer.reviewLabelWageRange": "Wage range",
     "employer.reviewLabelTransportAllowance": "Transport allowance",
+    "employer.reviewLabelLanguages": "Languages Required",
     "employer.transportNotOffered": "Not offered",
     "employer.dressCodeNone": "None",
     "employer.estimatedReserveLabel": "Estimated amount to reserve",
@@ -859,6 +867,7 @@ const TRANSLATIONS = {
     "shiftDetail.date": "🗓 Tarikh",
     "shiftDetail.time": "⏰ Masa",
     "shiftDetail.dressCode": "👗 Kod Pakaian",
+    "shiftDetail.languagesRequired": "🗣️ Bahasa Diperlukan",
     "shiftDetail.headcount": "👥 Bilangan Pekerja",
     "shiftDetail.workersNeeded": "pekerja diperlukan",
     "shiftDetail.employerScore": "🏢 Skor Majikan",
@@ -1194,6 +1203,7 @@ const TRANSLATIONS = {
     "employer.docFoodHandler": "Sijil Pengendali Makanan",
     "employer.docFirstAid": "Sijil Bantuan Pertama",
     "employer.docDrivingLicense": "Lesen Memandu",
+    "employer.labelLanguageRequirements": "Keperluan Bahasa",
     "employer.specialRequirementsLabel": "Keperluan khas",
     "employer.specialRequirementsPlaceholder": "Sebarang keperluan tambahan…",
     "employer.nextReview": "Seterusnya: Semak →",
@@ -1202,6 +1212,7 @@ const TRANSLATIONS = {
     "employer.reviewNotSet": "(belum ditetapkan)",
     "employer.reviewLabelWageRange": "Julat gaji",
     "employer.reviewLabelTransportAllowance": "Elaun pengangkutan",
+    "employer.reviewLabelLanguages": "Bahasa Diperlukan",
     "employer.transportNotOffered": "Tidak ditawarkan",
     "employer.dressCodeNone": "Tiada",
     "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
@@ -3572,7 +3583,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status)')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements)')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -3600,6 +3611,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         shiftWageMax: Number(a.shift?.wage_max ?? 0),
         shiftHeadcount: a.shift?.headcount ?? 1,
         shiftDress: a.shift?.dress_code ?? '',
+        shiftLanguages: a.shift?.language_requirements ?? [],
         shiftDescription: a.shift?.description ?? '',
         shiftStipend: Number(a.shift?.transport_allowance ?? 0),
         shiftStatus: a.shift?.status ?? null,
@@ -3662,7 +3674,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, filled_count, status, transport_allowance')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, filled_count, status, transport_allowance, language_requirements')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -3689,6 +3701,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           addressVisibility: s.address_visibility || 'public',
           totalApplicants: 0,
           dress: s.dress_code || '',
+          languageRequirements: s.language_requirements || [],
           stipend: Number(s.transport_allowance) || 0,
           startTime: s.start_at ? (() => { const d = new Date(s.start_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
           endTime: s.end_at ? (() => { const d = new Date(s.end_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
@@ -4073,9 +4086,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               [t("shiftDetail.date"), selectedShift.date],
               [t("shiftDetail.time"), selectedShift.time],
               [t("shiftDetail.dressCode"), selectedShift.dress],
+              selectedShift.languageRequirements && selectedShift.languageRequirements.length > 0 ? [t("shiftDetail.languagesRequired"), selectedShift.languageRequirements.join(", ")] : null,
               [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
               [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`],
-            ].map(([k, v, note]) => (
+            ].filter(Boolean).map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted, width: 130, flexShrink: 0 }}>{k}</span>
                 <span style={{ fontSize: 13, color: BRAND.text, fontWeight: 500 }}>
@@ -4429,11 +4443,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 [t("shiftDetail.date"), a.date],
                 [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}–${new Date(a.shiftEndAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}` : t("shiftDetail.tba")],
                 [t("shiftDetail.dressCode"), a.shiftDress || t("shiftDetail.dressCodeNone")],
+                a.shiftLanguages && a.shiftLanguages.length > 0 ? [t("shiftDetail.languagesRequired"), a.shiftLanguages.join(", ")] : null,
                 [t("shiftDetail.headcount"), `${a.shiftHeadcount} ${t("shiftDetail.workersNeeded")}`],
                 [t("myBids.employerRangeRow"), a.shiftWageMin && a.shiftWageMax ? `RM${a.shiftWageMin}–${a.shiftWageMax}/h` : t("shiftDetail.notApplicable")],
                 [t("myBids.transportAllowanceRow"), a.shiftStipend > 0 ? `RM${a.shiftStipend}` : t("shiftDetail.notProvided")],
                 [t("shiftDetail.yourBid"), `RM${a.wageBid}/h`],
-              ].map(([k, v]) => (
+              ].filter(Boolean).map(([k, v]) => (
                 <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                   <span style={{ fontSize: 13, color: BRAND.textMuted, width: 150, flexShrink: 0 }}>{k}</span>
                   <span style={{ fontSize: 13, color: BRAND.text, fontWeight: 500 }}>{v}</span>
@@ -4946,7 +4961,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
-  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
+  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [] });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
   const [bulkUploadRows, setBulkUploadRows] = useState([]);
@@ -4984,7 +4999,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       if (!user) return setLiveEmployerShifts(null);
       const { data, error } = await supabase
         .from('shifts')
-        .select('id, title, category, start_at, end_at, headcount, filled_count, status')
+        .select('id, title, category, start_at, end_at, headcount, filled_count, status, language_requirements')
         .eq('employer_id', user.id)
         .order('start_at', { ascending: false });
       if (!active) return;
@@ -5004,6 +5019,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         status: s.status,
         escrow: 0,
         category: s.category,
+        languageRequirements: s.language_requirements || [],
       })));
     };
     load();
@@ -5179,7 +5195,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const startEditShift = async (shiftId) => {
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance, language_requirements')
       .eq('id', shiftId)
       .single();
     if (error || !data) { toast(t('employer.toastLoadShiftFailed'), 'error'); return; }
@@ -5203,6 +5219,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       addressVisibility: data.address_visibility || 'public',
       offersTransportAllowance: transportAmt > 0,
       transportAllowance: transportAmt > 0 ? String(transportAmt) : '',
+      languageRequirements: data.language_requirements || [],
     });
     setEditingShiftId(shiftId);
     setSelectedShift(null);
@@ -5645,6 +5662,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>Positions needed: {s.headcount}</span>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>Filled: {s.filled}</span>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>Category: {s.category}</span>
+                      {s.languageRequirements && s.languageRequirements.length > 0 && (
+                        <span style={{ fontSize: 12, color: BRAND.textMuted }}>Languages: {s.languageRequirements.join(", ")}</span>
+                      )}
                 </div>
               </Card>
             ))}
@@ -5894,6 +5914,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     ))}
                   </div>
                   <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.labelLanguageRequirements")}</label>
+                    {SHIFT_LANGUAGES.map(lang => (
+                      <label key={lang} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13, color: BRAND.text }}>
+                        <input
+                          type="checkbox"
+                          checked={form.languageRequirements.includes(lang)}
+                          onChange={() => setForm(f => ({ ...f, languageRequirements: f.languageRequirements.includes(lang) ? f.languageRequirements.filter(l => l !== lang) : [...f.languageRequirements, lang] }))}
+                        /> {lang}
+                      </label>
+                    ))}
+                  </div>
+                  <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.specialRequirementsLabel")}</label>
                     <textarea placeholder={t("employer.specialRequirementsPlaceholder")} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }} />
                   </div>
@@ -5915,6 +5947,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     [t("employer.reviewLabelWageRange"), form.wageMin && form.wageMax ? `RM${form.wageMin}–RM${form.wageMax}/h` : t("employer.reviewNotSet")],
                     [t("employer.reviewLabelTransportAllowance"), form.offersTransportAllowance && form.transportAllowance ? `RM${form.transportAllowance}` : t("employer.transportNotOffered")],
                     [t("employer.labelDressCode"), form.dress || t("employer.dressCodeNone")],
+                    [t("employer.reviewLabelLanguages"), form.languageRequirements.length > 0 ? form.languageRequirements.join(", ") : t("employer.reviewNotSet")],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
                       <span style={{ color: BRAND.textMuted }}>{k}</span>
@@ -5953,6 +5986,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         headcount:   parseInt(form.headcount) || 1,
                         address_visibility: form.addressVisibility || 'public',
                         transport_allowance: form.offersTransportAllowance ? (parseFloat(form.transportAllowance) || 0) : 0,
+                        language_requirements: form.languageRequirements,
                       };
                       let error;
                       if (editingShiftId) {
