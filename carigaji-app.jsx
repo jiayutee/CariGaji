@@ -621,6 +621,7 @@ const TRANSLATIONS = {
     "employer.estimatedReserveLabel": "Estimated amount to reserve",
     "employer.estimatedReserveFormula": "wage_max × headcount × 8h (estimated) + 15% platform fee",
     "employer.tagline": "Employer Console",
+    "employer.openMenu": "Open menu",
     "employer.paidToWorkers": "Paid to Workers",
     "employer.topUpSoon": "Top Up (soon)",
     "employer.returnToWorkerApp": "Return to Worker App",
@@ -1218,6 +1219,7 @@ const TRANSLATIONS = {
     "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
     "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × 8j (anggaran) + 15% yuran platform",
     "employer.tagline": "Konsol Majikan",
+    "employer.openMenu": "Buka menu",
     "employer.paidToWorkers": "Dibayar kepada Pekerja",
     "employer.topUpSoon": "Tambah Nilai (akan datang)",
     "employer.returnToWorkerApp": "Kembali ke Aplikasi Pekerja",
@@ -4992,6 +4994,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  // Mobile-only: the sidebar used to always render full-width, stacked above
+  // the content, permanently expanded — eating over half the screen before
+  // any actual work (managing shifts, reviewing applicants) was visible.
+  // Now it's a collapsible left-side drawer on mobile, toggled by a
+  // hamburger button; desktop (compact=false) is unaffected.
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -5532,32 +5540,61 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     .filter(item => item.status === 'processed_internal')
     .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-  return (
-    <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%", fontFamily: "inherit" }}>
-      {/* Sidebar */}
-      <div style={{ width: compact ? "100%" : 180, borderRight: compact ? "none" : `1px solid ${BRAND.border}`, borderBottom: compact ? `1px solid ${BRAND.border}` : "none", padding: "24px 0", background: BRAND.surface, flexShrink: 0, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "0 20px 24px" }}>
+  const sidebarContent = (
+    <>
+      <div style={{ padding: "0 20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
           <div style={{ fontWeight: 900, fontSize: 20, color: BRAND.primary }}>CariGaji</div>
           <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>{t("employer.tagline")}</div>
         </div>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => { setView(n.id); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); }}
-            style={{
-              display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
-              background: view === n.id ? BRAND.primaryLight : "none",
-              color: view === n.id ? BRAND.primary : BRAND.textMuted,
-              border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
-              borderLeft: view === n.id ? `3px solid ${BRAND.primary}` : "3px solid transparent",
-              transition: "all 0.1s",
-            }}>{n.label}</button>
-        ))}
-        <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
-          <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
-          <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
-          <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpSoon")}</Btn>
-          <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
-        </div>
+        {compact && (
+          <button onClick={() => setSidebarOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1, padding: 4 }}>×</button>
+        )}
       </div>
+      {navItems.map(n => (
+        <button key={n.id} onClick={() => { setView(n.id); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); if (compact) setSidebarOpen(false); }}
+          style={{
+            display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
+            background: view === n.id ? BRAND.primaryLight : "none",
+            color: view === n.id ? BRAND.primary : BRAND.textMuted,
+            border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
+            borderLeft: view === n.id ? `3px solid ${BRAND.primary}` : "3px solid transparent",
+            transition: "all 0.1s",
+          }}>{n.label}</button>
+      ))}
+      <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
+        <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
+        <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
+        <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpSoon")}</Btn>
+        <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
+      </div>
+    </>
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%", fontFamily: "inherit" }}>
+      {compact ? (
+        <>
+          {/* Mobile top bar: hamburger toggle instead of a permanently-expanded sidebar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: `1px solid ${BRAND.border}`, background: BRAND.surface, flexShrink: 0 }}>
+            <button onClick={() => setSidebarOpen(true)} aria-label={t("employer.openMenu")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.text, padding: 4, lineHeight: 1 }}>☰</button>
+            <div style={{ fontWeight: 800, fontSize: 15, color: BRAND.text }}>{navItems.find(n => n.id === view)?.label || "CariGaji"}</div>
+          </div>
+          {sidebarOpen && createPortal(
+            <div style={{ position: "fixed", inset: 0, zIndex: 1250, display: "flex" }}>
+              <div onClick={() => setSidebarOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
+              <div style={{ position: "relative", width: "78%", maxWidth: 280, height: "100%", background: BRAND.surface, boxShadow: `4px 0 24px ${BRAND.shadow}`, display: "flex", flexDirection: "column", padding: "24px 0", overflowY: "auto" }}>
+                {sidebarContent}
+              </div>
+            </div>,
+            document.body
+          )}
+        </>
+      ) : (
+        <div style={{ width: 180, borderRight: `1px solid ${BRAND.border}`, padding: "24px 0", background: BRAND.surface, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+          {sidebarContent}
+        </div>
+      )}
 
       {/* Main */}
       <div style={{ flex: 1, overflowY: "auto", padding: compact ? 16 : 28, background: BRAND.grayLight }}>
