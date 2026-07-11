@@ -314,6 +314,8 @@ const TRANSLATIONS = {
     "profile.strikes": "Strikes",
     "profile.cleanRecord": "Clean record",
     "profile.onTimeRate": "On-time rate",
+    "profile.notTrackedYet": "Not tracked yet",
+    "common.comingSoon": "Coming soon",
     "profile.kycVerification": "KYC Verification",
     "profile.kycBasic": "Basic (Phone/Email)",
     "profile.kycStandard": "Standard (MyKad + Selfie)",
@@ -906,6 +908,8 @@ const TRANSLATIONS = {
     "profile.strikes": "Amaran",
     "profile.cleanRecord": "Rekod bersih",
     "profile.onTimeRate": "Kadar tepat masa",
+    "profile.notTrackedYet": "Belum dijejak",
+    "common.comingSoon": "Akan datang",
     "profile.kycVerification": "Pengesahan KYC",
     "profile.kycBasic": "Asas (Telefon/E-mel)",
     "profile.kycStandard": "Standard (MyKad + Selfie)",
@@ -3399,6 +3403,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setAvatarUploading(false);
   };
   const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0 });
+  const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
   const [showTnC, setShowTnC] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
@@ -3453,6 +3458,28 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           reliability_score: data.reliability_score ?? 0,
           rating: data.rating ?? 0
         });
+      });
+    return () => { active = false; };
+  }, [user, tab]);
+
+  useEffect(() => {
+    if (!user || tab !== 'profile') return;
+    let active = true;
+    setWorkerShiftsDone(null);
+    // A shift counts as "done" once the worker's application was accepted
+    // and the linked shift itself has moved to 'completed'. Filtered
+    // client-side (matches the existing shift-join + client-filter
+    // convention used elsewhere in this file, e.g. ADMIN_DISPUTES.filter).
+    supabase
+      .from('applications')
+      .select('id, shift:shifts(status)')
+      .eq('worker_id', user.id)
+      .eq('status', 'accepted')
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) { setWorkerShiftsDone(null); return; }
+        const done = (data || []).filter(a => a.shift?.status === 'completed').length;
+        setWorkerShiftsDone(done);
       });
     return () => { active = false; };
   }, [user, tab]);
@@ -4620,10 +4647,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label={t("profile.shiftsDone")} value="38" color={BRAND.primary} />
+              <Stat label={t("profile.shiftsDone")} value={workerShiftsDone ?? "—"} color={BRAND.primary} />
               <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
-              <Stat label={t("profile.strikes")} value="0" sub={t("profile.cleanRecord")} color={BRAND.green} />
-              <Stat label={t("profile.onTimeRate")} value="96%" color={BRAND.blue} />
+              <Stat label={t("profile.strikes")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
+              <Stat label={t("profile.onTimeRate")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
             </div>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.kycVerification")}</div>
@@ -6350,6 +6377,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [payoutMessage, setPayoutMessage] = useState("");
   const [kycQueue, setKycQueue] = useState(null);
   const [kycSignedUrls, setKycSignedUrls] = useState({});
+  const [overviewStats, setOverviewStats] = useState(null);
 
   const navItems = ["Overview", "KYC Queue", "Disputes", "Flags", "Payouts", "Config"];
 
@@ -6389,6 +6417,43 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       if (error) { setKycQueue([]); return; }
       setKycQueue(pending || []);
     })();
+  }, [view]);
+
+  useEffect(() => {
+    if (!supabase || view !== "overview") return;
+    let active = true;
+    (async () => {
+      setOverviewStats(null);
+      const dayStart = new Date();
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const [openShiftsRes, fillShiftsRes, workersRes, employersRes, todayShiftsRes] = await Promise.all([
+        supabase.from("shifts").select("id").eq("status", "open"),
+        supabase.from("shifts").select("headcount, filled_count").in("status", ["open", "filled", "completed"]),
+        supabase.from("profiles").select("id").eq("role", "worker"),
+        supabase.from("profiles").select("id").eq("role", "employer"),
+        supabase.from("shifts").select("id")
+          .in("status", ["open", "filled", "completed"])
+          .gte("start_at", dayStart.toISOString())
+          .lt("start_at", dayEnd.toISOString()),
+      ]);
+      if (!active) return;
+
+      const fillShifts = fillShiftsRes.data || [];
+      const totalHeadcount = fillShifts.reduce((sum, s) => sum + (s.headcount || 0), 0);
+      const totalFilled = fillShifts.reduce((sum, s) => sum + (s.filled_count || 0), 0);
+
+      setOverviewStats({
+        openShifts: openShiftsRes.data?.length ?? null,
+        fillRatePct: totalHeadcount > 0 ? Math.round((totalFilled / totalHeadcount) * 100) : null,
+        activeWorkers: workersRes.data?.length ?? null,
+        registeredEmployers: employersRes.data?.length ?? null,
+        shiftsToday: todayShiftsRes.data?.length ?? null,
+      });
+    })();
+    return () => { active = false; };
   }, [view]);
 
   const updatePayoutStatus = async (item, nextStatus) => {
@@ -6503,16 +6568,16 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Platform Overview</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Klang Valley — Live metrics</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Open shifts" value="18" color={BRAND.blue} />
+              <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
               <Stat label="Pending KYC" value={kycQueue?.length ?? "—"} color={BRAND.amber} />
               <Stat label="Open disputes" value={ADMIN_DISPUTES.filter(d => d.status === "open" || d.status === "under_review").length} color={BRAND.red} />
-              <Stat label="Fill rate" value="84%" color={BRAND.green} />
+              <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Active workers" value="423" color={BRAND.primary} />
-              <Stat label="Registered employers" value="67" color={BRAND.primary} />
-              <Stat label="Shifts today" value="12" color={BRAND.primary} />
-              <Stat label="Payout queue" value="RM 8,420" color={BRAND.green} />
+              <Stat label="Registered workers" value={overviewStats?.activeWorkers ?? "—"} color={BRAND.primary} />
+              <Stat label="Registered employers" value={overviewStats?.registeredEmployers ?? "—"} color={BRAND.primary} />
+              <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primary} />
+              <Stat label="Payout queue" value="Coming soon" sub="Escrow/payout not built yet" color={BRAND.textMuted} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               <Card>
