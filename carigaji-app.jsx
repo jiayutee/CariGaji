@@ -23,6 +23,68 @@ const shiftHHMM = (iso) => {
   return `${h}:${m}`;
 };
 
+// ─── Multi-day shift occurrences ─────────────────────────────────────────────
+// A shift's `occurrences` column (see supabase/migrations/20260712d_shift_occurrences.sql)
+// is an array of {date: "YYYY-MM-DD", start: "HH:MM", end: "HH:MM"}, sorted by
+// date. Every shift has one — including ordinary single-day shifts, which just
+// get a one-element array — so this is the single source of truth for a
+// shift's schedule; start_at/end_at are a denormalized mirror of occurrences[0]
+// kept only for sorting/offer-deadline code that predates this feature.
+
+// Duration in hours of one occurrence, handling an overnight shift (end time
+// past midnight) the same way the reserve-estimate calc already did.
+const occurrenceHours = (occ) => {
+  if (!occ?.start || !occ?.end) return 0;
+  const [sh, sm] = occ.start.split(':').map(Number);
+  const [eh, em] = occ.end.split(':').map(Number);
+  let mins = (eh * 60 + em) - (sh * 60 + sm);
+  if (mins <= 0) mins += 24 * 60;
+  return mins / 60;
+};
+const totalOccurrenceHours = (occurrences) => (occurrences ?? []).reduce((sum, occ) => sum + occurrenceHours(occ), 0);
+
+// Formats a date+time-range for a single day, in the same style as the
+// existing formatShiftTime/formatShiftDate helpers, but from plain
+// "YYYY-MM-DD"/"HH:MM" strings (no timezone conversion needed — these are
+// already the Malaysia-local wall-clock values entered/stored).
+const formatOccurrenceLine = (occ, opts = { day: 'numeric', month: 'short' }) => {
+  if (!occ?.date) return '';
+  const dateLabel = new Date(`${occ.date}T00:00:00`).toLocaleDateString('en-MY', opts);
+  const to12h = (hhmm) => {
+    if (!hhmm) return '';
+    const [h, m] = hhmm.split(':').map(Number);
+    const period = h >= 12 ? 'pm' : 'am';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+  };
+  return occ.start && occ.end ? `${dateLabel}, ${to12h(occ.start)}–${to12h(occ.end)}` : dateLabel;
+};
+
+// Compact summary for cards/lists: single line for a one-day shift, or
+// "N days: <date1>, <date2>, ..." for a multi-day posting.
+const formatOccurrencesSummary = (occurrences) => {
+  const list = occurrences ?? [];
+  if (list.length === 0) return '';
+  if (list.length === 1) return formatOccurrenceLine(list[0]);
+  return `${list.length} days: ${list.map(o => formatOccurrenceLine(o, { day: 'numeric', month: 'short' })).join(', ')}`;
+};
+
+// Validates the Post Shift wizard's occurrence rows before advancing past
+// step 1. Returns a reason code (mapped to a translated toast message by the
+// caller) or null when everything checks out.
+const validateOccurrences = (occurrences) => {
+  if (!occurrences || occurrences.length === 0) return 'empty';
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const seenDates = new Set();
+  for (const occ of occurrences) {
+    if (!occ.date || !occ.start || !occ.end) return 'incomplete';
+    if (occ.date < todayStr) return 'pastDate';
+    if (seenDates.has(occ.date)) return 'duplicateDate';
+    seenDates.add(occ.date);
+  }
+  return null;
+};
+
 // ─── Shift categories ────────────────────────────────────────────────────────
 // Kept in sync with the shifts_category_check DB constraint (see
 // supabase/migrations/20260705g_widen_shift_categories.sql).
@@ -249,6 +311,8 @@ const TRANSLATIONS = {
     "toast.escrowTopupUnavailable": "Adding funds isn’t available yet — coming with FPX/DuitNow integration.",
     "toast.signInToPostShift": "Sign in to post a shift.",
     "toast.shiftFieldsRequired": "Title, date, and start/end times are required.",
+    "toast.scheduleDatePast": "Every scheduled day must be today or later.",
+    "toast.scheduleDuplicateDate": "Each day can only be added once — remove the duplicate date.",
     "toast.maxPayGteMinPay": "Max pay must be ≥ min pay.",
     "toast.postShiftFailed": "Failed to post shift: ",
     "toast.shiftPublished": "Shift published! Workers will start applying shortly.",
@@ -280,6 +344,7 @@ const TRANSLATIONS = {
     "shiftDetail.wageRange": "Wage Range",
     "shiftDetail.perHour": "per hour",
     "shiftDetail.shiftDuration": "Shift Duration",
+    "shiftDetail.daysCount": "{count} days",
     "shiftDetail.estimatedGross": "Estimated Gross",
     "shiftDetail.atMaxRate": "at max rate",
     "shiftDetail.transportAllowance": "Transport Allowance",
@@ -604,7 +669,7 @@ const TRANSLATIONS = {
     "worker.checkinSubtitle": "Point your camera at the QR code at the venue entrance",
     "worker.cameraViewfinder": "Camera viewfinder",
     "worker.simulateCheckin": "Simulate Successful Check-in",
-    "shiftDetail.rateHelperText": "Scroll or tap to choose your rate",
+    "shiftDetail.rateHelperText": "Scroll to choose your rate",
     "myBids.signInTitle": "Sign in to view your bids",
     "myBids.signInHint": "Track the shifts you've applied to and their status once you're signed in.",
     "myBids.backToBids": "Back to My Bids",
@@ -631,6 +696,11 @@ const TRANSLATIONS = {
     "employer.labelHeadcount": "Headcount",
     "employer.fieldStartTime": "Start time",
     "employer.fieldEndTime": "End time",
+    "employer.labelSchedule": "Schedule",
+    "employer.multiDayCheckbox": "This job runs on more than one day",
+    "employer.addAnotherDay": "Add another day",
+    "employer.removeDay": "Remove this day",
+    "employer.scheduleHint": "Add every day this job runs — each day can have its own start and end time. Applicants commit to all of them as one job.",
     "employer.wageRangeLabel": "Wage Range (RM/hour)",
     "employer.wageMinPlaceholder": "Min e.g. 12",
     "employer.wageMaxPlaceholder": "Max e.g. 16",
@@ -774,6 +844,7 @@ const TRANSLATIONS = {
     "auth.tncAgreeText": "I have read and agree to the",
     "auth.tncLinkText": "Terms & Conditions and Privacy Notice",
     "auth.tncSuffixText": ", including the collection and use of my identity document (MyKad/passport) for employment verification purposes.",
+    "auth.tncScrollHint": "Open and scroll the Terms & Conditions to the end to enable this checkbox.",
     "auth.selectShort": "Select",
     "auth.selectCountry": "Select country",
     "auth.searchCountryPlaceholder": "Search by name or code...",
@@ -871,6 +942,8 @@ const TRANSLATIONS = {
     "toast.escrowTopupUnavailable": "Tambah dana belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
     "toast.signInToPostShift": "Log masuk untuk siarkan syif.",
     "toast.shiftFieldsRequired": "Tajuk, tarikh, dan masa mula/tamat diperlukan.",
+    "toast.scheduleDatePast": "Setiap hari yang dijadualkan mestilah hari ini atau lebih lewat.",
+    "toast.scheduleDuplicateDate": "Setiap hari hanya boleh ditambah sekali — buang tarikh berulang.",
     "toast.maxPayGteMinPay": "Gaji maksimum mesti ≥ gaji minimum.",
     "toast.postShiftFailed": "Gagal siarkan syif: ",
     "toast.shiftPublished": "Syif disiarkan! Pekerja akan mula memohon tidak lama lagi.",
@@ -902,6 +975,7 @@ const TRANSLATIONS = {
     "shiftDetail.wageRange": "Julat Gaji",
     "shiftDetail.perHour": "sejam",
     "shiftDetail.shiftDuration": "Tempoh Syif",
+    "shiftDetail.daysCount": "{count} hari",
     "shiftDetail.estimatedGross": "Anggaran Kasar",
     "shiftDetail.atMaxRate": "pada kadar maksimum",
     "shiftDetail.transportAllowance": "Elaun Pengangkutan",
@@ -1253,6 +1327,11 @@ const TRANSLATIONS = {
     "employer.labelHeadcount": "Bilangan pekerja",
     "employer.fieldStartTime": "Masa mula",
     "employer.fieldEndTime": "Masa tamat",
+    "employer.labelSchedule": "Jadual",
+    "employer.multiDayCheckbox": "Kerja ini berjalan lebih daripada satu hari",
+    "employer.addAnotherDay": "Tambah hari lain",
+    "employer.removeDay": "Buang hari ini",
+    "employer.scheduleHint": "Tambah setiap hari kerja ini dijalankan — setiap hari boleh mempunyai masa mula dan tamat sendiri. Pemohon komited kepada semua hari ini sebagai satu pekerjaan.",
     "employer.wageRangeLabel": "Julat Gaji (RM/jam)",
     "employer.wageMinPlaceholder": "Min cth. 12",
     "employer.wageMaxPlaceholder": "Maks cth. 16",
@@ -1396,6 +1475,7 @@ const TRANSLATIONS = {
     "auth.tncAgreeText": "Saya telah membaca dan bersetuju dengan",
     "auth.tncLinkText": "Terma & Syarat dan Notis Privasi",
     "auth.tncSuffixText": ", termasuk pengumpulan dan penggunaan dokumen pengenalan saya (MyKad/pasport) untuk tujuan pengesahan pekerjaan.",
+    "auth.tncScrollHint": "Buka dan tatal Terma & Syarat hingga ke penghujung untuk mengaktifkan kotak semak ini.",
     "auth.selectShort": "Pilih",
     "auth.selectCountry": "Pilih negara",
     "auth.searchCountryPlaceholder": "Cari mengikut nama atau kod...",
@@ -2974,12 +3054,31 @@ const uploadKycFile = async (userId, file, label) => {
 const TnCConsent = ({ checked, onChange, error = false }) => {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
+  // Consent must be an informed read, not a reflexive tick — the checkbox
+  // stays disabled until the employer/worker has actually scrolled the T&C
+  // box to the bottom at least once. A 4px slop accounts for sub-pixel
+  // scroll rounding across browsers.
+  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const tncBoxRef = useRef(null);
+  const checkScrolledToEnd = (el) => {
+    if (!el) return;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight <= 4) setHasScrolledToEnd(true);
+  };
+  const toggleExpanded = () => {
+    setExpanded(v => {
+      const next = !v;
+      // Short content that never overflows its box counts as already read.
+      if (next) setTimeout(() => checkScrolledToEnd(tncBoxRef.current), 0);
+      return next;
+    });
+  };
   return (
     <div style={{ marginBottom: 16, ...(error ? { border: `1.5px solid ${BRAND.red}`, borderRadius: 10, padding: 10 } : {}) }}>
-      <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+      <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: hasScrolledToEnd ? "pointer" : "not-allowed" }}>
         <input
           type="checkbox"
           checked={checked}
+          disabled={!hasScrolledToEnd}
           onChange={e => onChange(e.target.checked)}
           style={{ marginTop: 2, accentColor: BRAND.primary, flexShrink: 0, width: 16, height: 16 }}
         />
@@ -2988,8 +3087,8 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
           <span
             role="button"
             tabIndex={0}
-            onClick={e => { e.preventDefault(); setExpanded(v => !v); }}
-            onKeyDown={e => e.key === "Enter" && setExpanded(v => !v)}
+            onClick={e => { e.preventDefault(); toggleExpanded(); }}
+            onKeyDown={e => e.key === "Enter" && toggleExpanded()}
             style={{ color: BRAND.primary, textDecoration: "underline", cursor: "pointer" }}
           >
             {t("auth.tncLinkText")}
@@ -2997,8 +3096,17 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
           {t("auth.tncSuffixText")}
         </span>
       </label>
+      {!hasScrolledToEnd && (
+        <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4, marginLeft: 26 }}>
+          {t("auth.tncScrollHint")}
+        </div>
+      )}
       {expanded && (
-        <div style={{ marginTop: 10, padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7 }}>
+        <div
+          ref={tncBoxRef}
+          onScroll={e => checkScrolledToEnd(e.target)}
+          style={{ marginTop: 10, padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7, maxHeight: 240, overflowY: "auto" }}
+        >
           {/* NOTE: the expanded PDPA legal detail below is intentionally left in English —
               dense statutory legal text; translating risks inaccuracy. Deferred, same as
               the Malaysian Labor Law summary panel in Settings. */}
@@ -3510,6 +3618,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [showBidModal, setShowBidModal] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [bidSuccess, setBidSuccess] = useState(false);
+  // Resume the bid flow after sign-in: "Place Bid" while logged out sends the
+  // user through the sign-in modal (an overlay, doesn't navigate away), so
+  // selectedShift is still intact — this just reopens the bid modal once
+  // `user` transitions from null to signed-in, instead of silently dropping
+  // the worker's original intent.
+  const [pendingBidAfterAuth, setPendingBidAfterAuth] = useState(false);
+  useEffect(() => {
+    if (user && pendingBidAfterAuth && selectedShift) {
+      setBidAmount(String(selectedShift.wageMin));
+      setShowBidModal(true);
+      setPendingBidAfterAuth(false);
+    }
+  }, [user, pendingBidAfterAuth, selectedShift]);
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
   const [liveApplications, setLiveApplications] = useState(null);
@@ -3677,7 +3798,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -3699,6 +3820,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         employerId: a.shift?.employer_id ?? null,
         shiftStartAt: a.shift?.start_at ?? null,
         shiftEndAt: a.shift?.end_at ?? null,
+        shiftOccurrences: a.shift?.occurrences ?? [],
+        isMultiDay: (a.shift?.occurrences ?? []).length > 1,
         shiftLocation: a.shift?.location ?? '',
         shiftCategory: a.shift?.category ?? '',
         shiftWageMin: Number(a.shift?.wage_min ?? 0),
@@ -3789,7 +3912,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, filled_count, applicant_count, status, transport_allowance, language_requirements, employer_id, employer:profiles(full_name, reliability_score)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, transport_allowance, language_requirements, employer_id, employer:profiles(full_name, reliability_score)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -3807,10 +3930,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // from "verified 0/100" rather than showing a misleading red badge.
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
           location: s.location,
+          occurrences: s.occurrences ?? [],
+          isMultiDay: (s.occurrences ?? []).length > 1,
           time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
-          hours: s.start_at && s.end_at
-            ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000)
-            : 0,
+          hours: totalOccurrenceHours(s.occurrences) || (s.start_at && s.end_at ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000) : 0),
           wageMin: Number(s.wage_min),
           wageMax: Number(s.wage_max),
           headcount: s.headcount,
@@ -4178,7 +4301,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <div style={{ padding: isMobile ? 14 : 20 }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: isMobile ? 8 : 10, marginBottom: 16 }}>
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
-            <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={`${selectedShift.date}`} color={BRAND.text} />
+            <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={selectedShift.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", selectedShift.occurrences.length) : selectedShift.date} color={BRAND.text} />
             <Stat label={t("shiftDetail.estimatedGross")} value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub={t("shiftDetail.atMaxRate")} color={BRAND.green} />
             <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
@@ -4201,8 +4324,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
             {[
               [t("shiftDetail.location"), detailLocation, locationNote],
-              [t("shiftDetail.date"), selectedShift.date],
-              [t("shiftDetail.time"), selectedShift.time],
+              selectedShift.isMultiDay
+                ? [t("employer.labelSchedule"), selectedShift.occurrences.map(o => formatOccurrenceLine(o, { weekday: 'short', day: 'numeric', month: 'short' })).join(' · ')]
+                : [t("shiftDetail.date"), selectedShift.date],
+              !selectedShift.isMultiDay ? [t("shiftDetail.time"), selectedShift.time] : null,
               [t("shiftDetail.dressCode"), selectedShift.dress],
               selectedShift.languageRequirements && selectedShift.languageRequirements.length > 0 ? [t("shiftDetail.languagesRequired"), selectedShift.languageRequirements.join(", ")] : null,
               [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
@@ -4234,7 +4359,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
           </Card>
-          <Btn onClick={() => { if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); } else { onRequireAuth("signin"); } }} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
+          <Btn onClick={() => { if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); } else { setPendingBidAfterAuth(true); onRequireAuth("signin"); } }} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
             {user ? t("common.placeBid") : t("common.signInToBid")}
           </Btn>
         </div>
@@ -4416,7 +4541,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </div>
                   <div style={{ display: "flex", gap: 0, borderTop: `1px solid ${BRAND.border}`, marginTop: 10 }}>
                     {[
-                      [s.date, "📅"],
+                      [s.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", s.occurrences.length) : s.date, "📅"],
                       // Listing cards only ever show the city/region, never the exact place.
                       [overviewLocation(s.location), "📍"],
                       [`${s.hours}h`, "⏱️"],
@@ -4469,7 +4594,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 2 }}>{a.shiftTitle}</div>
-                      <div style={{ fontSize: 12, color: BRAND.textMuted }}>{a.employer} · {a.date}</div>
+                      <div style={{ fontSize: 12, color: BRAND.textMuted }}>{a.employer} · {a.isMultiDay ? formatOccurrencesSummary(a.shiftOccurrences) : a.date}</div>
                     </div>
                     <Pill
                       label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
@@ -4568,8 +4693,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
               {[
                 [t("shiftDetail.location"), a.shiftLocation || t("shiftDetail.tba")],
-                [t("shiftDetail.date"), a.date],
-                [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${formatShiftTime(a.shiftStartAt)}–${formatShiftTime(a.shiftEndAt)}` : t("shiftDetail.tba")],
+                a.isMultiDay
+                  ? [t("employer.labelSchedule"), a.shiftOccurrences.map(o => formatOccurrenceLine(o, { weekday: 'short', day: 'numeric', month: 'short' })).join(' · ')]
+                  : [t("shiftDetail.date"), a.date],
+                !a.isMultiDay ? [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${formatShiftTime(a.shiftStartAt)}–${formatShiftTime(a.shiftEndAt)}` : t("shiftDetail.tba")] : null,
                 [t("shiftDetail.dressCode"), a.shiftDress || t("shiftDetail.dressCodeNone")],
                 a.shiftLanguages && a.shiftLanguages.length > 0 ? [t("shiftDetail.languagesRequired"), a.shiftLanguages.join(", ")] : null,
                 [t("shiftDetail.headcount"), `${a.shiftHeadcount} ${t("shiftDetail.workersNeeded")}`],
@@ -5136,7 +5263,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
-  const [form, setForm] = useState({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [] });
+  const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
   const [bulkUploadRows, setBulkUploadRows] = useState([]);
@@ -5187,7 +5314,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (!user) return setLiveEmployerShifts(null);
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, start_at, end_at, headcount, filled_count, status, language_requirements')
+      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements')
       .eq('employer_id', user.id)
       .order('start_at', { ascending: false });
     // Same fix as the worker My Bids loader: empty (not null) on error so
@@ -5198,6 +5325,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       id: s.id,
       title: s.title,
       startAt: s.start_at,
+      occurrences: s.occurrences ?? [],
+      isMultiDay: (s.occurrences ?? []).length > 1,
       date: formatShiftDate(s.start_at) || 'TBA',
       time: s.start_at && s.end_at ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
       headcount: s.headcount ?? 1,
@@ -5274,7 +5403,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const beginNewShift = () => {
     setEditingShiftId(null);
     setSelectedShift(null);
-    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [] });
+    setForm({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
     setView("postshift");
     setPostStep(1);
   };
@@ -5372,6 +5501,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           dress_code: row.dress ? row.dress.trim() : null,
           start_at: startAt,
           end_at: endAt,
+          occurrences: [{ date: row.date, start: row.timeStart, end: row.timeEnd }],
           wage_min: wageMin,
           wage_max: wageMax,
           headcount: parseInt(row.headcount) || 1,
@@ -5400,7 +5530,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const startEditShift = async (shiftId) => {
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, address_visibility, transport_allowance, language_requirements')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, address_visibility, transport_allowance, language_requirements, requirements')
       .eq('id', shiftId)
       .single();
     if (error || !data) { toast(t('employer.toastLoadShiftFailed'), 'error'); return; }
@@ -5409,13 +5539,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     const end = data.end_at ? new Date(data.end_at) : null;
     const hhmm = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
     const transportAmt = Number(data.transport_allowance) || 0;
+    // Pre-migration rows (or any row that somehow ended up with an empty
+    // occurrences array) fall back to a single occurrence built from
+    // start_at/end_at, so editing an old shift still works.
+    const occurrences = (data.occurrences && data.occurrences.length > 0)
+      ? data.occurrences
+      : [{ date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '', start: hhmm(start), end: hhmm(end) }];
     setForm({
       title: data.title || '',
       description: data.description || '',
       category: data.category || 'F&B',
-      date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '',
-      timeStart: hhmm(start),
-      timeEnd: hhmm(end),
+      occurrences,
+      isMultiDay: occurrences.length > 1,
       wageMin: data.wage_min != null ? String(data.wage_min) : '',
       wageMax: data.wage_max != null ? String(data.wage_max) : '',
       headcount: data.headcount || 1,
@@ -5425,6 +5560,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
       offersTransportAllowance: transportAmt > 0,
       transportAllowance: transportAmt > 0 ? String(transportAmt) : '',
       languageRequirements: data.language_requirements || [],
+      specialRequirements: data.requirements?.special || '',
     });
     setEditingShiftId(shiftId);
     setSelectedShift(null);
@@ -5842,7 +5978,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 4 }}>{s.title}</div>
-                        <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
+                        <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.isMultiDay ? formatOccurrencesSummary(s.occurrences) : `${s.date} · ${s.time}`}</div>
                       </div>
                       <Pill label={s.status} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
                     </div>
@@ -5956,7 +6092,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
-              <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.date}</span>
+              <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift.date}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
@@ -6117,11 +6253,45 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       </label>
                     </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <Input label={t("employer.labelDate")} type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
-                    <Input label={t("employer.labelHeadcount")} type="number" value={form.headcount} onChange={e => setForm(f => ({ ...f, headcount: e.target.value }))} />
-                    <Input label={t("employer.fieldStartTime")} type="time" value={form.timeStart} onChange={e => setForm(f => ({ ...f, timeStart: e.target.value }))} />
-                    <Input label={t("employer.fieldEndTime")} type="time" value={form.timeEnd} onChange={e => setForm(f => ({ ...f, timeEnd: e.target.value }))} />
+                  <Input label={t("employer.labelHeadcount")} type="number" value={form.headcount} onChange={e => setForm(f => ({ ...f, headcount: e.target.value }))} style={{ maxWidth: 160 }} />
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.labelSchedule")}</label>
+                    {form.occurrences.map((occ, i) => (
+                      <div key={i} style={{ display: "grid", gridTemplateColumns: form.isMultiDay ? "1fr 1fr 1fr auto" : "1fr 1fr 1fr", gap: 8, marginBottom: 8, alignItems: "start" }}>
+                        <Input type="date" value={occ.date} style={{ marginBottom: 0 }} onChange={e => setForm(f => ({ ...f, occurrences: f.occurrences.map((o, oi) => oi === i ? { ...o, date: e.target.value } : o) }))} />
+                        <Input type="time" value={occ.start} style={{ marginBottom: 0 }} onChange={e => setForm(f => ({ ...f, occurrences: f.occurrences.map((o, oi) => oi === i ? { ...o, start: e.target.value } : o) }))} />
+                        <Input type="time" value={occ.end} style={{ marginBottom: 0 }} onChange={e => setForm(f => ({ ...f, occurrences: f.occurrences.map((o, oi) => oi === i ? { ...o, end: e.target.value } : o) }))} />
+                        {form.isMultiDay && (
+                          <button
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, occurrences: f.occurrences.filter((_, oi) => oi !== i) }))}
+                            disabled={form.occurrences.length <= 1}
+                            aria-label={t("employer.removeDay")}
+                            style={{ width: 36, height: 36, borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: form.occurrences.length <= 1 ? BRAND.textMuted : BRAND.red, cursor: form.occurrences.length <= 1 ? "not-allowed" : "pointer", fontSize: 16, opacity: form.occurrences.length <= 1 ? 0.4 : 1 }}
+                          >×</button>
+                        )}
+                      </div>
+                    ))}
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginTop: 8, marginBottom: form.isMultiDay ? 8 : 0 }}>
+                      <input
+                        type="checkbox"
+                        checked={form.isMultiDay}
+                        onChange={e => {
+                          const checked = e.target.checked;
+                          setForm(f => ({ ...f, isMultiDay: checked, occurrences: checked ? f.occurrences : f.occurrences.slice(0, 1) }));
+                        }}
+                      />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("employer.multiDayCheckbox")}</span>
+                    </label>
+                    {form.isMultiDay && (
+                      <Btn
+                        variant="secondary"
+                        size="sm"
+                        disabled={form.occurrences.length >= 14}
+                        onClick={() => setForm(f => ({ ...f, occurrences: [...f.occurrences, { date: "", start: "", end: "" }] }))}
+                      >+ {t("employer.addAnotherDay")}</Btn>
+                    )}
+                    <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>{t("employer.scheduleHint")}</div>
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.wageRangeLabel")}</label>
@@ -6157,12 +6327,26 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       {t("employer.transportAllowanceHint")}
                     </div>
                   </div>
-                  <Btn onClick={() => setPostStep(2)} style={{ width: "100%", justifyContent: "center" }}>{t("employer.nextRequirements")}</Btn>
+                  <Btn onClick={() => {
+                    const reason = validateOccurrences(form.occurrences);
+                    if (reason === 'empty' || reason === 'incomplete') { toast(t('toast.shiftFieldsRequired'), 'error'); return; }
+                    if (reason === 'pastDate') { toast(t('toast.scheduleDatePast'), 'error'); return; }
+                    if (reason === 'duplicateDate') { toast(t('toast.scheduleDuplicateDate'), 'error'); return; }
+                    setPostStep(2);
+                  }} style={{ width: "100%", justifyContent: "center" }}>{t("employer.nextRequirements")}</Btn>
                 </div>
               )}
               {postStep === 2 && (
                 <div>
-                  <Input label={t("employer.labelDressCode")} placeholder={t("employer.dressCodePlaceholder")} value={form.dress} onChange={e => setForm(f => ({ ...f, dress: e.target.value }))} />
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.labelDressCode")}</label>
+                    <textarea
+                      placeholder={t("employer.dressCodePlaceholder")}
+                      value={form.dress}
+                      onChange={e => setForm(f => ({ ...f, dress: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 60, resize: "none", boxSizing: "border-box" }}
+                    />
+                  </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.requiredDocumentsLabel")}</label>
                     {[t("employer.docIcPassport"), t("employer.docFoodHandler"), t("employer.docFirstAid"), t("employer.docDrivingLicense")].map(doc => (
@@ -6185,7 +6369,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.specialRequirementsLabel")}</label>
-                    <textarea placeholder={t("employer.specialRequirementsPlaceholder")} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }} />
+                    <textarea
+                      placeholder={t("employer.specialRequirementsPlaceholder")}
+                      value={form.specialRequirements}
+                      onChange={e => setForm(f => ({ ...f, specialRequirements: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }}
+                    />
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
                     <Btn variant="secondary" onClick={() => setPostStep(1)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></Btn>
@@ -6200,32 +6389,31 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     [t("employer.reviewLabelTitle"), form.title || t("employer.reviewNotSet")],
                     [t("employer.labelCategory"), form.category],
                     [t("employer.labelLocation"), form.location],
-                    [t("employer.labelDate"), form.date || t("employer.reviewNotSet")],
                     [t("employer.labelHeadcount"), form.headcount],
                     [t("employer.reviewLabelWageRange"), form.wageMin && form.wageMax ? `RM${form.wageMin}–RM${form.wageMax}/h` : t("employer.reviewNotSet")],
                     [t("employer.reviewLabelTransportAllowance"), form.offersTransportAllowance && form.transportAllowance ? `RM${form.transportAllowance}` : t("employer.transportNotOffered")],
                     [t("employer.labelDressCode"), form.dress || t("employer.dressCodeNone")],
                     [t("employer.reviewLabelLanguages"), form.languageRequirements.length > 0 ? form.languageRequirements.join(", ") : t("employer.reviewNotSet")],
+                    [t("employer.specialRequirementsLabel"), form.specialRequirements || t("employer.reviewNotSet")],
                   ].map(([k, v]) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
-                      <span style={{ color: BRAND.textMuted }}>{k}</span>
-                      <span style={{ fontWeight: 600, color: BRAND.text }}>{v}</span>
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
+                      <span style={{ color: BRAND.textMuted, flexShrink: 0 }}>{k}</span>
+                      <span style={{ fontWeight: 600, color: BRAND.text, textAlign: "right", whiteSpace: "pre-wrap" }}>{v}</span>
                     </div>
                   ))}
+                  <div style={{ padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
+                    <div style={{ color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.labelSchedule")}</div>
+                    {form.occurrences.map((occ, i) => (
+                      <div key={i} style={{ fontWeight: 600, color: BRAND.text, marginBottom: 2 }}>{formatOccurrenceLine(occ, { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+                    ))}
+                  </div>
                   {form.wageMax && form.headcount && (() => {
-                    // Real shift duration from the entered start/end time,
-                    // not a hardcoded 8h — previously misquoted the reserve
-                    // amount for any shift that wasn't exactly 8 hours.
-                    // Handles overnight shifts (end time past midnight).
-                    let shiftHours = 8;
-                    if (form.timeStart && form.timeEnd) {
-                      const [sh, sm] = form.timeStart.split(':').map(Number);
-                      const [eh, em] = form.timeEnd.split(':').map(Number);
-                      let mins = (eh * 60 + em) - (sh * 60 + sm);
-                      if (mins <= 0) mins += 24 * 60;
-                      shiftHours = mins / 60;
-                    }
-                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * shiftHours;
+                    // Sums real duration across every occurrence, not a
+                    // hardcoded single 8h day — reflects the full multi-day
+                    // commitment. Each occurrence's own overnight handling
+                    // (end time past midnight) is done inside occurrenceHours.
+                    const totalHours = totalOccurrenceHours(form.occurrences);
+                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours;
                     return (
                       <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
@@ -6238,11 +6426,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></Btn>
                     <Btn onClick={async () => {
                       if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
-                      if (!form.title || !form.date || !form.timeStart || !form.timeEnd) {
+                      const reason = validateOccurrences(form.occurrences);
+                      if (!form.title || reason) {
                         toast(t('toast.shiftFieldsRequired'), 'error'); return;
                       }
-                      const startAt = new Date(`${form.date}T${form.timeStart}:00+08:00`).toISOString();
-                      const endAt   = new Date(`${form.date}T${form.timeEnd}:00+08:00`).toISOString();
+                      const sortedOccurrences = [...form.occurrences].sort((a, b) => a.date.localeCompare(b.date));
+                      const first = sortedOccurrences[0];
+                      const startAt = new Date(`${first.date}T${first.start}:00+08:00`).toISOString();
+                      const endAt   = new Date(`${first.date}T${first.end}:00+08:00`).toISOString();
                       const wageMin = parseFloat(form.wageMin) || 0;
                       const wageMax = parseFloat(form.wageMax) || 0;
                       if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
@@ -6254,12 +6445,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         dress_code:  form.dress ? form.dress.trim() : null,
                         start_at:    startAt,
                         end_at:      endAt,
+                        occurrences: sortedOccurrences,
                         wage_min:    wageMin,
                         wage_max:    wageMax || wageMin,
                         headcount:   parseInt(form.headcount) || 1,
                         address_visibility: form.addressVisibility || 'public',
                         transport_allowance: form.offersTransportAllowance ? (parseFloat(form.transportAllowance) || 0) : 0,
                         language_requirements: form.languageRequirements,
+                        requirements: form.specialRequirements.trim() ? { special: form.specialRequirements.trim() } : null,
                       };
                       let error;
                       if (editingShiftId) {
