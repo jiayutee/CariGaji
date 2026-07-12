@@ -310,6 +310,23 @@ const TRANSLATIONS = {
     "myBids.cancelBidBtn": "Cancel Bid",
     "myBids.declineBtn": "Decline",
     "myBids.confirmShiftBtn": "Confirm Shift",
+    "myBids.fileDisputeBtn": "File a Dispute",
+    "myBids.fileDisputeTitle": "File a Dispute",
+    "myBids.disputeCategoryLabel": "What's the issue?",
+    "myBids.disputeDescriptionLabel": "Describe what happened",
+    "myBids.disputeSubmitBtn": "Submit Dispute",
+    "dispute.categoryHoursDisputed": "Hours disputed",
+    "dispute.categoryNoShowClaim": "No-show claim",
+    "dispute.categoryUnsafeConditions": "Unsafe working conditions",
+    "dispute.categoryPaymentIssue": "Payment issue",
+    "dispute.categoryOther": "Other",
+    "admin.disputesEmptyState": "No disputes filed yet.",
+    "admin.disputeResolve": "Resolve",
+    "admin.disputeDismiss": "Dismiss",
+    "admin.disputeResolved": "Dispute resolved.",
+    "admin.disputeDismissed": "Dispute dismissed.",
+    "admin.disputeResolveFailed": "Failed to resolve dispute: ",
+    "admin.disputeDismissFailed": "Failed to dismiss dispute: ",
     "profile.signInTitle": "Sign in to view your profile",
     "profile.signInHint": "Your KYC status, reliability score, ratings, and shift history live here once you sign in.",
     "profile.changePhoto": "Change profile picture",
@@ -579,6 +596,8 @@ const TRANSLATIONS = {
     "toast.offerDeclined": "Offer declined.",
     "toast.cancelBidFailed": "Failed to cancel bid: ",
     "toast.bidCancelled": "Bid cancelled.",
+    "toast.disputeFiled": "Dispute filed. Our team will review it shortly.",
+    "toast.disputeFiledFailed": "Failed to file dispute: ",
     "employer.fieldShiftTitle": "Shift title",
     "employer.shiftTitlePlaceholder": "e.g. F&B Server – Corporate Dinner",
     "employer.fieldJobDescription": "Job description",
@@ -912,6 +931,23 @@ const TRANSLATIONS = {
     "myBids.cancelBidBtn": "Batalkan Tawaran",
     "myBids.declineBtn": "Tolak",
     "myBids.confirmShiftBtn": "Sahkan Syif",
+    "myBids.fileDisputeBtn": "Fail Pertikaian",
+    "myBids.fileDisputeTitle": "Fail Pertikaian",
+    "myBids.disputeCategoryLabel": "Apakah isunya?",
+    "myBids.disputeDescriptionLabel": "Terangkan apa yang berlaku",
+    "myBids.disputeSubmitBtn": "Hantar Pertikaian",
+    "dispute.categoryHoursDisputed": "Jam kerja dipertikaikan",
+    "dispute.categoryNoShowClaim": "Dakwaan tidak hadir",
+    "dispute.categoryUnsafeConditions": "Keadaan kerja tidak selamat",
+    "dispute.categoryPaymentIssue": "Isu pembayaran",
+    "dispute.categoryOther": "Lain-lain",
+    "admin.disputesEmptyState": "Tiada pertikaian difailkan lagi.",
+    "admin.disputeResolve": "Selesaikan",
+    "admin.disputeDismiss": "Tolak",
+    "admin.disputeResolved": "Pertikaian diselesaikan.",
+    "admin.disputeDismissed": "Pertikaian ditolak.",
+    "admin.disputeResolveFailed": "Gagal menyelesaikan pertikaian: ",
+    "admin.disputeDismissFailed": "Gagal menolak pertikaian: ",
     "profile.signInTitle": "Log masuk untuk lihat profil anda",
     "profile.signInHint": "Status KYC, skor kebolehpercayaan, penilaian, dan sejarah syif anda akan dipaparkan di sini setelah anda log masuk.",
     "profile.changePhoto": "Tukar gambar profil",
@@ -1181,6 +1217,8 @@ const TRANSLATIONS = {
     "toast.offerDeclined": "Tawaran ditolak.",
     "toast.cancelBidFailed": "Gagal batalkan tawaran: ",
     "toast.bidCancelled": "Tawaran dibatalkan.",
+    "toast.disputeFiled": "Pertikaian difailkan. Pasukan kami akan menyemaknya tidak lama lagi.",
+    "toast.disputeFiledFailed": "Gagal memfailkan pertikaian: ",
     "employer.fieldShiftTitle": "Tajuk syif",
     "employer.shiftTitlePlaceholder": "cth. Pelayan F&B – Makan Malam Korporat",
     "employer.fieldJobDescription": "Penerangan kerja",
@@ -3390,10 +3428,15 @@ const ADMIN_KYC = [
   { id: 4, name: "Rubini Krishnan", type: "Standard", submitted: "1 day ago", status: "pending", docs: ["MyKad front", "MyKad back", "Selfie"] },
 ];
 
-const ADMIN_DISPUTES = [
-  { id: "D-001", worker: "Ahmad Firdaus", employer: "Grand Hyatt KL", shift: "F&B Server – Wedding Banquet", reason: "Hours disputed", amount: 70, status: "under_review", opened: "2 days ago" },
-  { id: "D-002", worker: "Wei Jian Lim", employer: "Live Nation MY", shift: "Event Crew – Music Festival", reason: "No-show claim by employer", amount: 150, status: "open", opened: "1 day ago" },
-  { id: "D-003", worker: "Priya Selvam", employer: "Shopee MY", shift: "Warehouse Packer – Flash Sale", reason: "Unsafe working conditions", amount: 88, status: "escalated", opened: "5 days ago" },
+// Dispute categories shared by the worker/employer file-a-dispute modals and
+// the admin dashboard. v1 is informational only — text-only evidence, no
+// payout linkage (see supabase/migrations/20260712_disputes.sql).
+const DISPUTE_CATEGORIES = [
+  { value: "hours_disputed", labelKey: "dispute.categoryHoursDisputed" },
+  { value: "no_show_claim", labelKey: "dispute.categoryNoShowClaim" },
+  { value: "unsafe_conditions", labelKey: "dispute.categoryUnsafeConditions" },
+  { value: "payment_issue", labelKey: "dispute.categoryPaymentIssue" },
+  { value: "other", labelKey: "dispute.categoryOther" },
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
@@ -3463,6 +3506,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [workerContractModal, setWorkerContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk, employerName }
+  const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
+  const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
+  const [filingDispute, setFilingDispute] = useState(false);
 
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
@@ -3490,7 +3536,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     // A shift counts as "done" once the worker's application was accepted
     // and the linked shift itself has moved to 'completed'. Filtered
     // client-side (matches the existing shift-join + client-filter
-    // convention used elsewhere in this file, e.g. ADMIN_DISPUTES.filter).
+    // convention used elsewhere in this file).
     supabase
       .from('applications')
       .select('id, shift:shifts(status)')
@@ -3676,6 +3722,27 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     toast(t('toast.bidCancelled'), 'success');
     setLiveApplications(prev => (prev ?? []).filter(a => a.id !== applicationId));
     setSelectedApplication(null);
+  };
+
+  // File a dispute on a completed shift. Text-only evidence (category +
+  // description); disputes don't touch payouts in v1 — see
+  // supabase/migrations/20260712_disputes.sql for the RLS that scopes
+  // inserts to completed shifts only.
+  const submitDispute = async () => {
+    if (!disputeModal || !user || !disputeForm.description.trim()) return;
+    setFilingDispute(true);
+    const { error } = await supabase.from('disputes').insert({
+      application_id: disputeModal.applicationId,
+      filed_by: user.id,
+      filed_by_role: 'worker',
+      category: disputeForm.category,
+      description: disputeForm.description.trim(),
+    });
+    setFilingDispute(false);
+    if (error) { toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
+    toast(t('toast.disputeFiled'), 'success');
+    setDisputeModal(null);
+    setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   };
 
   useEffect(() => {
@@ -4396,6 +4463,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {a.status === 'accepted' && a.workerSignedAt && (
                     <span style={{fontSize:11, color:'#16a34a', marginTop:4, display:'block'}}>{t("myBids.contractSignedBadge")}</span>
                   )}
+                  {a.shiftStatus === 'completed' && (
+                    <button onClick={(e) => { e.stopPropagation(); setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle }); }}
+                      style={{marginTop:8, padding:'6px 14px', borderRadius:6, background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}`, cursor:'pointer', fontSize:12, fontWeight:600}}>
+                      {t("myBids.fileDisputeBtn")}
+                    </button>
+                  )}
                 </Card>
               ))}
             </div>
@@ -4494,6 +4567,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               )}
               {a.status === "accepted" && a.workerSignedAt && a.shiftStatus !== "cancelled" && (
                 <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
+              )}
+              {a.shiftStatus === "completed" && (
+                <Btn variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.fileDisputeBtn")}</Btn>
               )}
             </div>
           </div>
@@ -4957,6 +5033,42 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         </div>
       </div>
     )}
+
+    {disputeModal && (
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+          <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
+          <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{disputeModal.shiftTitle}</p>
+
+          <Select
+            label={t("myBids.disputeCategoryLabel")}
+            value={disputeForm.category}
+            onChange={e => setDisputeForm(f => ({ ...f, category: e.target.value }))}
+            options={DISPUTE_CATEGORIES.map(c => ({ value: c.value, label: t(c.labelKey) }))}
+          />
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.disputeDescriptionLabel")}</label>
+            <textarea
+              value={disputeForm.description}
+              onChange={e => setDisputeForm(f => ({ ...f, description: e.target.value }))}
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 100, resize: "none", boxSizing: "border-box" }}
+            />
+          </div>
+
+          <div style={{display:'flex', gap:8}}>
+            <button onClick={() => { setDisputeModal(null); setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" }); }}
+              style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
+              {t("common.cancel")}
+            </button>
+            <button onClick={submitDispute} disabled={filingDispute || !disputeForm.description.trim()}
+              style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor: filingDispute || !disputeForm.description.trim() ? 'not-allowed' : 'pointer', fontWeight:600, opacity: filingDispute || !disputeForm.description.trim() ? 0.6 : 1}}>
+              {filingDispute ? "…" : t("myBids.disputeSubmitBtn")}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 };
@@ -4997,6 +5109,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [bankingLoading, setBankingLoading] = useState(false);
   const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
   const [contractModal, setContractModal] = useState(null);
+  const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
+  const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
+  const [filingDispute, setFilingDispute] = useState(false);
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
@@ -5511,6 +5626,27 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setApplicantAction(prev => ({ ...prev, [id]: action }));
   };
 
+  // File a dispute on a completed shift. Text-only evidence (category +
+  // description); disputes don't touch payouts in v1 — see
+  // supabase/migrations/20260712_disputes.sql for the RLS that scopes
+  // inserts to completed shifts only.
+  const submitEmployerDispute = async () => {
+    if (!disputeModal || !user || !disputeForm.description.trim()) return;
+    setFilingDispute(true);
+    const { error } = await supabase.from('disputes').insert({
+      application_id: disputeModal.applicationId,
+      filed_by: user.id,
+      filed_by_role: 'employer',
+      category: disputeForm.category,
+      description: disputeForm.description.trim(),
+    });
+    setFilingDispute(false);
+    if (error) { toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
+    toast(t('toast.disputeFiled'), 'success');
+    setDisputeModal(null);
+    setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" });
+  };
+
   // Slots still open on this shift = headcount minus already-accepted workers.
   const openSlotsRemaining = () => {
     const acceptedCount = (liveApplicants ?? []).filter(a => a.status === 'accepted').length;
@@ -5845,9 +5981,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                           </div>
                         )}
                         {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>{t("employer.waitingOnWorker")}</span>}
-                        {action === "accepted" && <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>}
+                        {action === "accepted" && selectedShift.status !== "completed" && <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>}
                         {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.notSelected")}</span>}
                         {action === "expired" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.offerExpiredStatus")}</span>}
+                        {action === "accepted" && selectedShift.status === "completed" && (
+                          <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
+                        )}
                       </td>
                     </tr>
                   );
@@ -6440,6 +6579,42 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           </div>
         </div>
       )}
+
+      {disputeModal && (
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+            <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
+            <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{disputeModal.shiftTitle}</p>
+
+            <Select
+              label={t("myBids.disputeCategoryLabel")}
+              value={disputeForm.category}
+              onChange={e => setDisputeForm(f => ({ ...f, category: e.target.value }))}
+              options={DISPUTE_CATEGORIES.map(c => ({ value: c.value, label: t(c.labelKey) }))}
+            />
+
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.disputeDescriptionLabel")}</label>
+              <textarea
+                value={disputeForm.description}
+                onChange={e => setDisputeForm(f => ({ ...f, description: e.target.value }))}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 100, resize: "none", boxSizing: "border-box" }}
+              />
+            </div>
+
+            <div style={{display:'flex', gap:8}}>
+              <button onClick={() => { setDisputeModal(null); setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" }); }}
+                style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
+                {t("common.cancel")}
+              </button>
+              <button onClick={submitEmployerDispute} disabled={filingDispute || !disputeForm.description.trim()}
+                style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor: filingDispute || !disputeForm.description.trim() ? 'not-allowed' : 'pointer', fontWeight:600, opacity: filingDispute || !disputeForm.description.trim() ? 0.6 : 1}}>
+                {filingDispute ? "…" : t("myBids.disputeSubmitBtn")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -6447,9 +6622,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
 // ─── ADMIN PORTAL ─────────────────────────────────────────────────────────────
 const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
+  const { t } = useLanguage();
   const [view, setView] = useState("overview");
   const [kycActions, setKycActions] = useState({});
-  const [disputeActions, setDisputeActions] = useState({});
   const [flagActions, setFlagActions] = useState({});
   const [livePayoutQueue, setLivePayoutQueue] = useState(null);
   const [payoutRunning, setPayoutRunning] = useState(false);
@@ -6457,6 +6632,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [kycQueue, setKycQueue] = useState(null);
   const [kycSignedUrls, setKycSignedUrls] = useState({});
   const [overviewStats, setOverviewStats] = useState(null);
+  const [disputesQueue, setDisputesQueue] = useState(null);
 
   const navItems = ["Overview", "KYC Queue", "Disputes", "Flags", "Payouts", "Config"];
 
@@ -6495,6 +6671,19 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         .order("created_at", { ascending: true });
       if (error) { setKycQueue([]); return; }
       setKycQueue(pending || []);
+    })();
+  }, [view]);
+
+  useEffect(() => {
+    if (!supabase || (view !== "disputes" && view !== "overview")) return;
+    (async () => {
+      setDisputesQueue(null);
+      const { data, error } = await supabase
+        .from("disputes")
+        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, shift:shifts(title, employer_id))")
+        .order("created_at", { ascending: false });
+      if (error) { setDisputesQueue([]); return; }
+      setDisputesQueue(data || []);
     })();
   }, [view]);
 
@@ -6611,6 +6800,26 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     addToast("KYC rejected — user reset to Basic", "info");
   };
 
+  const resolveDispute = async (disputeId) => {
+    const resolvedAt = new Date().toISOString();
+    const { error } = await supabase.from("disputes")
+      .update({ status: "resolved", resolved_by: user?.id ?? null, resolved_at: resolvedAt })
+      .eq("id", disputeId);
+    if (error) { toast(`${t("admin.disputeResolveFailed")}${error.message}`, "error"); return; }
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt } : d));
+    toast(t("admin.disputeResolved"), "success");
+  };
+
+  const dismissDispute = async (disputeId) => {
+    const resolvedAt = new Date().toISOString();
+    const { error } = await supabase.from("disputes")
+      .update({ status: "dismissed", resolved_by: user?.id ?? null, resolved_at: resolvedAt })
+      .eq("id", disputeId);
+    if (error) { toast(`${t("admin.disputeDismissFailed")}${error.message}`, "error"); return; }
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "dismissed", resolved_at: resolvedAt } : d));
+    toast(t("admin.disputeDismissed"), "info");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%" }}>
       {/* Sidebar */}
@@ -6649,7 +6858,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
               <Stat label="Pending KYC" value={kycQueue?.length ?? "—"} color={BRAND.amber} />
-              <Stat label="Open disputes" value={ADMIN_DISPUTES.filter(d => d.status === "open" || d.status === "under_review").length} color={BRAND.red} />
+              <Stat label="Open disputes" value={disputesQueue?.filter(d => d.status === "open" || d.status === "under_review").length ?? "—"} color={BRAND.red} />
               <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
@@ -6674,12 +6883,13 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Card>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>Active Disputes</div>
-                  <Badge color="amber" size="xs">Demo data</Badge>
                 </div>
-                {ADMIN_DISPUTES.slice(0, 3).map(d => (
+                {disputesQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+                {disputesQueue?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.disputesEmptyState")}</div>}
+                {disputesQueue?.slice(0, 3).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                    <div style={{ fontSize: 13, color: BRAND.text }}>{d.id} – {d.reason}</div>
-                    <Badge color={d.status === "escalated" ? "red" : d.status === "under_review" ? "amber" : "blue"} size="xs">{d.status}</Badge>
+                    <div style={{ fontSize: 13, color: BRAND.text }}>{d.application?.shift?.title ?? "Shift"} – {t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther")}</div>
+                    <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
                   </div>
                 ))}
                 <Btn size="xs" variant="secondary" onClick={() => setView("disputes")} style={{ marginTop: 10 }}>View all →</Btn>
@@ -6751,43 +6961,46 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "disputes" && (
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>Disputes Dashboard</div>
-              <Badge color="amber" size="xs">Demo data</Badge>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Disputes Dashboard</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
+              {disputesQueue === null ? "Loading…" : `${disputesQueue.length} dispute${disputesQueue.length !== 1 ? "s" : ""} total`}
             </div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{ADMIN_DISPUTES.length} disputes total — dispute resolution isn't wired to real data yet.</div>
-            {ADMIN_DISPUTES.map(d => {
-              const action = disputeActions[d.id];
+            {disputesQueue?.length === 0 && (
+              <div style={{ color: BRAND.textMuted, padding: 16 }}>{t("admin.disputesEmptyState")}</div>
+            )}
+            {disputesQueue?.map(d => {
+              const categoryLabel = t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther");
+              const isPending = d.status === "open" || d.status === "under_review";
               return (
                 <Card key={d.id} style={{ marginBottom: 14 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
-                        <span style={{ fontWeight: 800, fontSize: 14, color: BRAND.text }}>{d.id}</span>
-                        <Badge color={d.status === "escalated" ? "red" : d.status === "under_review" ? "amber" : "blue"}>{d.status}</Badge>
+                        <span style={{ fontWeight: 800, fontSize: 14, color: BRAND.text }}>{categoryLabel}</span>
+                        <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"}>{d.status}</Badge>
                       </div>
-                      <div style={{ fontSize: 13, color: BRAND.textMuted }}>Opened {d.opened}</div>
+                      <div style={{ fontSize: 13, color: BRAND.textMuted }}>Opened {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.primary }}>RM{d.amount}</div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
-                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Worker</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.worker}</div></div>
-                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Employer</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.employer}</div></div>
-                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Reason</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.reason}</div></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Shift</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.application?.shift?.title ?? "—"}</div></div>
+                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Application ID</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.application?.id ?? "—"}</div></div>
                   </div>
-                  <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 4 }}>Shift: {d.shift}</div>
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                    <button onClick={() => toast(`Opening evidence for ${d.id}: check-in/out logs, chat history and GPS data`, "info", 6000)} style={{ fontSize: 12, color: BRAND.blue, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>View evidence →</button>
-                  </div>
-                  {action ? (
-                    <div style={{ padding: "8px 12px", borderRadius: 8, background: BRAND.greenLight, fontSize: 13, fontWeight: 600, color: "#065F46" }}>
-                      ✓ Resolved — payout {action}
+                  <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6, marginBottom: 12, whiteSpace: "pre-wrap" }}>{d.description}</div>
+                  {d.admin_notes && (
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12, padding: "8px 12px", background: BRAND.grayLight, borderRadius: 8 }}>
+                      Admin notes: {d.admin_notes}
+                    </div>
+                  )}
+                  {isPending ? (
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <Btn size="sm" variant="success" onClick={() => resolveDispute(d.id)}>{t("admin.disputeResolve")}</Btn>
+                      <Btn size="sm" variant="secondary" onClick={() => dismissDispute(d.id)}>{t("admin.disputeDismiss")}</Btn>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Btn size="sm" variant="success" onClick={() => setDisputeActions(prev => ({ ...prev, [d.id]: "released to worker" }))}>Release to Worker</Btn>
-                      <Btn size="sm" variant="danger" onClick={() => setDisputeActions(prev => ({ ...prev, [d.id]: "refunded to employer" }))}>Refund Employer</Btn>
-                      <Btn size="sm" variant="secondary" onClick={() => setDisputeActions(prev => ({ ...prev, [d.id]: "split 50/50" }))}>Split 50/50</Btn>
+                    <div style={{ padding: "8px 12px", borderRadius: 8, background: d.status === "resolved" ? BRAND.greenLight : BRAND.grayLight, fontSize: 13, fontWeight: 600, color: d.status === "resolved" ? "#065F46" : BRAND.textMuted }}>
+                      {d.status === "resolved" ? `✓ ${t("admin.disputeResolve")}` : `✕ ${t("admin.disputeDismiss")}`}
+                      {d.resolved_at ? ` — ${new Date(d.resolved_at).toLocaleDateString("en-MY")}` : ""}
                     </div>
                   )}
                 </Card>
