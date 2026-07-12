@@ -633,6 +633,10 @@ const TRANSLATIONS = {
     "employer.noShiftsPostedYet": "No shifts posted yet",
     "employer.noShiftsPostedYetHint": "Post your first shift to start hiring workers.",
     "employer.backToShifts": "Back to shifts",
+    "employer.listCardPositionsNeeded": "Positions needed: {count}",
+    "employer.listCardFilled": "Filled: {count}",
+    "employer.listCardCategory": "Category: {category}",
+    "employer.listCardLanguages": "Languages: {languages}",
     "employer.toastLoadShiftFailed": "Could not load shift for editing.",
     "employer.confirmCancelShift": "Cancel \"{title}\"? All applicants will be notified.",
     "employer.toastCancelShiftFailed": "Failed to cancel shift: ",
@@ -1231,6 +1235,10 @@ const TRANSLATIONS = {
     "employer.noShiftsPostedYet": "Belum ada syif disiarkan",
     "employer.noShiftsPostedYetHint": "Siarkan syif pertama anda untuk mula mengambil pekerja.",
     "employer.backToShifts": "Kembali ke syif",
+    "employer.listCardPositionsNeeded": "Kekosongan diperlukan: {count}",
+    "employer.listCardFilled": "Terisi: {count}",
+    "employer.listCardCategory": "Kategori: {category}",
+    "employer.listCardLanguages": "Bahasa: {languages}",
     "employer.toastLoadShiftFailed": "Tidak dapat memuatkan syif untuk disunting.",
     "employer.confirmCancelShift": "Batalkan \"{title}\"? Semua pemohon akan dimaklumkan.",
     "employer.toastCancelShiftFailed": "Gagal membatalkan syif: ",
@@ -5696,11 +5704,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                 </div>
                     <div style={{ marginTop: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>Positions needed: {s.headcount}</span>
-                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>Filled: {s.filled}</span>
-                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>Category: {s.category}</span>
+                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardPositionsNeeded').replace('{count}', s.headcount)}</span>
+                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardFilled').replace('{count}', s.filled)}</span>
+                      <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardCategory').replace('{category}', s.category)}</span>
                       {s.languageRequirements && s.languageRequirements.length > 0 && (
-                        <span style={{ fontSize: 12, color: BRAND.textMuted }}>Languages: {s.languageRequirements.join(", ")}</span>
+                        <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardLanguages').replace('{languages}', s.languageRequirements.join(", "))}</span>
                       )}
                 </div>
               </Card>
