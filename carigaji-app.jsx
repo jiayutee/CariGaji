@@ -4631,8 +4631,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         )}
 
         {tab === 'chat' && user && (
-          <div style={{padding:'0 0 80px'}}>
-            <h2 style={{fontSize: isMobile ? 18 : 20, fontWeight:800, color:BRAND.text, margin:'16px 0 12px'}}>{t("chat.title")}</h2>
+          // The open-thread view used to set its own `height: calc(100vh - 200px)`
+          // while sitting inside an ancestor that's *also* independently
+          // scrollable (overflowY:'auto' at the tab-content level) — the two
+          // rarely agreed on exact pixels, so both ends up overflowing and
+          // showing their own scrollbar. Bounding this wrapper to the
+          // ancestor's actual box (height:'100%') and making the open-thread
+          // branch a flex:1 child means only the message list scrolls.
+          <div style={activeChatShift ? {display:'flex', flexDirection:'column', height:'100%', minHeight:0} : {padding:'0 0 80px'}}>
+            <h2 style={{fontSize: isMobile ? 18 : 20, fontWeight:800, color:BRAND.text, margin:'16px 0 12px', flexShrink:0}}>{t("chat.title")}</h2>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
                 <div style={{textAlign:'center', color:BRAND.textMuted, marginTop:48}}>
@@ -4654,7 +4661,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 ))
               )
             ) : (
-              <div style={{display:'flex', flexDirection:'column', height:'calc(100vh - 200px)'}}>
+              <div style={{display:'flex', flexDirection:'column', flex:1, minHeight:0}}>
                 <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
@@ -6545,9 +6552,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         )}
 
         {view === 'chat' && (
-          <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("chat.title")}</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16 }}>{t("chat.employerSubtitle")}</div>
+          // Same fix as the worker chat view: bound this wrapper to the
+          // ancestor's actual box instead of guessing a vh-offset, so only
+          // the message list scrolls instead of both it and the outer pane.
+          <div style={activeChatShift ? {display:'flex', flexDirection:'column', height:'100%', minHeight:0} : {}}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4, flexShrink:0 }}>{t("chat.title")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16, flexShrink:0 }}>{t("chat.employerSubtitle")}</div>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
                 <div style={{textAlign:'center', color:BRAND.textMuted, marginTop:48}}>
@@ -6569,7 +6579,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 ))
               )
             ) : (
-              <div style={{display:'flex', flexDirection:'column', height:'calc(100vh - 260px)'}}>
+              <div style={{display:'flex', flexDirection:'column', flex:1, minHeight:0}}>
                 <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
