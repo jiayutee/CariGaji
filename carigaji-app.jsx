@@ -300,6 +300,8 @@ const TRANSLATIONS = {
     "common.signInToBid": "Sign in to bid →",
     "toast.avatarUpdated": "Profile picture updated.",
     "toast.avatarUpdateFailed": "Could not update photo: ",
+    "toast.nameUpdated": "Name updated.",
+    "toast.nameUpdateFailed": "Could not update name: ",
     "toast.sendFailed": "Failed to send: ",
     "toast.checkinSimulated": "Checked in at 18:02 · Reliability maintained (on time)",
     "toast.maxBidPrefix": "Max bid is RM",
@@ -415,6 +417,8 @@ const TRANSLATIONS = {
     "profile.signInTitle": "Sign in to view your profile",
     "profile.signInHint": "Your KYC status, reliability score, ratings, and shift history live here once you sign in.",
     "profile.changePhoto": "Change profile picture",
+    "profile.editNameBtn": "Edit name",
+    "profile.saveNameBtn": "Save name",
     "profile.standardKyc": "Standard KYC",
     "profile.reliabilitySuffix": "Reliability",
     "profile.shiftsDone": "Shifts done",
@@ -934,6 +938,8 @@ const TRANSLATIONS = {
     "common.signInToBid": "Log Masuk untuk Menawar →",
     "toast.avatarUpdated": "Gambar profil dikemas kini.",
     "toast.avatarUpdateFailed": "Gagal kemas kini gambar: ",
+    "toast.nameUpdated": "Nama dikemas kini.",
+    "toast.nameUpdateFailed": "Gagal kemas kini nama: ",
     "toast.sendFailed": "Gagal hantar: ",
     "toast.checkinSimulated": "Daftar masuk pada 18:02 · Kebolehpercayaan dikekalkan (tepat masa)",
     "toast.maxBidPrefix": "Tawaran maksimum ialah RM",
@@ -1049,6 +1055,8 @@ const TRANSLATIONS = {
     "profile.signInTitle": "Log masuk untuk lihat profil anda",
     "profile.signInHint": "Status KYC, skor kebolehpercayaan, penilaian, dan sejarah syif anda akan dipaparkan di sini setelah anda log masuk.",
     "profile.changePhoto": "Tukar gambar profil",
+    "profile.editNameBtn": "Sunting nama",
+    "profile.saveNameBtn": "Simpan nama",
     "profile.standardKyc": "KYC Standard",
     "profile.reliabilitySuffix": "Kebolehpercayaan",
     "profile.shiftsDone": "Syif selesai",
@@ -3622,8 +3630,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       });
       if (error) throw error;
       // Mirror to the public profiles table so employers can see the photo.
+      // Use the same full_name/name fallback chain used everywhere else in
+      // this file — using only .full_name here would null out a name that
+      // was backfilled from .name (or edited via handleNameUpdate below).
       await supabase.from("profiles").upsert(
-        { id: user.id, avatar_url: path, full_name: user.user_metadata?.full_name || null },
+        { id: user.id, avatar_url: path, full_name: user.user_metadata?.full_name || user.user_metadata?.name || null },
         { onConflict: "id" }
       );
       await onUserUpdated();
@@ -3632,6 +3643,32 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       toast(`${t("toast.avatarUpdateFailed")}${err.message}`, "error");
     }
     setAvatarUploading(false);
+  };
+
+  // Lets a worker set/fix their display name directly — the main escape
+  // hatch for OAuth accounts whose provider never shared a name (Apple's
+  // private-relay option, etc.), where the automatic backfill has nothing
+  // to pull from and the applicant pool would otherwise show "Worker"
+  // forever. Writes both user_metadata (what profileName reads) and
+  // profiles.full_name (what the employer's applicant pool reads).
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
+  const handleNameUpdate = async () => {
+    const trimmed = nameDraft.trim();
+    if (!user || !trimmed) return;
+    setNameSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ data: { ...user.user_metadata, full_name: trimmed } });
+      if (error) throw error;
+      await supabase.from("profiles").upsert({ id: user.id, full_name: trimmed }, { onConflict: "id" });
+      await onUserUpdated();
+      setEditingName(false);
+      toast(t("toast.nameUpdated"), "success");
+    } catch (err) {
+      toast(`${t("toast.nameUpdateFailed")}${err.message}`, "error");
+    }
+    setNameSaving(false);
   };
   const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0 });
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
@@ -4943,7 +4980,38 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     style={{ display: "none" }} />
                 </label>
               </div>
-              <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
+              {editingName ? (
+                <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center", marginTop: isMobile ? 8 : 12 }}>
+                  <input
+                    autoFocus
+                    value={nameDraft}
+                    onChange={e => setNameDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") handleNameUpdate(); if (e.key === "Escape") setEditingName(false); }}
+                    disabled={nameSaving}
+                    style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: BRAND.text, textAlign: "center", padding: "4px 10px", borderRadius: 8, border: `1.5px solid ${BRAND.border}`, background: BRAND.input, maxWidth: 220 }}
+                  />
+                  <button onClick={handleNameUpdate} disabled={nameSaving || !nameDraft.trim()} aria-label={t("profile.saveNameBtn")}
+                    style={{ background: BRAND.primary, color: "#fff", border: "none", borderRadius: 8, width: 30, height: 30, cursor: nameSaving ? "wait" : "pointer", fontSize: 14 }}>
+                    {nameSaving ? "…" : "✓"}
+                  </button>
+                  <button onClick={() => setEditingName(false)} disabled={nameSaving} aria-label={t("common.cancel")}
+                    style={{ background: "none", color: BRAND.textMuted, border: `1px solid ${BRAND.border}`, borderRadius: 8, width: 30, height: 30, cursor: "pointer", fontSize: 14 }}>
+                    ×
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center", marginTop: isMobile ? 8 : 12 }}>
+                  <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text }}>{profileName}</div>
+                  <button
+                    onClick={() => { setNameDraft(user.user_metadata?.full_name || user.user_metadata?.name || ""); setEditingName(true); }}
+                    aria-label={t("profile.editNameBtn")}
+                    title={t("profile.editNameBtn")}
+                    style={{ background: "none", border: "none", color: BRAND.textMuted, cursor: "pointer", fontSize: 13, padding: 2 }}
+                  >
+                    ✎
+                  </button>
+                </div>
+              )}
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">{t("profile.standardKyc")}</Badge>
