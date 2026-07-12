@@ -845,6 +845,9 @@ const TRANSLATIONS = {
     "auth.tncLinkText": "Terms & Conditions and Privacy Notice",
     "auth.tncSuffixText": ", including the collection and use of my identity document (MyKad/passport) for employment verification purposes.",
     "auth.tncScrollHint": "Open and scroll the Terms & Conditions to the end to enable this checkbox.",
+    "auth.tncGateTitle": "Before you continue",
+    "auth.tncGateSubtitle": "Please read and accept our Terms & Conditions and Privacy Notice to keep using CariGaji.",
+    "auth.tncGateAcceptBtn": "I agree — Continue",
     "auth.selectShort": "Select",
     "auth.selectCountry": "Select country",
     "auth.searchCountryPlaceholder": "Search by name or code...",
@@ -1476,6 +1479,9 @@ const TRANSLATIONS = {
     "auth.tncLinkText": "Terma & Syarat dan Notis Privasi",
     "auth.tncSuffixText": ", termasuk pengumpulan dan penggunaan dokumen pengenalan saya (MyKad/pasport) untuk tujuan pengesahan pekerjaan.",
     "auth.tncScrollHint": "Buka dan tatal Terma & Syarat hingga ke penghujung untuk mengaktifkan kotak semak ini.",
+    "auth.tncGateTitle": "Sebelum anda teruskan",
+    "auth.tncGateSubtitle": "Sila baca dan bersetuju dengan Terma & Syarat serta Notis Privasi kami untuk terus menggunakan CariGaji.",
+    "auth.tncGateAcceptBtn": "Saya bersetuju — Teruskan",
     "auth.selectShort": "Pilih",
     "auth.selectCountry": "Pilih negara",
     "auth.searchCountryPlaceholder": "Cari mengikut nama atau kod...",
@@ -3051,24 +3057,81 @@ const uploadKycFile = async (userId, file, label) => {
     );
   };
 
+// Shared legal text, reused by both the inline registration-form TnCConsent
+// and the mandatory post-signup TnCGateModal (the latter exists because
+// OAuth signups never see the registration form at all, so consent has to
+// be enforced app-wide, not just inside one form).
+const TnCLegalText = () => (
+  <>
+    {/* NOTE: the legal detail below is intentionally left in English —
+        dense statutory legal text; translating risks inaccuracy. Deferred, same as
+        the Malaysian Labor Law summary panel in Settings. */}
+    <strong style={{ color: BRAND.text, fontSize: 12 }}>Privacy Notice & Terms of Consent</strong>
+    <p style={{ marginTop: 8 }}>
+      <strong>1. Data Controller</strong><br />
+      CariGaji ("we", "us") operates this platform and is responsible for the personal data you provide during registration. This notice is issued pursuant to the <strong>Personal Data Protection Act 2010 (Act 709)</strong> ("PDPA").
+    </p>
+    <p>
+      <strong>2. Personal Data Collected</strong><br />
+      We collect your full name, national identity card number (MyKad) or passport number, date of birth, residential address, phone number, email address, selfie photograph, and copies of your identity document (front and back). This information is required to complete your account registration and KYC (Know Your Customer) verification.
+    </p>
+    <p>
+      <strong>3. Purpose of Collection</strong><br />
+      Your personal data and identity document are collected solely for the following purposes:
+    </p>
+    <ul style={{ paddingLeft: 16, margin: "4px 0 8px" }}>
+      <li>Verifying your identity on the CariGaji platform as permitted under the <strong>National Registration Act 1959 (Act 78)</strong>;</li>
+      <li>Sharing your identity information with employers who have engaged you for a shift, to enable them to fulfil their statutory record-keeping obligations under the <strong>Employment Act 1955 (Act 265)</strong> and the <strong>Gig Workers Act 2025 (Act 872)</strong>;</li>
+      <li>Complying with applicable laws and regulatory requirements.</li>
+    </ul>
+    <p>
+      <strong>4. Disclosure of Personal Data</strong><br />
+      Your personal data will only be shared with (a) employers on this platform who have confirmed your engagement for a shift, and (b) relevant government authorities where required by law. We will not sell, rent, or otherwise disclose your data to any third party for marketing purposes.
+    </p>
+    <p>
+      <strong>5. Data Retention</strong><br />
+      Your personal data will be retained for as long as your account remains active and for a minimum of seven (7) years after your last transaction to meet legal and audit obligations. You may request deletion of your account; however, retention for statutory compliance purposes may continue where required by law.
+    </p>
+    <p>
+      <strong>6. Your Rights Under PDPA</strong><br />
+      You have the right to access, correct, and request the deletion of your personal data held by us. To exercise these rights, please contact us at <strong>support@carigaji.my</strong>. We will respond within fourteen (14) business days.
+    </p>
+    <p>
+      <strong>7. Consent</strong><br />
+      By ticking the checkbox, you confirm that you are at least 18 years of age (or have obtained parental/guardian consent), that the information you provide is accurate, and that you voluntarily consent to the collection, processing, and disclosure of your personal data as described above. You acknowledge that providing false identity documents may constitute an offence under Malaysian law.
+    </p>
+    <p style={{ marginBottom: 0 }}>
+      <strong>8. Withdrawal of Consent</strong><br />
+      You may withdraw this consent at any time by contacting us, but doing so may limit or terminate your access to the platform.
+    </p>
+  </>
+);
+
+// Shared "scroll to the end before you can tick/accept" behavior, used by
+// both TnCConsent (registration form checkbox) and TnCGateModal (mandatory
+// post-signup screen). Returns everything a caller needs to render its own
+// scroll box + gated action.
+const useTnCScrollGate = () => {
+  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
+  const boxRef = useRef(null);
+  const checkScrolledToEnd = (el) => {
+    if (!el) return;
+    // 4px slop accounts for sub-pixel scroll rounding across browsers.
+    if (el.scrollHeight - el.scrollTop - el.clientHeight <= 4) setHasScrolledToEnd(true);
+  };
+  const recheck = () => setTimeout(() => checkScrolledToEnd(boxRef.current), 0);
+  return { hasScrolledToEnd, boxRef, onScroll: e => checkScrolledToEnd(e.target), recheck };
+};
+
 const TnCConsent = ({ checked, onChange, error = false }) => {
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
-  // Consent must be an informed read, not a reflexive tick — the checkbox
-  // stays disabled until the employer/worker has actually scrolled the T&C
-  // box to the bottom at least once. A 4px slop accounts for sub-pixel
-  // scroll rounding across browsers.
-  const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
-  const tncBoxRef = useRef(null);
-  const checkScrolledToEnd = (el) => {
-    if (!el) return;
-    if (el.scrollHeight - el.scrollTop - el.clientHeight <= 4) setHasScrolledToEnd(true);
-  };
+  const { hasScrolledToEnd, boxRef, onScroll, recheck } = useTnCScrollGate();
   const toggleExpanded = () => {
     setExpanded(v => {
       const next = !v;
       // Short content that never overflows its box counts as already read.
-      if (next) setTimeout(() => checkScrolledToEnd(tncBoxRef.current), 0);
+      if (next) recheck();
       return next;
     });
   };
@@ -3103,51 +3166,11 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
       )}
       {expanded && (
         <div
-          ref={tncBoxRef}
-          onScroll={e => checkScrolledToEnd(e.target)}
+          ref={boxRef}
+          onScroll={onScroll}
           style={{ marginTop: 10, padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7, maxHeight: 240, overflowY: "auto" }}
         >
-          {/* NOTE: the expanded PDPA legal detail below is intentionally left in English —
-              dense statutory legal text; translating risks inaccuracy. Deferred, same as
-              the Malaysian Labor Law summary panel in Settings. */}
-          <strong style={{ color: BRAND.text, fontSize: 12 }}>Privacy Notice & Terms of Consent</strong>
-          <p style={{ marginTop: 8 }}>
-            <strong>1. Data Controller</strong><br />
-            CariGaji ("we", "us") operates this platform and is responsible for the personal data you provide during registration. This notice is issued pursuant to the <strong>Personal Data Protection Act 2010 (Act 709)</strong> ("PDPA").
-          </p>
-          <p>
-            <strong>2. Personal Data Collected</strong><br />
-            We collect your full name, national identity card number (MyKad) or passport number, date of birth, residential address, phone number, email address, selfie photograph, and copies of your identity document (front and back). This information is required to complete your account registration and KYC (Know Your Customer) verification.
-          </p>
-          <p>
-            <strong>3. Purpose of Collection</strong><br />
-            Your personal data and identity document are collected solely for the following purposes:
-          </p>
-          <ul style={{ paddingLeft: 16, margin: "4px 0 8px" }}>
-            <li>Verifying your identity on the CariGaji platform as permitted under the <strong>National Registration Act 1959 (Act 78)</strong>;</li>
-            <li>Sharing your identity information with employers who have engaged you for a shift, to enable them to fulfil their statutory record-keeping obligations under the <strong>Employment Act 1955 (Act 265)</strong> and the <strong>Gig Workers Act 2025 (Act 872)</strong>;</li>
-            <li>Complying with applicable laws and regulatory requirements.</li>
-          </ul>
-          <p>
-            <strong>4. Disclosure of Personal Data</strong><br />
-            Your personal data will only be shared with (a) employers on this platform who have confirmed your engagement for a shift, and (b) relevant government authorities where required by law. We will not sell, rent, or otherwise disclose your data to any third party for marketing purposes.
-          </p>
-          <p>
-            <strong>5. Data Retention</strong><br />
-            Your personal data will be retained for as long as your account remains active and for a minimum of seven (7) years after your last transaction to meet legal and audit obligations. You may request deletion of your account; however, retention for statutory compliance purposes may continue where required by law.
-          </p>
-          <p>
-            <strong>6. Your Rights Under PDPA</strong><br />
-            You have the right to access, correct, and request the deletion of your personal data held by us. To exercise these rights, please contact us at <strong>support@carigaji.my</strong>. We will respond within fourteen (14) business days.
-          </p>
-          <p>
-            <strong>7. Consent</strong><br />
-            By ticking the checkbox, you confirm that you are at least 18 years of age (or have obtained parental/guardian consent), that the information you provide is accurate, and that you voluntarily consent to the collection, processing, and disclosure of your personal data as described above. You acknowledge that providing false identity documents may constitute an offence under Malaysian law.
-          </p>
-          <p style={{ marginBottom: 0 }}>
-            <strong>8. Withdrawal of Consent</strong><br />
-            You may withdraw this consent at any time by contacting us, but doing so may limit or terminate your access to the platform.
-          </p>
+          <TnCLegalText />
         </div>
       )}
     </div>
@@ -7905,6 +7928,44 @@ const AdminAccessRequired = ({ user, onBack }) => {
   );
 };
 
+// Mandatory, non-dismissible T&C acceptance — shown to any signed-in user
+// who hasn't accepted yet, regardless of how they authenticated. Exists
+// because OAuth (Google/Apple/Facebook) sign-up never goes through the
+// registration form's TnCConsent checkbox at all, so consent has to be
+// enforced here at the app-shell level instead. zIndex 1500 — above
+// CookieConsentManager's full-screen preference panel (1400), the highest
+// existing overlay in this file.
+const TnCGateModal = ({ open, accepting, onAccept, onSignOut }) => {
+  const { t } = useLanguage();
+  const { hasScrolledToEnd, boxRef, onScroll } = useTnCScrollGate();
+  if (!open) return null;
+  return createPortal(
+    <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 520, width: "100%", maxHeight: "85vh", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("auth.tncGateTitle")}</div>
+        <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 16 }}>{t("auth.tncGateSubtitle")}</div>
+        <div
+          ref={boxRef}
+          onScroll={onScroll}
+          style={{ padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 12, color: BRAND.textMuted, lineHeight: 1.7, overflowY: "auto", flex: 1, marginBottom: 12 }}
+        >
+          <TnCLegalText />
+        </div>
+        {!hasScrolledToEnd && (
+          <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 12, textAlign: "center" }}>{t("auth.tncScrollHint")}</div>
+        )}
+        <div style={{ display: "flex", gap: 10 }}>
+          <Btn variant="secondary" onClick={onSignOut} style={{ flex: 1, justifyContent: "center" }}>{t("account.signOut")}</Btn>
+          <Btn disabled={!hasScrolledToEnd || accepting} onClick={onAccept} style={{ flex: 1, justifyContent: "center" }}>
+            {accepting ? "…" : t("auth.tncGateAcceptBtn")}
+          </Btn>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
@@ -7913,6 +7974,11 @@ export default function CariGaji() {
   const [themePreference, setThemePreference] = useState(() => readThemePreference());
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
   const [user, setUser] = useState(null);
+  // Tri-state: undefined = not fetched yet (avoid flashing the T&C gate
+  // before we know), null = signed in but hasn't accepted, timestamp string
+  // = accepted. See the profile-role fetch effect below for how it's loaded.
+  const [tncAcceptedAt, setTncAcceptedAt] = useState(undefined);
+  const [tncAccepting, setTncAccepting] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [authView, setAuthView] = useState("signin");
@@ -8033,7 +8099,16 @@ export default function CariGaji() {
       try {
         // Public-safe profile (employers may read) + private PII (owner only).
         await supabase.from("profiles").upsert(
-          { id: registeredUserId, full_name: authForm.fullName, kyc_level: autoKycLevel, role: authForm.accountRole === "employer" ? "employer" : "worker" },
+          {
+            id: registeredUserId,
+            full_name: authForm.fullName,
+            kyc_level: autoKycLevel,
+            role: authForm.accountRole === "employer" ? "employer" : "worker",
+            // Was previously a client-side submit-button gate only, never
+            // persisted anywhere — record it now so a normal email/password
+            // signup doesn't immediately hit the mandatory TnCGateModal too.
+            ...(authForm.agreedToTnC ? { tnc_accepted_at: new Date().toISOString() } : {}),
+          },
           { onConflict: "id" }
         );
         await supabase.from("user_private").upsert(
@@ -8124,13 +8199,17 @@ export default function CariGaji() {
   // Admin Dashboard, everyone else in the Worker app. Console access below
   // (Settings buttons) is gated on this same role.
   useEffect(() => {
-    if (!user) { setUserRole(null); return; }
+    if (!user) { setUserRole(null); setTncAcceptedAt(undefined); return; }
     let active = true;
-    supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('role, tnc_accepted_at').eq('id', user.id).maybeSingle()
       .then(({ data }) => {
         if (!active) return;
         const role = data?.role ?? 'worker';
         setUserRole(role);
+        // No profiles row at all (fresh OAuth signup, which never creates
+        // one) counts the same as "hasn't accepted" — null, not undefined —
+        // so the mandatory T&C gate below still fires for them.
+        setTncAcceptedAt(data?.tnc_accepted_at ?? null);
         const isAdminAccount = user?.app_metadata?.role === 'admin';
         if (isAdminAccount) setPortal('admin');
         else if (role === 'employer') setPortal('employer');
@@ -8139,6 +8218,17 @@ export default function CariGaji() {
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // Upsert (not update) — a fresh OAuth signup may not have a profiles row
+  // at all yet, since nothing currently creates one for OAuth users.
+  const acceptTnC = async () => {
+    if (!user) return;
+    setTncAccepting(true);
+    const acceptedAt = new Date().toISOString();
+    const { error } = await supabase.from('profiles').upsert({ id: user.id, tnc_accepted_at: acceptedAt });
+    setTncAccepting(false);
+    if (!error) setTncAcceptedAt(acceptedAt);
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -8312,6 +8402,12 @@ export default function CariGaji() {
       />
       <SupportChatWidget isMobile={isMobile} open={supportChatOpen} onOpenChange={setSupportChatOpen} />
       <CookieConsentManager isMobile={isMobile} />
+      <TnCGateModal
+        open={Boolean(user) && tncAcceptedAt === null}
+        accepting={tncAccepting}
+        onAccept={acceptTnC}
+        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+      />
     </div>
     </ToastProvider>
     </LanguageProvider>
