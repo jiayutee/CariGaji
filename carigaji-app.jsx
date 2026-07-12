@@ -4,6 +4,25 @@ import { supabase } from "./src/lib/supabase.js";
 import { runInternalPayoutScheduling } from "./src/lib/payouts/scheduler.js";
 import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTheme, readThemePreference, resolveThemeMode, writeThemePreference } from "./src/lib/theme.js";
 
+// ─── Malaysia-pinned date/time formatting ────────────────────────────────────
+// Shifts happen at a physical location in Malaysia, so their start/end times
+// and offer deadlines must always read in Malaysia time regardless of the
+// viewer's device timezone — otherwise a worker or employer outside MYT sees
+// the wrong shift time. Chat timestamps etc. are intentionally left on the
+// viewer's local timezone (that's the correct behavior for "when did I see
+// this"), so only shift-time-critical call sites use these.
+const MY_TIMEZONE = "Asia/Kuala_Lumpur";
+const formatShiftTime = (iso) => iso ? new Date(iso).toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit", timeZone: MY_TIMEZONE }) : "";
+const formatShiftDate = (iso, opts = {}) => iso ? new Date(iso).toLocaleDateString("en-MY", { ...opts, timeZone: MY_TIMEZONE }) : "";
+// 24h "HH:MM" in Malaysia time, for time-of-day filtering/sorting (not display).
+const shiftHHMM = (iso) => {
+  if (!iso) return "";
+  const parts = new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: MY_TIMEZONE }).formatToParts(new Date(iso));
+  const h = parts.find(p => p.type === "hour")?.value ?? "00";
+  const m = parts.find(p => p.type === "minute")?.value ?? "00";
+  return `${h}:${m}`;
+};
+
 // ─── Shift categories ────────────────────────────────────────────────────────
 // Kept in sync with the shifts_category_check DB constraint (see
 // supabase/migrations/20260705g_widen_shift_categories.sql).
@@ -274,6 +293,7 @@ const TRANSLATIONS = {
     "shiftDetail.headcount": "👥 Headcount",
     "shiftDetail.workersNeeded": "workers needed",
     "shiftDetail.employerScore": "🏢 Employer Score",
+    "shiftDetail.employerScoreSignInToView": "Sign in to view this employer's reliability score.",
     "shiftDetail.locationNote": "Exact address revealed once your application is accepted.",
     "shiftDetail.employerReliability": "Employer Reliability",
     "shiftDetail.applicants": "applicants",
@@ -399,7 +419,7 @@ const TRANSLATIONS = {
     "auth.ocrMismatchReason2": "the identity number you entered has a typo, or",
     "auth.ocrMismatchReason3": "the wrong document photo was uploaded.",
     "auth.ocrMismatchAction": "Please double-check both. You can still submit — our team will verify manually.",
-    "auth.selfie": "Selfie *",
+    "auth.selfie": "Selfie",
     "auth.selfieHelper": "Upload a clear selfie for identity verification.",
     "auth.certification": "Certification",
     "auth.certificationHelper": "Optional: food handler, first aid, or other certifications.",
@@ -638,7 +658,7 @@ const TRANSLATIONS = {
     "employer.transportNotOffered": "Not offered",
     "employer.dressCodeNone": "None",
     "employer.estimatedReserveLabel": "Estimated amount to reserve",
-    "employer.estimatedReserveFormula": "wage_max × headcount × 8h (estimated) + 15% platform fee",
+    "employer.estimatedReserveFormula": "wage_max × headcount × shift hours + 15% platform fee",
     "employer.tagline": "Employer Console",
     "employer.openMenu": "Open menu",
     "employer.paidToWorkers": "Paid to Workers",
@@ -895,6 +915,7 @@ const TRANSLATIONS = {
     "shiftDetail.headcount": "👥 Bilangan Pekerja",
     "shiftDetail.workersNeeded": "pekerja diperlukan",
     "shiftDetail.employerScore": "🏢 Skor Majikan",
+    "shiftDetail.employerScoreSignInToView": "Log masuk untuk melihat skor kebolehpercayaan majikan ini.",
     "shiftDetail.locationNote": "Alamat sebenar akan didedahkan setelah permohonan anda diterima.",
     "shiftDetail.employerReliability": "Kebolehpercayaan Majikan",
     "shiftDetail.applicants": "pemohon",
@@ -1020,7 +1041,7 @@ const TRANSLATIONS = {
     "auth.ocrMismatchReason2": "nombor identiti yang anda masukkan mempunyai kesilapan taip, atau",
     "auth.ocrMismatchReason3": "gambar dokumen yang salah telah dimuat naik.",
     "auth.ocrMismatchAction": "Sila semak semula kedua-duanya. Anda masih boleh hantar — pasukan kami akan sahkan secara manual.",
-    "auth.selfie": "Selfie *",
+    "auth.selfie": "Selfie",
     "auth.selfieHelper": "Muat naik selfie yang jelas untuk pengesahan identiti.",
     "auth.certification": "Sijil",
     "auth.certificationHelper": "Pilihan: sijil pengendali makanan, bantuan kecemasan, atau sijil lain.",
@@ -1259,7 +1280,7 @@ const TRANSLATIONS = {
     "employer.transportNotOffered": "Tidak ditawarkan",
     "employer.dressCodeNone": "Tiada",
     "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
-    "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × 8j (anggaran) + 15% yuran platform",
+    "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × jam syif + 15% yuran platform",
     "employer.tagline": "Konsol Majikan",
     "employer.openMenu": "Buka menu",
     "employer.paidToWorkers": "Dibayar kepada Pekerja",
@@ -1873,12 +1894,20 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
     if (!apiKey || !inputRef.current) return;
     let cancelled = false;
     let listener = null;
+    let ac = null;
     loadGoogleMaps(apiKey).then(google => {
       if (cancelled || !inputRef.current) return;
-      const ac = new google.maps.places.Autocomplete(inputRef.current, {
+      // Google's Autocomplete appends a `.pac-container` dropdown directly to
+      // document.body (outside React's tree) and never removes it itself.
+      // Diff body's children before/after construction to find the node it
+      // just added, so we can clean it up on unmount instead of leaking it.
+      const bodyChildrenBefore = new Set(document.body.children);
+      ac = new google.maps.places.Autocomplete(inputRef.current, {
         componentRestrictions: { country: "my" },
         fields: ["formatted_address", "name"],
       });
+      const pacContainer = Array.from(document.body.children).find(el => !bodyChildrenBefore.has(el) && el.classList.contains("pac-container"));
+      if (pacContainer) ac._pacContainerEl = pacContainer;
       listener = ac.addListener("place_changed", () => {
         const place = ac.getPlace();
         const name = place.name || "";
@@ -1892,7 +1921,14 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
         onChange(combined);
       });
     }).catch(() => {}); // silent fallback to manual typing
-    return () => { cancelled = true; if (listener) listener.remove(); };
+    return () => {
+      cancelled = true;
+      if (listener) listener.remove();
+      if (ac) {
+        window.google?.maps?.event?.clearInstanceListeners(ac);
+        ac._pacContainerEl?.remove();
+      }
+    };
   }, [apiKey]);
   return (
     <div style={{ marginBottom: 16 }}>
@@ -3370,8 +3406,8 @@ const AuthModal = ({
                 {translate("auth.uploadDocumentsHint").replace("{doc}", form.identityType === "Passport" ? translate("auth.passportDoc") : form.identityType === "MyPR" ? translate("auth.myPRCardDoc") : translate("auth.myKadDoc"))}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label={`${DOC_LABELS.front} *`} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; onChange("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper={translate("auth.uploadFrontHelper")} error={fieldError("kycFront")} />
-                <FileInput label={`${DOC_LABELS.back} *`} accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper={translate("auth.uploadBackHelper")} error={fieldError("kycBack")} />
+                <FileInput label={DOC_LABELS.front} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; onChange("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper={translate("auth.uploadFrontHelper")} error={fieldError("kycFront")} />
+                <FileInput label={DOC_LABELS.back} accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper={translate("auth.uploadBackHelper")} error={fieldError("kycBack")} />
               </div>
               {idOcr.status === "checking" && (
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
@@ -3505,6 +3541,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
   const [workerContractModal, setWorkerContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk, employerName }
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
@@ -3564,7 +3602,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         setChatConversations((data ?? []).map(a => ({
           shiftId: a.shift_id,
           title: a.shift?.title ?? 'Shift',
-          date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : '',
+          date: formatShiftDate(a.shift?.start_at),
           otherUserId: a.shift?.employer_id,
           otherUserLabel: a.shift?.employer?.full_name ? `${a.shift.employer.full_name} (Employer)` : 'Employer',
         })));
@@ -3639,7 +3677,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements)')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -3650,8 +3688,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       setLiveApplications((data ?? []).map(a => ({
         id: a.id,
         shiftTitle: a.shift?.title ?? 'Shift',
-        employer: '',
-        date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : 'TBA',
+        employer: a.shift?.employer?.full_name ?? '',
+        date: formatShiftDate(a.shift?.start_at) || 'TBA',
         wageBid: Number(a.wage_ask ?? 0),
         status: a.status,
         appliedAt: a.applied_at,
@@ -3751,7 +3789,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, filled_count, status, transport_allowance, language_requirements')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, wage_min, wage_max, headcount, filled_count, applicant_count, status, transport_allowance, language_requirements, employer_id, employer:profiles(full_name, reliability_score)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -3761,12 +3799,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           title: s.title,
           description: s.description || '',
           category: s.category,
-          employer: 'Employer',
+          employer: s.employer?.full_name || 'Employer',
+          employerId: s.employer_id ?? null,
+          // null (not 0) when the employer embed didn't resolve — e.g. an
+          // anonymous visitor (profiles has no `to anon` RLS policy) or an
+          // employer mid-KYC-review — so the UI can distinguish "unknown"
+          // from "verified 0/100" rather than showing a misleading red badge.
+          reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
           location: s.location,
-          date: s.start_at ? s.start_at.slice(0, 10) : '',
-          time: s.start_at && s.end_at
-            ? `${new Date(s.start_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}–${new Date(s.end_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`
-            : 'TBA',
+          time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
           hours: s.start_at && s.end_at
             ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000)
             : 0,
@@ -3776,13 +3817,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           filled: s.filled_count,
           status: s.status,
           addressVisibility: s.address_visibility || 'public',
-          totalApplicants: 0,
+          totalApplicants: s.applicant_count ?? 0,
           dress: s.dress_code || '',
           languageRequirements: s.language_requirements || [],
           stipend: Number(s.transport_allowance) || 0,
-          startTime: s.start_at ? (() => { const d = new Date(s.start_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
-          endTime: s.end_at ? (() => { const d = new Date(s.end_at); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); })() : '',
-          date: s.start_at ? new Date(s.start_at).toISOString().slice(0, 10) : '',
+          startTime: shiftHHMM(s.start_at),
+          endTime: shiftHHMM(s.end_at),
+          date: formatShiftDate(s.start_at),
         })));
       })
       .catch(() => { if (active) setLiveShifts([]); });
@@ -4165,7 +4206,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               [t("shiftDetail.dressCode"), selectedShift.dress],
               selectedShift.languageRequirements && selectedShift.languageRequirements.length > 0 ? [t("shiftDetail.languagesRequired"), selectedShift.languageRequirements.join(", ")] : null,
               [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
-              [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`],
+              selectedShift.reliabilityScore != null ? [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`] : null,
             ].filter(Boolean).map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted, width: 130, flexShrink: 0 }}>{k}</span>
@@ -4180,10 +4221,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           })()}
           <Card style={{ marginBottom: 20, background: BRAND.grayLight, border: "none" }}>
             <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: BRAND.text }}>{t("shiftDetail.employerReliability")}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-              <div style={{ flex: 1 }}><Progress value={selectedShift.reliabilityScore} color={selectedShift.reliabilityScore > 90 ? BRAND.green : selectedShift.reliabilityScore > 75 ? BRAND.accent : BRAND.red} /></div>
-              <span style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>{selectedShift.reliabilityScore}/100</span>
-            </div>
+            {selectedShift.reliabilityScore != null ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                <div style={{ flex: 1 }}><Progress value={selectedShift.reliabilityScore} color={selectedShift.reliabilityScore > 90 ? BRAND.green : selectedShift.reliabilityScore > 75 ? BRAND.accent : BRAND.red} /></div>
+                <span style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>{selectedShift.reliabilityScore}/100</span>
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 8 }}>{t("shiftDetail.employerScoreSignInToView")}</div>
+            )}
             <div style={{ display: "flex", gap: 16 }}>
               <StarRating value={selectedShift.rating} />
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
@@ -4413,12 +4458,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <Card key={a.id} onClick={() => setSelectedApplication(a)} hover>
                   {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.grayLight, fontSize: 11, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>
-                      {t("myBids.employerDecidesByPrefix")}{new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                      {t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.shiftStartAt)}
                     </div>
                   )}
                   {a.status === "offered" && a.offerExpiresAt && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.blueLight, fontSize: 11, fontWeight: 600, color: BRAND.blue, marginBottom: 8 }}>
-                      {t("myBids.respondByPrefix")}{new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                      {t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -4482,12 +4527,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("myBids.backToBids")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("myBids.backToBids")}</span></button>
             {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.grayLight, fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>
-                {t("myBids.employerDecidesByPrefix")}{new Date(a.shiftStartAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                {t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.shiftStartAt)}
               </div>
             )}
             {a.status === "offered" && a.offerExpiresAt && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.blueLight, fontSize: 12, fontWeight: 600, color: BRAND.blue, marginBottom: 10 }}>
-                {t("myBids.respondByPrefix")}{new Date(a.offerExpiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.offerExpiresAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                {t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.offerExpiresAt)}
               </div>
             )}
             <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
@@ -4524,7 +4569,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {[
                 [t("shiftDetail.location"), a.shiftLocation || t("shiftDetail.tba")],
                 [t("shiftDetail.date"), a.date],
-                [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${new Date(a.shiftStartAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}–${new Date(a.shiftEndAt).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}` : t("shiftDetail.tba")],
+                [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${formatShiftTime(a.shiftStartAt)}–${formatShiftTime(a.shiftEndAt)}` : t("shiftDetail.tba")],
                 [t("shiftDetail.dressCode"), a.shiftDress || t("shiftDetail.dressCodeNone")],
                 a.shiftLanguages && a.shiftLanguages.length > 0 ? [t("shiftDetail.languagesRequired"), a.shiftLanguages.join(", ")] : null,
                 [t("shiftDetail.headcount"), `${a.shiftHeadcount} ${t("shiftDetail.workersNeeded")}`],
@@ -4637,6 +4682,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       </div>
                     );
                   })}
+                  <div ref={chatEndRef} />
                 </div>
                 <div style={{display:'flex', gap:8, paddingTop:8, borderTop:`1px solid ${BRAND.border}`}}>
                   <input
@@ -5117,6 +5163,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
   // Mobile-only: the sidebar used to always render full-width, stacked above
   // the content, permanently expanded — eating over half the screen before
   // any actual work (managing shifts, reviewing applicants) was visible.
@@ -5124,38 +5172,38 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   // hamburger button; desktop (compact=false) is unaffected.
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      if (!user) return setLiveEmployerShifts(null);
-      const { data, error } = await supabase
-        .from('shifts')
-        .select('id, title, category, start_at, end_at, headcount, filled_count, status, language_requirements')
-        .eq('employer_id', user.id)
-        .order('start_at', { ascending: false });
-      if (!active) return;
-      // Same fix as the worker My Bids loader: empty (not null) on error so
-      // a real failure shows "No shifts posted yet" rather than spinning
-      // forever on "Loading shifts…".
-      if (error) { console.error('liveEmployerShifts load failed:', error.message); setLiveEmployerShifts([]); return; }
-      setLiveEmployerShifts((data ?? []).map(s => ({
-        id: s.id,
-        title: s.title,
-        startAt: s.start_at,
-        date: s.start_at ? new Date(s.start_at).toLocaleDateString('en-MY') : 'TBA',
-        time: s.start_at && s.end_at ? `${new Date(s.start_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}–${new Date(s.end_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'TBA',
-        headcount: s.headcount ?? 1,
-        filled: s.filled_count ?? 0,
-        applicants: 0,
-        status: s.status,
-        escrow: 0,
-        category: s.category,
-        languageRequirements: s.language_requirements || [],
-      })));
-    };
-    load();
-    return () => { active = false; };
+  // Exposed via useCallback (not just an effect-local function) so the
+  // post/edit-shift handler can trigger a refetch after a successful publish
+  // — previously the list only loaded on [user] change, so a freshly
+  // published shift didn't appear until the next full reload.
+  const loadEmployerShifts = useCallback(async () => {
+    if (!user) return setLiveEmployerShifts(null);
+    const { data, error } = await supabase
+      .from('shifts')
+      .select('id, title, category, start_at, end_at, headcount, filled_count, status, language_requirements')
+      .eq('employer_id', user.id)
+      .order('start_at', { ascending: false });
+    // Same fix as the worker My Bids loader: empty (not null) on error so
+    // a real failure shows "No shifts posted yet" rather than spinning
+    // forever on "Loading shifts…".
+    if (error) { console.error('liveEmployerShifts load failed:', error.message); setLiveEmployerShifts([]); return; }
+    setLiveEmployerShifts((data ?? []).map(s => ({
+      id: s.id,
+      title: s.title,
+      startAt: s.start_at,
+      date: formatShiftDate(s.start_at) || 'TBA',
+      time: s.start_at && s.end_at ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
+      headcount: s.headcount ?? 1,
+      filled: s.filled_count ?? 0,
+      applicants: 0,
+      status: s.status,
+      escrow: 0,
+      category: s.category,
+      languageRequirements: s.language_requirements || [],
+    })));
   }, [user]);
+
+  useEffect(() => { loadEmployerShifts(); }, [loadEmployerShifts]);
 
   // Employer's own profile (real name + reliability score for the dashboard
   // greeting/stats — replaces the old hardcoded "Grand Hyatt KL" demo copy).
@@ -5182,8 +5230,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
         if (!active || error) return;
         const rows = data ?? [];
         const counts = {};
-        rows.forEach(a => { counts[a.shift_id] = (counts[a.shift_id] || 0) + 1; });
-        setLiveEmployerShifts(prev => (prev ?? []).map(s => ({ ...s, applicants: counts[s.id] || 0 })));
+        const bidSums = {};
+        rows.forEach(a => {
+          counts[a.shift_id] = (counts[a.shift_id] || 0) + 1;
+          bidSums[a.shift_id] = (bidSums[a.shift_id] || 0) + Number(a.wage_ask ?? 0);
+        });
+        setLiveEmployerShifts(prev => (prev ?? []).map(s => ({
+          ...s,
+          applicants: counts[s.id] || 0,
+          avgBid: counts[s.id] ? bidSums[s.id] / counts[s.id] : 0,
+        })));
         setRecentActivity(rows.slice(0, 5).map(a => {
           const shiftTitle = (liveEmployerShifts ?? []).find(s => s.id === a.shift_id)?.title || 'a shift';
           const who = a.worker?.full_name || 'A worker';
@@ -5196,11 +5252,22 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveEmployerShifts === null ? null : liveEmployerShifts.map(s => s.id).join(',')]);
 
+  // Keep the open shift-detail view (selectedShift) in sync with background
+  // updates to liveEmployerShifts — e.g. the applicant/avg-bid counts above
+  // arrive after the initial list load, and without this the detail view
+  // would keep showing the stale 0-applicant defaults until re-clicked.
+  useEffect(() => {
+    if (!selectedShift) return;
+    const updated = (liveEmployerShifts ?? []).find(s => s.id === selectedShift.id);
+    if (updated && updated !== selectedShift) setSelectedShift(updated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveEmployerShifts]);
+
   // Start a fresh shift post (clears any edit state + form).
   const beginNewShift = () => {
     setEditingShiftId(null);
     setSelectedShift(null);
-    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "" });
+    setForm({ title: "", category: "F&B", date: "", timeStart: "", timeEnd: "", wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [] });
     setView("postshift");
     setPostStep(1);
   };
@@ -5413,7 +5480,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
           shiftId: a.shift_id,
           workerId: a.worker_id,
           title: a.shift?.title ?? 'Shift',
-          date: a.shift?.start_at ? new Date(a.shift.start_at).toLocaleDateString('en-MY') : '',
+          date: formatShiftDate(a.shift?.start_at),
           otherUserId: a.worker_id,
           otherUserLabel: a.worker?.full_name ? `${a.worker.full_name} (Worker)` : 'Worker',
         })));
@@ -5888,7 +5955,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
               <Stat label={t("employer.statCommitted")} value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
-              <Stat label={t("employer.statAvgBid")} value="RM14.40" color={BRAND.accent} />
+              <Stat label={t("employer.statAvgBid")} value={selectedShift.avgBid ? `RM${selectedShift.avgBid.toFixed(2)}` : t("employer.reviewNotSet")} color={BRAND.accent} />
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
               <div>
@@ -6138,13 +6205,28 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <span style={{ fontWeight: 600, color: BRAND.text }}>{v}</span>
                     </div>
                   ))}
-                  {form.wageMax && form.headcount && (
-                    <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
-                      <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{(parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * 8).toFixed(0)}</div>
-                      <div style={{ fontSize: 11, color: BRAND.amber }}>{t("employer.estimatedReserveFormula")}</div>
-                    </div>
-                  )}
+                  {form.wageMax && form.headcount && (() => {
+                    // Real shift duration from the entered start/end time,
+                    // not a hardcoded 8h — previously misquoted the reserve
+                    // amount for any shift that wasn't exactly 8 hours.
+                    // Handles overnight shifts (end time past midnight).
+                    let shiftHours = 8;
+                    if (form.timeStart && form.timeEnd) {
+                      const [sh, sm] = form.timeStart.split(':').map(Number);
+                      const [eh, em] = form.timeEnd.split(':').map(Number);
+                      let mins = (eh * 60 + em) - (sh * 60 + sm);
+                      if (mins <= 0) mins += 24 * 60;
+                      shiftHours = mins / 60;
+                    }
+                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * shiftHours;
+                    return (
+                      <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
+                        <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{reserve.toFixed(0)}</div>
+                        <div style={{ fontSize: 11, color: BRAND.amber }}>{t("employer.estimatedReserveFormula")}</div>
+                      </div>
+                    );
+                  })()}
                   <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
                     <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></Btn>
                     <Btn onClick={async () => {
@@ -6183,6 +6265,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       setEditingShiftId(null);
                       setView('shifts');
                       setPostStep(1);
+                      loadEmployerShifts();
                     }} style={{ flex: 1, justifyContent: "center" }}>{Icons.Rocket({ size: 14 })} <span style={{ marginLeft: 8 }}>{editingShiftId ? t("employer.saveChanges") : t("employer.publishShift")}</span></Btn>
                   </div>
                 </div>
@@ -6514,6 +6597,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       </div>
                     );
                   })}
+                  <div ref={chatEndRef} />
                 </div>
                 <div style={{display:'flex', gap:8, paddingTop:8, borderTop:`1px solid ${BRAND.border}`}}>
                   <input
