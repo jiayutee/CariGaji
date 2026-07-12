@@ -8201,7 +8201,7 @@ export default function CariGaji() {
   useEffect(() => {
     if (!user) { setUserRole(null); setTncAcceptedAt(undefined); return; }
     let active = true;
-    supabase.from('profiles').select('role, tnc_accepted_at').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('role, tnc_accepted_at, full_name').eq('id', user.id).maybeSingle()
       .then(({ data }) => {
         if (!active) return;
         const role = data?.role ?? 'worker';
@@ -8214,6 +8214,21 @@ export default function CariGaji() {
         if (isAdminAccount) setPortal('admin');
         else if (role === 'employer') setPortal('employer');
         else setPortal('worker');
+
+        // Self-heal missing names: OAuth sign-up (Google/Apple/Facebook)
+        // never writes to `profiles` at all — the only place a profiles row
+        // has ever gotten `full_name` is the email/password registration
+        // form's upsert. Any account that signed up via OAuth (or otherwise
+        // ended up with a bare row) shows as generic "Worker" everywhere,
+        // including the employer's applicant pool. Backfill it here from
+        // the auth-provider metadata, using the same fallback chain already
+        // used elsewhere in this file for the user's own display name.
+        if (!data?.full_name) {
+          const metaName = user.user_metadata?.full_name || user.user_metadata?.name;
+          if (metaName) {
+            supabase.from('profiles').upsert({ id: user.id, full_name: metaName }, { onConflict: 'id' });
+          }
+        }
       });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
