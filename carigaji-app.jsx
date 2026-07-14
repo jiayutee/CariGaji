@@ -848,6 +848,35 @@ const TRANSLATIONS = {
     "auth.tncGateTitle": "Before you continue",
     "auth.tncGateSubtitle": "Please read and accept our Terms & Conditions and Privacy Notice to keep using CariGaji.",
     "auth.tncGateAcceptBtn": "I agree — Continue",
+    "auth.quickSignupHint": "That's all we need to get started — we'll ask for your name and other details right after you sign up.",
+    "details.title": "Complete your details",
+    "details.subtitleWorker": "Just a few details before you can start bidding on shifts. This is required to work legally under Malaysian law.",
+    "details.subtitleEmployer": "Just a few details before you can start posting shifts.",
+    "details.companyContactName": "Company / contact name",
+    "details.ssmOptional": "SSM registration number (optional)",
+    "details.kycDeferHint": "Optional for now — you can upload your identity documents later from your Profile tab. Verified workers stand out to employers.",
+    "details.kycOnlyTitle": "Complete identity verification",
+    "details.kycOnlySubtitle": "Upload your identity documents to get verified.",
+    "details.kycOnlyHint": "All three are needed for verification: document front, back, and a clear selfie.",
+    "details.kycUploadedToast": "Documents uploaded! Our team will review them shortly.",
+    "details.saveBtn": "Save & continue",
+    "details.saveFailed": "Could not save details: ",
+    "intro.title": "Welcome to CariGaji!",
+    "intro.subtitle": "Here's how it works:",
+    "intro.workerStep1": "Browse open shifts on the Discover tab — filter by category, date, and pay.",
+    "intro.workerStep2": "Place a bid with your hourly rate on shifts you want.",
+    "intro.workerStep3": "If the employer selects you, confirm the offer and sign the digital contract.",
+    "intro.workerStep4": "Show up, work the shift, and track your earnings in the Earnings tab.",
+    "intro.employerStep1": "Post a shift with the role, schedule, and wage range.",
+    "intro.employerStep2": "Review the applicant pool as workers bid — see their ratings and reliability.",
+    "intro.employerStep3": "Select your workers; they confirm and sign the digital contract.",
+    "intro.employerStep4": "Chat with confirmed workers and manage everything from your dashboard.",
+    "intro.helpHint": "You can find this again anytime under Help in the account menu.",
+    "intro.getStartedBtn": "Get started",
+    "toast.backAgainToExit": "Press back again to exit",
+    "profile.completeKycTitle": "Complete identity verification",
+    "profile.completeKycHint": "You haven't uploaded your identity documents yet. Verified workers are more likely to be selected by employers.",
+    "profile.completeKycBtn": "Upload documents",
     "auth.selectShort": "Select",
     "auth.selectCountry": "Select country",
     "auth.searchCountryPlaceholder": "Search by name or code...",
@@ -1482,6 +1511,35 @@ const TRANSLATIONS = {
     "auth.tncGateTitle": "Sebelum anda teruskan",
     "auth.tncGateSubtitle": "Sila baca dan bersetuju dengan Terma & Syarat serta Notis Privasi kami untuk terus menggunakan CariGaji.",
     "auth.tncGateAcceptBtn": "Saya bersetuju — Teruskan",
+    "auth.quickSignupHint": "Itu sahaja yang kami perlukan untuk bermula — kami akan minta nama dan butiran lain sejurus selepas anda mendaftar.",
+    "details.title": "Lengkapkan butiran anda",
+    "details.subtitleWorker": "Hanya beberapa butiran sebelum anda boleh mula membida syif. Ini diperlukan untuk bekerja secara sah di bawah undang-undang Malaysia.",
+    "details.subtitleEmployer": "Hanya beberapa butiran sebelum anda boleh mula menyiarkan syif.",
+    "details.companyContactName": "Nama syarikat / hubungan",
+    "details.ssmOptional": "Nombor pendaftaran SSM (pilihan)",
+    "details.kycDeferHint": "Pilihan buat masa ini — anda boleh muat naik dokumen pengenalan kemudian dari tab Profil anda. Pekerja yang disahkan lebih menonjol kepada majikan.",
+    "details.kycOnlyTitle": "Lengkapkan pengesahan identiti",
+    "details.kycOnlySubtitle": "Muat naik dokumen pengenalan anda untuk disahkan.",
+    "details.kycOnlyHint": "Ketiga-tiganya diperlukan untuk pengesahan: bahagian hadapan dokumen, belakang, dan selfie yang jelas.",
+    "details.kycUploadedToast": "Dokumen dimuat naik! Pasukan kami akan menyemaknya tidak lama lagi.",
+    "details.saveBtn": "Simpan & teruskan",
+    "details.saveFailed": "Gagal simpan butiran: ",
+    "intro.title": "Selamat datang ke CariGaji!",
+    "intro.subtitle": "Beginilah caranya:",
+    "intro.workerStep1": "Layari syif terbuka di tab Terokai — tapis mengikut kategori, tarikh, dan gaji.",
+    "intro.workerStep2": "Buat bidaan dengan kadar sejam anda pada syif yang anda mahu.",
+    "intro.workerStep3": "Jika majikan memilih anda, sahkan tawaran dan tandatangani kontrak digital.",
+    "intro.workerStep4": "Hadir, bekerja syif itu, dan jejak pendapatan anda di tab Pendapatan.",
+    "intro.employerStep1": "Siarkan syif dengan peranan, jadual, dan julat gaji.",
+    "intro.employerStep2": "Semak kumpulan pemohon semasa pekerja membida — lihat penilaian dan kebolehpercayaan mereka.",
+    "intro.employerStep3": "Pilih pekerja anda; mereka mengesahkan dan menandatangani kontrak digital.",
+    "intro.employerStep4": "Berbual dengan pekerja yang disahkan dan urus semuanya dari papan pemuka anda.",
+    "intro.helpHint": "Anda boleh menemui ini semula pada bila-bila masa di bawah Bantuan dalam menu akaun.",
+    "intro.getStartedBtn": "Mula sekarang",
+    "toast.backAgainToExit": "Tekan kembali sekali lagi untuk keluar",
+    "profile.completeKycTitle": "Lengkapkan pengesahan identiti",
+    "profile.completeKycHint": "Anda belum memuat naik dokumen pengenalan anda. Pekerja yang disahkan lebih berkemungkinan dipilih oleh majikan.",
+    "profile.completeKycBtn": "Muat naik dokumen",
     "auth.selectShort": "Pilih",
     "auth.selectCountry": "Pilih negara",
     "auth.searchCountryPlaceholder": "Cari mengikut nama atau kod...",
@@ -3254,9 +3312,6 @@ const AuthModal = ({
 }) => {
   const { t: translate } = useLanguage();
   const [showErrors, setShowErrors] = useState(false);
-  // Advisory OCR check that the ID on the uploaded photo matches what was typed.
-  // status: idle | checking | match | mismatch | unreadable
-  const [idOcr, setIdOcr] = useState({ status: "idle" });
   const scrollRef = useRef(null);
   // Keep the status message visible without forcing the user to scroll up
   useEffect(() => {
@@ -3266,83 +3321,19 @@ const AuthModal = ({
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email || "");
 
-  // Legal working age gate — Malaysia; platform T&C requires 18+.
-  const LEGAL_WORKING_AGE = 18;
-  const ageFromDob = dob => {
-    if (!dob) return null;
-    const d = new Date(dob);
-    if (isNaN(d)) return null;
-    const t = new Date();
-    let a = t.getFullYear() - d.getFullYear();
-    const m = t.getMonth() - d.getMonth();
-    if (m < 0 || (m === 0 && t.getDate() < d.getDate())) a--;
-    return a;
-  };
-  const applicantAge = ageFromDob(form.dateOfBirth);
-  const dobUnderage = form.dateOfBirth && applicantAge !== null && applicantAge < LEGAL_WORKING_AGE;
-  // Latest DOB allowed (exactly LEGAL_WORKING_AGE years ago) — guides the date picker.
-  const maxDob = (() => {
-    const t = new Date();
-    t.setFullYear(t.getFullYear() - LEGAL_WORKING_AGE);
-    return t.toISOString().slice(0, 10);
-  })();
-
-  // Document labels adapt to the selected identity type.
-  const DOC_LABELS = {
-    MyKad: { front: translate("auth.docMyKadFront"), back: translate("auth.docMyKadBack") },
-    MyPR: { front: translate("auth.docMyPRFront"), back: translate("auth.docMyPRBack") },
-    Passport: { front: translate("auth.docPassportFront"), back: translate("auth.docPassportBack") },
-  }[form.identityType] || { front: translate("auth.docIdFront"), back: translate("auth.docIdBack") };
-
-  // Client-side OCR: read the ID off the uploaded front photo and compare with
-  // the typed identity number. Runs entirely in the browser (the image is never
-  // sent anywhere for this check) and is advisory only — it never blocks submit.
-  const normalizeId = s => (s || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
-  const verifyIdOnImage = async file => {
-    const entered = normalizeId(form.idNumber);
-    if (!file || !file.type?.startsWith("image/") || entered.length < 6) {
-      setIdOcr({ status: "idle" });
-      return;
-    }
-    setIdOcr({ status: "checking" });
-    try {
-      const T = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js");
-      const recognize = T.recognize || T.default?.recognize;
-      const { data } = await recognize(file, "eng");
-      const ocr = normalizeId(data?.text);
-      // For numeric IDs (MyKad/MyPR) compare digit runs; for passports, alnum.
-      const enteredDigits = entered.replace(/[^0-9]/g, "");
-      const ocrDigits = ocr.replace(/[^0-9]/g, "");
-      const matched = form.identityType === "Passport"
-        ? ocr.includes(entered)
-        : (enteredDigits.length >= 6 && ocrDigits.includes(enteredDigits));
-      setIdOcr({ status: matched ? "match" : "mismatch" });
-    } catch (e) {
-      // OCR engine unavailable / failed — stay silent, never block the user.
-      setIdOcr({ status: "idle" });
-    }
-  };
-
+  // Progressive sign-up: registration asks for role + email + password only.
+  // Everything else (name, phone, identity, DOB, address, KYC uploads, T&C)
+  // is collected after sign-up by the TnCGateModal → DetailsGateModal
+  // sequence, so a new user gets into the app with minimal friction.
   const REGISTER_FIELD_LABELS = {
-    fullName: translate("auth.fieldFullName"), phone: translate("auth.fieldPhone"), email: translate("auth.fieldEmail"),
-    password: translate("auth.fieldPassword"), confirmPassword: translate("auth.fieldConfirmPassword"), idNumber: translate("auth.fieldIdNumber"),
-    dateOfBirth: dobUnderage ? translate("auth.fieldDateOfBirthAge").replace("{age}", LEGAL_WORKING_AGE) : translate("auth.fieldDateOfBirth"),
-    address: translate("auth.fieldAddress"), kycFront: DOC_LABELS.front,
-    kycBack: DOC_LABELS.back, selfie: translate("auth.fieldSelfie"), agreedToTnC: translate("auth.fieldTnC"),
+    email: translate("auth.fieldEmail"),
+    password: translate("auth.fieldPassword"),
+    confirmPassword: translate("auth.fieldConfirmPassword"),
   };
   const registerErrors = {
-    fullName: !form.fullName?.trim(),
-    phone: !form.phone?.trim(),
     email: !emailOk,
     password: !form.password,
     confirmPassword: !form.confirmPassword || form.password !== form.confirmPassword,
-    idNumber: !form.idNumber?.trim(),
-    dateOfBirth: !form.dateOfBirth || dobUnderage,
-    address: !form.address?.trim(),
-    kycFront: !form.kycFront,
-    kycBack: !form.kycBack,
-    selfie: !form.selfie,
-    agreedToTnC: !form.agreedToTnC,
   };
   const hasRegisterErrors = Object.values(registerErrors).some(Boolean);
   const fieldError = k => showErrors && registerErrors[k];
@@ -3453,124 +3444,17 @@ const AuthModal = ({
                   ))}
                 </div>
               </div>
+              <Input label={translate("auth.emailAddressReq")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label={translate("auth.fullName")} placeholder={translate("auth.fullNamePlaceholder")} value={form.fullName} onChange={e => onChange("fullName", e.target.value)} error={fieldError("fullName")} />
-                  <SearchableCountrySelect label={translate("auth.country")} value={form.countryOfOrigin} onChange={e => onChange("countryOfOrigin", e.target.value)} />
-              </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{translate("auth.phoneNumber")}</label>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
-                    <div style={{ flex: "0 0 auto" }}>
-                      <SearchableCountrySelect value={form.countryCode} onChange={e => onChange("countryCode", e.target.value)} compact showDial />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <Input
-                        placeholder={COUNTRIES.find(c => c.code === form.countryCode)?.placeholder || "Enter phone number"}
-                        value={form.phone}
-                        onChange={e => onChange("phone", e.target.value)}
-                        style={{ marginBottom: 0 }}
-                        error={fieldError("phone")}
-                      />
-                    </div>
-                  </div>
-                </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Input label={translate("auth.emailAddressReq")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
                 <PasswordInput label={translate("auth.passwordReq")} placeholder={translate("auth.createPassword")} value={form.password} onChange={e => onChange("password", e.target.value)} error={fieldError("password")} />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <PasswordInput label={translate("auth.confirmPasswordReq")} placeholder={translate("auth.retypePassword")} value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} error={fieldError("confirmPassword")} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
                 <div style={{ color: BRAND.red, fontSize: 13, marginTop: -8, marginBottom: 12 }}>{translate("auth.passwordsNoMatch")}</div>
               )}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <Select
-                  label={translate("auth.identityType")}
-                  value={form.identityType}
-                  onChange={e => {
-                    const nextType = e.target.value;
-                    onChange("identityType", nextType);
-                    onChange("idNumber", "");
-                  }}
-                  options={[
-                    { value: "MyKad", label: translate("auth.icMyKad") },
-                    { value: "Passport", label: translate("auth.passport") },
-                    { value: "MyPR", label: translate("auth.myPR") },
-                  ]}
-                />
-                <Input
-                  label={form.identityType === "MyKad" ? translate("auth.myKadNumber") : form.identityType === "MyPR" ? translate("auth.myPRNumber") : translate("auth.passportNumber")}
-                  placeholder={["MyKad", "MyPR"].includes(form.identityType) ? "XXXXXX-XX-XXXX" : "A1234567"}
-                  value={form.idNumber}
-                  onChange={e => {
-                    const formatted = formatIdentityNumber(e.target.value, form.identityType);
-                    onChange("idNumber", formatted);
-                    if (form.identityType === "MyKad") {
-                      const extractedDate = extractDateFromIC(formatted);
-                      if (extractedDate) onChange("dateOfBirth", extractedDate);
-                    }
-                  }}
-                  error={fieldError("idNumber")}
-                />
-              </div>
-              <Input
-                label={translate("auth.dateOfBirth")}
-                type="date"
-                value={form.dateOfBirth}
-                onChange={e => onChange("dateOfBirth", e.target.value)}
-                error={fieldError("dateOfBirth")}
-                max={maxDob}
-                style={{ marginBottom: dobUnderage ? 4 : 16 }}
-              />
-              {dobUnderage && (
-                <div style={{ fontSize: 12, color: BRAND.red, fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
-                  {translate("auth.underageWarning").replace("{age}", LEGAL_WORKING_AGE)}
-                </div>
-              )}
-              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: dobUnderage ? 0 : -12, marginBottom: 16 }}>
-                {translate("auth.kycLevelNote")}
-              </div>
-              <Input label={translate("auth.address")} placeholder={translate("auth.addressPlaceholder")} value={form.address} onChange={e => onChange("address", e.target.value)} error={fieldError("address")} />
-              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{translate("auth.uploadDocuments")}</div>
-              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10, lineHeight: 1.5 }}>
-                {translate("auth.uploadDocumentsHint").replace("{doc}", form.identityType === "Passport" ? translate("auth.passportDoc") : form.identityType === "MyPR" ? translate("auth.myPRCardDoc") : translate("auth.myKadDoc"))}
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label={DOC_LABELS.front} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; onChange("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper={translate("auth.uploadFrontHelper")} error={fieldError("kycFront")} />
-                <FileInput label={DOC_LABELS.back} accept="image/*,application/pdf" onChange={e => onChange("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper={translate("auth.uploadBackHelper")} error={fieldError("kycBack")} />
-              </div>
-              {idOcr.status === "checking" && (
-                <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ display: "inline-block", width: 12, height: 12, border: `2px solid ${BRAND.border}`, borderTopColor: BRAND.primary, borderRadius: "50%", animation: "cg-spin 0.7s linear infinite" }} />
-                  {translate("auth.ocrChecking")}
-                </div>
-              )}
-              {idOcr.status === "match" && (
-                <div style={{ fontSize: 12, color: BRAND.green, fontWeight: 600, marginBottom: 12, padding: "8px 12px", background: "#ECFDF5", border: `1px solid ${BRAND.green}`, borderRadius: 8 }}>
-                  {translate("auth.ocrMatch")}
-                </div>
-              )}
-              {idOcr.status === "mismatch" && (
-                <div style={{ fontSize: 12, color: "#B45309", marginBottom: 12, padding: "10px 12px", background: "#FFFBEB", border: "1px solid #F59E0B", borderRadius: 8, lineHeight: 1.6 }}>
-                  <strong>{translate("auth.ocrMismatchTitle")}</strong> {translate("auth.ocrMismatchHint")}
-                  <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
-                    <li>{translate("auth.ocrMismatchReason1")}</li>
-                    <li>{translate("auth.ocrMismatchReason2")}</li>
-                    <li>{translate("auth.ocrMismatchReason3")}</li>
-                  </ul>
-                  <div style={{ marginTop: 6 }}>{translate("auth.ocrMismatchAction")}</div>
-                </div>
-              )}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <FileInput label={translate("auth.selfie")} accept="image/*" onChange={e => onChange("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper={translate("auth.selfieHelper")} error={fieldError("selfie")} />
-                <FileInput label={translate("auth.certification")} accept="image/*,application/pdf" onChange={e => onChange("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper={translate("auth.certificationHelper")} />
-              </div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
-                {translate("auth.finalRegisterHint")}
+                {translate("auth.quickSignupHint")}
               </div>
-              {/* T&C consent — PDPA 2010 (Act 709), Employment Act 1955 (Act 265) */}
-              <TnCConsent checked={form.agreedToTnC} onChange={v => onChange("agreedToTnC", v)} error={fieldError("agreedToTnC")} />
               <div style={{ display: "flex", gap: 10 }}>
                 <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>{translate("common.back")}</Btn>
                 <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
@@ -3607,7 +3491,7 @@ const DISPUTE_CATEGORIES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0 }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -3694,6 +3578,24 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
+
+  // Mobile back-gesture support: register a handler that closes the topmost
+  // open thing and reports whether it handled the gesture. Reassigned every
+  // render (no dep array) so the closure always sees current state; consumed
+  // by BackGestureManager's popstate listener at the root.
+  useEffect(() => {
+    if (!backHandlerRef) return;
+    backHandlerRef.current = () => {
+      if (showBidModal) { setShowBidModal(false); return true; }
+      if (workerContractModal) { setWorkerContractModal(null); return true; }
+      if (disputeModal) { setDisputeModal(null); return true; }
+      if (activeChatShift) { setActiveChatShift(null); setChatMessages([]); return true; }
+      if (selectedApplication) { setSelectedApplication(null); return true; }
+      if (selectedShift) { setSelectedShift(null); return true; }
+      return false;
+    };
+    return () => { if (backHandlerRef) backHandlerRef.current = null; };
+  });
 
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
@@ -4964,6 +4866,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <Stat label={t("profile.strikes")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
               <Stat label={t("profile.onTimeRate")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
             </div>
+            {kycLevel === "Basic" && (
+              // Worker deferred their KYC document uploads during progressive
+              // sign-up (kyc_level never left the default). Nudge them to
+              // finish — the button reopens the details modal in kycOnly mode.
+              <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.amber, marginBottom: 4 }}>{t("profile.completeKycTitle")}</div>
+                <div style={{ fontSize: 12, color: BRAND.amber, marginBottom: 12, lineHeight: 1.5 }}>{t("profile.completeKycHint")}</div>
+                <Btn size="sm" onClick={onOpenKycUpload}>{t("profile.completeKycBtn")}</Btn>
+              </Card>
+            )}
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.kycVerification")}</div>
               {[{ tier: t("profile.kycBasic"), status: "verified" }, { tier: t("profile.kycStandard"), status: "verified" }, { tier: t("profile.kycAdvanced"), status: "not started" }].map((v, i) => (
@@ -5285,7 +5197,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 };
 
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
-const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
+const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [view, setView] = useState("dashboard");
@@ -5330,6 +5242,21 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef(null);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
+
+  // Mobile back-gesture support — same contract as WorkerPortal's handler:
+  // close the topmost open thing, report handled; bare dashboard → false.
+  useEffect(() => {
+    if (!backHandlerRef) return;
+    backHandlerRef.current = () => {
+      if (contractModal) { setContractModal(null); return true; }
+      if (disputeModal) { setDisputeModal(null); return true; }
+      if (activeChatShift) { setActiveChatShift(null); setChatMessages([]); return true; }
+      if (selectedShift) { setSelectedShift(null); return true; }
+      if (view !== "dashboard") { setView("dashboard"); return true; }
+      return false;
+    };
+    return () => { if (backHandlerRef) backHandlerRef.current = null; };
+  });
   // Mobile-only: the sidebar used to always render full-width, stacked above
   // the content, permanently expanded — eating over half the screen before
   // any actual work (managing shifts, reviewing applicants) was visible.
@@ -7974,6 +7901,349 @@ const TnCGateModal = ({ open, accepting, onAccept, onSignOut }) => {
   );
 };
 
+// Mandatory "complete your details" step — the second gate of the
+// progressive sign-up flow (T&C gate → this → one-time intro). Registration
+// now collects only role+email+password, so the name/phone/identity/address
+// details that used to live in the register form are collected here, after
+// the account exists. Text details are required (owner decision); KYC
+// document uploads are deferrable — a worker can skip them and complete
+// verification later via the Profile-tab banner, which reopens this same
+// modal with kycOnly. zIndex 1500, same layer as TnCGateModal (they can
+// never be open simultaneously — the gate conditions are sequential).
+const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onClose, onSignOut }) => {
+  const { t } = useLanguage();
+  const toast = useToast();
+  const [form, setForm] = useState({ fullName: "", countryCode: "MY", phone: "", identityType: "MyKad", idNumber: "", dateOfBirth: "", address: "", ssmNumber: "", kycFront: null, kycBack: null, selfie: null, supportingDoc: null });
+  const [showErrors, setShowErrors] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // Advisory OCR check that the ID on the uploaded photo matches what was
+  // typed (moved here from the old all-in-one register form).
+  const [idOcr, setIdOcr] = useState({ status: "idle" });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Legal working age gate — Malaysia; platform T&C requires 18+.
+  const LEGAL_WORKING_AGE = 18;
+  const ageFromDob = dob => {
+    if (!dob) return null;
+    const d = new Date(dob);
+    if (isNaN(d)) return null;
+    const now = new Date();
+    let a = now.getFullYear() - d.getFullYear();
+    const m = now.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a--;
+    return a;
+  };
+  const applicantAge = ageFromDob(form.dateOfBirth);
+  const dobUnderage = form.dateOfBirth && applicantAge !== null && applicantAge < LEGAL_WORKING_AGE;
+  const maxDob = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - LEGAL_WORKING_AGE);
+    return d.toISOString().slice(0, 10);
+  })();
+
+  const DOC_LABELS = {
+    MyKad: { front: t("auth.docMyKadFront"), back: t("auth.docMyKadBack") },
+    MyPR: { front: t("auth.docMyPRFront"), back: t("auth.docMyPRBack") },
+    Passport: { front: t("auth.docPassportFront"), back: t("auth.docPassportBack") },
+  }[form.identityType] || { front: t("auth.docIdFront"), back: t("auth.docIdBack") };
+
+  const normalizeId = s => (s || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+  const verifyIdOnImage = async file => {
+    const entered = normalizeId(form.idNumber);
+    if (!file || !file.type?.startsWith("image/") || entered.length < 6) {
+      setIdOcr({ status: "idle" });
+      return;
+    }
+    setIdOcr({ status: "checking" });
+    try {
+      const T = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js");
+      const recognize = T.recognize || T.default?.recognize;
+      const { data } = await recognize(file, "eng");
+      const ocr = normalizeId(data?.text);
+      const enteredDigits = entered.replace(/[^0-9]/g, "");
+      const ocrDigits = ocr.replace(/[^0-9]/g, "");
+      const matched = form.identityType === "Passport"
+        ? ocr.includes(entered)
+        : (enteredDigits.length >= 6 && ocrDigits.includes(enteredDigits));
+      setIdOcr({ status: matched ? "match" : "mismatch" });
+    } catch (e) {
+      setIdOcr({ status: "idle" });
+    }
+  };
+
+  const isEmployer = role === "employer";
+  const errors = kycOnly
+    ? { kycFront: !form.kycFront, kycBack: !form.kycBack, selfie: !form.selfie }
+    : isEmployer
+      ? { fullName: !form.fullName.trim(), phone: !form.phone.trim() }
+      : {
+          fullName: !form.fullName.trim(),
+          phone: !form.phone.trim(),
+          idNumber: !form.idNumber.trim(),
+          dateOfBirth: !form.dateOfBirth || dobUnderage,
+          address: !form.address.trim(),
+        };
+  const hasErrors = Object.values(errors).some(Boolean);
+  const fieldError = k => showErrors && errors[k];
+
+  const handleSave = async () => {
+    if (!user) return;
+    if (hasErrors) { setShowErrors(true); return; }
+    setSaving(true);
+    try {
+      const anyDoc = form.kycFront || form.kycBack || form.selfie || form.supportingDoc;
+      let kycLevel = null;
+      if (anyDoc) {
+        const uploadTasks = [
+          ["kyc_front", form.kycFront],
+          ["kyc_back", form.kycBack],
+          ["selfie", form.selfie],
+          ["supporting_doc", form.supportingDoc],
+        ]
+          .filter(([, file]) => file)
+          .map(async ([label, file]) => [label, await uploadKycFile(user.id, file, label)]);
+        const kycRefs = Object.fromEntries(await Promise.all(uploadTasks));
+        await supabase.auth.updateUser({ data: { ...user.user_metadata, ...kycRefs } });
+        kycLevel = assignKYCLevel(Boolean(form.kycFront), Boolean(form.kycBack), Boolean(form.selfie), Boolean(form.supportingDoc));
+      }
+
+      if (kycOnly) {
+        if (kycLevel) await supabase.from("profiles").upsert({ id: user.id, kyc_level: kycLevel }, { onConflict: "id" });
+        toast(t("details.kycUploadedToast"), "success");
+        onClose?.();
+      } else {
+        const fullPhone = `${COUNTRIES.find(c => c.code === form.countryCode)?.dialCode || "+60"}${form.phone.trim()}`;
+        await supabase.from("user_private").upsert(
+          {
+            id: user.id,
+            phone: fullPhone,
+            ...(isEmployer ? {} : {
+              identity_type: form.identityType,
+              id_number: form.idNumber.trim(),
+              date_of_birth: form.dateOfBirth || null,
+              address: form.address.trim(),
+            }),
+          },
+          { onConflict: "id" }
+        );
+        const completedAt = new Date().toISOString();
+        // Also (re)assert role here: in the email-confirmation signup flow
+        // there was no session at registration time, so the profiles row may
+        // not exist yet — the chosen role rides in auth metadata.
+        const { error } = await supabase.from("profiles").upsert(
+          {
+            id: user.id,
+            full_name: form.fullName.trim(),
+            role: role || user.user_metadata?.account_role || "worker",
+            details_completed_at: completedAt,
+            ...(kycLevel ? { kyc_level: kycLevel } : {}),
+            ...(isEmployer && form.ssmNumber.trim() ? { ssm_number: form.ssmNumber.trim() } : {}),
+          },
+          { onConflict: "id" }
+        );
+        if (error) throw error;
+        // Keep the display-name fallback chain working immediately.
+        await supabase.auth.updateUser({ data: { ...user.user_metadata, full_name: form.fullName.trim() } });
+        onCompleted?.(completedAt);
+      }
+    } catch (err) {
+      toast(`${t("details.saveFailed")}${err.message}`, "error");
+    }
+    setSaving(false);
+  };
+
+  if (!open) return null;
+  return createPortal(
+    <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 560, width: "100%", maxHeight: "88vh", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{kycOnly ? t("details.kycOnlyTitle") : t("details.title")}</div>
+        <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 16 }}>{kycOnly ? t("details.kycOnlySubtitle") : (isEmployer ? t("details.subtitleEmployer") : t("details.subtitleWorker"))}</div>
+        {showErrors && hasErrors && (
+          <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: 10, background: "#FEF2F2", border: `1.5px solid ${BRAND.red}`, color: BRAND.red, fontSize: 13 }}>
+            {t("auth.pleaseCompleteFields")}
+          </div>
+        )}
+        <div style={{ overflowY: "auto", flex: 1, paddingRight: 4 }}>
+          {!kycOnly && (
+            <>
+              <Input label={isEmployer ? t("details.companyContactName") : t("auth.fullName")} placeholder={isEmployer ? t("employer.companyNamePlaceholder") : t("auth.fullNamePlaceholder")} value={form.fullName} onChange={e => set("fullName", e.target.value)} error={fieldError("fullName")} />
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("auth.phoneNumber")}</label>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
+                  <div style={{ flex: "0 0 auto" }}>
+                    <SearchableCountrySelect value={form.countryCode} onChange={e => set("countryCode", e.target.value)} compact showDial />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <Input placeholder={COUNTRIES.find(c => c.code === form.countryCode)?.placeholder || "Enter phone number"} value={form.phone} onChange={e => set("phone", e.target.value)} style={{ marginBottom: 0 }} error={fieldError("phone")} />
+                  </div>
+                </div>
+              </div>
+              {isEmployer && (
+                <Input label={t("details.ssmOptional")} placeholder={t("employer.ssmNumberPlaceholder")} value={form.ssmNumber} onChange={e => set("ssmNumber", e.target.value)} />
+              )}
+              {!isEmployer && (
+                <>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <Select
+                      label={t("auth.identityType")}
+                      value={form.identityType}
+                      onChange={e => { set("identityType", e.target.value); set("idNumber", ""); }}
+                      options={[
+                        { value: "MyKad", label: t("auth.icMyKad") },
+                        { value: "Passport", label: t("auth.passport") },
+                        { value: "MyPR", label: t("auth.myPR") },
+                      ]}
+                    />
+                    <Input
+                      label={form.identityType === "MyKad" ? t("auth.myKadNumber") : form.identityType === "MyPR" ? t("auth.myPRNumber") : t("auth.passportNumber")}
+                      placeholder={["MyKad", "MyPR"].includes(form.identityType) ? "XXXXXX-XX-XXXX" : "A1234567"}
+                      value={form.idNumber}
+                      onChange={e => {
+                        const formatted = formatIdentityNumber(e.target.value, form.identityType);
+                        set("idNumber", formatted);
+                        if (form.identityType === "MyKad") {
+                          const extractedDate = extractDateFromIC(formatted);
+                          if (extractedDate) set("dateOfBirth", extractedDate);
+                        }
+                      }}
+                      error={fieldError("idNumber")}
+                    />
+                  </div>
+                  <Input label={t("auth.dateOfBirth")} type="date" value={form.dateOfBirth} onChange={e => set("dateOfBirth", e.target.value)} error={fieldError("dateOfBirth")} max={maxDob} style={{ marginBottom: dobUnderage ? 4 : 16 }} />
+                  {dobUnderage && (
+                    <div style={{ fontSize: 12, color: BRAND.red, fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
+                      {t("auth.underageWarning").replace("{age}", LEGAL_WORKING_AGE)}
+                    </div>
+                  )}
+                  <Input label={t("auth.address")} placeholder={t("auth.addressPlaceholder")} value={form.address} onChange={e => set("address", e.target.value)} error={fieldError("address")} />
+                </>
+              )}
+            </>
+          )}
+          {(kycOnly || !isEmployer) && (
+            <>
+              <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("auth.uploadDocuments")}</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10, lineHeight: 1.5 }}>
+                {kycOnly ? t("details.kycOnlyHint") : t("details.kycDeferHint")}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FileInput label={DOC_LABELS.front} accept="image/*,application/pdf" onChange={e => { const f = e.target.files?.[0] || null; set("kycFront", f); verifyIdOnImage(f); }} fileName={form.kycFront?.name} helper={t("auth.uploadFrontHelper")} error={fieldError("kycFront")} />
+                <FileInput label={DOC_LABELS.back} accept="image/*,application/pdf" onChange={e => set("kycBack", e.target.files?.[0] || null)} fileName={form.kycBack?.name} helper={t("auth.uploadBackHelper")} error={fieldError("kycBack")} />
+              </div>
+              {idOcr.status === "checking" && (
+                <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>{t("auth.ocrChecking")}</div>
+              )}
+              {idOcr.status === "match" && (
+                <div style={{ fontSize: 12, color: BRAND.green, fontWeight: 600, marginBottom: 12 }}>{t("auth.ocrMatch")}</div>
+              )}
+              {idOcr.status === "mismatch" && (
+                <div style={{ fontSize: 12, color: "#B45309", marginBottom: 12 }}>
+                  <strong>{t("auth.ocrMismatchTitle")}</strong> {t("auth.ocrMismatchAction")}
+                </div>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <FileInput label={t("auth.selfie")} accept="image/*" onChange={e => set("selfie", e.target.files?.[0] || null)} fileName={form.selfie?.name} helper={t("auth.selfieHelper")} error={fieldError("selfie")} />
+                <FileInput label={t("auth.certification")} accept="image/*,application/pdf" onChange={e => set("supportingDoc", e.target.files?.[0] || null)} fileName={form.supportingDoc?.name} helper={t("auth.certificationHelper")} />
+              </div>
+            </>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          {kycOnly ? (
+            <Btn variant="secondary" onClick={onClose} style={{ flex: 1, justifyContent: "center" }}>{t("common.cancel")}</Btn>
+          ) : (
+            <Btn variant="secondary" onClick={onSignOut} style={{ flex: 1, justifyContent: "center" }}>{t("account.signOut")}</Btn>
+          )}
+          <Btn disabled={saving} onClick={handleSave} style={{ flex: 1, justifyContent: "center" }}>
+            {saving ? "…" : t("details.saveBtn")}
+          </Btn>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+// One-time first-sign-in intro: a brief, dismissible "what is this app and
+// how do I use it" walkthrough shown once after the T&C + details gates are
+// both done. Guidance, not consent — so unlike the two gates it has a
+// single friendly dismiss action that stamps profiles.intro_seen_at.
+const WelcomeIntroModal = ({ open, role, saving, onDone }) => {
+  const { t } = useLanguage();
+  if (!open) return null;
+  const steps = role === "employer"
+    ? [t("intro.employerStep1"), t("intro.employerStep2"), t("intro.employerStep3"), t("intro.employerStep4")]
+    : [t("intro.workerStep1"), t("intro.workerStep2"), t("intro.workerStep3"), t("intro.workerStep4")];
+  return createPortal(
+    <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxSizing: "border-box" }}>
+        <div style={{ fontSize: 34, textAlign: "center", marginBottom: 8 }} aria-hidden="true">👋</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, textAlign: "center", marginBottom: 4 }}>{t("intro.title")}</div>
+        <div style={{ fontSize: 13, color: BRAND.textMuted, textAlign: "center", marginBottom: 18 }}>{t("intro.subtitle")}</div>
+        {steps.map((step, i) => (
+          <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: BRAND.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+            <div style={{ fontSize: 13.5, color: BRAND.text, lineHeight: 1.6 }}>{step}</div>
+          </div>
+        ))}
+        <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4, marginBottom: 16 }}>{t("intro.helpHint")}</div>
+        <Btn disabled={saving} onClick={onDone} style={{ width: "100%", justifyContent: "center" }}>{saving ? "…" : t("intro.getStartedBtn")}</Btn>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+// Mobile back-gesture handling. The app is a routerless SPA, so a phone
+// back-swipe pops the only history entry and exits the app — even when the
+// user just meant to close an open job-ad detail view. On mobile we push one
+// sentinel history entry and intercept popstate: if the active portal has
+// something open (detail view / modal), close that and stay; on a bare main
+// page, first back shows a "press back again to exit" hint, second back
+// within the window really exits. Desktop is left completely alone —
+// hijacking the browser back button there would be hostile.
+// Rendered as a child (not inline in the root component) because it needs
+// useToast/useLanguage, whose providers the root itself renders.
+const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) => {
+  const toast = useToast();
+  const { t } = useLanguage();
+  const lastExitAttemptRef = useRef(0);
+  // Refs so the single popstate listener always sees fresh values without
+  // re-subscribing (re-pushing sentinels mid-flight gets racy).
+  const authOpenRef = useRef(authOpen);
+  authOpenRef.current = authOpen;
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined") return;
+    const pushSentinel = () => window.history.pushState({ carigajiTrap: true }, "");
+    pushSentinel();
+    const onPop = () => {
+      if (authOpenRef.current) {
+        onCloseAuth();
+        pushSentinel();
+        return;
+      }
+      if (backHandlerRef.current && backHandlerRef.current()) {
+        pushSentinel();
+        return;
+      }
+      const now = Date.now();
+      if (now - lastExitAttemptRef.current < 2000) {
+        // Second back within the window: really leave. We're already back on
+        // the pre-sentinel entry, so one more back exits the site/app.
+        window.history.back();
+        return;
+      }
+      lastExitAttemptRef.current = now;
+      toast(t("toast.backAgainToExit"), "info", 2000);
+      pushSentinel();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled]);
+  return null;
+};
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
@@ -7987,6 +8257,19 @@ export default function CariGaji() {
   // = accepted. See the profile-role fetch effect below for how it's loaded.
   const [tncAcceptedAt, setTncAcceptedAt] = useState(undefined);
   const [tncAccepting, setTncAccepting] = useState(false);
+  // Same tri-state convention as tncAcceptedAt, for the two follow-up
+  // progressive-signup gates (details step, one-time intro).
+  const [detailsCompletedAt, setDetailsCompletedAt] = useState(undefined);
+  const [introSeenAt, setIntroSeenAt] = useState(undefined);
+  const [introSaving, setIntroSaving] = useState(false);
+  const [profileKycLevel, setProfileKycLevel] = useState(null);
+  // Worker reopening just the KYC-upload part of the details modal later,
+  // via the Profile-tab "complete verification" banner.
+  const [kycUploadOpen, setKycUploadOpen] = useState(false);
+  // The currently-mounted portal assigns a function here that closes its
+  // topmost open detail view/modal (returns true if it handled the back
+  // gesture) — consumed by BackGestureManager's popstate listener.
+  const backHandlerRef = useRef(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [authView, setAuthView] = useState("signin");
@@ -8075,24 +8358,19 @@ export default function CariGaji() {
     }
     setAuthLoading(true);
     setAuthMessage("");
-    const autoKycLevel = assignKYCLevel(
-      Boolean(authForm.kycFront),
-      Boolean(authForm.kycBack),
-      Boolean(authForm.selfie),
-      Boolean(authForm.supportingDoc)
-    );
-    const fullPhone = `${COUNTRIES.find(c => c.code === authForm.countryCode)?.dialCode || "+60"}${authForm.phone}`;
-    // Keep only non-sensitive fields in auth metadata (it is client-readable
-    // and self-editable). Sensitive PII goes to the owner-only user_private table.
+    const role = authForm.accountRole === "employer" ? "employer" : "worker";
+    // Progressive sign-up: only role + email + password here. Name, phone,
+    // identity, address, and KYC uploads are collected post-signup by the
+    // DetailsGateModal (after the T&C gate). The chosen role rides along in
+    // auth metadata so it survives the email-confirmation flow, where no
+    // session exists yet and the profiles upsert below never runs — the
+    // DetailsGateModal falls back to it when it creates the profile row.
     const { data, error } = await supabase.auth.signUp({
       email: authForm.email,
       password: authForm.password,
       options: {
         emailRedirectTo: authRedirectUrl,
-        data: {
-          full_name: authForm.fullName,
-          kyc_level: autoKycLevel,
-        },
+        data: { account_role: role },
       },
     });
     if (error) {
@@ -8104,82 +8382,17 @@ export default function CariGaji() {
     const registeredUserId = data?.user?.id;
     const hasSession = Boolean(data?.session);
     if (registeredUserId && hasSession) {
-      try {
-        // Public-safe profile (employers may read) + private PII (owner only).
-        await supabase.from("profiles").upsert(
-          {
-            id: registeredUserId,
-            full_name: authForm.fullName,
-            kyc_level: autoKycLevel,
-            role: authForm.accountRole === "employer" ? "employer" : "worker",
-            // Was previously a client-side submit-button gate only, never
-            // persisted anywhere — record it now so a normal email/password
-            // signup doesn't immediately hit the mandatory TnCGateModal too.
-            ...(authForm.agreedToTnC ? { tnc_accepted_at: new Date().toISOString() } : {}),
-          },
-          { onConflict: "id" }
-        );
-        await supabase.from("user_private").upsert(
-          {
-            id: registeredUserId,
-            identity_type: authForm.identityType,
-            id_number: authForm.idNumber,
-            date_of_birth: authForm.dateOfBirth || null,
-            address: authForm.address,
-            phone: fullPhone,
-          },
-          { onConflict: "id" }
-        );
-
-        const uploadTasks = [
-          ["kyc_front", authForm.kycFront],
-          ["kyc_back", authForm.kycBack],
-          ["selfie", authForm.selfie],
-          ["supporting_doc", authForm.supportingDoc],
-        ]
-          .filter(([, file]) => file)
-          .map(async ([label, file]) => [label, await uploadKycFile(registeredUserId, file, label)]);
-
-        const uploadedEntries = await Promise.all(uploadTasks);
-        const kycRefs = Object.fromEntries(uploadedEntries);
-
-        if (Object.keys(kycRefs).length > 0) {
-          const { error: profileError } = await supabase.auth.updateUser({
-            data: {
-              ...data.user.user_metadata,
-              ...kycRefs,
-            },
-          });
-          if (profileError) throw profileError;
-        }
-
-        setAuthMessage("Registration completed. Your KYC documents were uploaded successfully.");
-      } catch (uploadError) {
-        setAuthMessage(`Registration completed, but KYC upload needs attention: ${uploadError.message}`);
-      }
+      await supabase.from("profiles").upsert(
+        { id: registeredUserId, role },
+        { onConflict: "id" }
+      );
     } else {
-      setAuthMessage("Registration submitted. Check your email if confirmation is enabled, then sign in to finish KYC upload.");
+      setAuthMessage("Registration submitted. Check your email to confirm your account, then sign in.");
     }
 
     setAuthLoading(false);
-    setAuthForm({
-      fullName: "",
-        countryCode: "MY",
-      countryOfOrigin: "MY",
-      phone: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      identityType: "MyKad",
-      idNumber: "",
-      dateOfBirth: "",
-      kycLevel: "Basic",
-      address: "",
-      kycFront: null,
-      kycBack: null,
-      selfie: null,
-      supportingDoc: null,
-    });
+    setAuthForm(prev => ({ ...prev, password: "", confirmPassword: "" }));
+    if (hasSession) setAuthOpen(false);
   };
 
   useEffect(() => {
@@ -8207,17 +8420,23 @@ export default function CariGaji() {
   // Admin Dashboard, everyone else in the Worker app. Console access below
   // (Settings buttons) is gated on this same role.
   useEffect(() => {
-    if (!user) { setUserRole(null); setTncAcceptedAt(undefined); return; }
+    if (!user) { setUserRole(null); setTncAcceptedAt(undefined); setDetailsCompletedAt(undefined); setIntroSeenAt(undefined); setProfileKycLevel(null); return; }
     let active = true;
-    supabase.from('profiles').select('role, tnc_accepted_at, full_name').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('role, tnc_accepted_at, full_name, details_completed_at, intro_seen_at, kyc_level').eq('id', user.id).maybeSingle()
       .then(({ data }) => {
         if (!active) return;
-        const role = data?.role ?? 'worker';
+        // Email-confirmation signups have no profiles row until the details
+        // gate creates one — the role chosen at registration rides along in
+        // auth metadata as the fallback.
+        const role = data?.role ?? user.user_metadata?.account_role ?? 'worker';
         setUserRole(role);
         // No profiles row at all (fresh OAuth signup, which never creates
         // one) counts the same as "hasn't accepted" — null, not undefined —
         // so the mandatory T&C gate below still fires for them.
         setTncAcceptedAt(data?.tnc_accepted_at ?? null);
+        setDetailsCompletedAt(data?.details_completed_at ?? null);
+        setIntroSeenAt(data?.intro_seen_at ?? null);
+        setProfileKycLevel(data?.kyc_level ?? null);
         const isAdminAccount = user?.app_metadata?.role === 'admin';
         if (isAdminAccount) setPortal('admin');
         else if (role === 'employer') setPortal('employer');
@@ -8251,6 +8470,15 @@ export default function CariGaji() {
     const { error } = await supabase.from('profiles').upsert({ id: user.id, tnc_accepted_at: acceptedAt });
     setTncAccepting(false);
     if (!error) setTncAcceptedAt(acceptedAt);
+  };
+
+  const markIntroSeen = async () => {
+    if (!user) return;
+    setIntroSaving(true);
+    const seenAt = new Date().toISOString();
+    const { error } = await supabase.from('profiles').upsert({ id: user.id, intro_seen_at: seenAt });
+    setIntroSaving(false);
+    if (!error) setIntroSeenAt(seenAt);
   };
 
   useEffect(() => {
@@ -8397,8 +8625,8 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} backHandlerRef={backHandlerRef} />}
           {portal === "admin" && (
             isAdmin
               ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
@@ -8430,6 +8658,35 @@ export default function CariGaji() {
         accepting={tncAccepting}
         onAccept={acceptTnC}
         onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+      />
+      {/* Progressive-signup sequence: T&C gate above, then required details,
+          then the one-time intro. The gate conditions are mutually exclusive
+          by construction (each requires the previous timestamp to be set). */}
+      <DetailsGateModal
+        open={Boolean(user) && typeof tncAcceptedAt === "string" && detailsCompletedAt === null}
+        user={user}
+        role={userRole}
+        onCompleted={ts => setDetailsCompletedAt(ts)}
+        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+      />
+      <DetailsGateModal
+        open={kycUploadOpen && Boolean(user)}
+        user={user}
+        role={userRole}
+        kycOnly
+        onClose={() => { setKycUploadOpen(false); setProfileKycLevel("pending_review"); }}
+      />
+      <WelcomeIntroModal
+        open={Boolean(user) && typeof tncAcceptedAt === "string" && typeof detailsCompletedAt === "string" && introSeenAt === null}
+        role={userRole}
+        saving={introSaving}
+        onDone={markIntroSeen}
+      />
+      <BackGestureManager
+        enabled={isMobile}
+        backHandlerRef={backHandlerRef}
+        authOpen={authOpen}
+        onCloseAuth={() => setAuthOpen(false)}
       />
     </div>
     </ToastProvider>
