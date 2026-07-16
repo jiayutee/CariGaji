@@ -863,8 +863,8 @@ const TRANSLATIONS = {
     "details.subtitleWorker": "Just a few details before you can start bidding on shifts. This is required to work legally under Malaysian law.",
     "details.subtitleEmployer": "Just a few details before you can start posting shifts.",
     "details.companyContactName": "Company / contact name",
-    "details.companyNameFinalHint": "This is the company name shown to workers on shift listings.",
-    "details.fullNameFinalHint": "This is the name shown to employers when you apply for shifts.",
+    "details.companyNameFinalHint": "This is the company name shown to workers on shift listings. Once confirmed, it cannot be changed — contact customer support if it needs correction.",
+    "details.fullNameFinalHint": "Enter your legal name exactly as it appears on your MyKad/passport. Once confirmed, it cannot be changed — contact customer support if it needs correction.",
     "details.ssmOptional": "SSM registration number (optional)",
     "details.kycDeferHint": "Optional for now — you can upload your identity documents later from your Profile tab. Verified workers stand out to employers.",
     "details.kycOnlyTitle": "Complete identity verification",
@@ -1538,8 +1538,8 @@ const TRANSLATIONS = {
     "details.subtitleWorker": "Hanya beberapa butiran sebelum anda boleh mula membida syif. Ini diperlukan untuk bekerja secara sah di bawah undang-undang Malaysia.",
     "details.subtitleEmployer": "Hanya beberapa butiran sebelum anda boleh mula menyiarkan syif.",
     "details.companyContactName": "Nama syarikat / hubungan",
-    "details.companyNameFinalHint": "Ini ialah nama syarikat yang dipaparkan kepada pekerja pada senarai syif.",
-    "details.fullNameFinalHint": "Ini ialah nama yang dipaparkan kepada majikan apabila anda memohon syif.",
+    "details.companyNameFinalHint": "Ini ialah nama syarikat yang dipaparkan kepada pekerja pada senarai syif. Setelah disahkan, ia tidak boleh ditukar — hubungi khidmat pelanggan jika perlu diperbetulkan.",
+    "details.fullNameFinalHint": "Masukkan nama sah anda tepat seperti pada MyKad/pasport anda. Setelah disahkan, ia tidak boleh ditukar — hubungi khidmat pelanggan jika perlu diperbetulkan.",
     "details.ssmOptional": "Nombor pendaftaran SSM (pilihan)",
     "details.kycDeferHint": "Pilihan buat masa ini — anda boleh muat naik dokumen pengenalan kemudian dari tab Profil anda. Pekerja yang disahkan lebih menonjol kepada majikan.",
     "details.kycOnlyTitle": "Lengkapkan pengesahan identiti",
@@ -7468,6 +7468,45 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     )}
                   </div>
                 )}
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {view === "employerqueue" && (
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Employer Verification Queue</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
+              {employerQueue === null ? "Loading…" : `${employerQueue.length} pending verification${employerQueue.length !== 1 ? "s" : ""}`}
+            </div>
+            {employerQueue === null && (
+              <div style={{ color: BRAND.textMuted, padding: 16 }}>Loading...</div>
+            )}
+            {employerQueue?.length === 0 && (
+              <div style={{ color: BRAND.textMuted, padding: 16 }}>✅ No employers awaiting verification.</div>
+            )}
+            {employerQueue?.map(emp => (
+              <Card key={emp.id} style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>{emp.full_name || "Unnamed company"}</div>
+                    <div style={{ fontSize: 13, color: BRAND.text, marginTop: 4 }}>SSM: <strong>{emp.ssm_number || "—"}</strong></div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>
+                      Registered: {new Date(emp.created_at).toLocaleDateString("en-MY")} · {emp.id}
+                    </div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6, lineHeight: 1.5 }}>
+                      Check the SSM number against the official registry (ssm-einfo.my) before verifying — the number alone proves nothing.
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <Btn size="sm" variant="success" onClick={() => setEmployerVerification(emp.id, "verified")}>
+                      Verify
+                    </Btn>
+                    <Btn size="sm" variant="danger" onClick={() => setEmployerVerification(emp.id, "rejected")}>
+                      Reject
+                    </Btn>
+                  </div>
+                </div>
               </Card>
             ))}
           </div>
