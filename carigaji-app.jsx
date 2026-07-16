@@ -815,6 +815,16 @@ const TRANSLATIONS = {
     "employer.companyNamePlaceholder": "e.g. Grand Hyatt Kuala Lumpur",
     "employer.ssmNumberLabel": "SSM registration number",
     "employer.ssmNumberPlaceholder": "e.g. 1234567-A",
+    "auth.fieldSsmNumber": "SSM registration number *",
+    "auth.ssmFormatHint": "Enter a valid SSM number (12 digits, or up to 8 digits with a letter suffix).",
+    "auth.employerVerifyNote": "Your company details will be reviewed by our team. You can sign in right away, but posting shifts unlocks once verification is complete.",
+    "employer.verifyPendingTitle": "Verification pending",
+    "employer.verifyPendingBody": "Your SSM registration is under review. This usually takes 1-2 business days.",
+    "employer.verifyRejectedTitle": "Verification rejected",
+    "employer.verifyRejectedBody": "We couldn't verify your SSM registration. Please update your company details and contact support.",
+    "employer.verifyUnverifiedBody": "Submit your SSM registration number to unlock shift posting.",
+    "employer.verifyWorkflowSteps": "Submit SSM number → Admin review → Verified → Post shifts",
+    "employer.postingLockedToast": "Verify your company details before posting shifts.",
     "employer.contactEmailLabel": "Contact email",
     "employer.bankingSectionTitle": "Employer Banking (Salary Funding)",
     "employer.bankingSectionHint": "Funding account must be verified through SecureSign before payouts can move to ready state.",
@@ -853,6 +863,8 @@ const TRANSLATIONS = {
     "details.subtitleWorker": "Just a few details before you can start bidding on shifts. This is required to work legally under Malaysian law.",
     "details.subtitleEmployer": "Just a few details before you can start posting shifts.",
     "details.companyContactName": "Company / contact name",
+    "details.companyNameFinalHint": "This is the company name shown to workers on shift listings.",
+    "details.fullNameFinalHint": "This is the name shown to employers when you apply for shifts.",
     "details.ssmOptional": "SSM registration number (optional)",
     "details.kycDeferHint": "Optional for now — you can upload your identity documents later from your Profile tab. Verified workers stand out to employers.",
     "details.kycOnlyTitle": "Complete identity verification",
@@ -1478,6 +1490,16 @@ const TRANSLATIONS = {
     "employer.companyNamePlaceholder": "cth. Grand Hyatt Kuala Lumpur",
     "employer.ssmNumberLabel": "Nombor pendaftaran SSM",
     "employer.ssmNumberPlaceholder": "cth. 1234567-A",
+    "auth.fieldSsmNumber": "Nombor pendaftaran SSM *",
+    "auth.ssmFormatHint": "Masukkan nombor SSM yang sah (12 digit, atau sehingga 8 digit dengan huruf akhiran).",
+    "auth.employerVerifyNote": "Butiran syarikat anda akan disemak oleh pasukan kami. Anda boleh log masuk serta-merta, tetapi penyiaran syif hanya dibuka selepas pengesahan selesai.",
+    "employer.verifyPendingTitle": "Pengesahan tertunda",
+    "employer.verifyPendingBody": "Pendaftaran SSM anda sedang disemak. Ini biasanya mengambil masa 1-2 hari bekerja.",
+    "employer.verifyRejectedTitle": "Pengesahan ditolak",
+    "employer.verifyRejectedBody": "Kami tidak dapat mengesahkan pendaftaran SSM anda. Sila kemas kini butiran syarikat anda dan hubungi sokongan.",
+    "employer.verifyUnverifiedBody": "Hantar nombor pendaftaran SSM anda untuk membuka penyiaran syif.",
+    "employer.verifyWorkflowSteps": "Hantar nombor SSM → Semakan admin → Disahkan → Siarkan syif",
+    "employer.postingLockedToast": "Sahkan butiran syarikat anda sebelum menyiarkan syif.",
     "employer.contactEmailLabel": "E-mel hubungan",
     "employer.bankingSectionTitle": "Perbankan Majikan (Pembiayaan Gaji)",
     "employer.bankingSectionHint": "Akaun pembiayaan mesti disahkan melalui SecureSign sebelum bayaran boleh bersedia untuk dilepaskan.",
@@ -1516,6 +1538,8 @@ const TRANSLATIONS = {
     "details.subtitleWorker": "Hanya beberapa butiran sebelum anda boleh mula membida syif. Ini diperlukan untuk bekerja secara sah di bawah undang-undang Malaysia.",
     "details.subtitleEmployer": "Hanya beberapa butiran sebelum anda boleh mula menyiarkan syif.",
     "details.companyContactName": "Nama syarikat / hubungan",
+    "details.companyNameFinalHint": "Ini ialah nama syarikat yang dipaparkan kepada pekerja pada senarai syif.",
+    "details.fullNameFinalHint": "Ini ialah nama yang dipaparkan kepada majikan apabila anda memohon syif.",
     "details.ssmOptional": "Nombor pendaftaran SSM (pilihan)",
     "details.kycDeferHint": "Pilihan buat masa ini — anda boleh muat naik dokumen pengenalan kemudian dari tab Profil anda. Pekerja yang disahkan lebih menonjol kepada majikan.",
     "details.kycOnlyTitle": "Lengkapkan pengesahan identiti",
@@ -3329,19 +3353,34 @@ const AuthModal = ({
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email || "");
 
-  // Progressive sign-up: registration asks for role + email + password only.
-  // Everything else (name, phone, identity, DOB, address, KYC uploads, T&C)
+  // Progressive sign-up: workers register with just email + password;
+  // everything else (name, phone, identity, DOB, address, KYC uploads, T&C)
   // is collected after sign-up by the TnCGateModal → DetailsGateModal
   // sequence, so a new user gets into the app with minimal friction.
+  // Employers additionally declare a company name + SSM registration number
+  // UP FRONT — deliberately asymmetric, so "Hire workers" isn't a free
+  // checkbox anyone ticks on a whim: it demands a real business identity,
+  // which then feeds the admin verification queue (a DB trigger auto-queues
+  // any submitted SSM as pending_review; only an admin can mark verified).
+  const isEmployerSignup = form.accountRole === "employer";
+  // SSM number formats: new 12-digit (e.g. 202301012345) or classic
+  // registration number (digits + suffix letter, e.g. 1234567-X).
+  const ssmFormatOk = /^(\d{12}|\d{1,8}-[A-Za-z])$/.test((form.ssmNumber || "").trim());
   const REGISTER_FIELD_LABELS = {
     email: translate("auth.fieldEmail"),
     password: translate("auth.fieldPassword"),
     confirmPassword: translate("auth.fieldConfirmPassword"),
+    companyName: translate("employer.companyNameLabel"),
+    ssmNumber: translate("auth.fieldSsmNumber"),
   };
   const registerErrors = {
     email: !emailOk,
     password: !form.password,
     confirmPassword: !form.confirmPassword || form.password !== form.confirmPassword,
+    ...(isEmployerSignup ? {
+      companyName: !form.companyName?.trim(),
+      ssmNumber: !ssmFormatOk,
+    } : {}),
   };
   const hasRegisterErrors = Object.values(registerErrors).some(Boolean);
   const fieldError = k => showErrors && registerErrors[k];
@@ -3452,6 +3491,18 @@ const AuthModal = ({
                   ))}
                 </div>
               </div>
+              {isEmployerSignup && (
+                <>
+                  <Input label={translate("employer.companyNameLabel")} placeholder={translate("employer.companyNamePlaceholder")} value={form.companyName || ""} onChange={e => onChange("companyName", e.target.value)} error={fieldError("companyName")} />
+                  <Input label={translate("auth.fieldSsmNumber")} placeholder="202301012345 / 1234567-X" value={form.ssmNumber || ""} onChange={e => onChange("ssmNumber", e.target.value)} error={fieldError("ssmNumber")} />
+                  {form.ssmNumber?.trim() && !ssmFormatOk && (
+                    <div style={{ color: BRAND.red, fontSize: 12, marginTop: -10, marginBottom: 12 }}>{translate("auth.ssmFormatHint")}</div>
+                  )}
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -6, marginBottom: 14 }}>
+                    {translate("auth.employerVerifyNote")}
+                  </div>
+                </>
+              )}
               <Input label={translate("auth.emailAddressReq")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <PasswordInput label={translate("auth.passwordReq")} placeholder={translate("auth.createPassword")} value={form.password} onChange={e => onChange("password", e.target.value)} error={fieldError("password")} />
@@ -5387,13 +5438,36 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   // Employer's own profile (real name + reliability score for the dashboard
   // greeting/stats — replaces the old hardcoded "Grand Hyatt KL" demo copy).
+  const [employerProfileLoaded, setEmployerProfileLoaded] = useState(false);
   useEffect(() => {
     let active = true;
-    if (!user) { setEmployerProfile(null); return; }
-    supabase.from('profiles').select('full_name, reliability_score').eq('id', user.id).maybeSingle()
-      .then(({ data }) => { if (active) setEmployerProfile(data ?? null); });
+    if (!user) { setEmployerProfile(null); setEmployerProfileLoaded(false); return; }
+    setEmployerProfileLoaded(false);
+    supabase.from('profiles').select('full_name, reliability_score, ssm_number, employer_verification_status').eq('id', user.id).maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        setEmployerProfile(error ? null : (data ?? null));
+        setEmployerProfileLoaded(true);
+      });
     return () => { active = false; };
   }, [user]);
+
+  // Hard gate: posting shifts requires admin-verified SSM registration
+  // (employer_verification_status is admin-settable only, enforced by the
+  // guard trigger in 20260712b_employer_verification.sql, and by
+  // shifts_employer_insert in 20260716_require_verified_employer_for_shift_insert.sql).
+  // While the fetch is in flight (!employerProfileLoaded) we treat posting as
+  // allowed to avoid flashing the lock for already-verified employers; once
+  // loaded — whether it returned a row or errored — an unverified/errored
+  // state is gated, and the DB-level check is the real backstop either way.
+  const employerVerified = !employerProfileLoaded || employerProfile?.employer_verification_status === 'verified';
+  const verificationStatus = employerProfile?.employer_verification_status ?? 'unverified';
+  const guardPosting = () => {
+    if (employerVerified) return true;
+    toast(t('employer.postingLockedToast'), 'info');
+    setView('dashboard');
+    return false;
+  };
 
   // Real applicant counts per shift + a recent-activity feed, both computed
   // from live applications data (no mock numbers).
@@ -5445,6 +5519,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   // Start a fresh shift post (clears any edit state + form).
   const beginNewShift = () => {
+    if (!guardPosting()) return;
     setEditingShiftId(null);
     setSelectedShift(null);
     setForm({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
@@ -5454,6 +5529,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   // Start a fresh bulk-upload session (create-only, no edit path).
   const beginBulkUpload = () => {
+    if (!guardPosting()) return;
     setBulkUploadStep(1);
     setBulkUploadRows([]);
     setBulkUploadFileName("");
@@ -5950,7 +6026,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         )}
       </div>
       {navItems.map(n => (
-        <button key={n.id} onClick={() => { setView(n.id); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); if (compact) setSidebarOpen(false); }}
+        <button key={n.id} onClick={() => { if ((n.id === "postshift" || n.id === "bulkupload") && !guardPosting()) { if (compact) setSidebarOpen(false); return; } setView(n.id); setSelectedShift(null); setPostStep(1); setEditingShiftId(null); if (compact) setSidebarOpen(false); }}
           style={{
             display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
             background: view === n.id ? BRAND.primaryLight : "none",
@@ -6001,6 +6077,26 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("employer.dashboardTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.goodMorning")}{employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
+            {/* Verification workflow banner — posting is hard-gated on admin
+                SSM verification, so the employer always sees exactly where
+                they are in the process and what happens next. */}
+            {employerProfile && verificationStatus !== 'verified' && (
+              <Card style={{ marginBottom: 20, border: `1.5px solid ${verificationStatus === 'rejected' ? BRAND.red : BRAND.amber}`, background: verificationStatus === 'rejected' ? BRAND.redLight : BRAND.amberLight }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, marginBottom: 6 }}>
+                  {verificationStatus === 'rejected' ? t("employer.verifyRejectedTitle") : t("employer.verifyPendingTitle")}
+                </div>
+                <div style={{ fontSize: 12.5, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, lineHeight: 1.6 }}>
+                  {verificationStatus === 'rejected'
+                    ? t("employer.verifyRejectedBody")
+                    : verificationStatus === 'pending_review'
+                      ? t("employer.verifyPendingBody")
+                      : t("employer.verifyUnverifiedBody")}
+                </div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.6 }}>
+                  {t("employer.verifyWorkflowSteps")}
+                </div>
+              </Card>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open").length} color={BRAND.primary} />
               <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
@@ -6470,6 +6566,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     <Btn variant="secondary" onClick={() => setPostStep(2)} style={{ flex: 1, justifyContent: "center" }}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></Btn>
                     <Btn onClick={async () => {
                       if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
+                      if (!editingShiftId && !guardPosting()) return;
                       const reason = validateOccurrences(form.occurrences);
                       if (!form.title || reason) {
                         toast(t('toast.shiftFieldsRequired'), 'error'); return;
@@ -6961,11 +7058,12 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [payoutRunning, setPayoutRunning] = useState(false);
   const [payoutMessage, setPayoutMessage] = useState("");
   const [kycQueue, setKycQueue] = useState(null);
+  const [employerQueue, setEmployerQueue] = useState(null);
   const [kycSignedUrls, setKycSignedUrls] = useState({});
   const [overviewStats, setOverviewStats] = useState(null);
   const [disputesQueue, setDisputesQueue] = useState(null);
 
-  const navItems = ["Overview", "KYC Queue", "Disputes", "Flags", "Payouts", "Config"];
+  const navItems = ["Overview", "KYC Queue", "Employer Queue", "Disputes", "Flags", "Payouts", "Config"];
 
   const FLAGS = [
     { id: 1, user: "Wei Jian Lim", type: "GPS mismatch", riskScore: 87, shift: "Warehouse Packer – Shah Alam", time: "3 hours ago", status: "open" },
@@ -7004,6 +7102,31 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setKycQueue(pending || []);
     })();
   }, [view]);
+
+  // Employer SSM verification queue — mirrors the KYC queue pattern. Rows
+  // land here automatically: the guard trigger in
+  // 20260712b_employer_verification.sql flips any non-admin SSM submission
+  // to pending_review, and only an admin JWT may set verified/rejected.
+  useEffect(() => {
+    if (!supabase || (view !== "employerqueue" && view !== "overview")) return;
+    (async () => {
+      setEmployerQueue(null);
+      const { data: pending, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, ssm_number, employer_verification_status, created_at")
+        .eq("employer_verification_status", "pending_review")
+        .order("created_at", { ascending: true });
+      if (error) { setEmployerQueue([]); return; }
+      setEmployerQueue(pending || []);
+    })();
+  }, [view]);
+
+  const setEmployerVerification = async (userId, status) => {
+    const { error } = await supabase.from("profiles").update({ employer_verification_status: status }).eq("id", userId);
+    if (error) { toast(`Failed to update: ${error.message}`, "error"); return; }
+    setEmployerQueue(prev => (prev ?? []).filter(u => u.id !== userId));
+    toast(status === "verified" ? "Employer verified." : "Employer verification rejected.", "success");
+  };
 
   useEffect(() => {
     if (!supabase || (view !== "disputes" && view !== "overview")) return;
@@ -7198,7 +7321,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primary} />
               <Stat label="Payout queue" value="Coming soon" sub="Escrow/payout not built yet" color={BRAND.textMuted} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
               <Card>
                 <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>KYC Queue</div>
                 {kycQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
@@ -7210,6 +7333,18 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                 ))}
                 <Btn size="xs" variant="secondary" onClick={() => setView("kycqueue")} style={{ marginTop: 10 }}>View all →</Btn>
+              </Card>
+              <Card>
+                <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>Employer Queue</div>
+                {employerQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+                {employerQueue?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>No pending submissions.</div>}
+                {employerQueue?.slice(0, 3).map(e => (
+                  <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                    <div style={{ fontSize: 13, color: BRAND.text }}>{e.full_name || "Unnamed employer"}</div>
+                    <Badge color="amber" size="xs">pending</Badge>
+                  </div>
+                ))}
+                <Btn size="xs" variant="secondary" onClick={() => setView("employerqueue")} style={{ marginTop: 10 }}>View all →</Btn>
               </Card>
               <Card>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -8007,6 +8142,20 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
   const [idOcr, setIdOcr] = useState({ status: "idle" });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  // Employers already declared company name + SSM at sign-up (they're
+  // required fields on the register form); seed them here so the details
+  // step doesn't ask twice. Metadata is the fallback that survives the
+  // email-confirmation flow, where no profiles row exists yet.
+  useEffect(() => {
+    if (!open || !user) return;
+    setForm(f => ({
+      ...f,
+      fullName: f.fullName || user.user_metadata?.company_name || "",
+      ssmNumber: f.ssmNumber || user.user_metadata?.ssm_number || "",
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, user?.id]);
+
   // Legal working age gate — Malaysia; platform T&C requires 18+.
   const LEGAL_WORKING_AGE = 18;
   const ageFromDob = dob => {
@@ -8152,7 +8301,10 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
         <div style={{ overflowY: "auto", flex: 1, paddingRight: 4 }}>
           {!kycOnly && (
             <>
-              <Input label={isEmployer ? t("details.companyContactName") : t("auth.fullName")} placeholder={isEmployer ? t("employer.companyNamePlaceholder") : t("auth.fullNamePlaceholder")} value={form.fullName} onChange={e => set("fullName", e.target.value)} error={fieldError("fullName")} />
+              <Input label={isEmployer ? t("details.companyContactName") : t("auth.fullName")} placeholder={isEmployer ? t("employer.companyNamePlaceholder") : t("auth.fullNamePlaceholder")} value={form.fullName} onChange={e => set("fullName", e.target.value)} error={fieldError("fullName")} style={{ marginBottom: 4 }} />
+              <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 14 }}>
+                {isEmployer ? t("details.companyNameFinalHint") : t("details.fullNameFinalHint")}
+              </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("auth.phoneNumber")}</label>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 6 }}>
@@ -8381,6 +8533,8 @@ export default function CariGaji() {
     password: "",
     confirmPassword: "",
     accountRole: "worker",
+    companyName: "",
+    ssmNumber: "",
     identityType: "MyKad",
     idNumber: "",
     dateOfBirth: "",
@@ -8456,18 +8610,26 @@ export default function CariGaji() {
     setAuthLoading(true);
     setAuthMessage("");
     const role = authForm.accountRole === "employer" ? "employer" : "worker";
-    // Progressive sign-up: only role + email + password here. Name, phone,
-    // identity, address, and KYC uploads are collected post-signup by the
-    // DetailsGateModal (after the T&C gate). The chosen role rides along in
-    // auth metadata so it survives the email-confirmation flow, where no
-    // session exists yet and the profiles upsert below never runs — the
-    // DetailsGateModal falls back to it when it creates the profile row.
+    const isEmployer = role === "employer";
+    // Progressive sign-up: workers give only email + password here; the rest
+    // is collected post-signup by the DetailsGateModal (after the T&C gate).
+    // Employers additionally declare company name + SSM number up front —
+    // submitting an SSM auto-queues the profile as pending_review via the DB
+    // trigger in 20260712b_employer_verification.sql (only an admin can set
+    // 'verified'), and posting shifts is hard-gated on that verification.
+    // Everything also rides in auth metadata so it survives the
+    // email-confirmation flow, where no session exists yet and the profiles
+    // upsert below never runs — the DetailsGateModal falls back to metadata
+    // when it creates the profile row.
     const { data, error } = await supabase.auth.signUp({
       email: authForm.email,
       password: authForm.password,
       options: {
         emailRedirectTo: authRedirectUrl,
-        data: { account_role: role },
+        data: {
+          account_role: role,
+          ...(isEmployer ? { company_name: authForm.companyName.trim(), ssm_number: authForm.ssmNumber.trim() } : {}),
+        },
       },
     });
     if (error) {
@@ -8479,10 +8641,15 @@ export default function CariGaji() {
     const registeredUserId = data?.user?.id;
     const hasSession = Boolean(data?.session);
     if (registeredUserId && hasSession) {
-      await supabase.from("profiles").upsert(
-        { id: registeredUserId, role },
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          id: registeredUserId,
+          role,
+          ...(isEmployer ? { full_name: authForm.companyName.trim(), ssm_number: authForm.ssmNumber.trim() } : {}),
+        },
         { onConflict: "id" }
       );
+      if (profileError) setAuthMessage(profileError.message);
     } else {
       setAuthMessage("Registration submitted. Check your email to confirm your account, then sign in.");
     }
