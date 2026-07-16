@@ -46,6 +46,13 @@ create trigger profiles_guard_kyc_level
 before insert or update on public.profiles
 for each row execute function public.guard_kyc_level();
 
-alter table public.user_private
-  add constraint user_private_worker_min_age
-    check (date_of_birth is null or date_of_birth <= (current_date - interval '18 years'));
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'user_private_worker_min_age'
+  ) then
+    alter table public.user_private
+      add constraint user_private_worker_min_age
+        check (date_of_birth is null or date_of_birth <= (current_date - interval '18 years'));
+  end if;
+end $$;
