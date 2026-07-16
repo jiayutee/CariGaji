@@ -2385,7 +2385,7 @@ const notificationTimeAgo = (iso, t) => {
   return new Date(iso).toLocaleDateString("en-MY");
 };
 
-const NotificationBell = ({ user }) => {
+const NotificationBell = ({ user, onNavigate = () => {} }) => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
@@ -2456,6 +2456,14 @@ const NotificationBell = ({ user }) => {
     await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
 
+  const handleNotificationClick = (n) => {
+    markRead(n.id);
+    if (n.link) {
+      setOpen(false);
+      onNavigate(n.link);
+    }
+  };
+
   const markAllRead = async () => {
     const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
     if (unreadIds.length === 0) return;
@@ -2521,7 +2529,7 @@ const NotificationBell = ({ user }) => {
                 <button
                   key={n.id}
                   role="menuitem"
-                  onClick={() => markRead(n.id)}
+                  onClick={() => handleNotificationClick(n)}
                   style={{
                     width: "100%", display: "flex", alignItems: "flex-start", gap: 8,
                     padding: "10px 14px", border: "none", borderBottom: `1px solid ${BRAND.border}`,
@@ -3491,7 +3499,7 @@ const DISPUTE_CATEGORIES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -3880,6 +3888,51 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       .catch(() => { if (active) setLiveShifts([]); });
     return () => { active = false; };
   }, [user]);
+
+  // Deep link from a clicked notification (e.g. "bid accepted") — the target
+  // shift may no longer be status 'open', so it can't be found in liveShifts
+  // and needs its own by-id fetch.
+  useEffect(() => {
+    if (!deepLinkShift?.shiftId) return undefined;
+    let active = true;
+    supabase
+      .from('shifts')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, transport_allowance, language_requirements, employer_id, employer:profiles(full_name, reliability_score)')
+      .eq('id', deepLinkShift.shiftId)
+      .maybeSingle()
+      .then(({ data: s }) => {
+        if (!active || !s) return;
+        setSelectedShift({
+          id: s.id,
+          title: s.title,
+          description: s.description || '',
+          category: s.category,
+          employer: s.employer?.full_name || 'Employer',
+          employerId: s.employer_id ?? null,
+          reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
+          location: s.location,
+          occurrences: s.occurrences ?? [],
+          isMultiDay: (s.occurrences ?? []).length > 1,
+          time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
+          hours: totalOccurrenceHours(s.occurrences) || (s.start_at && s.end_at ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000) : 0),
+          wageMin: Number(s.wage_min),
+          wageMax: Number(s.wage_max),
+          headcount: s.headcount,
+          filled: s.filled_count,
+          status: s.status,
+          addressVisibility: s.address_visibility || 'public',
+          totalApplicants: s.applicant_count ?? 0,
+          dress: s.dress_code || '',
+          languageRequirements: s.language_requirements || [],
+          stipend: Number(s.transport_allowance) || 0,
+          startTime: shiftHHMM(s.start_at),
+          endTime: shiftHHMM(s.end_at),
+          date: formatShiftDate(s.start_at),
+        });
+        setTab('applications');
+      });
+    return () => { active = false; };
+  }, [deepLinkShift]);
 
   useEffect(() => {
     let active = true;
@@ -5197,7 +5250,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 };
 
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
-const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null }) => {
+const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [view, setView] = useState("dashboard");
@@ -5298,6 +5351,39 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   }, [user]);
 
   useEffect(() => { loadEmployerShifts(); }, [loadEmployerShifts]);
+
+  // Deep link from a clicked notification (e.g. "new bid received").
+  useEffect(() => {
+    if (!deepLinkShift?.shiftId || !user) return undefined;
+    let active = true;
+    supabase
+      .from('shifts')
+      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements')
+      .eq('id', deepLinkShift.shiftId)
+      .eq('employer_id', user.id)
+      .maybeSingle()
+      .then(({ data: s }) => {
+        if (!active || !s) return;
+        setSelectedShift({
+          id: s.id,
+          title: s.title,
+          startAt: s.start_at,
+          occurrences: s.occurrences ?? [],
+          isMultiDay: (s.occurrences ?? []).length > 1,
+          date: formatShiftDate(s.start_at) || 'TBA',
+          time: s.start_at && s.end_at ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
+          headcount: s.headcount ?? 1,
+          filled: s.filled_count ?? 0,
+          applicants: 0,
+          status: s.status,
+          escrow: 0,
+          category: s.category,
+          languageRequirements: s.language_requirements || [],
+        });
+        setView('shifts');
+      });
+    return () => { active = false; };
+  }, [deepLinkShift, user]);
 
   // Employer's own profile (real name + reliability score for the dashboard
   // greeting/stats — replaces the old hardcoded "Grand Hyatt KL" demo copy).
@@ -8249,6 +8335,17 @@ export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
   const [userRole, setUserRole] = useState(null);
   const [homeSignal, setHomeSignal] = useState(0);
+  // Set when a notification with a "/worker/shifts/{id}" or
+  // "/employer/shifts/{id}" link is clicked. nonce always increments so the
+  // target portal's effect re-fires even on a repeat click of the same link.
+  const [notifDeepLink, setNotifDeepLink] = useState(null);
+  const handleNotificationNavigate = (link) => {
+    const match = /^\/(worker|employer)\/shifts\/([^/]+)$/.exec(link || "");
+    if (!match) return;
+    const [, targetPortal, shiftId] = match;
+    setPortal(targetPortal);
+    setNotifDeepLink(prev => ({ shiftId, nonce: (prev?.nonce ?? 0) + 1 }));
+  };
   const [themePreference, setThemePreference] = useState(() => readThemePreference());
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
   const [user, setUser] = useState(null);
@@ -8612,7 +8709,7 @@ export default function CariGaji() {
               </Badge>
             )}
             <ThemeToggleButton themePreference={themePreference} onClick={() => setThemePreference(current => cycleThemePreference(current))} />
-            {user && <NotificationBell user={user} />}
+            {user && <NotificationBell user={user} onNavigate={handleNotificationNavigate} />}
             {user ? (
               <ProfileMenu
                 user={user}
@@ -8625,8 +8722,8 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} backHandlerRef={backHandlerRef} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} />}
           {portal === "admin" && (
             isAdmin
               ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
