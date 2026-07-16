@@ -307,6 +307,9 @@ const TRANSLATIONS = {
     "toast.applicationFailed": "Failed to submit application: ",
     "toast.signFailed": "Failed to sign: ",
     "toast.contractSigned": "✅ Contract signed! You can now chat with your employer.",
+    "toast.cancellationContractSigned": "✅ Cancellation contract signed — your 50% payout is on its way.",
+    "toast.showUpProofSubmitted": "✅ Proof submitted — your full payout is on its way.",
+    "toast.showUpProofFailed": "Failed to submit proof: ",
     "toast.updateFailed": "Update failed: ",
     "toast.escrowTopupUnavailable": "Adding funds isn’t available yet — coming with FPX/DuitNow integration.",
     "toast.signInToPostShift": "Sign in to post a shift.",
@@ -389,6 +392,15 @@ const TRANSLATIONS = {
     "myBids.signContractBtn": "✍️ Sign Contract",
     "myBids.contractSignedBadge": "✅ Contract signed",
     "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
+    "myBids.lateCancellationTitle": "This shift was cancelled less than 24 hours before it started",
+    "myBids.lateCancellationBody": "Choose to sign a 50% cancellation payout now, or show up in person and submit a photo for 100% of your agreed wage.",
+    "myBids.cancellation50Btn": "Sign cancellation contract (50%)",
+    "myBids.cancellationShowUpLabel": "Show up for full pay (100%)",
+    "myBids.cancellationShowUpHint": "Take a photo of yourself at the shift location to claim full payout.",
+    "myBids.cancellationProofUploading": "Uploading proof…",
+    "myBids.cancellationChose50": "You chose the 50% cancellation payout. It's on its way.",
+    "myBids.cancellationProofSubmitted": "Proof submitted — your full payout is on its way.",
+    "myBids.cancellationAwaitingProof": "You chose to show up — take a photo at the location to claim your full payout.",
     "myBids.selectedNotice": "🎉 You've been selected! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.",
     "myBids.offerExpiredNotice": "This offer expired because it wasn't confirmed in time.",
     "myBids.cancelling": "Cancelling…",
@@ -748,6 +760,14 @@ const TRANSLATIONS = {
     "employer.listCardLanguages": "Languages: {languages}",
     "employer.toastLoadShiftFailed": "Could not load shift for editing.",
     "employer.confirmCancelShift": "Cancel \"{title}\"? All applicants will be notified.",
+    "employer.lateCancelWarningTitle": "⚠️ Late cancellation",
+    "employer.lateCancelWarningBody": "This shift starts in less than 24 hours and has {count} confirmed worker(s). Cancelling now will offer each of them a choice: a 50% payout with no show-up, or the option to show up in person for 100% of their agreed wage.",
+    "employer.lateCancelWarningConfirmBtn": "Cancel shift anyway",
+    "employer.cancellationOutcomesTitle": "Cancellation outcomes",
+    "employer.cancellationAwaitingChoice": "Awaiting choice",
+    "employer.cancellationTook50": "Took 50% payout",
+    "employer.cancellationShowedUp100": "Showed up — 100% paid",
+    "employer.cancellationAwaitingProofEmployer": "Chose to show up — awaiting proof",
     "employer.toastCancelShiftFailed": "Failed to cancel shift: ",
     "employer.toastShiftCancelled": "Shift cancelled. Applicants have been notified.",
     "employer.statAppliedUsers": "Applied users",
@@ -910,6 +930,12 @@ const TRANSLATIONS = {
     "contract.workerClause5": "This is a casual short-term engagement. You are responsible for declaring your own income tax to LHDN if applicable.",
     "contract.workerClause6": "CariGaji acts as a marketplace intermediary and is not your employer.",
     "contract.workerClause7": "Governed by Malaysian law including the Employment Act 1955.",
+    "contract.cancellationTitle": "📄 Cancellation Payout Contract",
+    "contract.cancellationHeading": "CariGaji Platform — Shift Cancellation Agreement",
+    "contract.cancellationClause1": "The employer cancelled this shift less than 24 hours before it was due to start.",
+    "contract.cancellationClause2": "By signing, you accept a one-time payout of 50% of your agreed wage for this shift, and release the employer from any further obligation for it.",
+    "contract.cancellationClause3": "You will not attend the shift location for this engagement.",
+    "contract.cancellationClause4": "This payout is processed the same way as your other CariGaji earnings — see your Earnings tab for status.",
     "contract.signBtn": "✍️ I have read and agree — Sign",
     "contract.employerTitle": "📄 Employment Contract",
     "contract.employerSubtitle": "Auto-generated upon bid acceptance. Both parties must sign.",
@@ -982,6 +1008,9 @@ const TRANSLATIONS = {
     "toast.applicationFailed": "Gagal hantar permohonan: ",
     "toast.signFailed": "Gagal tandatangan: ",
     "toast.contractSigned": "✅ Kontrak ditandatangani! Anda kini boleh berbual dengan majikan.",
+    "toast.cancellationContractSigned": "✅ Kontrak pembatalan ditandatangani — bayaran 50% anda sedang diproses.",
+    "toast.showUpProofSubmitted": "✅ Bukti dihantar — bayaran penuh anda sedang diproses.",
+    "toast.showUpProofFailed": "Gagal menghantar bukti: ",
     "toast.updateFailed": "Gagal kemas kini: ",
     "toast.escrowTopupUnavailable": "Tambah dana belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
     "toast.signInToPostShift": "Log masuk untuk siarkan syif.",
@@ -1064,6 +1093,15 @@ const TRANSLATIONS = {
     "myBids.signContractBtn": "✍️ Tandatangan Kontrak",
     "myBids.contractSignedBadge": "✅ Kontrak ditandatangani",
     "myBids.shiftCancelledNotice": "Syif ini telah dibatalkan oleh majikan. Tiada tindakan lanjut diperlukan.",
+    "myBids.lateCancellationTitle": "Syif ini dibatalkan kurang daripada 24 jam sebelum ia bermula",
+    "myBids.lateCancellationBody": "Pilih untuk menandatangani bayaran pembatalan 50% sekarang, atau hadir secara peribadi dan hantar foto untuk 100% daripada gaji yang dipersetujui.",
+    "myBids.cancellation50Btn": "Tandatangan kontrak pembatalan (50%)",
+    "myBids.cancellationShowUpLabel": "Hadir untuk bayaran penuh (100%)",
+    "myBids.cancellationShowUpHint": "Ambil foto diri anda di lokasi syif untuk menuntut bayaran penuh.",
+    "myBids.cancellationProofUploading": "Memuat naik bukti…",
+    "myBids.cancellationChose50": "Anda memilih bayaran pembatalan 50%. Ia sedang diproses.",
+    "myBids.cancellationProofSubmitted": "Bukti dihantar — bayaran penuh anda sedang diproses.",
+    "myBids.cancellationAwaitingProof": "Anda memilih untuk hadir — ambil foto di lokasi untuk menuntut bayaran penuh anda.",
     "myBids.selectedNotice": "🎉 Anda telah dipilih! Sahkan atau tolak sebelum tarikh akhir di atas — jika anda tidak bertindak balas tepat pada masanya, tawaran akan dilepaskan secara automatik kembali kepada majikan.",
     "myBids.offerExpiredNotice": "Tawaran ini telah tamat tempoh kerana tidak disahkan tepat pada masanya.",
     "myBids.cancelling": "Membatalkan…",
@@ -1423,6 +1461,14 @@ const TRANSLATIONS = {
     "employer.listCardLanguages": "Bahasa: {languages}",
     "employer.toastLoadShiftFailed": "Tidak dapat memuatkan syif untuk disunting.",
     "employer.confirmCancelShift": "Batalkan \"{title}\"? Semua pemohon akan dimaklumkan.",
+    "employer.lateCancelWarningTitle": "⚠️ Pembatalan lewat",
+    "employer.lateCancelWarningBody": "Syif ini bermula kurang daripada 24 jam lagi dan mempunyai {count} pekerja yang disahkan. Membatalkan sekarang akan menawarkan setiap seorang pilihan: bayaran 50% tanpa perlu hadir, atau pilihan untuk hadir secara peribadi bagi 100% daripada gaji yang dipersetujui.",
+    "employer.lateCancelWarningConfirmBtn": "Batalkan syif juga",
+    "employer.cancellationOutcomesTitle": "Hasil pembatalan",
+    "employer.cancellationAwaitingChoice": "Menunggu pilihan",
+    "employer.cancellationTook50": "Menerima bayaran 50%",
+    "employer.cancellationShowedUp100": "Hadir — 100% dibayar",
+    "employer.cancellationAwaitingProofEmployer": "Memilih untuk hadir — menunggu bukti",
     "employer.toastCancelShiftFailed": "Gagal membatalkan syif: ",
     "employer.toastShiftCancelled": "Syif dibatalkan. Pemohon telah dimaklumkan.",
     "employer.statAppliedUsers": "Pengguna memohon",
@@ -1585,6 +1631,12 @@ const TRANSLATIONS = {
     "contract.workerClause5": "Ini adalah penglibatan kasual jangka pendek. Anda bertanggungjawab untuk mengisytiharkan cukai pendapatan anda sendiri kepada LHDN jika berkenaan.",
     "contract.workerClause6": "CariGaji bertindak sebagai orang tengah pasaran dan bukan majikan anda.",
     "contract.workerClause7": "Tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955.",
+    "contract.cancellationTitle": "📄 Kontrak Bayaran Pembatalan",
+    "contract.cancellationHeading": "Platform CariGaji — Perjanjian Pembatalan Syif",
+    "contract.cancellationClause1": "Majikan membatalkan syif ini kurang daripada 24 jam sebelum ia dijadualkan bermula.",
+    "contract.cancellationClause2": "Dengan menandatangani, anda menerima bayaran sekali sahaja sebanyak 50% daripada gaji yang dipersetujui untuk syif ini, dan membebaskan majikan daripada sebarang kewajipan selanjutnya untuknya.",
+    "contract.cancellationClause3": "Anda tidak akan hadir di lokasi syif untuk penugasan ini.",
+    "contract.cancellationClause4": "Bayaran ini diproses dengan cara yang sama seperti pendapatan CariGaji anda yang lain — lihat tab Pendapatan anda untuk status.",
     "contract.signBtn": "✍️ Saya telah membaca dan bersetuju — Tandatangan",
     "contract.employerTitle": "📄 Kontrak Pekerjaan",
     "contract.employerSubtitle": "Dijana secara automatik selepas tawaran diterima. Kedua-dua pihak perlu menandatangani.",
@@ -1763,16 +1815,25 @@ const validateMalaysianBankAccount = (bankName, accountNumber) => {
 
 const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 
+// Shared by the offer-deadline scaling below and the late-cancellation
+// 24-hour threshold check — how many hours from now until a shift starts.
+// Defaults to a large number (effectively "far away") when no start time is
+// known yet, so callers don't need a separate null-check.
+const hoursUntilShift = (shiftStartAt) => {
+  const now = Date.now();
+  const start = shiftStartAt ? new Date(shiftStartAt).getTime() : now + 999 * 3600000;
+  return (start - now) / 3600000;
+};
+
 // Confirm-or-decline window for a shift offer, scaled to how soon the shift
 // starts: >2 days away -> 24h to respond, 1-2 days -> 6h, <1 day -> 2h.
 // Always capped so the window can never extend past the shift's start time
 // (with a 30min safety buffer, floor of 15min so a window is never zero).
 const computeOfferDeadline = (shiftStartAt) => {
   const now = Date.now();
-  const start = shiftStartAt ? new Date(shiftStartAt).getTime() : now + 999 * 3600000;
-  const hoursUntilShift = (start - now) / 3600000;
-  let windowHours = hoursUntilShift > 48 ? 24 : hoursUntilShift > 24 ? 6 : 2;
-  const cappedByShift = Math.max(0.25, hoursUntilShift - 0.5);
+  const hours = hoursUntilShift(shiftStartAt);
+  let windowHours = hours > 48 ? 24 : hours > 24 ? 6 : 2;
+  const cappedByShift = Math.max(0.25, hours - 0.5);
   windowHours = Math.min(windowHours, cappedByShift);
   return new Date(now + windowHours * 3600000).toISOString();
 };
@@ -2783,6 +2844,7 @@ const assignKYCLevel = (hasFront, hasBack, hasSelfie, hasSupportingDoc) => {
 
 const KYC_BUCKET = "kyc-documents";
 const AVATAR_BUCKET = "avatars";
+const CANCELLATION_PROOF_BUCKET = "cancellation-proof";
 
 // Downscale + re-encode images client-side before upload to cut storage cost.
 const compressImage = (file, maxDim = 1280, quality = 0.82) =>
@@ -2841,6 +2903,21 @@ const uploadKycFile = async (userId, file, label) => {
   const path = `${userId}/${Date.now()}-${label}-${safeName}`;
   const { error } = await supabase.storage.from(KYC_BUCKET).upload(path, toUpload, {
     contentType: toUpload.type || "application/octet-stream",
+    upsert: true,
+  });
+  if (error) throw error;
+  return path;
+};
+
+// Keyed by application id (not worker id, like KYC) since the employer for
+// that specific shift also needs read access — see
+// 20260711d_cancellation_proof_bucket.sql for the matching RLS.
+const uploadCancellationProof = async (applicationId, file) => {
+  if (!file) return null;
+  const compressed = await compressImage(file, 1600, 0.8);
+  const path = `${applicationId}/${Date.now()}-proof.jpg`;
+  const { error } = await supabase.storage.from(CANCELLATION_PROOF_BUCKET).upload(path, compressed, {
+    contentType: "image/jpeg",
     upsert: true,
   });
   if (error) throw error;
@@ -3634,6 +3711,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const chatEndRef = useRef(null);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
   const [workerContractModal, setWorkerContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk, employerName }
+  const [cancellationContractModal, setCancellationContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk }
+  const [cancellationProofUploading, setCancellationProofUploading] = useState(null); // applicationId currently uploading, or null
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
@@ -3647,6 +3726,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     backHandlerRef.current = () => {
       if (showBidModal) { setShowBidModal(false); return true; }
       if (workerContractModal) { setWorkerContractModal(null); return true; }
+      if (cancellationContractModal) { setCancellationContractModal(null); return true; }
       if (disputeModal) { setDisputeModal(null); return true; }
       if (activeChatShift) { setActiveChatShift(null); setChatMessages([]); return true; }
       if (selectedApplication) { setSelectedApplication(null); return true; }
@@ -3785,7 +3865,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -3803,6 +3883,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         appliedAt: a.applied_at,
         offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
+        cancellationChoice: a.cancellation_choice ?? null,
+        cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
+        cancellationProofPath: a.cancellation_proof_path ?? null,
         shiftId: a.shift_id ?? a.shift?.id ?? null,
         employerId: a.shift?.employer_id ?? null,
         shiftStartAt: a.shift?.start_at ?? null,
@@ -3833,6 +3916,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     stale.forEach(a => {
       supabase.from('applications').update({ status: 'expired' }).eq('id', a.id).then(({ error }) => {
         if (!error) setLiveApplications(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, status: 'expired' } : x));
+      });
+    });
+  }, [liveApplications]);
+
+  // Same lazy-expiry pattern for the late-cancellation choice: default any
+  // unanswered choice to the 50% contract once the deadline has passed
+  // (permitted by applications_cancellation_choice_expire).
+  useEffect(() => {
+    const stale = (liveApplications ?? []).filter(a => a.cancellationChoiceDeadline && !a.cancellationChoice && new Date(a.cancellationChoiceDeadline) < new Date());
+    if (stale.length === 0) return;
+    stale.forEach(a => {
+      supabase.from('applications').update({ cancellation_choice: 'contract_50' }).eq('id', a.id).then(({ error }) => {
+        if (!error) setLiveApplications(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, cancellationChoice: 'contract_50' } : x));
       });
     });
   }, [liveApplications]);
@@ -3870,6 +3966,39 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     toast(t('toast.bidCancelled'), 'success');
     setLiveApplications(prev => (prev ?? []).filter(a => a.id !== applicationId));
     setSelectedApplication(null);
+  };
+
+  // Worker chooses to show up for full pay: sets cancellation_choice first
+  // (RLS: applications_worker_cancellation_choice, only while a deadline is
+  // stamped and no choice made yet), then uploads the proof photo and sets
+  // cancellation_proof_path (RLS: applications_worker_cancellation_proof).
+  // The payout itself is created server-side by trg_create_cancellation_payout
+  // once the proof path lands — never trust a client-computed amount.
+  const submitShowUpProof = async (applicationId, file) => {
+    if (!file) return;
+    setCancellationProofUploading(applicationId);
+    try {
+      const { error: choiceError } = await supabase
+        .from('applications')
+        .update({ cancellation_choice: 'show_up_100' })
+        .eq('id', applicationId);
+      if (choiceError) throw choiceError;
+
+      const path = await uploadCancellationProof(applicationId, file);
+      const { error: proofError } = await supabase
+        .from('applications')
+        .update({ cancellation_proof_path: path })
+        .eq('id', applicationId);
+      if (proofError) throw proofError;
+
+      toast(t('toast.showUpProofSubmitted'), 'success');
+      setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, cancellationChoice: 'show_up_100', cancellationProofPath: path } : a));
+      setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, cancellationChoice: 'show_up_100', cancellationProofPath: path } : prev);
+    } catch (err) {
+      toast(t('toast.showUpProofFailed') + (err?.message || ''), 'error');
+    } finally {
+      setCancellationProofUploading(null);
+    }
   };
 
   // File a dispute on a completed shift. Text-only evidence (category +
@@ -4700,9 +4829,47 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               />
               {a.shiftCategory && <Badge color="amber">{a.shiftCategory}</Badge>}
             </div>
-            {a.shiftStatus === "cancelled" && (
+            {a.shiftStatus === "cancelled" && !a.cancellationChoiceDeadline && (
               <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
                 {t("myBids.shiftCancelledNotice")}
+              </div>
+            )}
+            {a.shiftStatus === "cancelled" && a.cancellationChoiceDeadline && !a.cancellationChoice && (
+              <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.red}` }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.red, marginBottom: 4 }}>{t("myBids.lateCancellationTitle")}</div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>
+                  {t("myBids.lateCancellationBody")}
+                </div>
+                <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 12 }}>
+                  {t("myBids.respondByPrefix")}{new Date(a.cancellationChoiceDeadline).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.cancellationChoiceDeadline).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                  <Btn variant="secondary" style={{ flex: 1, justifyContent: "center" }}
+                    onClick={() => setCancellationContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid })}>
+                    {t("myBids.cancellation50Btn")}
+                  </Btn>
+                </div>
+                <label style={{ display: "block" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.cancellationShowUpLabel")}</div>
+                  <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 8 }}>{t("myBids.cancellationShowUpHint")}</div>
+                  <input
+                    type="file" accept="image/*" capture="environment"
+                    disabled={cancellationProofUploading === a.id}
+                    onChange={e => { const f = e.target.files?.[0]; if (f) submitShowUpProof(a.id, f); e.target.value = ""; }}
+                    style={{ fontSize: 12 }}
+                  />
+                  {cancellationProofUploading === a.id && <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>{t("myBids.cancellationProofUploading")}</div>}
+                </label>
+              </Card>
+            )}
+            {a.shiftStatus === "cancelled" && a.cancellationChoice === "contract_50" && (
+              <div style={{ padding: "10px 14px", background: BRAND.grayLight, borderRadius: 10, fontSize: 12, color: BRAND.text, marginBottom: 16 }}>
+                {t("myBids.cancellationChose50")}
+              </div>
+            )}
+            {a.shiftStatus === "cancelled" && a.cancellationChoice === "show_up_100" && (
+              <div style={{ padding: "10px 14px", background: a.cancellationProofPath ? BRAND.greenLight : BRAND.amberLight, borderRadius: 10, fontSize: 12, color: a.cancellationProofPath ? BRAND.green : BRAND.amber, marginBottom: 16 }}>
+                {a.cancellationProofPath ? t("myBids.cancellationProofSubmitted") : t("myBids.cancellationAwaitingProof")}
               </div>
             )}
             {a.status === "offered" && a.shiftStatus !== "cancelled" && (
@@ -5296,6 +5463,53 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         </div>
       </div>
     )}
+
+    {cancellationContractModal && (
+      <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
+          <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}>{t("contract.cancellationTitle")}</h3>
+          <p style={{fontSize:12, color:BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
+
+          <div style={{background:BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:BRAND.text, marginBottom:16}}>
+            <p><strong>{t("contract.cancellationHeading")}</strong></p>
+            <p>• <strong>{t("contract.roleLabel")}</strong> {cancellationContractModal.shiftTitle}</p>
+            <p>• <strong>{t("contract.dateLabel")}</strong> {cancellationContractModal.shiftDate}</p>
+            <p>• <strong>{t("contract.agreedWageLabel")}</strong> RM {cancellationContractModal.wageAsk}/hr</p>
+            <br/>
+            <p><strong>{t("contract.agreeToTermsHeading")}</strong></p>
+            <p>1. {t("contract.cancellationClause1")}</p>
+            <p>2. {t("contract.cancellationClause2")}</p>
+            <p>3. {t("contract.cancellationClause3")}</p>
+            <p>4. {t("contract.cancellationClause4")}</p>
+          </div>
+
+          <div style={{display:'flex', gap:8}}>
+            <button onClick={() => setCancellationContractModal(null)}
+              style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background:BRAND.grayLight, cursor:'pointer', color:BRAND.textMuted}}>
+              {t("common.cancel")}
+            </button>
+            <button onClick={async () => {
+              const { error } = await supabase
+                .from('applications')
+                .update({ cancellation_choice: 'contract_50' })
+                .eq('id', cancellationContractModal.applicationId);
+              if (error) { toast(t('toast.signFailed') + error.message, 'error'); return; }
+              toast(t('toast.cancellationContractSigned'), 'success');
+              setLiveApplications(prev => prev.map(a =>
+                a.id === cancellationContractModal.applicationId ? { ...a, cancellationChoice: 'contract_50' } : a
+              ));
+              setSelectedApplication(prev =>
+                prev && prev.id === cancellationContractModal.applicationId ? { ...prev, cancellationChoice: 'contract_50' } : prev
+              );
+              setCancellationContractModal(null);
+            }}
+              style={{flex:2, padding:'10px', borderRadius:8, background:BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+              {t("contract.signBtn")}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   );
 };
@@ -5310,6 +5524,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
+  const [lateCancelWarning, setLateCancelWarning] = useState(null); // { shiftId, title, confirmedCount } or null
   const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
@@ -5697,12 +5912,37 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setPostStep(1);
   };
 
+  const doCancelShift = async (shiftId) => {
+    setCancellingShift(true);
+    const { error } = await supabase.from('shifts').update({ status: 'cancelled' }).eq('id', shiftId);
+    setCancellingShift(false);
+    if (error) { toast(t('employer.toastCancelShiftFailed') + error.message, 'error'); return; }
+    toast(t('employer.toastShiftCancelled'), 'success');
+    setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === shiftId ? { ...s, status: 'cancelled' } : s));
+    setSelectedShift(prev => prev ? { ...prev, status: 'cancelled' } : prev);
+    setLateCancelWarning(null);
+  };
+
+  // Confirmed = accepted + contract-signed — only these workers are owed a
+  // late-cancellation choice (a pending/shortlisted applicant never had a
+  // firm commitment to lose).
+  const confirmedSignedApplicants = (liveApplicants ?? []).filter(a => a.status === 'accepted' && a.workerSignedAt);
+
+  const handleCancelShiftClick = () => {
+    if (confirmedSignedApplicants.length > 0 && hoursUntilShift(selectedShift.startAt) <= 24) {
+      setLateCancelWarning({ shiftId: selectedShift.id, title: selectedShift.title, confirmedCount: confirmedSignedApplicants.length });
+      return;
+    }
+    if (!window.confirm(t('employer.confirmCancelShift').replace('{title}', selectedShift.title))) return;
+    doCancelShift(selectedShift.id);
+  };
+
   useEffect(() => {
     if (!selectedShift?.id || typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) return;
     let active = true;
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, offer_expires_at, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
+      .select('id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -5720,6 +5960,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           status: a.status,
           appliedAt: a.applied_at,
           offerExpiresAt: a.offer_expires_at,
+          workerSignedAt: a.worker_signed_at ?? null,
+          cancellationChoice: a.cancellation_choice ?? null,
+          cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
+          cancellationProofPath: a.cancellation_proof_path ?? null,
         })));
       });
     return () => { active = false; };
@@ -6260,16 +6504,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <Btn
                     variant="secondary"
                     disabled={cancellingShift}
-                    onClick={async () => {
-                      if (!window.confirm(t('employer.confirmCancelShift').replace('{title}', selectedShift.title))) return;
-                      setCancellingShift(true);
-                      const { error } = await supabase.from('shifts').update({ status: 'cancelled' }).eq('id', selectedShift.id);
-                      setCancellingShift(false);
-                      if (error) { toast(t('employer.toastCancelShiftFailed') + error.message, 'error'); return; }
-                      toast(t('employer.toastShiftCancelled'), 'success');
-                      setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === selectedShift.id ? { ...s, status: 'cancelled' } : s));
-                      setSelectedShift(prev => prev ? { ...prev, status: 'cancelled' } : prev);
-                    }}
+                    onClick={handleCancelShiftClick}
                     style={{ padding: "8px 14px", color: BRAND.red }}
                   >
                     {cancellingShift ? t("employer.cancellingShift") : t("employer.cancelShift")}
@@ -6287,6 +6522,24 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <Stat label={t("employer.statCommitted")} value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
               <Stat label={t("employer.statAvgBid")} value={selectedShift.avgBid ? `RM${selectedShift.avgBid.toFixed(2)}` : t("employer.reviewNotSet")} color={BRAND.accent} />
             </div>
+            {selectedShift.status === "cancelled" && confirmedSignedApplicants.length > 0 && (
+              <Card style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>{t("employer.cancellationOutcomesTitle")}</div>
+                {confirmedSignedApplicants.map(a => (
+                  <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                    <span style={{ fontSize: 13, color: BRAND.text }}>{a.name}</span>
+                    <Pill
+                      label={
+                        !a.cancellationChoice ? t("employer.cancellationAwaitingChoice")
+                        : a.cancellationChoice === "contract_50" ? t("employer.cancellationTook50")
+                        : a.cancellationProofPath ? t("employer.cancellationShowedUp100") : t("employer.cancellationAwaitingProofEmployer")
+                      }
+                      color={!a.cancellationChoice ? "gray" : a.cancellationChoice === "contract_50" ? "amber" : a.cancellationProofPath ? "green" : "blue"}
+                    />
+                  </div>
+                ))}
+              </Card>
+            )}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 4 }}>{t("employer.applicantPool")}</div>
@@ -7086,6 +7339,27 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <button onClick={submitEmployerDispute} disabled={filingDispute || !disputeForm.description.trim()}
                 style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor: filingDispute || !disputeForm.description.trim() ? 'not-allowed' : 'pointer', fontWeight:600, opacity: filingDispute || !disputeForm.description.trim() ? 0.6 : 1}}>
                 {filingDispute ? "…" : t("myBids.disputeSubmitBtn")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lateCancelWarning && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%'}}>
+            <h3 style={{fontSize:18, fontWeight:700, color:BRAND.red, marginBottom:8}}>{t("employer.lateCancelWarningTitle")}</h3>
+            <p style={{fontSize:13, color:BRAND.text, lineHeight:1.6, marginBottom:16}}>
+              {t("employer.lateCancelWarningBody").replace('{count}', lateCancelWarning.confirmedCount)}
+            </p>
+            <div style={{display:'flex', gap:8}}>
+              <button onClick={() => setLateCancelWarning(null)}
+                style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background:BRAND.grayLight, cursor:'pointer', color:BRAND.textMuted}}>
+                {t("common.cancel")}
+              </button>
+              <button onClick={() => doCancelShift(lateCancelWarning.shiftId)} disabled={cancellingShift}
+                style={{flex:2, padding:'10px', borderRadius:8, background:BRAND.red, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                {cancellingShift ? t("employer.cancellingShift") : t("employer.lateCancelWarningConfirmBtn")}
               </button>
             </div>
           </div>
