@@ -5334,6 +5334,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   });
   const [bankingMessage, setBankingMessage] = useState("");
   const [bankingLoading, setBankingLoading] = useState(false);
+  const [employerCompanyForm, setEmployerCompanyForm] = useState({ companyName: "", ssmNumber: "" });
+  const [companyDetailsMessage, setCompanyDetailsMessage] = useState("");
+  const [companyDetailsLoading, setCompanyDetailsLoading] = useState(false);
   const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
   const [contractModal, setContractModal] = useState(null);
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
@@ -5448,6 +5451,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         if (!active) return;
         setEmployerProfile(error ? null : (data ?? null));
         setEmployerProfileLoaded(true);
+        if (!error && data) {
+          setEmployerCompanyForm({
+            companyName: data.full_name || user.user_metadata?.full_name || "",
+            ssmNumber: data.ssm_number || "",
+          });
+        }
       });
     return () => { active = false; };
   }, [user]);
@@ -5857,6 +5866,44 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       active = false;
     };
   }, [user]);
+
+  // SSM format mirrors the sign-up check (3368): new 12-digit registration,
+  // or the classic up-to-8-digit-plus-letter-suffix format. Re-submitting a
+  // changed number here re-queues the profile to pending_review via the
+  // guard_employer_verification_status trigger — no client-side status write.
+  const saveEmployerCompanyDetails = async () => {
+    if (!user) {
+      setCompanyDetailsMessage("Sign in to save company details.");
+      return;
+    }
+    const companyName = employerCompanyForm.companyName.trim();
+    const ssmNumber = employerCompanyForm.ssmNumber.trim();
+    if (!companyName) {
+      setCompanyDetailsMessage("Company name is required.");
+      return;
+    }
+    if (ssmNumber && !/^(\d{12}|\d{1,8}-[A-Za-z])$/.test(ssmNumber)) {
+      setCompanyDetailsMessage(t("auth.ssmFormatHint"));
+      return;
+    }
+
+    setCompanyDetailsLoading(true);
+    setCompanyDetailsMessage("");
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ full_name: companyName, ssm_number: ssmNumber || null })
+      .eq("id", user.id)
+      .select("full_name, reliability_score, ssm_number, employer_verification_status")
+      .single();
+
+    setCompanyDetailsLoading(false);
+    if (error) {
+      setCompanyDetailsMessage(`Unable to save company details: ${error.message}`);
+      return;
+    }
+    setEmployerProfile(data);
+    setCompanyDetailsMessage("Company details saved.");
+  };
 
   const saveEmployerBankingDetails = async () => {
     if (!user) {
@@ -6813,9 +6860,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("employer.companyDetailsTitle")}</div>
-              <Input label={t("employer.companyNameLabel")} placeholder={t("employer.companyNamePlaceholder")} value={employerProfile?.full_name || user?.user_metadata?.full_name || ""} onChange={() => {}} />
-              <Input label={t("employer.ssmNumberLabel")} placeholder={t("employer.ssmNumberPlaceholder")} value="" onChange={() => {}} />
-              <Input label={t("employer.contactEmailLabel")} placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} />
+              <Input label={t("employer.companyNameLabel")} placeholder={t("employer.companyNamePlaceholder")} value={employerCompanyForm.companyName} onChange={(e) => setEmployerCompanyForm(prev => ({ ...prev, companyName: e.target.value }))} />
+              <Input label={t("employer.ssmNumberLabel")} placeholder={t("employer.ssmNumberPlaceholder")} value={employerCompanyForm.ssmNumber} onChange={(e) => setEmployerCompanyForm(prev => ({ ...prev, ssmNumber: e.target.value }))} />
+              <Input label={t("employer.contactEmailLabel")} placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} disabled />
+              {companyDetailsMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{companyDetailsMessage}</div>}
+              <Btn onClick={saveEmployerCompanyDetails} disabled={companyDetailsLoading} style={{ width: "100%", justifyContent: "center" }}>{t("employer.saveChanges")}</Btn>
             </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("employer.bankingSectionTitle")}</div>
@@ -6881,7 +6930,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
               ))}
             </Card>
-            <Btn style={{ width: "100%", justifyContent: "center" }}>{t("employer.saveChanges")}</Btn>
           </div>
         )}
 
