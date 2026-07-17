@@ -4073,6 +4073,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // shift may no longer be status 'open', so it can't be found in liveShifts
   // and needs its own by-id fetch.
   useEffect(() => {
+    // "/worker/applications/{id}" links (cancellation-choice notifications):
+    // the choice UI lives inline on the My Bids card, so just land there.
+    if (deepLinkShift?.applicationId) {
+      setSelectedShift(null);
+      setTab('applications');
+      return undefined;
+    }
     if (!deepLinkShift?.shiftId) return undefined;
     let active = true;
     supabase
@@ -4841,7 +4848,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {t("myBids.lateCancellationBody")}
                 </div>
                 <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 12 }}>
-                  {t("myBids.respondByPrefix")}{new Date(a.cancellationChoiceDeadline).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}, {new Date(a.cancellationChoiceDeadline).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}
+                  {t("myBids.respondByPrefix")}{new Date(a.cancellationChoiceDeadline).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', timeZone: MY_TIMEZONE })}, {new Date(a.cancellationChoiceDeadline).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', timeZone: MY_TIMEZONE })}
                 </div>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                   <Btn variant="secondary" style={{ flex: 1, justifyContent: "center" }}
@@ -8848,16 +8855,22 @@ export default function CariGaji() {
   const [portal, setPortal] = useState("worker");
   const [userRole, setUserRole] = useState(null);
   const [homeSignal, setHomeSignal] = useState(0);
-  // Set when a notification with a "/worker/shifts/{id}" or
-  // "/employer/shifts/{id}" link is clicked. nonce always increments so the
-  // target portal's effect re-fires even on a repeat click of the same link.
+  // Set when a notification with a "/worker/shifts/{id}",
+  // "/employer/shifts/{id}" or "/worker/applications/{id}" link (the
+  // cancellation-choice notifications use the latter) is clicked. nonce
+  // always increments so the target portal's effect re-fires even on a
+  // repeat click of the same link.
   const [notifDeepLink, setNotifDeepLink] = useState(null);
   const handleNotificationNavigate = (link) => {
-    const match = /^\/(worker|employer)\/shifts\/([^/]+)$/.exec(link || "");
+    const match = /^\/(worker|employer)\/(shifts|applications)\/([^/]+)$/.exec(link || "");
     if (!match) return;
-    const [, targetPortal, shiftId] = match;
+    const [, targetPortal, kind, id] = match;
     setPortal(targetPortal);
-    setNotifDeepLink(prev => ({ shiftId, nonce: (prev?.nonce ?? 0) + 1 }));
+    setNotifDeepLink(prev => ({
+      shiftId: kind === "shifts" ? id : null,
+      applicationId: kind === "applications" ? id : null,
+      nonce: (prev?.nonce ?? 0) + 1,
+    }));
   };
   const [themePreference, setThemePreference] = useState(() => readThemePreference());
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
