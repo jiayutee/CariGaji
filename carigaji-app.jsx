@@ -8943,7 +8943,14 @@ export default function CariGaji() {
     setAuthMessage("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider, // 'google' | 'apple' | 'facebook'
-      options: { redirectTo: authRedirectUrl },
+      options: {
+        redirectTo: authRedirectUrl,
+        // Google silently reuses its own SSO cookie + prior consent and skips
+        // the account picker, which reads as "sign-out did nothing" even
+        // though the Supabase session was fully revoked. Force the picker so
+        // sign-in visibly requires a fresh choice every time.
+        ...(provider === 'google' ? { queryParams: { prompt: 'select_account' } } : {}),
+      },
     });
     // On success the browser is redirected to the provider; only errors return here.
     if (error) setAuthMessage(`${provider} sign-in unavailable: ${error.message}`);
