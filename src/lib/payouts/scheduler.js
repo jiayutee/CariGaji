@@ -113,14 +113,23 @@ export const runInternalPayoutScheduling = async (supabase, runForDate = new Dat
 
   const { data: candidateRows, error: candidateError } = await supabase
     .from("applications")
-    .select("id, worker_id, shift_id, wage_ask, status, shift:shifts(id, employer_id, start_at)")
+    .select("id, worker_id, shift_id, wage_ask, status, cancellation_choice, shift:shifts(id, employer_id, start_at, status)")
     .eq("status", "accepted");
 
   if (candidateError) {
     throw new Error(`Unable to load payout candidates: ${candidateError.message}`);
   }
 
+  // Cancelled shifts are paid out separately by the cancellation trigger
+  // (idempotency_key 'cancellation:<application_id>', see
+  // 20260717h_fix_cancellation_payout_hours_and_tz.sql) using a reduced
+  // amount based on cancellation_choice. That key lives in a different
+  // namespace from this scheduler's '<cycleMonth>:<application_id>' key,
+  // so 'on conflict' never dedupes between them -- without this exclusion
+  // a cancelled shift's still-'accepted' application would also get a
+  // full-wage payout_item here, on top of the correct reduced one.
   const candidates = (candidateRows || []).filter((row) => {
+    if (row.shift?.status === "cancelled" || row.cancellation_choice) return false;
     const shiftDate = row.shift?.start_at ? new Date(row.shift.start_at) : null;
     if (!shiftDate) return false;
     return shiftDate.getUTCFullYear() === year && shiftDate.getUTCMonth() === monthIndex;
