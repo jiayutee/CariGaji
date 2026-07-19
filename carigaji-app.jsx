@@ -831,6 +831,8 @@ const TRANSLATIONS = {
     "settings.openEmployerConsole": "Open Employer Console",
     "settings.openAdminDashboard": "Open Admin Dashboard",
     "employer.companyDetailsTitle": "Company Details",
+    "employer.verifiedBadge": "Verified",
+    "employer.verifiedBadgeTitle": "SSM verification approved — you can post shifts.",
     "employer.companyNameLabel": "Company name",
     "employer.companyNamePlaceholder": "e.g. Grand Hyatt Kuala Lumpur",
     "employer.ssmNumberLabel": "SSM registration number",
@@ -1537,6 +1539,8 @@ const TRANSLATIONS = {
     "settings.openEmployerConsole": "Buka Konsol Majikan",
     "settings.openAdminDashboard": "Buka Papan Pemuka Admin",
     "employer.companyDetailsTitle": "Butiran Syarikat",
+    "employer.verifiedBadge": "Disahkan",
+    "employer.verifiedBadgeTitle": "Pengesahan SSM diluluskan — anda boleh menyiarkan syif.",
     "employer.companyNameLabel": "Nama syarikat",
     "employer.companyNamePlaceholder": "cth. Grand Hyatt Kuala Lumpur",
     "employer.ssmNumberLabel": "Nombor pendaftaran SSM",
@@ -7181,7 +7185,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div style={{ maxWidth: 500 }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("employer.companyDetailsTitle")}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text }}>{t("employer.companyDetailsTitle")}</div>
+                {employerProfile?.employer_verification_status === "verified" && (
+                  <span title={t("employer.verifiedBadgeTitle")} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.blueLight, color: BRAND.blue, fontSize: 11, fontWeight: 700 }}>
+                    <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: "#fff", fontSize: 9, lineHeight: 1 }}>✓</span>
+                    {t("employer.verifiedBadge")}
+                  </span>
+                )}
+              </div>
               <Input label={t("employer.companyNameLabel")} placeholder={t("employer.companyNamePlaceholder")} value={employerCompanyForm.companyName} onChange={(e) => setEmployerCompanyForm(prev => ({ ...prev, companyName: e.target.value }))} />
               <Input label={t("employer.ssmNumberLabel")} placeholder={t("employer.ssmNumberPlaceholder")} value={employerCompanyForm.ssmNumber} onChange={(e) => setEmployerCompanyForm(prev => ({ ...prev, ssmNumber: e.target.value }))} />
               <Input label={t("employer.contactEmailLabel")} placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} disabled />
