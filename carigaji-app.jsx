@@ -3718,6 +3718,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  // sender_id -> full_name for group-chat bubbles (ref mirrors state so the
+  // realtime handler can check membership without re-subscribing).
+  const [chatSenderNames, setChatSenderNames] = useState({});
+  const chatSenderNamesRef = useRef({});
+  useEffect(() => { chatSenderNamesRef.current = chatSenderNames; }, [chatSenderNames]);
   const chatEndRef = useRef(null);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
   const [workerContractModal, setWorkerContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk, employerName }
@@ -3812,32 +3817,38 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (!activeChatShift || !user) return;
     setChatLoading(true);
     let active = true;
-    // A shift can have multiple accepted workers, all sharing the same
-    // shift_id — scope to this specific worker<->employer pair so different
-    // workers' conversations on the same shift don't bleed into each other.
-    const isBetweenPair = (m) =>
-      (m.sender_id === user.id && m.recipient_id === activeChatShift.otherUserId) ||
-      (m.sender_id === activeChatShift.otherUserId && m.recipient_id === user.id);
+    // Group chat (20260719d): one room per shift — every message with a null
+    // recipient_id is visible to the employer + all accepted workers.
+    const loadSenderNames = (ids) => {
+      const missing = [...new Set(ids)].filter(id => id && id !== user.id && !(id in chatSenderNamesRef.current));
+      if (!missing.length) return;
+      supabase.from('profiles').select('id, full_name').in('id', missing).then(({ data: ps }) => {
+        if (!active || !ps) return;
+        setChatSenderNames(prev => ({ ...prev, ...Object.fromEntries(ps.map(p => [p.id, p.full_name || null])) }));
+      });
+    };
     supabase
       .from('messages')
       .select('id, sender_id, content, created_at, read_at')
       .eq('shift_id', activeChatShift.shiftId)
-      .or(`and(sender_id.eq.${user.id},recipient_id.eq.${activeChatShift.otherUserId}),and(sender_id.eq.${activeChatShift.otherUserId},recipient_id.eq.${user.id})`)
+      .is('recipient_id', null)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (!active) return;
         setChatMessages(data ?? []);
         setChatLoading(false);
+        loadSenderNames((data ?? []).map(m => m.sender_id));
       });
     const channel = supabase
-      .channel(`chat-${activeChatShift.shiftId}-${activeChatShift.otherUserId}`)
+      .channel(`chat-${activeChatShift.shiftId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `shift_id=eq.${activeChatShift.shiftId}`,
       }, payload => {
-        if (!active || !isBetweenPair(payload.new)) return;
+        if (!active || payload.new.recipient_id !== null) return;
+        loadSenderNames([payload.new.sender_id]);
         // De-dupe against the sender's own optimistic insert below.
         setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
       })
@@ -3858,7 +3869,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     const { data, error } = await supabase.from('messages').insert({
       shift_id:     activeChatShift.shiftId,
       sender_id:    user.id,
-      recipient_id: activeChatShift.otherUserId,
+      recipient_id: null, // group message — visible to the whole shift room
       content,
     }).select('id, sender_id, content, created_at, read_at').single();
     if (error) {
@@ -5020,7 +5031,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     return (
                       <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
                         <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
-                          {isMe ? 'You' : activeChatShift.otherUserLabel}
+                          {isMe ? 'You' : (chatSenderNames[msg.sender_id] || 'Member')}
                         </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                           background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
@@ -5579,6 +5590,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  // sender_id -> full_name for group-chat bubbles (ref mirrors state so the
+  // realtime handler can check membership without re-subscribing).
+  const [chatSenderNames, setChatSenderNames] = useState({});
+  const chatSenderNamesRef = useRef({});
+  useEffect(() => { chatSenderNamesRef.current = chatSenderNames; }, [chatSenderNames]);
   const chatEndRef = useRef(null);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
 
@@ -6009,13 +6025,21 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       .eq('status', 'accepted')
       .then(({ data }) => {
         if (!active) return;
-        setChatConversations((data ?? []).map(a => ({
-          shiftId: a.shift_id,
-          workerId: a.worker_id,
-          title: a.shift?.title ?? 'Shift',
-          date: formatShiftDate(a.shift?.start_at),
-          otherUserId: a.worker_id,
-          otherUserLabel: a.worker?.full_name ? `${a.worker.full_name} (Worker)` : 'Worker',
+        // Group chat: one room per shift, listing every accepted worker.
+        const byShift = new Map();
+        (data ?? []).forEach(a => {
+          const entry = byShift.get(a.shift_id) ?? {
+            shiftId: a.shift_id,
+            title: a.shift?.title ?? 'Shift',
+            date: formatShiftDate(a.shift?.start_at),
+            workerNames: [],
+          };
+          entry.workerNames.push(a.worker?.full_name || 'Worker');
+          byShift.set(a.shift_id, entry);
+        });
+        setChatConversations([...byShift.values()].map(e => ({
+          ...e,
+          otherUserLabel: e.workerNames.join(', '),
         })));
       });
     return () => { active = false; };
@@ -6025,32 +6049,38 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!activeChatShift || !user) return;
     setChatLoading(true);
     let active = true;
-    // A shift can have multiple accepted workers, all sharing the same
-    // shift_id — scope to this specific worker<->employer pair so different
-    // workers' conversations on the same shift don't bleed into each other.
-    const isBetweenPair = (m) =>
-      (m.sender_id === user.id && m.recipient_id === activeChatShift.otherUserId) ||
-      (m.sender_id === activeChatShift.otherUserId && m.recipient_id === user.id);
+    // Group chat (20260719d): one room per shift — every message with a null
+    // recipient_id is visible to the employer + all accepted workers.
+    const loadSenderNames = (ids) => {
+      const missing = [...new Set(ids)].filter(id => id && id !== user.id && !(id in chatSenderNamesRef.current));
+      if (!missing.length) return;
+      supabase.from('profiles').select('id, full_name').in('id', missing).then(({ data: ps }) => {
+        if (!active || !ps) return;
+        setChatSenderNames(prev => ({ ...prev, ...Object.fromEntries(ps.map(p => [p.id, p.full_name || null])) }));
+      });
+    };
     supabase
       .from('messages')
       .select('id, sender_id, content, created_at, read_at')
       .eq('shift_id', activeChatShift.shiftId)
-      .or(`and(sender_id.eq.${user.id},recipient_id.eq.${activeChatShift.otherUserId}),and(sender_id.eq.${activeChatShift.otherUserId},recipient_id.eq.${user.id})`)
+      .is('recipient_id', null)
       .order('created_at', { ascending: true })
       .then(({ data }) => {
         if (!active) return;
         setChatMessages(data ?? []);
         setChatLoading(false);
+        loadSenderNames((data ?? []).map(m => m.sender_id));
       });
     const channel = supabase
-      .channel(`employer-chat-${activeChatShift.shiftId}-${activeChatShift.otherUserId}`)
+      .channel(`employer-chat-${activeChatShift.shiftId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `shift_id=eq.${activeChatShift.shiftId}`,
       }, payload => {
-        if (!active || !isBetweenPair(payload.new)) return;
+        if (!active || payload.new.recipient_id !== null) return;
+        loadSenderNames([payload.new.sender_id]);
         // De-dupe against the sender's own optimistic insert below.
         setChatMessages(prev => prev.some(m => m.id === payload.new.id) ? prev : [...prev, payload.new]);
       })
@@ -6071,7 +6101,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     const { data, error } = await supabase.from('messages').insert({
       shift_id:     activeChatShift.shiftId,
       sender_id:    user.id,
-      recipient_id: activeChatShift.otherUserId,
+      recipient_id: null, // group message — visible to the whole shift room
       content,
     }).select('id, sender_id, content, created_at, read_at').single();
     if (error) {
@@ -7253,7 +7283,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
               ) : (
                 chatConversations.map(conv => (
-                  <div key={conv.shiftId + conv.workerId} onClick={() => setActiveChatShift(conv)}
+                  <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
                     style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                     <div>
@@ -7281,7 +7311,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     return (
                       <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
                         <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
-                          {isMe ? 'You' : activeChatShift.otherUserLabel}
+                          {isMe ? 'You' : (chatSenderNames[msg.sender_id] || 'Member')}
                         </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                           background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
