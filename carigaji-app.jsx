@@ -837,6 +837,10 @@ const TRANSLATIONS = {
     "employer.ssmNumberPlaceholder": "e.g. 1234567-A",
     "auth.fieldSsmNumber": "SSM registration number *",
     "auth.ssmFormatHint": "Enter a valid SSM number (12 digits, or up to 8 digits with a letter suffix).",
+    "employer.ssmCertLabel": "SSM certificate (recommended)",
+    "employer.ssmCertHint": "Upload your SSM registration certificate (image or PDF). Our team compares it with the official registry during review — submissions with a certificate are verified faster.",
+    "employer.ssmCertOnFile": "✓ Certificate on file — uploading a new one replaces it for review.",
+    "employer.ssmCertUploadFailed": "Certificate upload failed: ",
     "auth.employerVerifyNote": "Your company details will be reviewed by our team. You can sign in right away, but posting shifts unlocks once verification is complete.",
     "employer.verifyPendingTitle": "Verification pending",
     "employer.verifyPendingBody": "Your SSM registration is under review. This usually takes 1-2 business days.",
@@ -1538,6 +1542,10 @@ const TRANSLATIONS = {
     "employer.ssmNumberPlaceholder": "cth. 1234567-A",
     "auth.fieldSsmNumber": "Nombor pendaftaran SSM *",
     "auth.ssmFormatHint": "Masukkan nombor SSM yang sah (12 digit, atau sehingga 8 digit dengan huruf akhiran).",
+    "employer.ssmCertLabel": "Sijil SSM (disyorkan)",
+    "employer.ssmCertHint": "Muat naik sijil pendaftaran SSM anda (imej atau PDF). Pasukan kami membandingkannya dengan pendaftaran rasmi semasa semakan — penyerahan dengan sijil disahkan lebih cepat.",
+    "employer.ssmCertOnFile": "✓ Sijil telah dimuat naik — muat naik baharu akan menggantikannya untuk semakan.",
+    "employer.ssmCertUploadFailed": "Muat naik sijil gagal: ",
     "auth.employerVerifyNote": "Butiran syarikat anda akan disemak oleh pasukan kami. Anda boleh log masuk serta-merta, tetapi penyiaran syif hanya dibuka selepas pengesahan selesai.",
     "employer.verifyPendingTitle": "Pengesahan tertunda",
     "employer.verifyPendingBody": "Pendaftaran SSM anda sedang disemak. Ini biasanya mengambil masa 1-2 hari bekerja.",
@@ -5556,7 +5564,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   });
   const [bankingMessage, setBankingMessage] = useState("");
   const [bankingLoading, setBankingLoading] = useState(false);
-  const [employerCompanyForm, setEmployerCompanyForm] = useState({ companyName: "", ssmNumber: "" });
+  const [employerCompanyForm, setEmployerCompanyForm] = useState({ companyName: "", ssmNumber: "", ssmCertFile: null });
   const [companyDetailsMessage, setCompanyDetailsMessage] = useState("");
   const [companyDetailsLoading, setCompanyDetailsLoading] = useState(false);
   const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
@@ -5668,7 +5676,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     if (!user) { setEmployerProfile(null); setEmployerProfileLoaded(false); return; }
     setEmployerProfileLoaded(false);
-    supabase.from('profiles').select('full_name, reliability_score, ssm_number, employer_verification_status').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('full_name, reliability_score, ssm_number, ssm_document_path, employer_verification_status').eq('id', user.id).maybeSingle()
       .then(({ data, error }) => {
         if (!active) return;
         setEmployerProfile(error ? null : (data ?? null));
@@ -6140,11 +6148,24 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
     setCompanyDetailsLoading(true);
     setCompanyDetailsMessage("");
+    // SSM certificate upload (manual-verification workaround, 20260719): the
+    // file goes into the private kyc-documents bucket under the owner's
+    // folder; only the owner and admins can read it.
+    let certPath;
+    if (employerCompanyForm.ssmCertFile) {
+      try {
+        certPath = await uploadKycFile(user.id, employerCompanyForm.ssmCertFile, "ssm-cert");
+      } catch (e) {
+        setCompanyDetailsLoading(false);
+        setCompanyDetailsMessage(`${t("employer.ssmCertUploadFailed")}${e.message}`);
+        return;
+      }
+    }
     const { data, error } = await supabase
       .from("profiles")
-      .update({ full_name: companyName, ssm_number: ssmNumber || null })
+      .update({ full_name: companyName, ssm_number: ssmNumber || null, ...(certPath ? { ssm_document_path: certPath } : {}) })
       .eq("id", user.id)
-      .select("full_name, reliability_score, ssm_number, employer_verification_status")
+      .select("full_name, reliability_score, ssm_number, ssm_document_path, employer_verification_status")
       .single();
 
     setCompanyDetailsLoading(false);
@@ -7123,6 +7144,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <Input label={t("employer.companyNameLabel")} placeholder={t("employer.companyNamePlaceholder")} value={employerCompanyForm.companyName} onChange={(e) => setEmployerCompanyForm(prev => ({ ...prev, companyName: e.target.value }))} />
               <Input label={t("employer.ssmNumberLabel")} placeholder={t("employer.ssmNumberPlaceholder")} value={employerCompanyForm.ssmNumber} onChange={(e) => setEmployerCompanyForm(prev => ({ ...prev, ssmNumber: e.target.value }))} />
               <Input label={t("employer.contactEmailLabel")} placeholder="hr@company.com" value={user?.email || ""} onChange={() => {}} disabled />
+              <label style={{ display: "block", marginBottom: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.ssmCertLabel")}</div>
+                <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 8 }}>{t("employer.ssmCertHint")}</div>
+                <input
+                  type="file" accept="image/*,application/pdf"
+                  onChange={e => { const f = e.target.files?.[0] || null; setEmployerCompanyForm(prev => ({ ...prev, ssmCertFile: f })); }}
+                  style={{ fontSize: 12 }}
+                />
+                {employerProfile?.ssm_document_path && !employerCompanyForm.ssmCertFile && (
+                  <div style={{ fontSize: 11, color: BRAND.green, marginTop: 6 }}>{t("employer.ssmCertOnFile")}</div>
+                )}
+              </label>
               {companyDetailsMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{companyDetailsMessage}</div>}
               <Btn onClick={saveEmployerCompanyDetails} disabled={companyDetailsLoading} style={{ width: "100%", justifyContent: "center" }}>{t("employer.saveChanges")}</Btn>
             </Card>
@@ -7442,7 +7475,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setEmployerQueue(null);
       const { data: pending, error } = await supabase
         .from("profiles")
-        .select("id, full_name, ssm_number, employer_verification_status, created_at")
+        .select("id, full_name, ssm_number, ssm_document_path, employer_verification_status, created_at")
         .eq("employer_verification_status", "pending_review")
         .order("created_at", { ascending: true });
       if (error) { setEmployerQueue([]); return; }
@@ -7777,9 +7810,19 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6, lineHeight: 1.5 }}>
                       Check the SSM number against the official registry (ssm-einfo.my) before verifying — the number alone proves nothing.
+                      {emp.ssm_document_path ? " Compare it with the uploaded certificate." : " No certificate uploaded."}
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    {emp.ssm_document_path && (
+                      <Btn size="sm" variant="secondary" onClick={async () => {
+                        const { data, error } = await supabase.storage.from(KYC_BUCKET).createSignedUrl(emp.ssm_document_path, 300);
+                        if (error || !data?.signedUrl) { toast(`Could not open certificate: ${error?.message || "no URL"}`, "error"); return; }
+                        window.open(data.signedUrl, "_blank", "noopener");
+                      }}>
+                        View certificate
+                      </Btn>
+                    )}
                     <Btn size="sm" variant="success" onClick={() => setEmployerVerification(emp.id, "verified")}>
                       Verify
                     </Btn>
