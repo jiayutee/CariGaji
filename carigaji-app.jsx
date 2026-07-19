@@ -4777,7 +4777,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     {a.status === "shortlisted" && (
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
                     )}
-                    {a.status === "accepted" && (
+                    {a.status === "accepted" && a.shiftStatus !== "cancelled" && (
                       <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>
                     )}
                   </div>
@@ -4786,7 +4786,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       {t("myBids.shortlistedBanner")}
                     </div>
                   )}
-                  {a.status === 'accepted' && !a.workerSignedAt && (
+                  {a.status === 'accepted' && !a.workerSignedAt && a.shiftStatus !== 'cancelled' && (
                     <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                         applicationId: a.id,
                         shiftTitle: a.shiftTitle,
