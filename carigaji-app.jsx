@@ -841,6 +841,7 @@ const TRANSLATIONS = {
     "employer.ssmCertHint": "Upload your SSM registration certificate (image or PDF). Our team compares it with the official registry during review — submissions with a certificate are verified faster.",
     "employer.ssmCertOnFile": "✓ Certificate on file — uploading a new one replaces it for review.",
     "employer.ssmCertUploadFailed": "Certificate upload failed: ",
+    "employer.postShiftUnverifiedHint": "Posting is locked until your company is verified. Submit your SSM number (and ideally your SSM certificate) under Account → Company Details, then wait for admin review — you'll be notified once verified.",
     "auth.employerVerifyNote": "Your company details will be reviewed by our team. You can sign in right away, but posting shifts unlocks once verification is complete.",
     "employer.verifyPendingTitle": "Verification pending",
     "employer.verifyPendingBody": "Your SSM registration is under review. This usually takes 1-2 business days.",
@@ -1546,6 +1547,7 @@ const TRANSLATIONS = {
     "employer.ssmCertHint": "Muat naik sijil pendaftaran SSM anda (imej atau PDF). Pasukan kami membandingkannya dengan pendaftaran rasmi semasa semakan — penyerahan dengan sijil disahkan lebih cepat.",
     "employer.ssmCertOnFile": "✓ Sijil telah dimuat naik — muat naik baharu akan menggantikannya untuk semakan.",
     "employer.ssmCertUploadFailed": "Muat naik sijil gagal: ",
+    "employer.postShiftUnverifiedHint": "Penyiaran dikunci sehingga syarikat anda disahkan. Hantar nombor SSM anda (dan sebaiknya sijil SSM) di Akaun → Butiran Syarikat, kemudian tunggu semakan admin — anda akan dimaklumkan setelah disahkan.",
     "auth.employerVerifyNote": "Butiran syarikat anda akan disemak oleh pasukan kami. Anda boleh log masuk serta-merta, tetapi penyiaran syif hanya dibuka selepas pengesahan selesai.",
     "employer.verifyPendingTitle": "Pengesahan tertunda",
     "employer.verifyPendingBody": "Pendaftaran SSM anda sedang disemak. Ini biasanya mengambil masa 1-2 hari bekerja.",
@@ -5868,7 +5870,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           transport_allowance: parseFloat(row.transportAllowance) || 0,
         };
         const { error } = await supabase.from('shifts').insert({ employer_id: user.id, status: 'open', ...payload });
-        if (error) throw new Error(error.message);
+        if (error) throw new Error(/row.?level security/i.test(error.message || "") ? t('employer.postShiftUnverifiedHint') : error.message);
         return true;
       }));
       setBulkUploadRows(rows => rows.map(r => {
@@ -6929,7 +6931,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       } else {
                         ({ error } = await supabase.from('shifts').insert({ employer_id: user.id, status: 'open', ...payload }));
                       }
-                      if (error) { toast((editingShiftId ? 'Failed to update shift: ' : t('toast.postShiftFailed')) + error.message, 'error'); return; }
+                      if (error) {
+                        // The shifts insert policy rejects unverified employers with a raw
+                        // "violates row-level security" error — translate it into the real
+                        // reason instead of leaking Postgres internals.
+                        const friendly = /row.?level security/i.test(error.message || "")
+                          ? t('employer.postShiftUnverifiedHint')
+                          : (editingShiftId ? 'Failed to update shift: ' : t('toast.postShiftFailed')) + error.message;
+                        toast(friendly, 'error');
+                        return;
+                      }
                       toast(editingShiftId ? 'Shift updated!' : t('toast.shiftPublished'), 'success');
                       setEditingShiftId(null);
                       setView('shifts');
