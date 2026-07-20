@@ -946,6 +946,9 @@ const TRANSLATIONS = {
     "contract.workerTitle": "📄 Your Employment Contract",
     "contract.readCarefully": "Please read carefully before signing.",
     "contract.agreementHeading": "CariGaji Platform — Shift Work Agreement",
+    "contract.printBtn": "Print / Save as PDF",
+    "contract.viewContractBtn": "View contract",
+    "toast.popupBlocked": "Pop-up blocked — please allow pop-ups for CariGaji to print the contract.",
     "contract.employerLabel": "Employer:",
     "contract.workerLabel": "Worker:",
     "contract.youLabel": "You",
@@ -1665,6 +1668,9 @@ const TRANSLATIONS = {
     "contract.workerTitle": "📄 Kontrak Pekerjaan Anda",
     "contract.readCarefully": "Sila baca dengan teliti sebelum menandatangani.",
     "contract.agreementHeading": "Platform CariGaji — Perjanjian Kerja Syif",
+    "contract.printBtn": "Cetak / Simpan sebagai PDF",
+    "contract.viewContractBtn": "Lihat kontrak",
+    "toast.popupBlocked": "Tetingkap timbul disekat — sila benarkan tetingkap timbul untuk CariGaji mencetak kontrak.",
     "contract.employerLabel": "Majikan:",
     "contract.workerLabel": "Pekerja:",
     "contract.youLabel": "Anda",
@@ -2941,6 +2947,46 @@ const uploadAvatarFile = async (userId, file) => {
   });
   if (error) throw error;
   return path;
+};
+
+// Escapes user-controlled strings (names, shift titles) before they're
+// written into the print window's document via innerHTML-equivalent write().
+const escapeHtml = (str) => String(str ?? "").replace(/[&<>"']/g, (c) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+}[c]));
+
+// Opens a same-origin popup with a print-ready contract document and
+// triggers the browser's print dialog (users choose "Save as PDF" there —
+// no PDF-generation library needed, and it stays printable on paper too).
+// `rows` is an array of either a string (rendered as a paragraph) or
+// {label, value} (rendered as "label value" — used for the signature lines).
+const openContractPrintWindow = ({ heading, subheading, rows }) => {
+  const win = window.open("", "_blank", "noopener,width=800,height=1000");
+  if (!win) return false; // popup blocked — caller should toast a hint
+  const body = rows.map((r) => {
+    if (typeof r === "string") return r === "" ? "<br/>" : `<p>${escapeHtml(r)}</p>`;
+    return `<p><strong>${escapeHtml(r.label)}</strong> ${escapeHtml(r.value)}</p>`;
+  }).join("");
+  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(heading)}</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #1f2937; padding: 40px; max-width: 720px; margin: 0 auto; }
+  .brand { font-weight: 800; font-size: 18px; margin-bottom: 28px; color: #2563EB; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { font-size: 12px; color: #6b7280; margin-bottom: 24px; }
+  p { font-size: 13px; line-height: 1.9; margin: 2px 0; }
+  .actions { margin-top: 28px; }
+  button { font: inherit; padding: 10px 18px; border-radius: 8px; border: none; background: #2563EB; color: #fff; cursor: pointer; }
+  @media print { .actions { display: none; } body { padding: 0; } }
+</style></head><body>
+<div class="brand">CariGaji</div>
+<h1>${escapeHtml(heading)}</h1>
+<div class="sub">${escapeHtml(subheading)}</div>
+${body}
+<div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
+</body></html>`);
+  win.document.close();
+  win.focus();
+  return true;
 };
 
 const uploadKycFile = async (userId, file, label) => {
@@ -4866,7 +4912,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </button>
                   )}
                   {a.status === 'accepted' && a.workerSignedAt && (
-                    <span style={{fontSize:11, color:'#16a34a', marginTop:4, display:'block'}}>{t("myBids.contractSignedBadge")}</span>
+                    <div style={{display:'flex', alignItems:'center', gap:8, marginTop:4}}>
+                      <span style={{fontSize:11, color:'#16a34a'}}>{t("myBids.contractSignedBadge")}</span>
+                      <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
+                          applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer, readOnly: true,
+                        }); }}
+                        style={{padding:'4px 10px', borderRadius:6, background:'none', color: BRAND.primary, border:`1px solid ${BRAND.primary}`, cursor:'pointer', fontSize:11, fontWeight:600}}>
+                        {t("contract.viewContractBtn")}
+                      </button>
+                    </div>
                   )}
                   {a.shiftStatus === 'completed' && (
                     <button onClick={(e) => { e.stopPropagation(); setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle }); }}
@@ -5011,7 +5065,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <Btn onClick={() => setWorkerContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.signContractBtn")}</Btn>
               )}
               {a.status === "accepted" && a.workerSignedAt && a.shiftStatus !== "cancelled" && (
-                <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
+                <>
+                  <Btn variant="secondary" onClick={() => setWorkerContractModal({
+                      applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer, readOnly: true,
+                    })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
+                  <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
+                </>
               )}
               {a.shiftStatus === "completed" && (
                 <Btn variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.fileDisputeBtn")}</Btn>
@@ -5472,31 +5531,59 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <div style={{display:'flex', gap:8}}>
             <button onClick={() => setWorkerContractModal(null)}
               style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
-              {t("common.cancel")}
+              {workerContractModal.readOnly ? t("common.close") : t("common.cancel")}
             </button>
-            <button onClick={async () => {
-              const { error } = await supabase
-                .from('applications')
-                .update({ worker_signed_at: new Date().toISOString() })
-                .eq('id', workerContractModal.applicationId);
-              if (error) { toast(t('toast.signFailed') + error.message, 'error'); return; }
-              toast(t('toast.contractSigned'), 'success');
-              const signedAt = new Date().toISOString();
-              setLiveApplications(prev => prev.map(a =>
-                a.id === workerContractModal.applicationId ? { ...a, workerSignedAt: signedAt } : a
-              ));
-              // selectedApplication is a separate snapshot (not derived from
-              // liveApplications), so it must be updated too — otherwise the
-              // detail view keeps showing the "Sign Contract" button until
-              // the page is refreshed and re-fetches fresh data.
-              setSelectedApplication(prev =>
-                prev && prev.id === workerContractModal.applicationId ? { ...prev, workerSignedAt: signedAt } : prev
-              );
-              setWorkerContractModal(null);
+            <button onClick={() => {
+              const ok = openContractPrintWindow({
+                heading: t("contract.agreementHeading"),
+                subheading: workerContractModal.shiftTitle,
+                rows: [
+                  { label: t("contract.employerLabel"), value: workerContractModal.employerName },
+                  { label: t("contract.workerLabel"), value: t("contract.youLabel") },
+                  { label: t("contract.roleLabel"), value: workerContractModal.shiftTitle },
+                  { label: t("contract.dateLabel"), value: workerContractModal.shiftDate },
+                  { label: t("contract.agreedWageLabel"), value: `RM ${workerContractModal.wageAsk}/hr` },
+                  "",
+                  t("contract.agreeToTermsHeading"),
+                  `1. ${t("contract.workerClause1")}`,
+                  `2. ${t("contract.workerClause2")}`,
+                  `3. ${t("contract.workerClause3")}`,
+                  `4. ${t("contract.workerClause4")}`,
+                  `5. ${t("contract.workerClause5")}`,
+                  `6. ${t("contract.workerClause6")}`,
+                  `7. ${t("contract.workerClause7")}`,
+                ],
+              });
+              if (!ok) toast(t("toast.popupBlocked"), "error");
             }}
-              style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-              {t("contract.signBtn")}
+              style={{flex: 1, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+              {t("contract.printBtn")}
             </button>
+            {!workerContractModal.readOnly && (
+              <button onClick={async () => {
+                const { error } = await supabase
+                  .from('applications')
+                  .update({ worker_signed_at: new Date().toISOString() })
+                  .eq('id', workerContractModal.applicationId);
+                if (error) { toast(t('toast.signFailed') + error.message, 'error'); return; }
+                toast(t('toast.contractSigned'), 'success');
+                const signedAt = new Date().toISOString();
+                setLiveApplications(prev => prev.map(a =>
+                  a.id === workerContractModal.applicationId ? { ...a, workerSignedAt: signedAt } : a
+                ));
+                // selectedApplication is a separate snapshot (not derived from
+                // liveApplications), so it must be updated too — otherwise the
+                // detail view keeps showing the "Sign Contract" button until
+                // the page is refreshed and re-fetches fresh data.
+                setSelectedApplication(prev =>
+                  prev && prev.id === workerContractModal.applicationId ? { ...prev, workerSignedAt: signedAt } : prev
+                );
+                setWorkerContractModal(null);
+              }}
+                style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                {t("contract.signBtn")}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -7562,10 +7649,37 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             {!viewContractModal.workerSignedAt && (
               <div style={{ padding:'8px 12px', background: BRAND.amberLight, borderRadius:8, fontSize:12, color: BRAND.amber, marginBottom:12 }}>{t("employer.contractAwaitingWorker")}</div>
             )}
-            <button onClick={() => setViewContractModal(null)}
-              style={{width:'100%', padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.text, fontWeight:600}}>
-              {t("common.close")}
-            </button>
+            <div style={{display:'flex', gap:8}}>
+              <button onClick={() => setViewContractModal(null)}
+                style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.text, fontWeight:600}}>
+                {t("common.close")}
+              </button>
+              <button onClick={() => {
+                const fmt = (iso) => iso ? `${t("employer.contractSignedOnPrefix")}${new Date(iso).toLocaleString('en-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: MY_TIMEZONE })}` : t("employer.contractNotSignedYet");
+                const ok = openContractPrintWindow({
+                  heading: t("contract.agreementHeading"),
+                  subheading: selectedShift?.title || "",
+                  rows: [
+                    { label: t("contract.employerLabel"), value: t("contract.employerOnFile") },
+                    { label: t("contract.workerLabel"), value: viewContractModal.name },
+                    "",
+                    t("contract.shiftDetailsHeading"),
+                    { label: t("contract.roleLabel"), value: selectedShift?.title || "" },
+                    { label: t("contract.dateLabel"), value: selectedShift?.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : (selectedShift?.date || "") },
+                    { label: t("contract.timeLabel"), value: selectedShift?.time || "" },
+                    { label: t("contract.agreedWageLabel"), value: `RM ${viewContractModal.wageBid}/hr` },
+                    "",
+                    t("employer.contractSignaturesHeading"),
+                    { label: t("contract.employerLabel"), value: fmt(viewContractModal.employerSignedAt) },
+                    { label: t("contract.workerLabel"), value: fmt(viewContractModal.workerSignedAt) },
+                  ],
+                });
+                if (!ok) toast(t("toast.popupBlocked"), "error");
+              }}
+                style={{flex:1, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                {t("contract.printBtn")}
+              </button>
+            </div>
           </div>
         </div>
       )}
