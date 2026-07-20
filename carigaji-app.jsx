@@ -912,7 +912,7 @@ const TRANSLATIONS = {
     "intro.employerStep4": "Chat with confirmed workers and manage everything from your dashboard.",
     "intro.helpHint": "You can find this again anytime under Help in the account menu.",
     "intro.getStartedBtn": "Get started",
-    "toast.backAgainToExit": "Press back again to exit",
+    "toast.backAgainToExit": "Swipe again to exit",
     "profile.completeKycTitle": "Complete identity verification",
     "profile.completeKycHint": "You haven't uploaded your identity documents yet. Verified workers are more likely to be selected by employers.",
     "profile.completeKycBtn": "Upload documents",
@@ -1620,7 +1620,7 @@ const TRANSLATIONS = {
     "intro.employerStep4": "Berbual dengan pekerja yang disahkan dan urus semuanya dari papan pemuka anda.",
     "intro.helpHint": "Anda boleh menemui ini semula pada bila-bila masa di bawah Bantuan dalam menu akaun.",
     "intro.getStartedBtn": "Mula sekarang",
-    "toast.backAgainToExit": "Tekan kembali sekali lagi untuk keluar",
+    "toast.backAgainToExit": "Leret sekali lagi untuk keluar",
     "profile.completeKycTitle": "Lengkapkan pengesahan identiti",
     "profile.completeKycHint": "Anda belum memuat naik dokumen pengenalan anda. Pekerja yang disahkan lebih berkemungkinan dipilih oleh majikan.",
     "profile.completeKycBtn": "Muat naik dokumen",
@@ -8918,14 +8918,33 @@ const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) 
     if (!enabled || typeof window === "undefined") return;
     const pushSentinel = () => window.history.pushState({ carigajiTrap: true }, "");
     pushSentinel();
+    // Re-arming the sentinel synchronously inside popstate mutates history
+    // while the browser's swipe-back animation is still settling, which is a
+    // known cause of a ghost "shadow of the page" flicker (worst on iOS
+    // Safari). Defer the re-push until the gesture animation is over; the
+    // deferred push is coalesced so rapid swipes don't stack sentinels.
+    let rearmTimer = null;
+    const rearmSentinel = () => {
+      if (rearmTimer) clearTimeout(rearmTimer);
+      rearmTimer = setTimeout(() => { rearmTimer = null; pushSentinel(); }, 350);
+    };
     const onPop = () => {
-      if (authOpenRef.current) {
-        onCloseAuth();
+      if (rearmTimer) {
+        // A second pop arrived before the deferred sentinel was re-armed
+        // (very fast double-swipe): re-arm immediately so the trap can't be
+        // walked past by accident.
+        clearTimeout(rearmTimer);
+        rearmTimer = null;
         pushSentinel();
         return;
       }
+      if (authOpenRef.current) {
+        onCloseAuth();
+        rearmSentinel();
+        return;
+      }
       if (backHandlerRef.current && backHandlerRef.current()) {
-        pushSentinel();
+        rearmSentinel();
         return;
       }
       const now = Date.now();
@@ -8937,10 +8956,13 @@ const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) 
       }
       lastExitAttemptRef.current = now;
       toast(t("toast.backAgainToExit"), "info", 2000);
-      pushSentinel();
+      rearmSentinel();
     };
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    return () => {
+      if (rearmTimer) clearTimeout(rearmTimer);
+      window.removeEventListener("popstate", onPop);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
   return null;
