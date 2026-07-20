@@ -85,6 +85,18 @@ const validateOccurrences = (occurrences) => {
   return null;
 };
 
+// ─── Basic analytics ─────────────────────────────────────────────────────────
+// Fire-and-forget event logging (see supabase/migrations/20260720_analytics_events.sql).
+// Never awaited by callers and never throws — a missing migration, RLS
+// denial, or network blip must not block or break any UI flow.
+const logAnalyticsEvent = (eventType, metadata = {}, userId = null) => {
+  try {
+    supabase.from('analytics_events').insert({ event_type: eventType, metadata, user_id: userId }).then(() => {}, () => {});
+  } catch {
+    // Swallow — analytics must never break the app.
+  }
+};
+
 // ─── Shift categories ────────────────────────────────────────────────────────
 // Kept in sync with the shifts_category_check DB constraint (see
 // supabase/migrations/20260705g_widen_shift_categories.sql).
@@ -4461,6 +4473,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     toast(t("toast.applicationFailed") + error.message, "error");
                     return;
                   }
+                  logAnalyticsEvent('bid_placed', { shift_id: selectedShift.id }, user.id);
 
                   // Update local UI state and liveApplications cache if present
                   setShowBidModal(false);
@@ -7490,6 +7503,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [kycSignedUrls, setKycSignedUrls] = useState({});
   const [overviewStats, setOverviewStats] = useState(null);
   const [disputesQueue, setDisputesQueue] = useState(null);
+  // Basic analytics: event_type -> count, last 7 days (see
+  // supabase/migrations/20260720_analytics_events.sql). null = loading,
+  // [] = loaded but empty/unavailable (RLS denial or table missing pre-migration).
+  const [analyticsCounts, setAnalyticsCounts] = useState(null);
 
   const navItems = ["Overview", "KYC Queue", "Employer Queue", "Disputes", "Flags", "Payouts", "Config"];
 
@@ -7602,6 +7619,31 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         registeredEmployers: employersRes.data?.length ?? null,
         shiftsToday: todayShiftsRes.data?.length ?? null,
       });
+    })();
+    return () => { active = false; };
+  }, [view]);
+
+  // Basic analytics: event_type -> count over the trailing 7 days (see
+  // supabase/migrations/20260720_analytics_events.sql). Aggregated server-side
+  // via the analytics_event_counts RPC (a plain SQL function, RLS still
+  // applies since it runs as SECURITY INVOKER) rather than pulling raw rows —
+  // pulling raw rows would silently under-count once volume passes
+  // PostgREST's default row cap. Any query failure (RLS denial, or the
+  // migration not having run yet) degrades to an empty list rather than
+  // surfacing an error.
+  useEffect(() => {
+    if (!supabase || view !== "overview") return;
+    let active = true;
+    (async () => {
+      setAnalyticsCounts(null);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const { data, error } = await supabase
+        .rpc("analytics_event_counts", { since: sevenDaysAgo.toISOString() });
+      if (!active) return;
+      if (error) { setAnalyticsCounts([]); return; }
+
+      setAnalyticsCounts((data || []).map(row => ({ eventType: row.event_type, count: row.count })));
     })();
     return () => { active = false; };
   }, [view]);
@@ -7749,7 +7791,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primary} />
               <Stat label="Payout queue" value="Coming soon" sub="Escrow/payout not built yet" color={BRAND.textMuted} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16 }}>
               <Card>
                 <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>KYC Queue</div>
                 {kycQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
@@ -7787,6 +7829,17 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                 ))}
                 <Btn size="xs" variant="secondary" onClick={() => setView("disputes")} style={{ marginTop: 10 }}>View all →</Btn>
+              </Card>
+              <Card>
+                <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>Analytics (7d)</div>
+                {analyticsCounts === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+                {analyticsCounts?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>No events recorded.</div>}
+                {analyticsCounts?.map(({ eventType, count }) => (
+                  <div key={eventType} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                    <div style={{ fontSize: 13, color: BRAND.text }}>{eventType}</div>
+                    <div style={{ fontSize: 13, color: BRAND.textMuted, fontWeight: 600 }}>{count}</div>
+                  </div>
+                ))}
               </Card>
             </div>
           </div>
@@ -9149,6 +9202,7 @@ export default function CariGaji() {
       setAuthMessage(error.message);
       return;
     }
+    logAnalyticsEvent('sign_up', { role }, data?.user?.id ?? null);
 
     const registeredUserId = data?.user?.id;
     const hasSession = Boolean(data?.session);
@@ -9184,6 +9238,11 @@ export default function CariGaji() {
     });
 
     return () => { mounted = false; sub.subscription.unsubscribe(); };
+  }, []);
+
+  // Basic analytics: one page_view per app mount.
+  useEffect(() => {
+    logAnalyticsEvent('page_view');
   }, []);
 
   const refreshUser = async () => {
