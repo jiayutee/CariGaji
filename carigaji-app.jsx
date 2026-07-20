@@ -914,6 +914,17 @@ const TRANSLATIONS = {
     "details.subtitleEmployer": "Just a few details before you can start posting shifts.",
     "details.companyContactName": "Company / contact name",
     "details.companyNameFinalHint": "This is the company name shown to workers on shift listings. Once confirmed, it cannot be changed — contact customer support if it needs correction.",
+    "details.avatarTitle": "Profile photo",
+    "details.avatarOptionalHint": "Optional, but employers see this when reviewing applicants — a real, clear photo helps your application stand out.",
+    "details.avatarChooseBtn": "Choose photo",
+    "details.avatarChangeBtn": "Change photo",
+    "details.avatarUploadFailed": "Photo upload failed (saving the rest of your details anyway): ",
+    "details.avatarGuide1Worker": "Show your own face clearly, looking at the camera",
+    "details.avatarGuide2Worker": "Good lighting, no sunglasses or face covering",
+    "details.avatarGuide3Worker": "No group photos, cartoons, memes, or logos",
+    "details.avatarGuide4Worker": "A square, front-facing photo fits the circle guide best",
+    "details.avatarGuide1Employer": "A company logo or a clear photo of the hiring contact",
+    "details.avatarGuide2Employer": "No memes, unrelated images, or blurry photos",
     "details.fullNameFinalHint": "Enter your legal name exactly as it appears on your MyKad/passport. Once confirmed, it cannot be changed — contact customer support if it needs correction.",
     "details.ssmOptional": "SSM registration number (optional)",
     "details.kycDeferHint": "Optional for now — you can upload your identity documents later from your Profile tab. Verified workers stand out to employers.",
@@ -1636,6 +1647,17 @@ const TRANSLATIONS = {
     "details.subtitleEmployer": "Hanya beberapa butiran sebelum anda boleh mula menyiarkan syif.",
     "details.companyContactName": "Nama syarikat / hubungan",
     "details.companyNameFinalHint": "Ini ialah nama syarikat yang dipaparkan kepada pekerja pada senarai syif. Setelah disahkan, ia tidak boleh ditukar — hubungi khidmat pelanggan jika perlu diperbetulkan.",
+    "details.avatarTitle": "Foto profil",
+    "details.avatarOptionalHint": "Pilihan, tetapi majikan melihat ini semasa menyemak pemohon — foto sebenar yang jelas membantu permohonan anda menonjol.",
+    "details.avatarChooseBtn": "Pilih foto",
+    "details.avatarChangeBtn": "Tukar foto",
+    "details.avatarUploadFailed": "Muat naik foto gagal (butiran lain tetap disimpan): ",
+    "details.avatarGuide1Worker": "Tunjukkan wajah anda dengan jelas, menghadap kamera",
+    "details.avatarGuide2Worker": "Pencahayaan baik, tiada cermin mata hitam atau penutup wajah",
+    "details.avatarGuide3Worker": "Tiada foto berkumpulan, kartun, meme, atau logo",
+    "details.avatarGuide4Worker": "Foto segi empat sama menghadap depan paling sesuai dengan panduan bulatan",
+    "details.avatarGuide1Employer": "Logo syarikat atau foto jelas pegawai perhubungan",
+    "details.avatarGuide2Employer": "Tiada meme, imej tidak berkaitan, atau foto kabur",
     "details.fullNameFinalHint": "Masukkan nama sah anda tepat seperti pada MyKad/pasport anda. Setelah disahkan, ia tidak boleh ditukar — hubungi khidmat pelanggan jika perlu diperbetulkan.",
     "details.ssmOptional": "Nombor pendaftaran SSM (pilihan)",
     "details.kycDeferHint": "Pilihan buat masa ini — anda boleh muat naik dokumen pengenalan kemudian dari tab Profil anda. Pekerja yang disahkan lebih menonjol kepada majikan.",
@@ -8917,10 +8939,66 @@ const TnCGateModal = ({ open, accepting, onAccept, onSignOut }) => {
 // verification later via the Profile-tab banner, which reopens this same
 // modal with kycOnly. zIndex 1500, same layer as TnCGateModal (they can
 // never be open simultaneously — the gate conditions are sequential).
+// Optional profile-photo picker with a circular crop guide and written
+// guidance (owner request 2026-07-20: bad avatars — memes, cartoons,
+// covered/group selfies — hurt a worker's chance of being picked by an
+// employer, so guide people toward a real, clear, forward-facing photo at
+// the moment they'd naturally set one, not bury it in Settings).
+const AvatarGuidePicker = ({ file, existingUrl, onChange, role, disabled }) => {
+  const { t } = useLanguage();
+  const [previewUrl, setPreviewUrl] = useState(null);
+  useEffect(() => {
+    if (!file) { setPreviewUrl(null); return undefined; }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+  const displayUrl = previewUrl || existingUrl || null;
+  const isWorker = role !== "employer";
+  const guideLines = isWorker
+    ? [t("details.avatarGuide1Worker"), t("details.avatarGuide2Worker"), t("details.avatarGuide3Worker"), t("details.avatarGuide4Worker")]
+    : [t("details.avatarGuide1Employer"), t("details.avatarGuide2Employer")];
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 2 }}>{t("details.avatarTitle")}</div>
+      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginBottom: 10 }}>{t("details.avatarOptionalHint")}</div>
+      <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", width: 108, height: 108, flexShrink: 0 }}>
+          <div style={{
+            width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden",
+            background: displayUrl ? `center/cover no-repeat url(${displayUrl})` : BRAND.grayLight,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: `1px solid ${BRAND.border}`,
+          }}>
+            {!displayUrl && <span style={{ fontSize: 34 }} aria-hidden="true">👤</span>}
+          </div>
+          {/* Dashed circular crop guide — the app renders avatars as circles
+              everywhere else, so this previews exactly what gets cut off. */}
+          <div style={{ position: "absolute", inset: -4, borderRadius: "50%", border: `2px dashed ${BRAND.primary}`, pointerEvents: "none" }} aria-hidden="true" />
+        </div>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <label style={{
+            display: "inline-block", padding: "8px 14px", borderRadius: 8,
+            border: `1px solid ${BRAND.border}`, background: BRAND.surface,
+            cursor: disabled ? "wait" : "pointer", fontSize: 13, fontWeight: 600, color: BRAND.primary,
+          }}>
+            {displayUrl ? t("details.avatarChangeBtn") : t("details.avatarChooseBtn")}
+            <input type="file" accept="image/*" disabled={disabled} style={{ display: "none" }}
+              onChange={e => onChange(e.target.files?.[0] || null)} />
+          </label>
+          <ul style={{ margin: "10px 0 0", paddingLeft: 18, fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.6 }}>
+            {guideLines.map((line, i) => <li key={i}>{line}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onClose, onSignOut }) => {
   const { t } = useLanguage();
   const toast = useToast();
-  const [form, setForm] = useState({ fullName: "", countryCode: "MY", phone: "", identityType: "MyKad", idNumber: "", dateOfBirth: "", address: "", ssmNumber: "", kycFront: null, kycBack: null, selfie: null, supportingDoc: null });
+  const [form, setForm] = useState({ fullName: "", countryCode: "MY", phone: "", identityType: "MyKad", idNumber: "", dateOfBirth: "", address: "", ssmNumber: "", avatar: null, kycFront: null, kycBack: null, selfie: null, supportingDoc: null });
   const [showErrors, setShowErrors] = useState(false);
   const [saving, setSaving] = useState(false);
   // Advisory OCR check that the ID on the uploaded photo matches what was
@@ -9012,6 +9090,20 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
     if (hasErrors) { setShowErrors(true); return; }
     setSaving(true);
     try {
+      // The photo is explicitly optional — a failed upload (network blip,
+      // storage hiccup) must not block saving the legally-required fields
+      // below, so this failure is swallowed with just a warning toast
+      // rather than aborting the whole save.
+      let avatarPath = null;
+      if (form.avatar) {
+        try {
+          avatarPath = await uploadAvatarFile(user.id, form.avatar);
+          await supabase.auth.updateUser({ data: { ...user.user_metadata, avatar_url: avatarPath } });
+        } catch (avatarErr) {
+          avatarPath = null;
+          toast(`${t("details.avatarUploadFailed")}${avatarErr.message}`, "error");
+        }
+      }
       const anyDoc = form.kycFront || form.kycBack || form.selfie || form.supportingDoc;
       let kycLevel = null;
       if (anyDoc) {
@@ -9058,6 +9150,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
             role: role || user.user_metadata?.account_role || "worker",
             details_completed_at: completedAt,
             ...(kycLevel ? { kyc_level: kycLevel } : {}),
+            ...(avatarPath ? { avatar_url: avatarPath } : {}),
             ...(isEmployer && form.ssmNumber.trim() ? { ssm_number: form.ssmNumber.trim() } : {}),
           },
           { onConflict: "id" }
@@ -9087,6 +9180,13 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
         <div style={{ overflowY: "auto", flex: 1, paddingRight: 4 }}>
           {!kycOnly && (
             <>
+              <AvatarGuidePicker
+                file={form.avatar}
+                existingUrl={getAvatarUrl(user?.user_metadata?.avatar_url)}
+                onChange={f => set("avatar", f)}
+                role={role}
+                disabled={saving}
+              />
               <Input label={isEmployer ? t("details.companyContactName") : t("auth.fullName")} placeholder={isEmployer ? t("employer.companyNamePlaceholder") : t("auth.fullNamePlaceholder")} value={form.fullName} onChange={e => set("fullName", e.target.value)} error={fieldError("fullName")} style={{ marginBottom: 4 }} />
               <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 14 }}>
                 {isEmployer ? t("details.companyNameFinalHint") : t("details.fullNameFinalHint")}
