@@ -844,6 +844,16 @@ const TRANSLATIONS = {
     "settings.openEmployerConsole": "Open Employer Console",
     "settings.openAdminDashboard": "Open Admin Dashboard",
     "employer.companyDetailsTitle": "Company Details",
+    "employer.viewContractBtn": "View contract",
+    "employer.viewWorkerProfileHint": "View worker profile",
+    "employer.contractSignaturesHeading": "Signatures",
+    "employer.contractSignedOnPrefix": "signed on ",
+    "employer.contractNotSignedYet": "not signed yet",
+    "employer.contractAwaitingWorker": "The worker has not signed this contract yet.",
+    "employer.profileHistoryTitle": "History with your company",
+    "employer.profileNoHistory": "No previous applications to your shifts.",
+    "employer.historyCompleted": "completed",
+    "employer.profileHistoryScopeNote": "For privacy, this only shows the worker's history with your own shifts, verified KYC level, and platform-wide reliability/rating scores.",
     "employer.verifiedBadge": "Verified",
     "employer.verifiedBadgeTitle": "SSM verification approved — you can post shifts.",
     "employer.companyNameLabel": "Company name",
@@ -1553,6 +1563,16 @@ const TRANSLATIONS = {
     "settings.openEmployerConsole": "Buka Konsol Majikan",
     "settings.openAdminDashboard": "Buka Papan Pemuka Admin",
     "employer.companyDetailsTitle": "Butiran Syarikat",
+    "employer.viewContractBtn": "Lihat kontrak",
+    "employer.viewWorkerProfileHint": "Lihat profil pekerja",
+    "employer.contractSignaturesHeading": "Tandatangan",
+    "employer.contractSignedOnPrefix": "ditandatangani pada ",
+    "employer.contractNotSignedYet": "belum ditandatangani",
+    "employer.contractAwaitingWorker": "Pekerja belum menandatangani kontrak ini.",
+    "employer.profileHistoryTitle": "Sejarah dengan syarikat anda",
+    "employer.profileNoHistory": "Tiada permohonan terdahulu untuk syif anda.",
+    "employer.historyCompleted": "selesai",
+    "employer.profileHistoryScopeNote": "Demi privasi, ini hanya menunjukkan sejarah pekerja dengan syif anda sendiri, tahap KYC yang disahkan, dan skor kebolehpercayaan/penilaian seluruh platform.",
     "employer.verifiedBadge": "Disahkan",
     "employer.verifiedBadgeTitle": "Pengesahan SSM diluluskan — anda boleh menyiarkan syif.",
     "employer.companyNameLabel": "Nama syarikat",
@@ -5608,6 +5628,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [companyDetailsLoading, setCompanyDetailsLoading] = useState(false);
   const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
   const [contractModal, setContractModal] = useState(null);
+  // Read-only signed-contract view + worker profile card for the applicant
+  // pool (owner request 2026-07-20).
+  const [viewContractModal, setViewContractModal] = useState(null); // applicant row
+  const [workerProfileModal, setWorkerProfileModal] = useState(null); // applicant row
+  const [workerHistory, setWorkerHistory] = useState(null); // null = loading
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
@@ -5629,6 +5654,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   useEffect(() => {
     if (!backHandlerRef) return;
     backHandlerRef.current = () => {
+      if (viewContractModal) { setViewContractModal(null); return true; }
+      if (workerProfileModal) { setWorkerProfileModal(null); return true; }
       if (contractModal) { setContractModal(null); return true; }
       if (disputeModal) { setDisputeModal(null); return true; }
       if (activeChatShift) { setActiveChatShift(null); setChatMessages([]); return true; }
@@ -6011,7 +6038,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -6029,7 +6056,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           status: a.status,
           appliedAt: a.applied_at,
           offerExpiresAt: a.offer_expires_at,
+          workerId: a.worker_id,
           workerSignedAt: a.worker_signed_at ?? null,
+          employerSignedAt: a.employer_signed_at ?? null,
           cancellationChoice: a.cancellation_choice ?? null,
           cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
           cancellationProofPath: a.cancellation_proof_path ?? null,
@@ -6045,6 +6074,26 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const detailAvgBid = (liveApplicants ?? []).length
     ? (liveApplicants ?? []).reduce((sum, a) => sum + (a.wageBid || 0), 0) / liveApplicants.length
     : 0;
+
+  // History between this employer and the clicked worker — RLS only returns
+  // applications on THIS employer's own shifts, which is exactly the scope
+  // we want to show ("your history with them", not platform-wide data).
+  useEffect(() => {
+    if (!workerProfileModal?.workerId) return undefined;
+    let active = true;
+    setWorkerHistory(null);
+    supabase
+      .from('applications')
+      .select('id, status, applied_at, worker_signed_at, shift:shifts(title, status, start_at)')
+      .eq('worker_id', workerProfileModal.workerId)
+      .order('applied_at', { ascending: false })
+      .limit(10)
+      .then(({ data, error }) => {
+        if (!active) return;
+        setWorkerHistory(error ? [] : (data ?? []));
+      });
+    return () => { active = false; };
+  }, [workerProfileModal]);
 
   // Best-effort expiry sweep: whenever the applicant pool loads, flip any
   // offers whose deadline has passed to 'expired' (permitted by the
@@ -6700,10 +6749,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         </td>
                       )}
                       <td style={{ padding: "12px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => setWorkerProfileModal(a)} title={t("employer.viewWorkerProfileHint")}>
                           <Avatar name={a.name} size={28} color={BRAND.blue} />
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{a.name}</div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primary, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
                             <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
                           </div>
                         </div>
@@ -6735,11 +6784,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           </div>
                         )}
                         {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>{t("employer.waitingOnWorker")}</span>}
-                        {action === "accepted" && selectedShift.status !== "completed" && <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>}
+                        {action === "accepted" && selectedShift.status !== "completed" && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                            <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>
+                            <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
+                          </div>
+                        )}
                         {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.notSelected")}</span>}
                         {action === "expired" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.offerExpiredStatus")}</span>}
                         {action === "accepted" && selectedShift.status === "completed" && (
-                          <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
+                            <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -7474,6 +7531,77 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 {filingDispute ? "…" : t("myBids.disputeSubmitBtn")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {viewContractModal && (
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setViewContractModal(null)}>
+          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
+            <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("contract.agreementHeading")}</h3>
+            <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{selectedShift?.title}</p>
+            <div style={{background: BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color: BRAND.text, marginBottom:16}}>
+              <p>{t("contract.enteredBetween")}</p>
+              <p>• <strong>{t("contract.employerLabel")}</strong> {t("contract.employerOnFile")}</p>
+              <p>• <strong>{t("contract.workerLabel")}</strong> {viewContractModal.name}</p>
+              <br/>
+              <p><strong>{t("contract.shiftDetailsHeading")}</strong></p>
+              <p>• {t("contract.roleLabel")} {selectedShift?.title}</p>
+              <p>• {t("contract.dateLabel")} {selectedShift?.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift?.date}</p>
+              <p>• {t("contract.timeLabel")} {selectedShift?.time}</p>
+              <p>• {t("contract.agreedWageLabel")} RM {viewContractModal.wageBid}/hr</p>
+              <br/>
+              <p><strong>{t("employer.contractSignaturesHeading")}</strong></p>
+              <p>• {t("contract.employerLabel")} {viewContractModal.employerSignedAt
+                ? `${t("employer.contractSignedOnPrefix")}${new Date(viewContractModal.employerSignedAt).toLocaleString('en-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: MY_TIMEZONE })}`
+                : t("employer.contractNotSignedYet")}</p>
+              <p>• {t("contract.workerLabel")} {viewContractModal.workerSignedAt
+                ? `${t("employer.contractSignedOnPrefix")}${new Date(viewContractModal.workerSignedAt).toLocaleString('en-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: MY_TIMEZONE })}`
+                : t("employer.contractNotSignedYet")}</p>
+            </div>
+            {!viewContractModal.workerSignedAt && (
+              <div style={{ padding:'8px 12px', background: BRAND.amberLight, borderRadius:8, fontSize:12, color: BRAND.amber, marginBottom:12 }}>{t("employer.contractAwaitingWorker")}</div>
+            )}
+            <button onClick={() => setViewContractModal(null)}
+              style={{width:'100%', padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.text, fontWeight:600}}>
+              {t("common.close")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {workerProfileModal && (
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setWorkerProfileModal(null)}>
+          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
+            <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+              <Avatar name={workerProfileModal.name} size={48} color={BRAND.blue} />
+              <div>
+                <div style={{ fontSize:17, fontWeight:800, color: BRAND.text }}>{workerProfileModal.name}</div>
+                <Badge color={workerProfileModal.kyc === "Advanced" ? "teal" : workerProfileModal.kyc === "Standard" ? "blue" : "gray"} size="xs">KYC: {workerProfileModal.kyc}</Badge>
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
+              <Stat label={t("employer.colReliability")} value={workerProfileModal.reliability} color={BRAND.green} />
+              <Stat label={t("employer.colRating")} value={workerProfileModal.rating ? workerProfileModal.rating.toFixed(1) : '—'} color={BRAND.accent} />
+              <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primary} />
+            </div>
+            <div style={{ fontSize:13, fontWeight:700, color: BRAND.text, marginBottom:8 }}>{t("employer.profileHistoryTitle")}</div>
+            {workerHistory === null && <div style={{ fontSize:12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
+            {workerHistory?.length === 0 && <div style={{ fontSize:12, color: BRAND.textMuted, marginBottom:8 }}>{t("employer.profileNoHistory")}</div>}
+            {(workerHistory ?? []).map(h => (
+              <div key={h.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:`1px solid ${BRAND.border}` }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:600, color: BRAND.text }}>{h.shift?.title ?? 'Shift'}</div>
+                  <div style={{ fontSize:11, color: BRAND.textMuted }}>{formatShiftDate(h.shift?.start_at)}</div>
+                </div>
+                <Pill label={h.shift?.status === 'completed' && h.status === 'accepted' ? t("employer.historyCompleted") : h.status} color={h.status === 'accepted' ? 'green' : (h.status === 'rejected' || h.status === 'expired') ? 'red' : 'gray'} />
+              </div>
+            ))}
+            <div style={{ fontSize:11, color: BRAND.textMuted, marginTop:10, marginBottom:14 }}>{t("employer.profileHistoryScopeNote")}</div>
+            <button onClick={() => setWorkerProfileModal(null)}
+              style={{width:'100%', padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.text, fontWeight:600}}>
+              {t("common.close")}
+            </button>
           </div>
         </div>
       )}
