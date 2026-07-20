@@ -3769,6 +3769,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     return () => { if (backHandlerRef) backHandlerRef.current = null; };
   });
 
+  // Tell BackGestureManager the user navigated in-app, so it re-arms the
+  // history sentinel and the browser's swipe-back preview screenshot stays
+  // close to the view back will actually reveal (kills the stale-page ghost).
+  useEffect(() => {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("carigaji:nav"));
+  }, [tab, selectedShift, selectedApplication, activeChatShift]);
+
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
   const navHeight = `calc(${navBaseHeight}px + ${navSafeAreaInset})`;
@@ -5631,6 +5638,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     };
     return () => { if (backHandlerRef) backHandlerRef.current = null; };
   });
+
+  // Same nav ping as WorkerPortal — keeps the swipe-back preview screenshot
+  // fresh (see BackGestureManager).
+  useEffect(() => {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("carigaji:nav"));
+  }, [view, selectedShift, activeChatShift]);
+
   // Mobile-only: the sidebar used to always render full-width, stacked above
   // the content, permanently expanded — eating over half the screen before
   // any actual work (managing shifts, reviewing applicants) was visible.
@@ -8982,7 +8996,15 @@ const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) 
   authOpenRef.current = authOpen;
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
-    const pushSentinel = () => window.history.pushState({ carigajiTrap: true }, "");
+    // Number of sentinel entries currently stacked above the app's base
+    // history entry — needed so "really exit" can jump past all of them in
+    // one traversal instead of assuming a single sentinel.
+    let depth = 0;
+    const pushSentinel = () => {
+      if (depth >= 25) return; // safety cap; the trap still holds via the rest
+      window.history.pushState({ carigajiTrap: true }, "");
+      depth += 1;
+    };
     pushSentinel();
     // Re-arming the sentinel synchronously inside popstate mutates history
     // while the browser's swipe-back animation is still settling, which is a
@@ -8995,6 +9017,7 @@ const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) 
       rearmTimer = setTimeout(() => { rearmTimer = null; pushSentinel(); }, 350);
     };
     const onPop = () => {
+      depth = Math.max(0, depth - 1);
       if (rearmTimer) {
         // A second pop arrived before the deferred sentinel was re-armed
         // (very fast double-swipe): re-arm immediately so the trap can't be
@@ -9015,19 +9038,28 @@ const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) 
       }
       const now = Date.now();
       if (now - lastExitAttemptRef.current < 2000) {
-        // Second back within the window: really leave. We're already back on
-        // the pre-sentinel entry, so one more back exits the site/app.
-        window.history.back();
+        // Second back within the window: really leave — jump past every
+        // remaining sentinel AND the app's base entry in one traversal.
+        window.history.go(-(depth + 1));
         return;
       }
       lastExitAttemptRef.current = now;
       toast(t("toast.backAgainToExit"), "info", 2000);
       rearmSentinel();
     };
+    // The swipe-preview "ghost" is the browser's screenshot of the history
+    // entry UNDER the sentinel, captured whenever the sentinel was pushed.
+    // Without refreshing it, that screenshot can be an old page (e.g. My
+    // Bids) even though back will actually land on the current view — so
+    // every in-app navigation (tab change, opening a detail/chat) re-arms a
+    // fresh sentinel via this event, keeping the preview close to reality.
+    const onNav = () => rearmSentinel();
     window.addEventListener("popstate", onPop);
+    window.addEventListener("carigaji:nav", onNav);
     return () => {
       if (rearmTimer) clearTimeout(rearmTimer);
       window.removeEventListener("popstate", onPop);
+      window.removeEventListener("carigaji:nav", onNav);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
