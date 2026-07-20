@@ -772,7 +772,8 @@ const TRANSLATIONS = {
     "employer.toastShiftCancelled": "Shift cancelled. Applicants have been notified.",
     "employer.statAppliedUsers": "Applied users",
     "employer.statSlotsFilled": "Slots filled",
-    "employer.statCommitted": "Committed",
+    "employer.statEstBudget": "Est. budget (max)",
+    "employer.listCardEstBudget": "RM{amount} est. budget",
     "employer.statAvgBid": "Avg bid",
     "employer.positionsOpenHint": "{open} of {total} position{plural} still open.",
     "employer.appliedBadge": "{count} applied",
@@ -1480,7 +1481,8 @@ const TRANSLATIONS = {
     "employer.toastShiftCancelled": "Syif dibatalkan. Pemohon telah dimaklumkan.",
     "employer.statAppliedUsers": "Pengguna memohon",
     "employer.statSlotsFilled": "Slot diisi",
-    "employer.statCommitted": "Direzab",
+    "employer.statEstBudget": "Anggaran bajet (maks)",
+    "employer.listCardEstBudget": "RM{amount} anggaran bajet",
     "employer.statAvgBid": "Purata tawaran",
     "employer.positionsOpenHint": "{open} daripada {total} kekosongan{plural} masih terbuka.",
     "employer.appliedBadge": "{count} memohon",
@@ -5631,7 +5633,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!user) return setLiveEmployerShifts(null);
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements')
+      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max')
       .eq('employer_id', user.id)
       .order('start_at', { ascending: false });
     // Same fix as the worker My Bids loader: empty (not null) on error so
@@ -5650,7 +5652,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       filled: s.filled_count ?? 0,
       applicants: 0,
       status: s.status,
-      escrow: 0,
+      // Worst-case wage bill if every position fills at the top of the range,
+      // across every occurrence day (escrow/prepayment isn't built yet, so
+      // this is an estimate, not money actually held).
+      estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1)),
       category: s.category,
       languageRequirements: s.language_requirements || [],
     })));
@@ -5664,7 +5669,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements')
+      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max')
       .eq('id', deepLinkShift.shiftId)
       .eq('employer_id', user.id)
       .maybeSingle()
@@ -5682,7 +5687,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           filled: s.filled_count ?? 0,
           applicants: 0,
           status: s.status,
-          escrow: 0,
+          estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1)),
           category: s.category,
           languageRequirements: s.language_requirements || [],
         });
@@ -6005,6 +6010,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       });
     return () => { active = false; };
   }, [selectedShift]);
+
+  // Average hourly bid across the open detail's applicant pool (the shift-list
+  // enrichment only lands on liveEmployerShifts, so the detail computes its
+  // own from the applicants it already loads — this is what fixes the stat
+  // showing "(not set)" whenever the detail opened before enrichment).
+  const detailAvgBid = (liveApplicants ?? []).length
+    ? (liveApplicants ?? []).reduce((sum, a) => sum + (a.wageBid || 0), 0) / liveApplicants.length
+    : 0;
 
   // Best-effort expiry sweep: whenever the applicant pool loads, flip any
   // offers whose deadline has passed to 'expired' (permitted by the
@@ -6537,7 +6550,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>RM{s.escrow} committed</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>{t('employer.listCardEstBudget').replace('{amount}', s.estBudget)}</div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 6 }}>
                           <Badge color="green" size="xs">Positions {s.headcount}</Badge>
                           <Badge color="blue" size="xs">Applied {s.applicants}</Badge>
@@ -6583,8 +6596,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
-              <Stat label={t("employer.statCommitted")} value={`RM${selectedShift.escrow}`} color={BRAND.primary} />
-              <Stat label={t("employer.statAvgBid")} value={selectedShift.avgBid ? `RM${selectedShift.avgBid.toFixed(2)}` : t("employer.reviewNotSet")} color={BRAND.accent} />
+              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} color={BRAND.primary} />
+              <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} color={BRAND.accent} />
             </div>
             {selectedShift.status === "cancelled" && confirmedSignedApplicants.length > 0 && (
               <Card style={{ marginBottom: 20 }}>
