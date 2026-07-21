@@ -767,6 +767,8 @@ const TRANSLATIONS = {
     "employer.noShiftsPostedYetHint": "Post your first shift to start hiring workers.",
     "employer.backToShifts": "Back to shifts",
     "employer.listCardPositionsNeeded": "Positions needed: {count}",
+    "employer.listCardPositionsBadge": "Positions {count}",
+    "employer.listCardAppliedBadge": "Applied {count}",
     "employer.listCardFilled": "Filled: {count}",
     "employer.listCardCategory": "Category: {category}",
     "employer.listCardLanguages": "Languages: {languages}",
@@ -1501,6 +1503,8 @@ const TRANSLATIONS = {
     "employer.noShiftsPostedYetHint": "Siarkan syif pertama anda untuk mula mengambil pekerja.",
     "employer.backToShifts": "Kembali ke syif",
     "employer.listCardPositionsNeeded": "Kekosongan diperlukan: {count}",
+    "employer.listCardPositionsBadge": "Kekosongan {count}",
+    "employer.listCardAppliedBadge": "Memohon {count}",
     "employer.listCardFilled": "Terisi: {count}",
     "employer.listCardCategory": "Kategori: {category}",
     "employer.listCardLanguages": "Bahasa: {languages}",
@@ -6747,8 +6751,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>{t('employer.listCardEstBudget').replace('{amount}', s.estBudget)}</div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 6 }}>
-                          <Badge color="green" size="xs">Positions {s.headcount}</Badge>
-                          <Badge color="blue" size="xs">Applied {s.applicants}</Badge>
+                          <Badge color="green" size="xs">{t('employer.listCardPositionsBadge').replace('{count}', s.headcount)}</Badge>
+                          <Badge color="blue" size="xs">{t('employer.listCardAppliedBadge').replace('{count}', s.applicants)}</Badge>
                         </div>
                   </div>
                 </div>
