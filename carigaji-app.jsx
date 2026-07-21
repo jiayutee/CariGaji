@@ -856,6 +856,7 @@ const TRANSLATIONS = {
     "employer.profileHistoryScopeNote": "For privacy, this only shows the worker's history with your own shifts, verified KYC level, and platform-wide reliability/rating scores.",
     "employer.verifiedBadge": "Verified",
     "employer.verifiedBadgeTitle": "SSM verification approved — you can post shifts.",
+    "employer.applicantVerifiedTitle": "KYC verified — this worker has completed identity verification.",
     "employer.companyNameLabel": "Company name",
     "employer.companyNamePlaceholder": "e.g. Grand Hyatt Kuala Lumpur",
     "employer.ssmNumberLabel": "SSM registration number",
@@ -1589,6 +1590,7 @@ const TRANSLATIONS = {
     "employer.profileHistoryScopeNote": "Demi privasi, ini hanya menunjukkan sejarah pekerja dengan syif anda sendiri, tahap KYC yang disahkan, dan skor kebolehpercayaan/penilaian seluruh platform.",
     "employer.verifiedBadge": "Disahkan",
     "employer.verifiedBadgeTitle": "Pengesahan SSM diluluskan — anda boleh menyiarkan syif.",
+    "employer.applicantVerifiedTitle": "KYC disahkan — pekerja ini telah melengkapkan pengesahan identiti.",
     "employer.companyNameLabel": "Nama syarikat",
     "employer.companyNamePlaceholder": "cth. Grand Hyatt Kuala Lumpur",
     "employer.ssmNumberLabel": "Nombor pendaftaran SSM",
@@ -6153,10 +6155,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       .then(({ data, error }) => {
         if (!active) return;
         if (error) { console.error('liveApplicants load failed:', error.message); setLiveApplicants([]); return; }
-        setLiveApplicants((data ?? []).map(a => ({
+        const mapped = (data ?? []).map(a => ({
           id: a.id,
           name: a.worker?.full_name ?? 'Worker',
           kyc: a.worker?.kyc_level ?? 'Basic',
+          verified: a.worker?.kyc_level === 'Standard' || a.worker?.kyc_level === 'Advanced',
           reliability: a.worker?.reliability_score ?? 0,
           rating: a.worker?.rating ?? 0,
           wage: Number(a.wage_ask),
@@ -6171,7 +6174,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           cancellationChoice: a.cancellation_choice ?? null,
           cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
           cancellationProofPath: a.cancellation_proof_path ?? null,
-        })));
+        }));
+        // Stable sort keeps applied_at order within each group — only
+        // reorders verified workers ahead of unverified ones.
+        mapped.sort((x, y) => (y.verified ? 1 : 0) - (x.verified ? 1 : 0));
+        setLiveApplicants(mapped);
       });
     return () => { active = false; };
   }, [selectedShift]);
@@ -6861,7 +6868,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => setWorkerProfileModal(a)} title={t("employer.viewWorkerProfileHint")}>
                           <Avatar name={a.name} size={28} color={BRAND.blue} />
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primary, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primary, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
+                              {a.verified && (
+                                <span title={t("employer.applicantVerifiedTitle")} role="img" aria-label={t("employer.applicantVerifiedTitle")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: "#fff", fontSize: 9, lineHeight: 1, flexShrink: 0 }}>✓</span>
+                              )}
+                            </div>
                             <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
                           </div>
                         </div>
