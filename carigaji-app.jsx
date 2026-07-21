@@ -2504,8 +2504,11 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat }) => {
         // has backdropFilter, which creates a containing block for position:fixed
         // descendants — without escaping it, this overlay was sized/clipped to the
         // header's own box instead of the viewport.
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setHelpOpen(false)}>
-          <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setHelpOpen(false)}>
+          {/* alignItems: flex-start (not center) pins the panel's top edge to a
+              fixed viewport position — expanding/collapsing an FAQ only grows
+              or shrinks the bottom, it no longer shifts the top edge. */}
+          <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
               <button onClick={() => setHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
