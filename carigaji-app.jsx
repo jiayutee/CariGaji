@@ -172,6 +172,12 @@ const sanitizeBulkTextValue = (v) => {
   return /^[=+\-@\t\r]/.test(trimmed) ? `'${trimmed}` : trimmed;
 };
 
+// Reverses sanitizeBulkTextValue's protective apostrophe for display purposes.
+const displayProtectedText = (v) => {
+  const s = String(v ?? "");
+  return /^'[=+\-@\t\r]/.test(s) ? s.slice(1) : s;
+};
+
 // Row-level readiness check, shared between initial parse and inline edits.
 const evaluateBulkRowStatus = (row) => {
   const problems = [];
@@ -2718,7 +2724,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text }}>{n.title}</div>
                     {n.body && (
-                      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{n.body}</div>
+                      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(n.body)}</div>
                     )}
                     <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at, t)}</div>
                   </div>
@@ -3926,7 +3932,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         if (!active) return;
         setChatConversations((data ?? []).map(a => ({
           shiftId: a.shift_id,
-          title: a.shift?.title ?? 'Shift',
+          title: displayProtectedText(a.shift?.title ?? 'Shift'),
           date: formatShiftDate(a.shift?.start_at),
           otherUserId: a.shift?.employer_id,
           otherUserLabel: a.shift?.employer?.full_name ? `${a.shift.employer.full_name} (Employer)` : 'Employer',
@@ -4018,7 +4024,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (error) { console.error('loadApplications failed:', error.message); setLiveApplications([]); return; }
       setLiveApplications((data ?? []).map(a => ({
         id: a.id,
-        shiftTitle: a.shift?.title ?? 'Shift',
+        shiftTitle: displayProtectedText(a.shift?.title ?? 'Shift'),
         employer: a.shift?.employer?.full_name ?? '',
         date: formatShiftDate(a.shift?.start_at) || 'TBA',
         wageBid: Number(a.wage_ask ?? 0),
@@ -4035,14 +4041,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         shiftEndAt: a.shift?.end_at ?? null,
         shiftOccurrences: a.shift?.occurrences ?? [],
         isMultiDay: (a.shift?.occurrences ?? []).length > 1,
-        shiftLocation: a.shift?.location ?? '',
+        shiftLocation: displayProtectedText(a.shift?.location ?? ''),
         shiftCategory: a.shift?.category ?? '',
         shiftWageMin: Number(a.shift?.wage_min ?? 0),
         shiftWageMax: Number(a.shift?.wage_max ?? 0),
         shiftHeadcount: a.shift?.headcount ?? 1,
-        shiftDress: a.shift?.dress_code ?? '',
+        shiftDress: displayProtectedText(a.shift?.dress_code ?? ''),
         shiftLanguages: a.shift?.language_requirements ?? [],
-        shiftDescription: a.shift?.description ?? '',
+        shiftDescription: displayProtectedText(a.shift?.description ?? ''),
         shiftStipend: Number(a.shift?.transport_allowance ?? 0),
         shiftStatus: a.shift?.status ?? null,
       })));
@@ -4178,8 +4184,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         if (!active) return;
         setLiveShifts((data ?? []).map(s => ({
           id: s.id,
-          title: s.title,
-          description: s.description || '',
+          title: displayProtectedText(s.title),
+          description: displayProtectedText(s.description || ''),
           category: s.category,
           employer: s.employer?.full_name || 'Employer',
           employerId: s.employer_id ?? null,
@@ -4188,7 +4194,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // employer mid-KYC-review — so the UI can distinguish "unknown"
           // from "verified 0/100" rather than showing a misleading red badge.
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
-          location: s.location,
+          location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
           time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
@@ -4200,7 +4206,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           status: s.status,
           addressVisibility: s.address_visibility || 'public',
           totalApplicants: s.applicant_count ?? 0,
-          dress: s.dress_code || '',
+          dress: displayProtectedText(s.dress_code || ''),
           languageRequirements: s.language_requirements || [],
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
@@ -4234,13 +4240,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         if (!active || !s) return;
         setSelectedShift({
           id: s.id,
-          title: s.title,
-          description: s.description || '',
+          title: displayProtectedText(s.title),
+          description: displayProtectedText(s.description || ''),
           category: s.category,
           employer: s.employer?.full_name || 'Employer',
           employerId: s.employer_id ?? null,
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
-          location: s.location,
+          location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
           time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
@@ -4252,7 +4258,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           status: s.status,
           addressVisibility: s.address_visibility || 'public',
           totalApplicants: s.applicant_count ?? 0,
-          dress: s.dress_code || '',
+          dress: displayProtectedText(s.dress_code || ''),
           languageRequirements: s.language_requirements || [],
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
@@ -5814,7 +5820,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (error) { console.error('liveEmployerShifts load failed:', error.message); setLiveEmployerShifts([]); return; }
     setLiveEmployerShifts((data ?? []).map(s => ({
       id: s.id,
-      title: s.title,
+      title: displayProtectedText(s.title),
       startAt: s.start_at,
       occurrences: s.occurrences ?? [],
       isMultiDay: (s.occurrences ?? []).length > 1,
@@ -5849,7 +5855,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         if (!active || !s) return;
         setSelectedShift({
           id: s.id,
-          title: s.title,
+          title: displayProtectedText(s.title),
           startAt: s.start_at,
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
@@ -6104,16 +6110,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       ? data.occurrences
       : [{ date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '', start: hhmm(start), end: hhmm(end) }];
     setForm({
-      title: data.title || '',
-      description: data.description || '',
+      title: displayProtectedText(data.title || ''),
+      description: displayProtectedText(data.description || ''),
       category: data.category || 'F&B',
       occurrences,
       isMultiDay: occurrences.length > 1,
       wageMin: data.wage_min != null ? String(data.wage_min) : '',
       wageMax: data.wage_max != null ? String(data.wage_max) : '',
       headcount: data.headcount || 1,
-      dress: data.dress_code || '',
-      location: data.location || '',
+      dress: displayProtectedText(data.dress_code || ''),
+      location: displayProtectedText(data.location || ''),
       addressVisibility: data.address_visibility || 'public',
       offersTransportAllowance: transportAmt > 0,
       transportAllowance: transportAmt > 0 ? String(transportAmt) : '',
@@ -6246,7 +6252,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         (data ?? []).forEach(a => {
           const entry = byShift.get(a.shift_id) ?? {
             shiftId: a.shift_id,
-            title: a.shift?.title ?? 'Shift',
+            title: displayProtectedText(a.shift?.title ?? 'Shift'),
             date: formatShiftDate(a.shift?.start_at),
             workerNames: [],
           };
@@ -7168,11 +7174,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       const wageMax = parseFloat(form.wageMax) || 0;
                       if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
                       const payload = {
-                        title:       form.title.trim(),
-                        description: form.description ? form.description.trim() : null,
+                        title:       sanitizeBulkTextValue(form.title.trim()),
+                        description: form.description ? sanitizeBulkTextValue(form.description.trim()) : null,
                         category:    form.category || 'Other',
-                        location:    (form.location || '').trim() || 'Kuala Lumpur',
-                        dress_code:  form.dress ? form.dress.trim() : null,
+                        location:    sanitizeBulkTextValue((form.location || '').trim() || 'Kuala Lumpur'),
+                        dress_code:  form.dress ? sanitizeBulkTextValue(form.dress.trim()) : null,
                         start_at:    startAt,
                         end_at:      endAt,
                         occurrences: sortedOccurrences,
@@ -7746,7 +7752,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             {(workerHistory ?? []).map(h => (
               <div key={h.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:`1px solid ${BRAND.border}` }}>
                 <div>
-                  <div style={{ fontSize:12, fontWeight:600, color: BRAND.text }}>{h.shift?.title ?? 'Shift'}</div>
+                  <div style={{ fontSize:12, fontWeight:600, color: BRAND.text }}>{displayProtectedText(h.shift?.title ?? 'Shift')}</div>
                   <div style={{ fontSize:11, color: BRAND.textMuted }}>{formatShiftDate(h.shift?.start_at)}</div>
                 </div>
                 <Pill label={h.shift?.status === 'completed' && h.status === 'accepted' ? t("employer.historyCompleted") : h.status} color={h.status === 'accepted' ? 'green' : (h.status === 'rejected' || h.status === 'expired') ? 'red' : 'gray'} />
@@ -8121,7 +8127,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 {disputesQueue?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.disputesEmptyState")}</div>}
                 {disputesQueue?.slice(0, 3).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                    <div style={{ fontSize: 13, color: BRAND.text }}>{d.application?.shift?.title ?? "Shift"} – {t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther")}</div>
+                    <div style={{ fontSize: 13, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "Shift")} – {t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther")}</div>
                     <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
                   </div>
                 ))}
@@ -8276,7 +8282,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     </div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
-                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Shift</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.application?.shift?.title ?? "—"}</div></div>
+                    <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Shift</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "—")}</div></div>
                     <div><div style={{ fontSize: 11, color: BRAND.textMuted }}>Application ID</div><div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{d.application?.id ?? "—"}</div></div>
                   </div>
                   <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6, marginBottom: 12, whiteSpace: "pre-wrap" }}>{d.description}</div>
