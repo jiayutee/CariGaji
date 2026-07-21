@@ -6048,11 +6048,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         const wageMax = parseFloat(row.wageMax) || wageMin;
         if (wageMax < wageMin) throw new Error("Max pay must be ≥ min pay.");
         const payload = {
-          title: row.title.trim(),
-          description: row.description ? row.description.trim() : null,
+          title: sanitizeBulkTextValue(row.title.trim()),
+          description: row.description ? sanitizeBulkTextValue(row.description.trim()) : null,
           category: row.category,
-          location: (row.location || "").trim() || "Kuala Lumpur",
-          dress_code: row.dress ? row.dress.trim() : null,
+          location: sanitizeBulkTextValue((row.location || "").trim() || "Kuala Lumpur"),
+          dress_code: row.dress ? sanitizeBulkTextValue(row.dress.trim()) : null,
           start_at: startAt,
           end_at: endAt,
           occurrences: [{ date: row.date, start: row.timeStart, end: row.timeEnd }],
