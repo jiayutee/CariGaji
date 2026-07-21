@@ -3456,7 +3456,7 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
         <div
           ref={boxRef}
           onScroll={onScroll}
-          style={{ marginTop: 10, padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7, maxHeight: 240, overflowY: "auto" }}
+          style={{ marginTop: 10, padding: "12px 14px", background: BRAND.grayLight, borderRadius: 8, border: `1px solid ${BRAND.border}`, fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.7, maxHeight: 240, overflowY: "auto" }}
         >
           <TnCLegalText />
         </div>
@@ -5438,21 +5438,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             })()}
 
             {/* Terms & Conditions — Malaysian Labor Law */}
-            <div style={{marginTop:24, borderTop:'1px solid #e2e8f0', paddingTop:16}}>
+            <div style={{marginTop:24, borderTop:`1px solid ${BRAND.border}`, paddingTop:16}}>
               <button
                 onClick={() => setShowTnC(v => !v)}
                 style={{display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%',
                   background:'none', border:'none', cursor:'pointer', padding:0, textAlign:'left'}}
               >
-                <span style={{fontSize:14, fontWeight:600, color:'#374151'}}>
+                <span style={{fontSize:14, fontWeight:600, color:BRAND.text}}>
                   📋 Terms & Conditions — Malaysian Labor Law
                 </span>
-                <span style={{fontSize:12, color:'#6b7280'}}>{showTnC ? '▲ Hide' : '▼ Show'}</span>
+                <span style={{fontSize:12, color:BRAND.textMuted}}>{showTnC ? '▲ Hide' : '▼ Show'}</span>
               </button>
 
               {showTnC && (
-                <div style={{marginTop:12, fontSize:13, color:'#374151', lineHeight:1.7}}>
-                  <p style={{color:'#6b7280', fontSize:12, marginBottom:12}}>
+                <div style={{marginTop:12, fontSize:13, color:BRAND.text, lineHeight:1.7}}>
+                  <p style={{color:BRAND.textMuted, fontSize:12, marginBottom:12}}>
                     ⚠️ This is a summary for general guidance only. Consult a Malaysian employment lawyer before making decisions. Last updated: June 2026.
                   </p>
 
@@ -5498,13 +5498,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       body: 'CariGaji operates as a technology marketplace connecting employers and workers. The legal employment relationship — and the resulting EPF, SOCSO, EIS, minimum wage, and Employment Act obligations — is between the worker and the hiring business, not between the worker and CariGaji. CariGaji does not set hours, direct how work is performed, or pay wages directly. Employers using CariGaji are responsible for complying with all applicable Malaysian employment laws. CariGaji is separately assessing its obligations as a potential platform provider under the Gig Workers Act 2025 (Act 872). This summary does not constitute legal advice.'
                     },
                   ].map(({ title, body }) => (
-                    <div key={title} style={{marginBottom:14, paddingBottom:14, borderBottom:'1px solid #f1f5f9'}}>
-                      <div style={{fontWeight:600, marginBottom:4, color:'#1e293b'}}>{title}</div>
-                      <div style={{color:'#475569'}}>{body}</div>
+                    <div key={title} style={{marginBottom:14, paddingBottom:14, borderBottom:`1px solid ${BRAND.border}`}}>
+                      <div style={{fontWeight:600, marginBottom:4, color:BRAND.text}}>{title}</div>
+                      <div style={{color:BRAND.textMuted}}>{body}</div>
                     </div>
                   ))}
 
-                  <p style={{fontSize:11, color:'#94a3b8', marginTop:8}}>
+                  <p style={{fontSize:11, color:BRAND.textMuted, marginTop:8}}>
                     References: Employment Act 1955 (Act 265) · EPF Act 1991 (Act 452) · SOCSO Act 1969 (Act 4) · EIS Act 2017 (Act 800) · Gig Workers Act 2025 (Act 872) · Minimum Wages Act 2012 (Act 732) · Income Tax Act 1967 (Act 53)
                   </p>
                 </div>
@@ -8926,7 +8926,7 @@ const TnCGateModal = ({ open, accepting, onAccept, onSignOut }) => {
         <div
           ref={boxRef}
           onScroll={onScroll}
-          style={{ padding: "12px 14px", background: "#F8FAFC", borderRadius: 8, border: "1px solid #E2E8F0", fontSize: 12, color: BRAND.textMuted, lineHeight: 1.7, overflowY: "auto", flex: 1, marginBottom: 12 }}
+          style={{ padding: "12px 14px", background: BRAND.grayLight, borderRadius: 8, border: `1px solid ${BRAND.border}`, fontSize: 12, color: BRAND.textMuted, lineHeight: 1.7, overflowY: "auto", flex: 1, marginBottom: 12 }}
         >
           <TnCLegalText />
         </div>
