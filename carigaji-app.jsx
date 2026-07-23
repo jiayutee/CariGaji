@@ -87,10 +87,12 @@ const validateOccurrences = (occurrences) => {
 
 // ─── Basic analytics ─────────────────────────────────────────────────────────
 // Fire-and-forget event logging (see supabase/migrations/20260720_analytics_events.sql).
-// Never awaited by callers and never throws — a missing migration, RLS
+// Gated on the user's cookie consent decision (see hasAnalyticsConsent below) —
+// never awaited by callers and never throws — a missing migration, RLS
 // denial, or network blip must not block or break any UI flow.
 const logAnalyticsEvent = (eventType, metadata = {}, userId = null) => {
   try {
+    if (!hasAnalyticsConsent()) return;
     supabase.from('analytics_events').insert({ event_type: eventType, metadata, user_id: userId }).then(() => {}, () => {});
   } catch {
     // Swallow — analytics must never break the app.
@@ -632,12 +634,13 @@ const TRANSLATIONS = {
     "cookie.functionalTitle": "Functional",
     "cookie.functionalDesc": "Remembers your language and display theme so you don't have to reset them each visit.",
     "cookie.analyticsTitle": "Analytics & Marketing",
-    "cookie.analyticsDesc": "Would help us understand usage and improve the app. Not currently active — off by default.",
+    "cookie.analyticsDesc": "Helps us understand usage (page views, sign-ups, bids) so we can improve the app. Off by default — you control whether this is on.",
     "cookie.servicesEssential": "Keeps you signed in via your Supabase authentication session, and stores basic session state needed for the app to function. These can't be switched off.",
     "cookie.servicesFunctional": "Stores your language choice (English/Bahasa Melayu, key \"carigaji_lang\") and your light/dark theme preference in your browser's local storage.",
-    "cookie.servicesAnalytics": "No analytics or marketing tools are currently active in CariGaji. This category is reserved for future use (e.g. usage analytics) and will stay off until we actually add one — turning it on today has no effect.",
+    "cookie.servicesAnalytics": "When enabled, CariGaji logs basic usage events (page views, sign-ups, bids placed) to help us understand how the app is used. Nothing is logged for this category until you turn it on, and it stops immediately if you turn it back off.",
     "cookie.aboutBody": "CariGaji uses browser local storage — not third-party tracking cookies — to keep you signed in and to remember your preferences on this device. We don't use this data for tracking, and nothing here is shared with advertisers. See our Privacy Policy for the full details on what we collect and why, and our Terms of Service for how the platform works.",
     "cookie.savePreferences": "Save Preferences",
+    "cookie.reopenPreferences": "Cookie preferences",
     "supportChat.title": "CariGaji Support",
     "supportChat.greeting": "Hi! I'm the CariGaji support assistant. Ask me anything about shifts, bidding, KYC, payments, or your account.",
     "supportChat.inputPlaceholder": "Type your question…",
@@ -1370,12 +1373,13 @@ const TRANSLATIONS = {
     "cookie.functionalTitle": "Fungsian",
     "cookie.functionalDesc": "Mengingati bahasa dan tema paparan anda supaya anda tidak perlu menetapkannya semula setiap kali melawat.",
     "cookie.analyticsTitle": "Analitik & Pemasaran",
-    "cookie.analyticsDesc": "Akan membantu kami memahami penggunaan dan menambah baik aplikasi. Belum aktif — dimatikan secara lalai.",
+    "cookie.analyticsDesc": "Membantu kami memahami penggunaan (paparan halaman, pendaftaran, bidaan) supaya kami boleh menambah baik aplikasi. Dimatikan secara lalai — anda mengawal sama ada ciri ini diaktifkan.",
     "cookie.servicesEssential": "Mengekalkan log masuk anda melalui sesi pengesahan Supabase, dan menyimpan status sesi asas yang diperlukan untuk aplikasi berfungsi. Ini tidak boleh dimatikan.",
     "cookie.servicesFunctional": "Menyimpan pilihan bahasa anda (Bahasa Inggeris/Bahasa Melayu, kunci \"carigaji_lang\") dan keutamaan tema terang/gelap anda dalam storan tempatan pelayar anda.",
-    "cookie.servicesAnalytics": "Tiada alat analitik atau pemasaran aktif buat masa ini dalam CariGaji. Kategori ini disediakan untuk kegunaan masa hadapan (contohnya analitik penggunaan) dan akan kekal dimatikan sehingga kami benar-benar menambahnya — mengaktifkannya hari ini tidak memberi apa-apa kesan.",
+    "cookie.servicesAnalytics": "Apabila diaktifkan, CariGaji merekod acara penggunaan asas (paparan halaman, pendaftaran, bidaan yang dibuat) untuk membantu kami memahami cara aplikasi digunakan. Tiada apa-apa direkodkan untuk kategori ini sehingga anda mengaktifkannya, dan ia berhenti serta-merta jika anda mematikannya semula.",
     "cookie.aboutBody": "CariGaji menggunakan storan tempatan pelayar — bukan kuki penjejakan pihak ketiga — untuk mengekalkan log masuk anda dan mengingati keutamaan anda pada peranti ini. Kami tidak menggunakan data ini untuk penjejakan, dan tiada apa-apa di sini dikongsi dengan pengiklan. Lihat Dasar Privasi kami untuk butiran penuh tentang apa yang kami kumpul dan sebabnya, serta Terma Perkhidmatan kami untuk cara platform ini berfungsi.",
     "cookie.savePreferences": "Simpan Keutamaan",
+    "cookie.reopenPreferences": "Keutamaan kuki",
     "supportChat.title": "Sokongan CariGaji",
     "supportChat.greeting": "Hai! Saya pembantu sokongan CariGaji. Tanya saya apa-apa tentang syif, bidaan, KYC, pembayaran, atau akaun anda.",
     "supportChat.inputPlaceholder": "Taip soalan anda…",
@@ -1976,9 +1980,10 @@ const LanguageProvider = ({ children }) => {
 // ─── Cookie consent ─────────────────────────────────────────────────────────
 // GDPR/PDPA-style consent: essential storage (Supabase auth session) is
 // always on and can't be switched off; functional (language + theme
-// preference) and analytics/marketing (reserved — no tracker is wired up
-// anywhere in this app yet) are user-controlled. Persisted the same way as
-// LANGUAGE_STORAGE_KEY above, via a single JSON blob.
+// preference) and analytics/marketing (gates the analytics_events logging —
+// see logAnalyticsEvent above and hasAnalyticsConsent below) are
+// user-controlled. Persisted the same way as LANGUAGE_STORAGE_KEY above, via
+// a single JSON blob.
 const COOKIE_CONSENT_STORAGE_KEY = "carigaji_cookie_consent";
 const COOKIE_CONSENT_VERSION = 1;
 
@@ -1999,6 +2004,11 @@ const writeCookieConsent = (decision) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, JSON.stringify(decision));
 };
+
+// Used by logAnalyticsEvent above to gate real event logging on the user's
+// recorded consent decision. No decision yet (banner not actioned) is
+// treated as "no" — analytics only fires once the user opts in.
+const hasAnalyticsConsent = () => readCookieConsent()?.analytics === true;
 
 // ─── Toast system ───────────────────────────────────────────────────────────
 const ToastContext = createContext(() => {});
@@ -8729,11 +8739,11 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
 // gets clipped to that ancestor's box instead of the viewport, so this has
 // to escape via a body portal too.
 //
-// Scope note: this is UI + local persistence only. There is no analytics/
-// consent-mode SDK anywhere in this codebase (grepped for gtag/fbq/mixpanel/
-// analytics — no hits), so the "Analytics & Marketing" category is reserved
-// for future use and stays off by default; toggling it today has no effect
-// beyond being remembered.
+// Scope note: this is UI + local persistence, plus a real consumer —
+// logAnalyticsEvent (see near the top of this file) calls hasAnalyticsConsent
+// and only inserts into analytics_events (page_view/sign_up/bid_placed) when
+// the "Analytics & Marketing" category below is switched on. It's off by
+// default; toggling it here directly turns that logging on/off.
 const DEFAULT_COOKIE_DRAFT = { functional: true, analytics: false };
 
 const CookieConsentManager = ({ isMobile }) => {
@@ -8771,6 +8781,7 @@ const CookieConsentManager = ({ isMobile }) => {
   const handleSavePreferences = () => persist(draft);
 
   const bannerVisible = consent === null && !panelOpen;
+  const reopenVisible = consent !== null && !panelOpen;
 
   // The mobile bottom nav is a *sticky* (not fixed) bar, but it still ends up
   // pinned to the physical bottom of the viewport on mobile (navBaseHeight
@@ -8804,6 +8815,25 @@ const CookieConsentManager = ({ isMobile }) => {
             </div>
           </div>
         </div>,
+        document.body
+      )}
+
+      {reopenVisible && createPortal(
+        <button
+          onClick={() => openPanel("categories")}
+          aria-label={t("cookie.reopenPreferences")}
+          title={t("cookie.reopenPreferences")}
+          style={{
+            position: "fixed", left: 16, bottom: edgeBottom, zIndex: 900,
+            width: 40, height: 40, borderRadius: "50%",
+            background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
+            boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, padding: 0,
+          }}
+        >
+          <span aria-hidden="true">🍪</span>
+        </button>,
         document.body
       )}
 
