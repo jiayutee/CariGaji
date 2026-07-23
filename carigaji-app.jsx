@@ -559,6 +559,7 @@ const TRANSLATIONS = {
     "employer.noActivity": "No activity yet — post a shift to start hiring.",
     "employer.shiftsTitle": "Your Shifts",
     "employer.postShiftBtn": "+ Post Shift",
+    "employer.listCardChatBtn": "Chat",
     "employer.editShift": "Edit shift",
     "employer.cancelShift": "Cancel shift",
     "employer.cancellingShift": "Cancelling…",
@@ -1296,6 +1297,7 @@ const TRANSLATIONS = {
     "employer.noActivity": "Belum ada aktiviti — siarkan syif untuk mula mengambil pekerja.",
     "employer.shiftsTitle": "Syif Anda",
     "employer.postShiftBtn": "+ Siar Syif",
+    "employer.listCardChatBtn": "Sembang",
     "employer.editShift": "Sunting syif",
     "employer.cancelShift": "Batalkan syif",
     "employer.cancellingShift": "Membatalkan…",
@@ -6282,6 +6284,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     return () => { active = false; };
   }, [user, view]);
 
+  // Deep-linking straight into a shift's chat (e.g. the shift-card Chat
+  // button) sets activeChatShift before chatConversations has loaded, so the
+  // header's worker-name subtitle starts blank — backfill it once available.
+  useEffect(() => {
+    if (!activeChatShift || activeChatShift.otherUserLabel) return;
+    const match = chatConversations.find(c => c.shiftId === activeChatShift.shiftId);
+    if (match) setActiveChatShift(prev => (prev && !prev.otherUserLabel) ? { ...prev, otherUserLabel: match.otherUserLabel } : prev);
+  }, [chatConversations, activeChatShift]);
+
   useEffect(() => {
     if (!activeChatShift || !user) return;
     setChatLoading(true);
@@ -6778,13 +6789,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         </div>
                   </div>
                 </div>
-                    <div style={{ marginTop: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
+                    <div style={{ marginTop: 12, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardPositionsNeeded').replace('{count}', s.headcount)}</span>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardFilled').replace('{count}', s.filled)}</span>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardCategory').replace('{category}', s.category)}</span>
                       {s.languageRequirements && s.languageRequirements.length > 0 && (
                         <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardLanguages').replace('{languages}', s.languageRequirements.join(", "))}</span>
                       )}
+                      <Btn
+                        size="sm"
+                        variant="secondary"
+                        style={{ marginLeft: "auto", padding: "6px 12px" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveChatShift({ shiftId: s.id, title: s.title, date: s.date, otherUserLabel: '' });
+                          setView('chat');
+                        }}
+                      >
+                        {Icons.Chat ? Icons.Chat({ size: 14 }) : "💬"} <span style={{ marginLeft: 6 }}>{t('employer.listCardChatBtn')}</span>
+                      </Btn>
                 </div>
               </Card>
             ))}
