@@ -2999,14 +2999,17 @@ const escapeHtml = (str) => String(str ?? "").replace(/[&<>"']/g, (c) => ({
 // no PDF-generation library needed, and it stays printable on paper too).
 // `rows` is an array of either a string (rendered as a paragraph) or
 // {label, value} (rendered as "label value" — used for the signature lines).
+// Content is served via a blob: URL (not window.open("") + document.write) —
+// with `noopener`, browsers may isolate the new window into a separate
+// process with no opener link, so a post-open document.write can silently
+// no-op and leave the window blank. Navigating straight to a blob URL avoids
+// that race while still keeping noopener.
 const openContractPrintWindow = ({ heading, subheading, rows }) => {
-  const win = window.open("", "_blank", "noopener,width=800,height=1000");
-  if (!win) return false; // popup blocked — caller should toast a hint
   const body = rows.map((r) => {
     if (typeof r === "string") return r === "" ? "<br/>" : `<p>${escapeHtml(r)}</p>`;
     return `<p><strong>${escapeHtml(r.label)}</strong> ${escapeHtml(r.value)}</p>`;
   }).join("");
-  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(heading)}</title>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(heading)}</title>
 <style>
   body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #1f2937; padding: 40px; max-width: 720px; margin: 0 auto; }
   .brand { font-weight: 800; font-size: 18px; margin-bottom: 28px; color: #2563EB; }
@@ -3022,8 +3025,11 @@ const openContractPrintWindow = ({ heading, subheading, rows }) => {
 <div class="sub">${escapeHtml(subheading)}</div>
 ${body}
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
-</body></html>`);
-  win.document.close();
+</body></html>`;
+  const blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  const win = window.open(blobUrl, "_blank", "noopener,width=800,height=1000");
+  if (!win) { URL.revokeObjectURL(blobUrl); return false; } // popup blocked — caller should toast a hint
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
   win.focus();
   return true;
 };
