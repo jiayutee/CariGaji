@@ -3003,7 +3003,13 @@ const escapeHtml = (str) => String(str ?? "").replace(/[&<>"']/g, (c) => ({
 // with `noopener`, browsers may isolate the new window into a separate
 // process with no opener link, so a post-open document.write can silently
 // no-op and leave the window blank. Navigating straight to a blob URL avoids
-// that race while still keeping noopener.
+// that race.
+// Note: "noopener" is deliberately NOT passed in the window.open features
+// string — per spec, that makes window.open() always return null (even when
+// the popup isn't blocked), which broke block-detection below and caused the
+// blob URL to be revoked instantly, leaving a blank window every time. We
+// still sever the opener link, just from the child side after we have a
+// handle, which gives the same security property without losing the handle.
 const openContractPrintWindow = ({ heading, subheading, rows }) => {
   const body = rows.map((r) => {
     if (typeof r === "string") return r === "" ? "<br/>" : `<p>${escapeHtml(r)}</p>`;
@@ -3027,8 +3033,9 @@ ${body}
 <div class="actions"><button onclick="window.print()">Print / Save as PDF</button></div>
 </body></html>`;
   const blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-  const win = window.open(blobUrl, "_blank", "noopener,width=800,height=1000");
+  const win = window.open(blobUrl, "_blank", "width=800,height=1000");
   if (!win) { URL.revokeObjectURL(blobUrl); return false; } // popup blocked — caller should toast a hint
+  try { win.opener = null; } catch { /* cross-origin edge case — safe to ignore */ }
   setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
   win.focus();
   return true;
