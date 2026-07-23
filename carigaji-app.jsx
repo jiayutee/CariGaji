@@ -6831,6 +6831,21 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                 <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>{t("employer.editShift")}</span></Btn>
+                {(selectedShift.filled > 0) && (
+                  <Btn variant="secondary" onClick={() => {
+                    const acceptedNames = (liveApplicants ?? []).filter(a => a.status === "accepted").map(a => a.name);
+                    setActiveChatShift({
+                      shiftId: selectedShift.id,
+                      title: selectedShift.title,
+                      date: selectedShift.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift.date,
+                      workerNames: acceptedNames,
+                      otherUserLabel: acceptedNames.join(", ") || t("employer.confirmedStatus"),
+                    });
+                    setView("chat");
+                  }} style={{ padding: "8px 14px" }}>
+                    {Icons.Chat ? Icons.Chat({ size: 14 }) : "💬"} <span style={{ marginLeft: 6 }}>{t("chat.title")}</span>
+                  </Btn>
+                )}
                 {selectedShift.status !== "cancelled" && selectedShift.status !== "completed" && (
                   <Btn
                     variant="secondary"
