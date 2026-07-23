@@ -563,6 +563,7 @@ const TRANSLATIONS = {
     "employer.postShiftBtn": "+ Post Shift",
     "employer.listCardChatBtn": "Chat",
     "employer.editShift": "Edit shift",
+    "employer.chatDisabledHint": "Chat unlocks once a worker is confirmed for this shift.",
     "employer.cancelShift": "Cancel shift",
     "employer.cancellingShift": "Cancelling…",
     "employer.applicantPool": "Applicant pool",
@@ -1302,6 +1303,7 @@ const TRANSLATIONS = {
     "employer.postShiftBtn": "+ Siar Syif",
     "employer.listCardChatBtn": "Sembang",
     "employer.editShift": "Sunting syif",
+    "employer.chatDisabledHint": "Sembang dibuka sebaik sahaja seorang pekerja disahkan untuk syif ini.",
     "employer.cancelShift": "Batalkan syif",
     "employer.cancellingShift": "Membatalkan…",
     "employer.applicantPool": "Kumpulan Pemohon",
@@ -6831,8 +6833,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                 <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>{t("employer.editShift")}</span></Btn>
-                {(selectedShift.filled > 0) && (
-                  <Btn variant="secondary" onClick={() => {
+                <Btn
+                  variant="secondary"
+                  disabled={!(selectedShift.filled > 0)}
+                  title={selectedShift.filled > 0 ? undefined : t("employer.chatDisabledHint")}
+                  onClick={() => {
                     const acceptedNames = (liveApplicants ?? []).filter(a => a.status === "accepted").map(a => a.name);
                     setActiveChatShift({
                       shiftId: selectedShift.id,
@@ -6843,9 +6848,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     });
                     setView("chat");
                   }} style={{ padding: "8px 14px" }}>
-                    {Icons.Chat ? Icons.Chat({ size: 14 }) : "💬"} <span style={{ marginLeft: 6 }}>{t("chat.title")}</span>
-                  </Btn>
-                )}
+                  {Icons.Chat ? Icons.Chat({ size: 14 }) : "💬"} <span style={{ marginLeft: 6 }}>{t("chat.title")}</span>
+                </Btn>
                 {selectedShift.status !== "cancelled" && selectedShift.status !== "completed" && (
                   <Btn
                     variant="secondary"
