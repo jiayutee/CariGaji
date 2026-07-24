@@ -6811,6 +6811,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <Btn
                         size="sm"
                         variant="secondary"
+                        disabled={!(s.filled > 0)}
+                        title={s.filled > 0 ? undefined : t("employer.chatDisabledHint")}
                         style={{ marginLeft: "auto", padding: "6px 12px" }}
                         onClick={(e) => {
                           e.stopPropagation();
