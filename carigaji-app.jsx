@@ -922,6 +922,10 @@ const TRANSLATIONS = {
     "employer.verificationLabel": "Verification",
     "employer.outgoingObligationsTitle": "Outgoing Salary Obligations",
     "employer.noPayoutObligations": "No payout obligations yet for this employer account.",
+    "payout.holdReasonNotCheckedIn": "On hold — worker did not check in for this shift.",
+    "payout.holdReasonWorkerBanking": "On hold — worker's banking details are not yet verified.",
+    "payout.holdReasonEmployerBanking": "On hold — employer's funding account is not verified or not funded.",
+    "payout.holdReasonGeneric": "On hold — contact support for details.",
     "employer.savedAccountPrefix": "Saved account: ••••",
     "employer.tbaShort": "TBA",
     "employer.pendingPayout": "Pending payout",
@@ -1685,6 +1689,10 @@ const TRANSLATIONS = {
     "employer.verificationLabel": "Pengesahan",
     "employer.outgoingObligationsTitle": "Tanggungan Gaji Keluar",
     "employer.noPayoutObligations": "Belum ada tanggungan bayaran untuk akaun majikan ini.",
+    "payout.holdReasonNotCheckedIn": "Ditahan — pekerja tidak daftar masuk untuk syif ini.",
+    "payout.holdReasonWorkerBanking": "Ditahan — butiran perbankan pekerja belum disahkan.",
+    "payout.holdReasonEmployerBanking": "Ditahan — akaun pembiayaan majikan belum disahkan atau tidak berdana.",
+    "payout.holdReasonGeneric": "Ditahan — hubungi sokongan untuk butiran.",
     "employer.savedAccountPrefix": "Akaun disimpan: ••••",
     "employer.tbaShort": "Belum Ditetapkan",
     "employer.pendingPayout": "Bayaran tertunda",
@@ -1994,6 +2002,18 @@ const mapPayoutPillColor = (status) => {
   if (["ready", "scheduled", "processing"].includes(status)) return "blue";
   return "gray";
 };
+
+// A "held" payout_item's error_message (really an error_code, per the
+// scheduler) was never surfaced anywhere in the UI — a held payout looked
+// identical whether it was the worker's own unverified banking, the
+// employer's, or (new, 20260725) a missed check-in. Translates the known
+// codes; anything unrecognized falls back to a generic contact-support
+// hint rather than showing the raw machine code.
+const payoutHoldReasonLabel = (t, errorMessage) => ({
+  worker_not_checked_in: t("payout.holdReasonNotCheckedIn"),
+  worker_banking_not_verified: t("payout.holdReasonWorkerBanking"),
+  employer_banking_not_verified_or_funding_not_ready: t("payout.holdReasonEmployerBanking"),
+}[errorMessage] || (errorMessage ? t("payout.holdReasonGeneric") : null));
 
 // ─── Language / i18n ────────────────────────────────────────────────────────
 const LANGUAGE_STORAGE_KEY = "carigaji_lang";
@@ -4548,7 +4568,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           .maybeSingle(),
         supabase
           .from("payout_item")
-          .select("id, amount, scheduled_date, status, source_refs, created_at")
+          .select("id, amount, scheduled_date, status, source_refs, error_message, created_at")
           .eq("worker_id", user.id)
           .order("created_at", { ascending: false })
           .limit(10),
@@ -4686,6 +4706,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       amount: Number(p.amount || 0),
       date: p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA",
       status: p.status,
+      errorMessage: p.error_message ?? null,
       travel: 0,
     })),
     [livePayouts]
@@ -5549,6 +5570,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
                     </div>
                   </div>
+                  {p.status === "held" && payoutHoldReasonLabel(t, p.errorMessage) && (
+                    <div style={{ fontSize: 11, color: BRAND.red, marginTop: 6 }}>{payoutHoldReasonLabel(t, p.errorMessage)}</div>
+                  )}
                 </Card>
               ))
             )}
@@ -6797,7 +6821,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           .maybeSingle(),
         supabase
           .from("payout_item")
-          .select("id, amount, status, scheduled_date, created_at")
+          .select("id, amount, status, scheduled_date, error_message, created_at")
           .eq("employer_id", user.id)
           .order("created_at", { ascending: false })
           .limit(100),
@@ -7892,7 +7916,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   {employerPayoutItems.map(item => (
                     <tr key={item.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
                       <td style={{ padding: "12px 16px", fontSize: 13, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString('en-MY') : t("employer.tbaShort")}</td>
-                      <td style={{ padding: "12px 16px" }}><Pill label={String(item.status || 'queued').replaceAll('_', ' ')} color={mapPayoutPillColor(item.status)} /></td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <Pill label={String(item.status || 'queued').replaceAll('_', ' ')} color={mapPayoutPillColor(item.status)} />
+                        {item.status === "held" && payoutHoldReasonLabel(t, item.error_message) && (
+                          <div style={{ fontSize: 11, color: BRAND.red, marginTop: 4 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
+                        )}
+                      </td>
                       <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: BRAND.text }}>{toCurrency(item.amount)}</td>
                     </tr>
                   ))}
@@ -7992,6 +8021,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{toCurrency(item.amount)}</div>
                     <div style={{ fontSize: 11, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString("en-MY") : t("employer.tbaShort")}</div>
+                    {item.status === "held" && payoutHoldReasonLabel(t, item.error_message) && (
+                      <div style={{ fontSize: 11, color: BRAND.red, marginTop: 2 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
+                    )}
                   </div>
                   <Pill label={String(item.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(item.status)} />
                 </div>
@@ -8370,7 +8402,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const loadPayoutQueue = async () => {
     const { data, error } = await supabase
       .from("payout_item")
-      .select("id, worker_id, employer_id, amount, scheduled_date, status, source_refs, created_at")
+      .select("id, worker_id, employer_id, amount, scheduled_date, status, source_refs, error_message, created_at")
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) {
@@ -8932,7 +8964,12 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Shift"}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: BRAND.green }}>{toCurrency(p.amount)}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</td>
-                      <td style={{ padding: "10px 12px" }}><Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} /></td>
+                      <td style={{ padding: "10px 12px" }}>
+                        <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
+                        {p.status === "held" && payoutHoldReasonLabel(t, p.error_message) && (
+                          <div style={{ fontSize: 11, color: BRAND.red, marginTop: 4 }}>{payoutHoldReasonLabel(t, p.error_message)}</div>
+                        )}
+                      </td>
                       <td style={{ padding: "10px 12px" }}>
                         <div style={{ display: "flex", gap: 6 }}>
                           <Btn size="xs" variant="success" onClick={() => updatePayoutStatus(p, "processed_internal")}>Release</Btn>
