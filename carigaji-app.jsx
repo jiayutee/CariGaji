@@ -319,6 +319,8 @@ const TRANSLATIONS = {
     "common.placeBid": "Place Bid →",
     "common.signInToBid": "Sign in to bid →",
     "toast.avatarUpdated": "Profile picture updated.",
+    "toast.ratingSubmitted": "✅ Rating submitted.",
+    "toast.ratingFailed": "Failed to submit rating: ",
     "toast.avatarUpdateFailed": "Could not update photo: ",
     "toast.sendFailed": "Failed to send: ",
     "toast.checkinSimulated": "Checked in at 18:02 · Reliability maintained (on time)",
@@ -437,6 +439,24 @@ const TRANSLATIONS = {
     "dispute.categoryUnsafeConditions": "Unsafe working conditions",
     "dispute.categoryPaymentIssue": "Payment issue",
     "dispute.categoryOther": "Other",
+    "rating.rateBtn": "Rate",
+    "rating.modalTitle": "Rate your experience",
+    "rating.overallPreview": "Overall rating",
+    "rating.submitBtn": "Submit Rating",
+    "rating.detailsTitle": "Rating details",
+    "rating.aspectAvgEmpty": "No ratings yet.",
+    "rating.aspect.onTime": "On time",
+    "rating.aspect.polite": "Polite",
+    "rating.aspect.hardworking": "Hardworking",
+    "rating.aspect.followingDirections": "Following directions",
+    "rating.aspect.accountability": "Accountability",
+    "rating.aspect.rapidAction": "Rapid action",
+    "rating.aspect.responsible": "Responsible",
+    "rating.aspect.kind": "Kind",
+    "rating.aspect.helpful": "Helpful",
+    "rating.aspect.organized": "Organized",
+    "rating.aspect.wellPlanned": "Well planned",
+    "rating.aspect.clearInstructions": "Clear instructions",
     "admin.disputesEmptyState": "No disputes filed yet.",
     "admin.disputeResolve": "Resolve",
     "admin.disputeDismiss": "Dismiss",
@@ -1059,6 +1079,8 @@ const TRANSLATIONS = {
     "common.placeBid": "Buat Tawaran →",
     "common.signInToBid": "Log Masuk untuk Menawar →",
     "toast.avatarUpdated": "Gambar profil dikemas kini.",
+    "toast.ratingSubmitted": "✅ Penilaian dihantar.",
+    "toast.ratingFailed": "Gagal menghantar penilaian: ",
     "toast.avatarUpdateFailed": "Gagal kemas kini gambar: ",
     "toast.sendFailed": "Gagal hantar: ",
     "toast.checkinSimulated": "Daftar masuk pada 18:02 · Kebolehpercayaan dikekalkan (tepat masa)",
@@ -1177,6 +1199,24 @@ const TRANSLATIONS = {
     "dispute.categoryUnsafeConditions": "Keadaan kerja tidak selamat",
     "dispute.categoryPaymentIssue": "Isu pembayaran",
     "dispute.categoryOther": "Lain-lain",
+    "rating.rateBtn": "Nilai",
+    "rating.modalTitle": "Nilai pengalaman anda",
+    "rating.overallPreview": "Penilaian keseluruhan",
+    "rating.submitBtn": "Hantar Penilaian",
+    "rating.detailsTitle": "Butiran penilaian",
+    "rating.aspectAvgEmpty": "Belum ada penilaian.",
+    "rating.aspect.onTime": "Tepat masa",
+    "rating.aspect.polite": "Sopan",
+    "rating.aspect.hardworking": "Rajin",
+    "rating.aspect.followingDirections": "Mengikut arahan",
+    "rating.aspect.accountability": "Bertanggungjawab",
+    "rating.aspect.rapidAction": "Tindakan pantas",
+    "rating.aspect.responsible": "Bertanggungjawab",
+    "rating.aspect.kind": "Baik hati",
+    "rating.aspect.helpful": "Suka membantu",
+    "rating.aspect.organized": "Teratur",
+    "rating.aspect.wellPlanned": "Perancangan yang baik",
+    "rating.aspect.clearInstructions": "Arahan yang jelas",
     "admin.disputesEmptyState": "Tiada pertikaian difailkan lagi.",
     "admin.disputeResolve": "Selesaikan",
     "admin.disputeDismiss": "Tolak",
@@ -2754,7 +2794,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
   );
 };
 
-const StarRating = ({ value = 4.5, size = 14 }) => {
+const StarRating = ({ value = 4.5, size = 14, onClick = null }) => {
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     stars.push(
@@ -2765,7 +2805,103 @@ const StarRating = ({ value = 4.5, size = 14 }) => {
       </span>
     );
   }
-  return <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>({value})</span></span>;
+  const content = <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>({value})</span></span>;
+  if (!onClick) return content;
+  return (
+    <span onClick={onClick} role="button" tabIndex={0} style={{ cursor: "pointer" }} onKeyDown={e => { if (e.key === "Enter") onClick(e); }}>
+      {content}
+    </span>
+  );
+};
+
+// Interactive 1-5 star picker used by the rating modal (distinct from the
+// read-only StarRating display above).
+const StarInput = ({ value = 0, onChange, size = 20 }) => (
+  <span style={{ display: "inline-flex", gap: 3 }}>
+    {[1, 2, 3, 4, 5].map(i => (
+      <button
+        key={i}
+        type="button"
+        onClick={() => onChange(i)}
+        aria-label={`${i} star`}
+        style={{ background: "none", border: "none", padding: 0, margin: 0, cursor: "pointer", lineHeight: 0 }}
+      >
+        <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill={i <= value ? BRAND.accent : BRAND.border} />
+        </svg>
+      </button>
+    ))}
+  </span>
+);
+
+// Per-aspect prompts for the two rating directions (v1 scope). Shared by
+// both WorkerPortal and EmployerPortal rating modals.
+const RATING_ASPECTS = {
+  employer_to_worker: [
+    { value: "onTime", labelKey: "rating.aspect.onTime" },
+    { value: "polite", labelKey: "rating.aspect.polite" },
+    { value: "hardworking", labelKey: "rating.aspect.hardworking" },
+    { value: "followingDirections", labelKey: "rating.aspect.followingDirections" },
+    { value: "accountability", labelKey: "rating.aspect.accountability" },
+    { value: "rapidAction", labelKey: "rating.aspect.rapidAction" },
+  ],
+  worker_to_employer: [
+    { value: "responsible", labelKey: "rating.aspect.responsible" },
+    { value: "kind", labelKey: "rating.aspect.kind" },
+    { value: "helpful", labelKey: "rating.aspect.helpful" },
+    { value: "organized", labelKey: "rating.aspect.organized" },
+    { value: "wellPlanned", labelKey: "rating.aspect.wellPlanned" },
+    { value: "clearInstructions", labelKey: "rating.aspect.clearInstructions" },
+  ],
+};
+
+// Read-only "expand details" view for a ratee's aggregated ratings —
+// opened by clicking any of the three StarRating displays. Fetches its
+// own data given { rateeId, direction, label, list } where list is
+// null (loading) | [] (empty or the ratings table not migrated yet) |
+// array of { aspects, overall }. Self-contained: reads t() from context
+// directly so callers don't need to prop-drill translate.
+const RatingDetailsModal = ({ modal, onClose }) => {
+  const { t } = useLanguage();
+  if (!modal) return null;
+  const aspectDefs = RATING_ASPECTS[modal.direction] || [];
+  const list = modal.list;
+  const aspectAverages = aspectDefs.map(asp => {
+    const scores = (list ?? []).map(r => r.aspects?.[asp.value]).filter(v => typeof v === "number");
+    const avg = scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : null;
+    return { ...asp, avg };
+  });
+  const overallAvg = list && list.length ? list.reduce((s, r) => s + (r.overall || 0), 0) / list.length : null;
+  return (
+    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("rating.detailsTitle")}</h3>
+        {modal.label && <p style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>{modal.label}</p>}
+        {list === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
+        {list && list.length === 0 && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 8 }}>{t("rating.aspectAvgEmpty")}</div>}
+        {list && list.length > 0 && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <StarRating value={Number((overallAvg ?? 0).toFixed(1))} />
+              <span style={{ fontSize: 12, color: BRAND.textMuted }}>({list.length})</span>
+            </div>
+            {aspectAverages.map(asp => (
+              <div key={asp.value} style={{ marginBottom: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: BRAND.text }}>{t(asp.labelKey)}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: BRAND.accent }}>{asp.avg != null ? asp.avg.toFixed(1) : "—"}</span>
+                </div>
+                <Progress value={asp.avg != null ? (asp.avg / 5) * 100 : 0} color={BRAND.accent} />
+              </div>
+            ))}
+          </>
+        )}
+        <button onClick={onClose} style={{ marginTop: 12, width: "100%", padding: "10px", borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor: "pointer", color: BRAND.textMuted }}>
+          {t("common.close")}
+        </button>
+      </div>
+    </div>
+  );
 };
 
 // Vertical scroll-snap number picker for choosing an hourly bid rate.
@@ -3881,6 +4017,80 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
+  const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
+  const [ratingForm, setRatingForm] = useState({});
+  const [submittingRating, setSubmittingRating] = useState(false);
+  // application_ids the signed-in worker has already rated (worker_to_employer
+  // direction) — hides the Rate button once filed, mirrors the immutable-once-
+  // filed convention already used for disputes.
+  const [myRatedApplicationIds, setMyRatedApplicationIds] = useState(new Set());
+  const [ratingDetailsModal, setRatingDetailsModal] = useState(null); // { rateeId, direction, label, list }
+
+  // The `ratings` table (20260725b) may not be migrated in prod yet — any
+  // query failure (including 42P01 relation-does-not-exist) degrades to an
+  // empty/graceful state rather than a crash, same convention as
+  // loadApplications/workerHistory falling back to [] on error below.
+  useEffect(() => {
+    let active = true;
+    const loadMyRatings = async () => {
+      if (!user) { setMyRatedApplicationIds(new Set()); return; }
+      try {
+        const { data, error } = await supabase
+          .from('ratings')
+          .select('application_id')
+          .eq('rater_id', user.id)
+          .eq('direction', 'worker_to_employer');
+        if (!active) return;
+        setMyRatedApplicationIds(error ? new Set() : new Set((data ?? []).map(r => r.application_id)));
+      } catch {
+        if (active) setMyRatedApplicationIds(new Set());
+      }
+    };
+    loadMyRatings();
+    return () => { active = false; };
+  }, [user]);
+
+  // Fetch aggregated ratings for the clicked ratee (any StarRating display) —
+  // same 42P01-graceful degradation as above.
+  const openRatingDetails = (rateeId, direction, label) => {
+    if (!rateeId) return;
+    setRatingDetailsModal({ rateeId, direction, label, list: null });
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_ratee_ratings', { p_ratee_id: rateeId, p_direction: direction });
+        setRatingDetailsModal(m => (m && m.rateeId === rateeId && m.direction === direction) ? { ...m, list: error ? [] : (data ?? []) } : m);
+      } catch {
+        setRatingDetailsModal(m => (m && m.rateeId === rateeId && m.direction === direction) ? { ...m, list: [] } : m);
+      }
+    })();
+  };
+
+  const submitRating = async () => {
+    if (!ratingModal || !user) return;
+    const aspects = RATING_ASPECTS[ratingModal.direction];
+    if (aspects.some(a => !ratingForm[a.value])) return;
+    const overall = Math.round((aspects.reduce((sum, a) => sum + (ratingForm[a.value] || 0), 0) / aspects.length) * 10) / 10;
+    setSubmittingRating(true);
+    try {
+      const { error } = await supabase.from('ratings').insert({
+        application_id: ratingModal.applicationId,
+        rater_id: user.id,
+        ratee_id: ratingModal.rateeId,
+        direction: ratingModal.direction,
+        aspects: ratingForm,
+        overall,
+      });
+      setSubmittingRating(false);
+      if (error) { toast(t('toast.ratingFailed') + error.message, 'error'); return; }
+      toast(t('toast.ratingSubmitted'), 'success');
+      setMyRatedApplicationIds(prev => new Set(prev).add(ratingModal.applicationId));
+      setRatingModal(null);
+      setRatingForm({});
+    } catch (err) {
+      setSubmittingRating(false);
+      toast(t('toast.ratingFailed') + (err?.message ?? ''), 'error');
+    }
+  };
 
   // Mobile back-gesture support: register a handler that closes the topmost
   // open thing and reports whether it handled the gesture. Reassigned every
@@ -3893,6 +4103,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (workerContractModal) { setWorkerContractModal(null); return true; }
       if (cancellationContractModal) { setCancellationContractModal(null); return true; }
       if (disputeModal) { setDisputeModal(null); return true; }
+      if (ratingModal) { setRatingModal(null); return true; }
+      if (ratingDetailsModal) { setRatingDetailsModal(null); return true; }
       if (activeChatShift) { setActiveChatShift(null); setChatMessages([]); return true; }
       if (selectedApplication) { setSelectedApplication(null); return true; }
       if (selectedShift) { setSelectedShift(null); return true; }
@@ -4206,7 +4418,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score, rating)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -4223,6 +4435,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // employer mid-KYC-review — so the UI can distinguish "unknown"
           // from "verified 0/100" rather than showing a misleading red badge.
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
+          rating: s.employer ? (s.employer.rating ?? 0) : null,
           location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
@@ -4263,7 +4476,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score, rating)')
       .eq('id', deepLinkShift.shiftId)
       .maybeSingle()
       .then(({ data: s }) => {
@@ -4276,6 +4489,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           employer: s.employer?.full_name || 'Employer',
           employerId: s.employer_id ?? null,
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
+          rating: s.employer ? (s.employer.rating ?? 0) : null,
           location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
@@ -4705,7 +4919,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 8 }}>{t("shiftDetail.employerScoreSignInToView")}</div>
             )}
             <div style={{ display: "flex", gap: 16 }}>
-              <StarRating value={selectedShift.rating} />
+              <StarRating value={selectedShift.rating ?? 0} onClick={(user && selectedShift.employerId) ? () => openRatingDetails(selectedShift.employerId, 'worker_to_employer', selectedShift.employer) : null} />
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
           </Card>
@@ -5140,6 +5354,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
                   <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
                 </>
+              )}
+              {a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
+                <Btn variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: a.shiftTitle, rateeId: a.employerId, direction: 'worker_to_employer' }); }} style={{ flex: 1, justifyContent: "center" }}>{t("rating.rateBtn")}</Btn>
               )}
               {a.shiftStatus === "completed" && (
                 <Btn variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.fileDisputeBtn")}</Btn>
@@ -5694,6 +5911,45 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       </div>
     )}
 
+    {ratingModal && (() => {
+      const aspects = RATING_ASPECTS[ratingModal.direction];
+      const allSet = !aspects.some(a => !ratingForm[a.value]);
+      const overall = allSet ? (aspects.reduce((sum, a) => sum + (ratingForm[a.value] || 0), 0) / aspects.length).toFixed(1) : null;
+      return (
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+          <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
+          <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{ratingModal.shiftTitle}</p>
+
+          {aspects.map(asp => (
+            <div key={asp.value} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+              <span style={{fontSize:13, color: BRAND.text}}>{t(asp.labelKey)}</span>
+              <StarInput value={ratingForm[asp.value] || 0} onChange={v => setRatingForm(f => ({ ...f, [asp.value]: v }))} />
+            </div>
+          ))}
+
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
+            <span style={{fontSize:13, fontWeight:700, color: BRAND.text}}>{t("rating.overallPreview")}</span>
+            <span style={{fontSize:16, fontWeight:800, color: BRAND.accent}}>{overall ?? "—"}</span>
+          </div>
+
+          <div style={{display:'flex', gap:8}}>
+            <button onClick={() => { setRatingModal(null); setRatingForm({}); }}
+              style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
+              {t("common.cancel")}
+            </button>
+            <button onClick={submitRating} disabled={submittingRating || !allSet}
+              style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor: submittingRating || !allSet ? 'not-allowed' : 'pointer', fontWeight:600, opacity: submittingRating || !allSet ? 0.6 : 1}}>
+              {submittingRating ? "…" : t("rating.submitBtn")}
+            </button>
+          </div>
+        </div>
+      </div>
+      );
+    })()}
+
+    <RatingDetailsModal modal={ratingDetailsModal} onClose={() => setRatingDetailsModal(null)} />
+
     {cancellationContractModal && (
       <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
@@ -5792,6 +6048,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
+  const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
+  const [ratingForm, setRatingForm] = useState({});
+  const [submittingRating, setSubmittingRating] = useState(false);
+  // application_ids the signed-in employer has already rated (employer_to_worker
+  // direction) — hides the Rate button once filed, mirrors the immutable-once-
+  // filed convention already used for disputes.
+  const [myRatedApplicationIds, setMyRatedApplicationIds] = useState(new Set());
+  const [ratingDetailsModal, setRatingDetailsModal] = useState(null); // { rateeId, direction, label, list }
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
@@ -5805,6 +6069,72 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const chatEndRef = useRef(null);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
 
+  // The `ratings` table (20260725b) may not be migrated in prod yet — any
+  // query failure (including 42P01 relation-does-not-exist) degrades to an
+  // empty/graceful state rather than a crash, same convention as
+  // workerHistory falling back to [] on error below.
+  useEffect(() => {
+    let active = true;
+    const loadMyRatings = async () => {
+      if (!user) { setMyRatedApplicationIds(new Set()); return; }
+      try {
+        const { data, error } = await supabase
+          .from('ratings')
+          .select('application_id')
+          .eq('rater_id', user.id)
+          .eq('direction', 'employer_to_worker');
+        if (!active) return;
+        setMyRatedApplicationIds(error ? new Set() : new Set((data ?? []).map(r => r.application_id)));
+      } catch {
+        if (active) setMyRatedApplicationIds(new Set());
+      }
+    };
+    loadMyRatings();
+    return () => { active = false; };
+  }, [user]);
+
+  // Fetch aggregated ratings for the clicked ratee (any StarRating display) —
+  // same 42P01-graceful degradation as above.
+  const openRatingDetails = (rateeId, direction, label) => {
+    if (!rateeId) return;
+    setRatingDetailsModal({ rateeId, direction, label, list: null });
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_ratee_ratings', { p_ratee_id: rateeId, p_direction: direction });
+        setRatingDetailsModal(m => (m && m.rateeId === rateeId && m.direction === direction) ? { ...m, list: error ? [] : (data ?? []) } : m);
+      } catch {
+        setRatingDetailsModal(m => (m && m.rateeId === rateeId && m.direction === direction) ? { ...m, list: [] } : m);
+      }
+    })();
+  };
+
+  const submitRating = async () => {
+    if (!ratingModal || !user) return;
+    const aspects = RATING_ASPECTS[ratingModal.direction];
+    if (aspects.some(a => !ratingForm[a.value])) return;
+    const overall = Math.round((aspects.reduce((sum, a) => sum + (ratingForm[a.value] || 0), 0) / aspects.length) * 10) / 10;
+    setSubmittingRating(true);
+    try {
+      const { error } = await supabase.from('ratings').insert({
+        application_id: ratingModal.applicationId,
+        rater_id: user.id,
+        ratee_id: ratingModal.rateeId,
+        direction: ratingModal.direction,
+        aspects: ratingForm,
+        overall,
+      });
+      setSubmittingRating(false);
+      if (error) { toast(t('toast.ratingFailed') + error.message, 'error'); return; }
+      toast(t('toast.ratingSubmitted'), 'success');
+      setMyRatedApplicationIds(prev => new Set(prev).add(ratingModal.applicationId));
+      setRatingModal(null);
+      setRatingForm({});
+    } catch (err) {
+      setSubmittingRating(false);
+      toast(t('toast.ratingFailed') + (err?.message ?? ''), 'error');
+    }
+  };
+
   // Mobile back-gesture support — same contract as WorkerPortal's handler:
   // close the topmost open thing, report handled; bare dashboard → false.
   useEffect(() => {
@@ -5814,6 +6144,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       if (workerProfileModal) { setWorkerProfileModal(null); return true; }
       if (contractModal) { setContractModal(null); return true; }
       if (disputeModal) { setDisputeModal(null); return true; }
+      if (ratingModal) { setRatingModal(null); return true; }
+      if (ratingDetailsModal) { setRatingDetailsModal(null); return true; }
       if (activeChatShift) { setActiveChatShift(null); setChatMessages([]); return true; }
       if (selectedShift) { setSelectedShift(null); return true; }
       if (view !== "dashboard") { setView("dashboard"); return true; }
@@ -6971,7 +7303,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           <span style={{ fontSize: 12, color: BRAND.text, minWidth: 28 }}>{a.reliability}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} size={11} /></td>
+                      <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primary, fontSize: 14 }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>
                         <Pill
@@ -7002,6 +7334,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         {action === "accepted" && selectedShift.status === "completed" && (
                           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                             <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
+                            {!myRatedApplicationIds.has(a.id) && (
+                              <Btn size="xs" variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: selectedShift.title, rateeId: a.workerId, direction: 'employer_to_worker' }); }}>{t("rating.rateBtn")}</Btn>
+                            )}
                             <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
                           </div>
                         )}
@@ -7743,6 +8078,45 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         </div>
       )}
 
+      {ratingModal && (() => {
+        const aspects = RATING_ASPECTS[ratingModal.direction];
+        const allSet = !aspects.some(a => !ratingForm[a.value]);
+        const overall = allSet ? (aspects.reduce((sum, a) => sum + (ratingForm[a.value] || 0), 0) / aspects.length).toFixed(1) : null;
+        return (
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+            <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
+            <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{ratingModal.shiftTitle}</p>
+
+            {aspects.map(asp => (
+              <div key={asp.value} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                <span style={{fontSize:13, color: BRAND.text}}>{t(asp.labelKey)}</span>
+                <StarInput value={ratingForm[asp.value] || 0} onChange={v => setRatingForm(f => ({ ...f, [asp.value]: v }))} />
+              </div>
+            ))}
+
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
+              <span style={{fontSize:13, fontWeight:700, color: BRAND.text}}>{t("rating.overallPreview")}</span>
+              <span style={{fontSize:16, fontWeight:800, color: BRAND.accent}}>{overall ?? "—"}</span>
+            </div>
+
+            <div style={{display:'flex', gap:8}}>
+              <button onClick={() => { setRatingModal(null); setRatingForm({}); }}
+                style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
+                {t("common.cancel")}
+              </button>
+              <button onClick={submitRating} disabled={submittingRating || !allSet}
+                style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor: submittingRating || !allSet ? 'not-allowed' : 'pointer', fontWeight:600, opacity: submittingRating || !allSet ? 0.6 : 1}}>
+                {submittingRating ? "…" : t("rating.submitBtn")}
+              </button>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
+
+      <RatingDetailsModal modal={ratingDetailsModal} onClose={() => setRatingDetailsModal(null)} />
+
       {viewContractModal && (
         <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setViewContractModal(null)}>
           <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
@@ -7817,7 +8191,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
               <Stat label={t("employer.colReliability")} value={workerProfileModal.reliability} color={BRAND.green} />
-              <Stat label={t("employer.colRating")} value={workerProfileModal.rating ? workerProfileModal.rating.toFixed(1) : '—'} color={BRAND.accent} />
+              <div onClick={() => openRatingDetails(workerProfileModal.workerId, 'employer_to_worker', workerProfileModal.name)} style={{ cursor: 'pointer' }}>
+                <Stat label={t("employer.colRating")} value={workerProfileModal.rating ? workerProfileModal.rating.toFixed(1) : '—'} color={BRAND.accent} />
+              </div>
               <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primary} />
             </div>
             <div style={{ fontSize:13, fontWeight:700, color: BRAND.text, marginBottom:8 }}>{t("employer.profileHistoryTitle")}</div>
