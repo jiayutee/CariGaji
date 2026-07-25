@@ -4206,7 +4206,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, employer_id, employer:profiles(full_name, reliability_score)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -4237,6 +4237,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           totalApplicants: s.applicant_count ?? 0,
           dress: displayProtectedText(s.dress_code || ''),
           languageRequirements: s.language_requirements || [],
+          specialRequirements: displayProtectedText(s.requirements?.special || ''),
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
           endTime: shiftHHMM(s.end_at),
@@ -4262,7 +4263,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, employer_id, employer:profiles(full_name, reliability_score)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score)')
       .eq('id', deepLinkShift.shiftId)
       .maybeSingle()
       .then(({ data: s }) => {
@@ -4289,6 +4290,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           totalApplicants: s.applicant_count ?? 0,
           dress: displayProtectedText(s.dress_code || ''),
           languageRequirements: s.language_requirements || [],
+          specialRequirements: displayProtectedText(s.requirements?.special || ''),
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
           endTime: shiftHHMM(s.end_at),
@@ -4678,6 +4680,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               [t("shiftDetail.dressCode"), selectedShift.dress],
               selectedShift.languageRequirements && selectedShift.languageRequirements.length > 0 ? [t("shiftDetail.languagesRequired"), selectedShift.languageRequirements.join(", ")] : null,
               [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
+              selectedShift.specialRequirements ? [t("employer.specialRequirementsLabel"), selectedShift.specialRequirements] : null,
               selectedShift.reliabilityScore != null ? [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`] : null,
             ].filter(Boolean).map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
@@ -7192,6 +7195,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, marginBottom: 16 }}>{t("employer.reviewYourShift")}</div>
                   {[
                     [t("employer.reviewLabelTitle"), form.title || t("employer.reviewNotSet")],
+                    [t("employer.fieldJobDescription"), form.description || t("employer.reviewNotSet")],
                     [t("employer.labelCategory"), form.category],
                     [t("employer.labelLocation"), form.location],
                     [t("employer.labelHeadcount"), form.headcount],
