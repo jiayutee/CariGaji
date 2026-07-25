@@ -113,7 +113,7 @@ export const runInternalPayoutScheduling = async (supabase, runForDate = new Dat
 
   const { data: candidateRows, error: candidateError } = await supabase
     .from("applications")
-    .select("id, worker_id, shift_id, wage_ask, status, cancellation_choice, shift:shifts(id, employer_id, start_at, status)")
+    .select("id, worker_id, shift_id, wage_ask, status, cancellation_choice, checked_in_at, shift:shifts(id, employer_id, start_at, end_at, status)")
     .eq("status", "accepted");
 
   if (candidateError) {
@@ -172,13 +172,25 @@ export const runInternalPayoutScheduling = async (supabase, runForDate = new Dat
     const workerEligible = hasRequiredVerifiedBanking(workerBank, "worker");
     const employerEligible = hasRequiredVerifiedBanking(employerBank, "employer");
 
+    // Gate payout on a real check-in scan (owner decision 2026-07-25,
+    // rotating-code QR check-in, backlog item #7): only enforced once the
+    // shift has actually finished (start_at in the future would otherwise
+    // incorrectly hold every not-yet-worked shift in the cycle). A shift
+    // that concluded without a scan is held, not silently paid, so a real
+    // no-show surfaces in payout_audit instead of being paid anyway.
+    const shiftEnded = row.shift?.end_at ? new Date(row.shift.end_at) <= runForDate : false;
+    const checkedIn = Boolean(row.checked_in_at);
+    const attendanceEligible = !shiftEnded || checkedIn;
+
     const amount = Number(row.wage_ask || 0);
-    const status = workerEligible && employerEligible ? "ready" : "held";
+    const status = workerEligible && employerEligible && attendanceEligible ? "ready" : "held";
 
     if (status === "held") held += 1;
     if (status === "ready") ready += 1;
 
-    const holdReason = !workerEligible
+    const holdReason = !attendanceEligible
+      ? "worker_not_checked_in"
+      : !workerEligible
       ? "worker_banking_not_verified"
       : !employerEligible
       ? "employer_banking_not_verified_or_funding_not_ready"
