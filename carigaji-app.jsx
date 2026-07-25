@@ -323,7 +323,7 @@ const TRANSLATIONS = {
     "toast.ratingFailed": "Failed to submit rating: ",
     "toast.avatarUpdateFailed": "Could not update photo: ",
     "toast.sendFailed": "Failed to send: ",
-    "toast.checkinSimulated": "Checked in at 18:02 · Reliability maintained (on time)",
+    "toast.checkinSuccess": "Checked in successfully.",
     "toast.maxBidPrefix": "Max bid is RM",
     "toast.sampleShiftBidInfo": "This is a sample shift. Apply to a live shift to submit a bid.",
     "toast.applicationFailed": "Failed to submit application: ",
@@ -721,10 +721,13 @@ const TRANSLATIONS = {
     "discover.loadingShiftsHint": "Hang tight while we fetch open shifts.",
     "discover.noShiftsMatch": "No shifts match right now",
     "discover.noShiftsMatchHint": "Try widening your filters, or check back soon — new shifts are posted regularly.",
-    "worker.checkinTitle": "Check-in QR Scanner",
-    "worker.checkinSubtitle": "Point your camera at the QR code at the venue entrance",
-    "worker.cameraViewfinder": "Camera viewfinder",
-    "worker.simulateCheckin": "Simulate Successful Check-in",
+    "worker.checkinTitle": "Shift check-in",
+    "worker.checkinCodeSubtitle": "Ask your employer for today's 6-digit check-in code and enter it below. The code changes every 30 seconds.",
+    "worker.submitCheckin": "Check in",
+    "worker.checkedInBadge": "✓ Checked in",
+    "employer.checkinCodeBtn": "Check-in code",
+    "employer.checkinCodeTitle": "Worker check-in code",
+    "employer.checkinCodeRotateHint": "Show this to workers at the venue. It changes every 30 seconds — read it fresh each time.",
     "shiftDetail.rateHelperText": "Scroll to choose your rate",
     "myBids.signInTitle": "Sign in to view your bids",
     "myBids.signInHint": "Track the shifts you've applied to and their status once you're signed in.",
@@ -1083,7 +1086,7 @@ const TRANSLATIONS = {
     "toast.ratingFailed": "Gagal menghantar penilaian: ",
     "toast.avatarUpdateFailed": "Gagal kemas kini gambar: ",
     "toast.sendFailed": "Gagal hantar: ",
-    "toast.checkinSimulated": "Daftar masuk pada 18:02 · Kebolehpercayaan dikekalkan (tepat masa)",
+    "toast.checkinSuccess": "Berjaya daftar masuk.",
     "toast.maxBidPrefix": "Tawaran maksimum ialah RM",
     "toast.sampleShiftBidInfo": "Ini syif contoh sahaja. Mohon syif sebenar untuk hantar tawaran.",
     "toast.applicationFailed": "Gagal hantar permohonan: ",
@@ -1481,10 +1484,13 @@ const TRANSLATIONS = {
     "discover.loadingShiftsHint": "Tunggu sebentar semasa kami dapatkan syif terbuka.",
     "discover.noShiftsMatch": "Tiada syif sepadan buat masa ini",
     "discover.noShiftsMatchHint": "Cuba luaskan penapis anda, atau semak semula tidak lama lagi — syif baharu disiarkan secara berkala.",
-    "worker.checkinTitle": "Pengimbas QR Daftar Masuk",
-    "worker.checkinSubtitle": "Arahkan kamera anda ke kod QR di pintu masuk tempat acara",
-    "worker.cameraViewfinder": "Pandangan kamera",
-    "worker.simulateCheckin": "Simulasi Daftar Masuk Berjaya",
+    "worker.checkinTitle": "Daftar masuk syif",
+    "worker.checkinCodeSubtitle": "Minta kod daftar masuk 6-digit hari ini daripada majikan anda dan masukkan di bawah. Kod berubah setiap 30 saat.",
+    "worker.submitCheckin": "Daftar masuk",
+    "worker.checkedInBadge": "✓ Telah daftar masuk",
+    "employer.checkinCodeBtn": "Kod daftar masuk",
+    "employer.checkinCodeTitle": "Kod daftar masuk pekerja",
+    "employer.checkinCodeRotateHint": "Tunjukkan ini kepada pekerja di tempat acara. Ia berubah setiap 30 saat — baca semula setiap kali.",
     "shiftDetail.rateHelperText": "Tatal atau ketik untuk pilih kadar anda",
     "myBids.signInTitle": "Log masuk untuk lihat tawaran anda",
     "myBids.signInHint": "Jejaki syif yang anda mohon dan statusnya sebaik sahaja anda log masuk.",
@@ -3975,6 +3981,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [user, pendingBidAfterAuth, selectedShift]);
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
+  // Which application the check-in screen is acting on — the rotating-code
+  // check-in (owner decision 2026-07-25) needs to know which shift/contract
+  // to validate against, unlike the old fake camera-simulation modal.
+  const [checkinTarget, setCheckinTarget] = useState(null); // { applicationId, shiftTitle }
+  const [checkinCode, setCheckinCode] = useState("");
+  const [checkinSubmitting, setCheckinSubmitting] = useState(false);
+  const [checkinResult, setCheckinResult] = useState(null); // { ok: true } | { ok: false, message }
   const [liveApplications, setLiveApplications] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [cancellingBid, setCancellingBid] = useState(false);
@@ -4099,6 +4112,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   useEffect(() => {
     if (!backHandlerRef) return;
     backHandlerRef.current = () => {
+      if (showQR) { setShowQR(false); return true; }
       if (showBidModal) { setShowBidModal(false); return true; }
       if (workerContractModal) { setWorkerContractModal(null); return true; }
       if (cancellationContractModal) { setCancellationContractModal(null); return true; }
@@ -4255,7 +4269,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, checked_in_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -4273,6 +4287,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         appliedAt: a.applied_at,
         offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
+        checkedInAt: a.checked_in_at ?? null,
         cancellationChoice: a.cancellation_choice ?? null,
         cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
         cancellationProofPath: a.cancellation_proof_path ?? null,
@@ -4746,15 +4761,40 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>{t("worker.checkinTitle")}</div>
-        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 32, textAlign: "center" }}>{t("worker.checkinSubtitle")}</div>
-        <div style={{ width: 220, height: 220, background: BRAND.grayLight, borderRadius: 20, display: "flex", alignItems: "center", justifyContent: "center", border: `3px dashed ${BRAND.border}`, marginBottom: 24 }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 48 }}>{Icons.Camera({ size: 48 })}</div>
-            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8 }}>{t("worker.cameraViewfinder")}</div>
-          </div>
-        </div>
-        <div style={{ background: BRAND.greenLight, color: "#065F46", borderRadius: 12, padding: "12px 20px", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>✓ GPS: KLCC (1.5km — within range)</div>
-        <Btn onClick={() => { setShowQR(false); toast(t("toast.checkinSimulated"), "success"); }}>{t("worker.simulateCheckin")}</Btn>
+        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 8, textAlign: "center" }}>{checkinTarget?.shiftTitle}</div>
+        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 28, textAlign: "center", maxWidth: 320 }}>{t("worker.checkinCodeSubtitle")}</div>
+        <input
+          value={checkinCode}
+          onChange={e => setCheckinCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+          inputMode="numeric"
+          placeholder="000000"
+          maxLength={6}
+          style={{ width: 220, textAlign: "center", fontSize: 32, fontWeight: 800, letterSpacing: 8, padding: "16px 12px", borderRadius: 16, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 16, fontFamily: "monospace" }}
+        />
+        {checkinResult?.ok === false && (
+          <div style={{ color: BRAND.red, fontSize: 13, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkinResult.message}</div>
+        )}
+        <Btn
+          disabled={checkinSubmitting || checkinCode.length !== 6}
+          onClick={async () => {
+            setCheckinSubmitting(true);
+            setCheckinResult(null);
+            const { error } = await supabase.rpc("worker_check_in", {
+              p_application_id: checkinTarget.applicationId,
+              p_code: checkinCode,
+            });
+            setCheckinSubmitting(false);
+            if (error) {
+              setCheckinResult({ ok: false, message: error.message });
+              return;
+            }
+            setLiveApplications(prev => (prev ?? []).map(x => x.id === checkinTarget.applicationId ? { ...x, checkedInAt: new Date().toISOString() } : x));
+            setShowQR(false);
+            toast(t("toast.checkinSuccess"), "success");
+          }}
+        >
+          {checkinSubmitting ? "…" : t("worker.submitCheckin")}
+        </Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>{t("common.back")}</Btn>
       </div>
       <div style={navBarStyle}>
@@ -5174,7 +5214,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
                     )}
                     {a.status === "accepted" && a.shiftStatus !== "cancelled" && (
-                      <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>
+                      a.checkedInAt
+                        ? <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.green }}>{t("worker.checkedInBadge")}</span>
+                        : <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>
                     )}
                   </div>
                   {a.status === "shortlisted" && (
@@ -5352,7 +5394,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
                       applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer, readOnly: true,
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
-                  <Btn variant="success" onClick={() => setShowQR(true)} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
+                  {a.checkedInAt
+                    ? <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: BRAND.green }}>{t("worker.checkedInBadge")}</div>
+                    : <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>}
                 </>
               )}
               {a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
@@ -6045,6 +6089,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [viewContractModal, setViewContractModal] = useState(null); // applicant row
   const [workerProfileModal, setWorkerProfileModal] = useState(null); // applicant row
   const [workerHistory, setWorkerHistory] = useState(null); // null = loading
+  // Rotating check-in code display (owner decision 2026-07-25) — shown to
+  // the employer at the venue for workers to key in. Regenerated every 5s
+  // client-side; the RPC itself derives the code from a 30s server-side
+  // time bucket, so the display just tracks whatever the server currently
+  // considers valid rather than trying to run its own clock.
+  const [checkinCodeModal, setCheckinCodeModal] = useState(null); // { shiftId, title }
+  const [checkinCode, setCheckinCode] = useState(null);
+  const [checkinCodeExpiresAt, setCheckinCodeExpiresAt] = useState(null);
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
@@ -6142,6 +6194,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     backHandlerRef.current = () => {
       if (viewContractModal) { setViewContractModal(null); return true; }
       if (workerProfileModal) { setWorkerProfileModal(null); return true; }
+      if (checkinCodeModal) { setCheckinCodeModal(null); return true; }
       if (contractModal) { setContractModal(null); return true; }
       if (disputeModal) { setDisputeModal(null); return true; }
       if (ratingModal) { setRatingModal(null); return true; }
@@ -6587,6 +6640,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       });
     return () => { active = false; };
   }, [workerProfileModal]);
+
+  // Rotating check-in code: refresh every 5s while the modal is open so the
+  // display never shows a code past its 30s-bucket expiry by more than a
+  // few seconds.
+  useEffect(() => {
+    if (!checkinCodeModal?.shiftId) return undefined;
+    let active = true;
+    const fetchCode = () => {
+      supabase.rpc('get_shift_checkin_code', { p_shift_id: checkinCodeModal.shiftId }).then(({ data, error }) => {
+        if (!active) return;
+        if (error || !data?.[0]) { setCheckinCode(null); return; }
+        setCheckinCode(data[0].code);
+        setCheckinCodeExpiresAt(data[0].expires_at);
+      });
+    };
+    fetchCode();
+    const interval = setInterval(fetchCode, 5000);
+    return () => { active = false; clearInterval(interval); };
+  }, [checkinCodeModal]);
 
   // Best-effort expiry sweep: whenever the applicant pool loads, flip any
   // offers whose deadline has passed to 'expired' (permitted by the
@@ -7187,6 +7259,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   }} style={{ padding: "8px 14px" }}>
                   {Icons.Chat ? Icons.Chat({ size: 14 }) : "💬"} <span style={{ marginLeft: 6 }}>{t("chat.title")}</span>
                 </Btn>
+                {selectedShift.filled > 0 && (
+                  <Btn
+                    variant="secondary"
+                    onClick={() => { setCheckinCode(null); setCheckinCodeModal({ shiftId: selectedShift.id, title: selectedShift.title }); }}
+                    style={{ padding: "8px 14px" }}
+                  >
+                    {Icons.QrCode ? Icons.QrCode({ size: 14 }) : "🔢"} <span style={{ marginLeft: 6 }}>{t("employer.checkinCodeBtn")}</span>
+                  </Btn>
+                )}
                 {selectedShift.status !== "cancelled" && selectedShift.status !== "completed" && (
                   <Btn
                     variant="secondary"
@@ -8175,6 +8256,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 {t("contract.printBtn")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {checkinCodeModal && (
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCheckinCodeModal(null)}>
+          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:360, width:'100%', textAlign:'center', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("employer.checkinCodeTitle")}</div>
+            <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 20 }}>{checkinCodeModal.title}</div>
+            <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: 10, fontFamily: "monospace", color: BRAND.primary, marginBottom: 8 }}>
+              {checkinCode ?? "······"}
+            </div>
+            <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 20 }}>{t("employer.checkinCodeRotateHint")}</div>
+            <button onClick={() => setCheckinCodeModal(null)}
+              style={{width:'100%', padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.text, fontWeight:600}}>
+              {t("common.close")}
+            </button>
           </div>
         </div>
       )}
