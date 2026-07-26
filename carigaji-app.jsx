@@ -7827,7 +7827,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               />
             )}
             {(liveApplicants ?? []).length > 0 && (
-            <table style={{ width: "100%", borderCollapse: "collapse", background: BRAND.surface, borderRadius: 16, overflow: "hidden", border: `1px solid ${BRAND.border}` }}>
+            <div style={{ overflowX: "auto", borderRadius: 16, border: `1px solid ${BRAND.border}` }}>
+            <table style={{ width: "100%", minWidth: 720, borderCollapse: "collapse", background: BRAND.surface }}>
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
                   {[bulkSelectMode ? "" : null, t("employer.colWorker"), t("employer.colKYC"), t("employer.colReliability"), t("employer.colRating"), t("employer.colBidRate"), t("employer.colStatus"), t("employer.colAction")].filter(h => h !== null).map((h, i) => (
@@ -7939,6 +7940,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 })}
               </tbody>
             </table>
+            </div>
             )}
           </div>
         )}
