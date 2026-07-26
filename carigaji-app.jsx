@@ -5268,8 +5268,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</span>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: BRAND.text }}>RM{a.wageBid}/h</span>
+                      <div style={{ fontSize: 11, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</div>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: BRAND.green }}>RM{a.wageBid}<span style={{ fontSize: 13, fontWeight: 600, color: BRAND.textMuted }}>/h</span></span>
                     </div>
                     {a.status === "shortlisted" && (
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
