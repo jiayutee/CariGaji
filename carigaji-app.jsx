@@ -324,7 +324,6 @@ const TRANSLATIONS = {
     "toast.avatarUpdateFailed": "Could not update photo: ",
     "toast.sendFailed": "Failed to send: ",
     "toast.checkinSuccess": "Checked in successfully.",
-    "toast.checkoutSuccess": "Checkout submitted. Your employer will confirm your hours.",
     "toast.maxBidPrefix": "Max bid is RM",
     "toast.sampleShiftBidInfo": "This is a sample shift. Apply to a live shift to submit a bid.",
     "toast.applicationFailed": "Failed to submit application: ",
@@ -733,30 +732,9 @@ const TRANSLATIONS = {
     "worker.checkinCodeSubtitle": "Ask your employer for today's 6-digit check-in code and enter it below. The code changes every 30 seconds.",
     "worker.submitCheckin": "Check in",
     "worker.checkedInBadge": "✓ Checked in",
-    "worker.checkOutBtn": "Check Out",
-    "worker.checkoutTitle": "Shift checkout",
-    "worker.checkoutSubtitle": "Report the hours you actually worked. Your employer will confirm or dispute this before payout.",
-    "worker.checkoutHoursLabel": "Hours worked",
-    "worker.checkoutBreakLabel": "Break minutes (optional)",
-    "worker.checkoutNoteLabel": "Note (optional)",
-    "worker.submitCheckout": "Submit checkout",
-    "worker.resubmitCheckout": "Resubmit hours",
-    "worker.checkoutPendingBadge": "Checkout submitted — awaiting confirmation",
-    "worker.hoursConfirmedBadge": "✓ Hours confirmed",
-    "worker.hoursDisputedBadge": "Employer disputed your hours",
     "employer.checkinCodeBtn": "Check-in code",
     "employer.checkinCodeTitle": "Worker check-in code",
     "employer.checkinCodeRotateHint": "Show this to workers at the venue. It changes every 30 seconds — read it fresh each time.",
-    "employer.reportedHoursPrefix": "Reported: ",
-    "employer.hoursConfirmedLabel": "✓ Hours confirmed",
-    "employer.hoursDisputedLabel": "Hours disputed",
-    "employer.confirmHoursBtn": "Confirm",
-    "employer.disputeHoursBtn": "Dispute",
-    "employer.disputeHoursPrompt": "Why are you disputing these hours? (optional)",
-    "employer.toastHoursConfirmed": "Hours confirmed.",
-    "employer.toastHoursDisputed": "Hours disputed. The worker has been notified to resubmit.",
-    "employer.toastConfirmHoursFailed": "Could not confirm hours: ",
-    "employer.toastDisputeHoursFailed": "Could not dispute hours: ",
     "shiftDetail.rateHelperText": "Scroll to choose your rate",
     "myBids.signInTitle": "Sign in to view your bids",
     "myBids.signInHint": "Track the shifts you've applied to and their status once you're signed in.",
@@ -952,7 +930,6 @@ const TRANSLATIONS = {
     "employer.outgoingObligationsTitle": "Outgoing Salary Obligations",
     "employer.noPayoutObligations": "No payout obligations yet for this employer account.",
     "payout.holdReasonNotCheckedIn": "On hold — worker did not check in for this shift.",
-    "payout.holdReasonHoursDisputed": "On hold — employer disputed the worker's reported hours.",
     "payout.holdReasonWorkerBanking": "On hold — worker's banking details are not yet verified.",
     "payout.holdReasonEmployerBanking": "On hold — employer's funding account is not verified or not funded.",
     "payout.holdReasonGeneric": "On hold — contact support for details.",
@@ -1121,7 +1098,6 @@ const TRANSLATIONS = {
     "toast.avatarUpdateFailed": "Gagal kemas kini gambar: ",
     "toast.sendFailed": "Gagal hantar: ",
     "toast.checkinSuccess": "Berjaya daftar masuk.",
-    "toast.checkoutSuccess": "Daftar keluar dihantar. Majikan anda akan mengesahkan jam anda.",
     "toast.maxBidPrefix": "Tawaran maksimum ialah RM",
     "toast.sampleShiftBidInfo": "Ini syif contoh sahaja. Mohon syif sebenar untuk hantar tawaran.",
     "toast.applicationFailed": "Gagal hantar permohonan: ",
@@ -1530,30 +1506,9 @@ const TRANSLATIONS = {
     "worker.checkinCodeSubtitle": "Minta kod daftar masuk 6-digit hari ini daripada majikan anda dan masukkan di bawah. Kod berubah setiap 30 saat.",
     "worker.submitCheckin": "Daftar masuk",
     "worker.checkedInBadge": "✓ Telah daftar masuk",
-    "worker.checkOutBtn": "Daftar Keluar",
-    "worker.checkoutTitle": "Daftar keluar syif",
-    "worker.checkoutSubtitle": "Laporkan jam yang anda bekerja sebenar. Majikan anda akan mengesahkan atau mempertikaikannya sebelum bayaran.",
-    "worker.checkoutHoursLabel": "Jam bekerja",
-    "worker.checkoutBreakLabel": "Minit rehat (pilihan)",
-    "worker.checkoutNoteLabel": "Nota (pilihan)",
-    "worker.submitCheckout": "Hantar daftar keluar",
-    "worker.resubmitCheckout": "Hantar semula jam",
-    "worker.checkoutPendingBadge": "Daftar keluar dihantar — menunggu pengesahan",
-    "worker.hoursConfirmedBadge": "✓ Jam disahkan",
-    "worker.hoursDisputedBadge": "Majikan mempertikaikan jam anda",
     "employer.checkinCodeBtn": "Kod daftar masuk",
     "employer.checkinCodeTitle": "Kod daftar masuk pekerja",
     "employer.checkinCodeRotateHint": "Tunjukkan ini kepada pekerja di tempat acara. Ia berubah setiap 30 saat — baca semula setiap kali.",
-    "employer.reportedHoursPrefix": "Dilaporkan: ",
-    "employer.hoursConfirmedLabel": "✓ Jam disahkan",
-    "employer.hoursDisputedLabel": "Jam dipertikaikan",
-    "employer.confirmHoursBtn": "Sahkan",
-    "employer.disputeHoursBtn": "Pertikai",
-    "employer.disputeHoursPrompt": "Mengapa anda mempertikaikan jam ini? (pilihan)",
-    "employer.toastHoursConfirmed": "Jam disahkan.",
-    "employer.toastHoursDisputed": "Jam dipertikaikan. Pekerja telah dimaklumkan untuk menghantar semula.",
-    "employer.toastConfirmHoursFailed": "Tidak dapat mengesahkan jam: ",
-    "employer.toastDisputeHoursFailed": "Tidak dapat mempertikaikan jam: ",
     "shiftDetail.rateHelperText": "Tatal atau ketik untuk pilih kadar anda",
     "myBids.signInTitle": "Log masuk untuk lihat tawaran anda",
     "myBids.signInHint": "Jejaki syif yang anda mohon dan statusnya sebaik sahaja anda log masuk.",
@@ -1749,7 +1704,6 @@ const TRANSLATIONS = {
     "employer.outgoingObligationsTitle": "Tanggungan Gaji Keluar",
     "employer.noPayoutObligations": "Belum ada tanggungan bayaran untuk akaun majikan ini.",
     "payout.holdReasonNotCheckedIn": "Ditahan — pekerja tidak daftar masuk untuk syif ini.",
-    "payout.holdReasonHoursDisputed": "Ditahan — majikan mempertikaikan jam yang dilaporkan pekerja.",
     "payout.holdReasonWorkerBanking": "Ditahan — butiran perbankan pekerja belum disahkan.",
     "payout.holdReasonEmployerBanking": "Ditahan — akaun pembiayaan majikan belum disahkan atau tidak berdana.",
     "payout.holdReasonGeneric": "Ditahan — hubungi sokongan untuk butiran.",
@@ -2073,7 +2027,6 @@ const payoutHoldReasonLabel = (t, errorMessage) => ({
   worker_not_checked_in: t("payout.holdReasonNotCheckedIn"),
   worker_banking_not_verified: t("payout.holdReasonWorkerBanking"),
   employer_banking_not_verified_or_funding_not_ready: t("payout.holdReasonEmployerBanking"),
-  hours_disputed: t("payout.holdReasonHoursDisputed"),
 }[errorMessage] || (errorMessage ? t("payout.holdReasonGeneric") : null));
 
 // ─── Language / i18n ────────────────────────────────────────────────────────
@@ -4069,15 +4022,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [checkinCode, setCheckinCode] = useState("");
   const [checkinSubmitting, setCheckinSubmitting] = useState(false);
   const [checkinResult, setCheckinResult] = useState(null); // { ok: true } | { ok: false, message }
-  // End-of-shift checkout (owner go-ahead 2026-07-26): worker reports actual
-  // hours worked after checking in, so payout can reflect real time instead
-  // of always the full contracted duration.
-  const [checkoutTarget, setCheckoutTarget] = useState(null); // { applicationId, shiftTitle, defaultHours }
-  const [checkoutHours, setCheckoutHours] = useState("");
-  const [checkoutBreakMinutes, setCheckoutBreakMinutes] = useState("");
-  const [checkoutNote, setCheckoutNote] = useState("");
-  const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
-  const [checkoutResult, setCheckoutResult] = useState(null); // { ok: false, message }
   // Lets a worker preview the binding contract terms on the offer-decision
   // screen itself (owner-shared Instaff reference, 2026-07-25) instead of
   // only seeing them after already confirming — set of expanded application
@@ -4229,7 +4173,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (!backHandlerRef) return;
     backHandlerRef.current = () => {
       if (showQR) { setShowQR(false); return true; }
-      if (checkoutTarget) { setCheckoutTarget(null); return true; }
       if (showBidModal) { setShowBidModal(false); return true; }
       if (workerContractModal) { setWorkerContractModal(null); return true; }
       if (cancellationContractModal) { setCancellationContractModal(null); return true; }
@@ -4386,7 +4329,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, checked_in_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -4405,11 +4348,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
         checkedInAt: a.checked_in_at ?? null,
-        checkedOutAt: a.checked_out_at ?? null,
-        workerReportedHours: a.worker_reported_hours ?? null,
-        employerHoursConfirmedAt: a.employer_hours_confirmed_at ?? null,
-        employerHoursDisputed: a.employer_hours_disputed ?? false,
-        employerHoursDisputeNote: a.employer_hours_dispute_note ?? null,
         cancellationChoice: a.cancellation_choice ?? null,
         cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
         cancellationProofPath: a.cancellation_proof_path ?? null,
@@ -4879,41 +4817,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         height: 56,
       };
 
-  // Attendance/checkout status for an accepted application, from "not yet
-  // checked in" through the full worker-report → employer-confirm/dispute
-  // cycle. Shared by the My Bids list card and the shift-detail view so the
-  // two don't drift.
-  const renderCheckState = (a, stopClick) => {
-    if (!a.checkedInAt) {
-      return <Btn size="sm" variant="success" onClick={(e) => { stopClick?.(e); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>;
-    }
-    if (a.employerHoursDisputed) {
-      return (
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</div>
-          <Btn size="sm" variant="success" onClick={(e) => {
-            stopClick?.(e);
-            setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) });
-            setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null);
-          }}>{t("worker.resubmitCheckout")}</Btn>
-        </div>
-      );
-    }
-    if (a.checkedOutAt && a.employerHoursConfirmedAt) {
-      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.green }}>{t("worker.hoursConfirmedBadge")}</span>;
-    }
-    if (a.checkedOutAt) {
-      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted }}>{t("worker.checkoutPendingBadge")}</span>;
-    }
-    return (
-      <Btn size="sm" variant="success" onClick={(e) => {
-        stopClick?.(e);
-        setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) });
-        setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null);
-      }}>{t("worker.checkOutBtn")}</Btn>
-    );
-  };
-
   // Modal content - rendered on top of main content
   if (showQR) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
@@ -4968,74 +4871,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
-      </div>
-    </div>
-  );
-
-  if (checkoutTarget) return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8, textAlign: "center" }}>{t("worker.checkoutTitle")}</div>
-        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.shiftTitle}</div>
-        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 24, textAlign: "center", maxWidth: 320 }}>{t("worker.checkoutSubtitle")}</div>
-        <div style={{ width: "100%", maxWidth: 320 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("worker.checkoutHoursLabel")}</div>
-          <input
-            value={checkoutHours}
-            onChange={e => setCheckoutHours(e.target.value.replace(/[^0-9.]/g, ""))}
-            inputMode="decimal"
-            placeholder={String(checkoutTarget.defaultHours ?? "")}
-            style={{ width: "100%", boxSizing: "border-box", fontSize: 18, fontWeight: 700, padding: "12px 14px", borderRadius: 12, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 14 }}
-          />
-          <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("worker.checkoutBreakLabel")}</div>
-          <input
-            value={checkoutBreakMinutes}
-            onChange={e => setCheckoutBreakMinutes(e.target.value.replace(/\D/g, ""))}
-            inputMode="numeric"
-            placeholder="0"
-            style={{ width: "100%", boxSizing: "border-box", fontSize: 16, padding: "10px 14px", borderRadius: 12, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 14 }}
-          />
-          <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("worker.checkoutNoteLabel")}</div>
-          <textarea
-            value={checkoutNote}
-            onChange={e => setCheckoutNote(e.target.value)}
-            rows={2}
-            style={{ width: "100%", boxSizing: "border-box", fontSize: 14, padding: "10px 14px", borderRadius: 12, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 16, fontFamily: "inherit", resize: "vertical" }}
-          />
-        </div>
-        {checkoutResult?.ok === false && (
-          <div style={{ color: BRAND.red, fontSize: 13, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkoutResult.message}</div>
-        )}
-        <Btn
-          disabled={checkoutSubmitting || !checkoutHours || Number(checkoutHours) <= 0}
-          onClick={async () => {
-            setCheckoutSubmitting(true);
-            setCheckoutResult(null);
-            const { error } = await supabase.rpc("worker_submit_checkout", {
-              p_application_id: checkoutTarget.applicationId,
-              p_hours: Number(checkoutHours),
-              p_break_minutes: checkoutBreakMinutes ? Number(checkoutBreakMinutes) : 0,
-              p_note: checkoutNote || null,
-            });
-            setCheckoutSubmitting(false);
-            if (error) {
-              setCheckoutResult({ ok: false, message: error.message });
-              return;
-            }
-            setLiveApplications(prev => (prev ?? []).map(x => x.id === checkoutTarget.applicationId ? {
-              ...x,
-              checkedOutAt: new Date().toISOString(),
-              workerReportedHours: Number(checkoutHours),
-              employerHoursConfirmedAt: null,
-              employerHoursDisputed: false,
-            } : x));
-            setCheckoutTarget(null);
-            toast(t("toast.checkoutSuccess"), "success");
-          }}
-        >
-          {checkoutSubmitting ? "…" : t("worker.submitCheckout")}
-        </Btn>
-        <Btn variant="secondary" onClick={() => setCheckoutTarget(null)} style={{ marginTop: 8 }}>{t("common.back")}</Btn>
       </div>
     </div>
   );
@@ -5439,7 +5274,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     {a.status === "shortlisted" && (
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
                     )}
-                    {a.status === "accepted" && a.shiftStatus !== "cancelled" && renderCheckState(a, (e) => e.stopPropagation())}
+                    {a.status === "accepted" && a.shiftStatus !== "cancelled" && (
+                      a.checkedInAt
+                        ? <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.green }}>{t("worker.checkedInBadge")}</span>
+                        : <Btn size="sm" variant="success" onClick={(e) => { e.stopPropagation(); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>
+                    )}
                   </div>
                   {a.status === "shortlisted" && (
                     <div style={{ marginTop: 12, padding: "8px 12px", background: BRAND.amberLight, borderRadius: 8, fontSize: 12, color: BRAND.amber }}>
@@ -5634,23 +5473,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
                       applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer, readOnly: true,
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
-                  {!a.checkedInAt && (
-                    <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
-                  )}
-                  {a.checkedInAt && !a.checkedOutAt && (
-                    <Btn variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkOutBtn")}</Btn>
-                  )}
-                  {a.checkedInAt && a.checkedOutAt && a.employerHoursDisputed && (
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</span>
-                      <Btn size="sm" variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }}>{t("worker.resubmitCheckout")}</Btn>
-                    </div>
-                  )}
-                  {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && (
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
-                      {a.employerHoursConfirmedAt ? t("worker.hoursConfirmedBadge") : t("worker.checkoutPendingBadge")}
-                    </div>
-                  )}
+                  {a.checkedInAt
+                    ? <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: BRAND.green }}>{t("worker.checkedInBadge")}</div>
+                    : <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>}
                 </>
               )}
               {a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
@@ -6865,20 +6690,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setLateCancelWarning(null);
   };
 
-  const confirmCheckoutHours = async (applicationId) => {
-    const { error } = await supabase.rpc('employer_confirm_checkout', { p_application_id: applicationId });
-    if (error) { toast(t('employer.toastConfirmHoursFailed') + error.message, 'error'); return; }
-    setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, employerHoursConfirmedAt: new Date().toISOString(), employerHoursDisputed: false } : a));
-    toast(t('employer.toastHoursConfirmed'), 'success');
-  };
-
-  const disputeCheckoutHours = async (applicationId, note) => {
-    const { error } = await supabase.rpc('employer_dispute_checkout', { p_application_id: applicationId, p_note: note || null });
-    if (error) { toast(t('employer.toastDisputeHoursFailed') + error.message, 'error'); return; }
-    setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, employerHoursDisputed: true, employerHoursConfirmedAt: null } : a));
-    toast(t('employer.toastHoursDisputed'), 'success');
-  };
-
   // Confirmed = accepted + contract-signed — only these workers are owed a
   // late-cancellation choice (a pending/shortlisted applicant never had a
   // firm commitment to lose).
@@ -6898,7 +6709,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -6920,13 +6731,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           workerId: a.worker_id,
           workerSignedAt: a.worker_signed_at ?? null,
           employerSignedAt: a.employer_signed_at ?? null,
-          checkedInAt: a.checked_in_at ?? null,
-          checkedOutAt: a.checked_out_at ?? null,
-          workerReportedHours: a.worker_reported_hours ?? null,
-          workerReportedBreakMinutes: a.worker_reported_break_minutes ?? null,
-          workerCheckoutNote: a.worker_checkout_note ?? null,
-          employerHoursConfirmedAt: a.employer_hours_confirmed_at ?? null,
-          employerHoursDisputed: a.employer_hours_disputed ?? false,
           cancellationChoice: a.cancellation_choice ?? null,
           cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
           cancellationProofPath: a.cancellation_proof_path ?? null,
@@ -7745,29 +7549,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                               <Btn size="xs" variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: selectedShift.title, rateeId: a.workerId, direction: 'employer_to_worker' }); }}>{t("rating.rateBtn")}</Btn>
                             )}
                             <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
-                          </div>
-                        )}
-                        {action === "accepted" && a.checkedOutAt && (
-                          <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: BRAND.grayLight, fontSize: 11 }}>
-                            <div style={{ color: BRAND.text, fontWeight: 600 }}>
-                              {t("employer.reportedHoursPrefix")}{a.workerReportedHours}h
-                            </div>
-                            {a.employerHoursConfirmedAt && (
-                              <div style={{ color: BRAND.green, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
-                            )}
-                            {a.employerHoursDisputed && (
-                              <div style={{ color: BRAND.red, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursDisputedLabel")}</div>
-                            )}
-                            {!a.employerHoursConfirmedAt && !a.employerHoursDisputed && (
-                              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                                <Btn size="xs" variant="success" onClick={() => confirmCheckoutHours(a.id)}>{t("employer.confirmHoursBtn")}</Btn>
-                                <Btn size="xs" variant="danger" onClick={() => {
-                                  const note = window.prompt(t("employer.disputeHoursPrompt"), "");
-                                  if (note === null) return;
-                                  disputeCheckoutHours(a.id, note);
-                                }}>{t("employer.disputeHoursBtn")}</Btn>
-                              </div>
-                            )}
                           </div>
                         )}
                       </td>
