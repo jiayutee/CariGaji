@@ -125,10 +125,33 @@ const BULK_UPLOAD_FIELD_SYNONYMS = {
   maxwage: "wageMax", wagemax: "wageMax",
   headcount: "headcount", positions: "headcount", numberofworkers: "headcount",
   transportallowance: "transportAllowance",
+  addressvisibility: "addressVisibility", visibility: "addressVisibility",
+  languagerequirements: "languageRequirements", languages: "languageRequirements", language: "languageRequirements",
+  specialrequirements: "specialRequirements", requirements: "specialRequirements", notes: "specialRequirements", additionalrequirements: "specialRequirements",
+  groupid: "groupId", group: "groupId", multidaygroup: "groupId", seriesid: "groupId",
 };
 const BULK_UPLOAD_MANDATORY_FIELDS = ["title", "date", "timeStart", "timeEnd"];
 const BULK_UPLOAD_MAX_ROWS = 200;
 const BULK_UPLOAD_MAX_FILE_BYTES = 2 * 1024 * 1024; // 2MB cap
+
+// Continuation rows of a multi-day group (see parseBulkShiftCSV) only need
+// Date/Start/End filled in — every other field forward-fills from the
+// first non-blank value seen for that Group ID, so the employer enters the
+// shared details once, same as the one-by-one wizard's multi-day form.
+const BULK_UPLOAD_FORWARD_FILL_FIELDS = ["title", "description", "category", "location", "dress", "wageMin", "wageMax", "headcount", "transportAllowance", "addressVisibility", "languageRequirements", "specialRequirements"];
+
+const BULK_ADDRESS_VISIBILITY_SYNONYMS = { public: "public", accepted: "accepted_only", acceptedonly: "accepted_only", private: "accepted_only" };
+
+// Matches a free-typed language list ("English, Bahasa Melayu" or
+// "english;tamil") against the fixed SHIFT_LANGUAGES set, dropping
+// anything that doesn't match rather than erroring — this field is
+// optional so an unrecognized token just doesn't get applied.
+const parseBulkLanguageList = (raw) => String(raw ?? "")
+  .split(/[,;|]/)
+  .map(s => s.trim())
+  .filter(Boolean)
+  .map(s => SHIFT_LANGUAGES.find(l => l.toLowerCase() === s.toLowerCase()))
+  .filter(Boolean);
 
 const normalizeBulkHeader = (h) => String(h ?? "").toLowerCase().trim().replace(/[^a-z0-9]/g, "");
 
@@ -217,25 +240,66 @@ const parseBulkShiftCSV = (text) => {
   if (dataRows.length > BULK_UPLOAD_MAX_ROWS) {
     return { fatalError: `Too many rows (${dataRows.length}). The bulk uploader supports up to ${BULK_UPLOAD_MAX_ROWS} shifts per file.` };
   }
-  const draftRows = dataRows.map((cells, idx) => {
+  // Raw per-row fields first, before multi-day forward-fill runs (below).
+  const rawRows = dataRows.map((cells, idx) => {
     const get = (field) => { const c = fieldToCol[field]; return c !== undefined ? (cells[c] ?? "") : ""; };
-    const rawCategory = get("category").trim();
-    const matchedCategory = SHIFT_CATEGORIES.find(c => c.toLowerCase() === rawCategory.toLowerCase()) || "";
-    const row = {
+    return {
       _rowNum: idx + 1,
-      _error: null,
-      title: sanitizeBulkTextValue(get("title")),
-      description: sanitizeBulkTextValue(get("description")),
-      category: matchedCategory,
-      location: sanitizeBulkTextValue(get("location")),
-      dress: sanitizeBulkTextValue(get("dress")),
+      groupId: get("groupId").trim(),
+      title: get("title"),
+      description: get("description"),
+      category: get("category").trim(),
+      location: get("location"),
+      dress: get("dress"),
       date: get("date").trim(),
       timeStart: get("timeStart").trim(),
       timeEnd: get("timeEnd").trim(),
       wageMin: get("wageMin").trim(),
       wageMax: get("wageMax").trim(),
-      headcount: get("headcount").trim() || "1",
+      headcount: get("headcount").trim(),
       transportAllowance: get("transportAllowance").trim(),
+      addressVisibility: get("addressVisibility").trim(),
+      languageRequirements: get("languageRequirements").trim(),
+      specialRequirements: get("specialRequirements"),
+    };
+  });
+
+  // Forward-fill: for rows sharing a non-empty Group ID, any blank field
+  // (other than Date/Start/End, which are per-occurrence) inherits the
+  // first non-blank value seen for that group.
+  const groupDefaults = {};
+  rawRows.forEach(r => {
+    if (!r.groupId) return;
+    const defaults = groupDefaults[r.groupId] || (groupDefaults[r.groupId] = {});
+    BULK_UPLOAD_FORWARD_FILL_FIELDS.forEach(f => { if (r[f] && !defaults[f]) defaults[f] = r[f]; });
+  });
+  rawRows.forEach(r => {
+    if (!r.groupId) return;
+    const defaults = groupDefaults[r.groupId];
+    BULK_UPLOAD_FORWARD_FILL_FIELDS.forEach(f => { if (!r[f] && defaults[f]) r[f] = defaults[f]; });
+  });
+
+  const draftRows = rawRows.map(r => {
+    const matchedCategory = SHIFT_CATEGORIES.find(c => c.toLowerCase() === r.category.toLowerCase()) || "";
+    const row = {
+      _rowNum: r._rowNum,
+      _error: null,
+      groupId: r.groupId,
+      title: sanitizeBulkTextValue(r.title),
+      description: sanitizeBulkTextValue(r.description),
+      category: matchedCategory,
+      location: sanitizeBulkTextValue(r.location),
+      dress: sanitizeBulkTextValue(r.dress),
+      date: r.date,
+      timeStart: r.timeStart,
+      timeEnd: r.timeEnd,
+      wageMin: r.wageMin,
+      wageMax: r.wageMax,
+      headcount: r.headcount || "1",
+      transportAllowance: r.transportAllowance,
+      addressVisibility: BULK_ADDRESS_VISIBILITY_SYNONYMS[normalizeBulkHeader(r.addressVisibility)] || "public",
+      languageRequirements: r.languageRequirements,
+      specialRequirements: sanitizeBulkTextValue(r.specialRequirements),
     };
     row._status = evaluateBulkRowStatus(row);
     return row;
@@ -243,11 +307,16 @@ const parseBulkShiftCSV = (text) => {
   return { rows: draftRows };
 };
 
-const BULK_UPLOAD_TEMPLATE_HEADER = ["Title", "Description", "Category", "Location", "Dress Code", "Date", "Start Time", "End Time", "Min Wage", "Max Wage", "Headcount", "Transport Allowance"];
-const BULK_UPLOAD_TEMPLATE_EXAMPLE = ["F&B Server – Corporate Dinner", "Serve drinks and canapés at a corporate dinner event.", "F&B", "KLCC, KL City Centre", "All black formal", "2026-08-15", "18:00", "23:00", "12", "16", "3", "10"];
+const BULK_UPLOAD_TEMPLATE_HEADER = ["Title", "Description", "Category", "Location", "Dress Code", "Date", "Start Time", "End Time", "Min Wage", "Max Wage", "Headcount", "Transport Allowance", "Address Visibility", "Language Requirements", "Special Requirements", "Group ID"];
+const BULK_UPLOAD_TEMPLATE_ROWS = [
+  ["F&B Server – Corporate Dinner", "Serve drinks and canapés at a corporate dinner event.", "F&B", "KLCC, KL City Centre", "All black formal", "2026-08-15", "18:00", "23:00", "12", "16", "3", "10", "Public", "English, Bahasa Melayu", "Must be comfortable carrying trays", ""],
+  ["Warehouse Picker – 3-Day Stock Count", "Assist with year-end stock count.", "Warehouse", "Shah Alam Logistics Hub", "Closed-toe shoes", "2026-08-20", "09:00", "17:00", "11", "13", "4", "", "Accepted Only", "English", "", "STOCKCOUNT-AUG"],
+  ["", "", "", "", "", "2026-08-21", "09:00", "17:00", "", "", "", "", "", "", "", "STOCKCOUNT-AUG"],
+  ["", "", "", "", "", "2026-08-22", "09:00", "17:00", "", "", "", "", "", "", "", "STOCKCOUNT-AUG"],
+];
 
 const downloadBulkUploadTemplate = () => {
-  const csv = serializeCSV([BULK_UPLOAD_TEMPLATE_HEADER, BULK_UPLOAD_TEMPLATE_EXAMPLE]);
+  const csv = serializeCSV([BULK_UPLOAD_TEMPLATE_HEADER, ...BULK_UPLOAD_TEMPLATE_ROWS]);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -897,6 +966,16 @@ const TRANSLATIONS = {
     "employer.bulkColLocation": "Location",
     "employer.bulkColDressCode": "Dress code",
     "employer.bulkColTransport": "Transport (RM)",
+    "employer.bulkColVisibility": "Address visibility",
+    "employer.bulkColLanguages": "Languages",
+    "employer.bulkColSpecialReq": "Special requirements",
+    "employer.bulkColGroupId": "Group ID",
+    "employer.bulkGuideToggle": "CSV format guide",
+    "employer.bulkGuideIntro": "The uploader matches columns by name, so header wording is flexible (e.g. \"Start\" works for \"Start Time\") — this is the exact format, and the downloaded template already follows it.",
+    "employer.bulkGuideRequired": "Required: Title, Date (YYYY-MM-DD), Start Time (HH:MM), End Time (HH:MM).",
+    "employer.bulkGuideCategory": "Category must exactly match one of: F&B, Retail, Event, Promotion, Warehouse, Office, Security, Production, Market Research, Student, Logistics, Other.",
+    "employer.bulkGuideOptional": "Optional: Description, Location, Dress Code, Min Wage, Max Wage (RM/hour), Headcount, Transport Allowance (RM), Address Visibility (Public or Accepted Only), Language Requirements (comma-separated, e.g. \"English, Bahasa Melayu\"), Special Requirements — same fields as posting a shift one by one.",
+    "employer.bulkGuideMultiDay": "Multi-day shifts: give every day the same Group ID and one row per day. Only the first row of the group needs the other columns filled in — continuation rows just need Date, Start Time, and End Time.",
     "employer.bulkSelectCategoryPlaceholder": "— Select —",
     "employer.bulkRetry": "Retry",
     "employer.bulkUntitled": "(untitled)",
@@ -1723,6 +1802,16 @@ const TRANSLATIONS = {
     "employer.bulkColLocation": "Lokasi",
     "employer.bulkColDressCode": "Kod pakaian",
     "employer.bulkColTransport": "Pengangkutan (RM)",
+    "employer.bulkColVisibility": "Keterlihatan alamat",
+    "employer.bulkColLanguages": "Bahasa",
+    "employer.bulkColSpecialReq": "Keperluan khas",
+    "employer.bulkColGroupId": "ID Kumpulan",
+    "employer.bulkGuideToggle": "Panduan format CSV",
+    "employer.bulkGuideIntro": "Alat muat naik ini memadankan lajur mengikut nama, jadi perkataan tajuk fleksibel (cth. \"Start\" berfungsi untuk \"Start Time\") — ini format tepatnya, dan templat yang dimuat turun sudah mengikutinya.",
+    "employer.bulkGuideRequired": "Diperlukan: Title, Date (YYYY-MM-DD), Start Time (HH:MM), End Time (HH:MM).",
+    "employer.bulkGuideCategory": "Category mesti sepadan tepat dengan salah satu daripada: F&B, Retail, Event, Promotion, Warehouse, Office, Security, Production, Market Research, Student, Logistics, Other.",
+    "employer.bulkGuideOptional": "Pilihan: Description, Location, Dress Code, Min Wage, Max Wage (RM/jam), Headcount, Transport Allowance (RM), Address Visibility (Public atau Accepted Only), Language Requirements (dipisahkan koma, cth. \"English, Bahasa Melayu\"), Special Requirements — sama seperti menyiarkan syif secara satu-satu.",
+    "employer.bulkGuideMultiDay": "Syif berbilang hari: berikan ID Kumpulan yang sama untuk setiap hari, satu baris setiap hari. Hanya baris pertama kumpulan perlu mengisi lajur lain — baris susulan hanya perlu Date, Start Time, dan End Time.",
     "employer.bulkSelectCategoryPlaceholder": "— Pilih —",
     "employer.bulkRetry": "Cuba lagi",
     "employer.bulkUntitled": "(tiada tajuk)",
@@ -6501,6 +6590,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
+  const [bulkGuideOpen, setBulkGuideOpen] = useState(false);
   const [bulkUploadRows, setBulkUploadRows] = useState([]);
   const [bulkUploadFileName, setBulkUploadFileName] = useState("");
   const [bulkUploadFileError, setBulkUploadFileError] = useState("");
@@ -6927,50 +7017,66 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
     const readyRows = bulkUploadRows.filter(r => r._status === "ready");
     if (readyRows.length === 0) return;
+
+    // Rows sharing a non-empty Group ID publish as ONE multi-day shift
+    // (mirrors the one-by-one wizard's multi-day occurrences); every other
+    // row is its own single-occurrence shift.
+    const groups = [];
+    const groupIndexByKey = {};
+    readyRows.forEach(row => {
+      const key = row.groupId || `__row_${row._rowNum}`;
+      if (groupIndexByKey[key] === undefined) { groupIndexByKey[key] = groups.length; groups.push([]); }
+      groups[groupIndexByKey[key]].push(row);
+    });
+
     setBulkUploadPublishing(true);
-    setBulkUploadProgress({ done: 0, total: readyRows.length });
+    setBulkUploadProgress({ done: 0, total: groups.length });
     const chunkSize = 5;
     let doneCount = 0;
-    for (let i = 0; i < readyRows.length; i += chunkSize) {
-      const chunk = readyRows.slice(i, i + chunkSize);
-      const results = await Promise.allSettled(chunk.map(async (row) => {
-        const startAt = new Date(`${row.date}T${row.timeStart}:00+08:00`).toISOString();
-        const endAt = new Date(`${row.date}T${row.timeEnd}:00+08:00`).toISOString();
+    for (let i = 0; i < groups.length; i += chunkSize) {
+      const chunk = groups.slice(i, i + chunkSize);
+      const results = await Promise.allSettled(chunk.map(async (groupRows) => {
+        const sorted = [...groupRows].sort((a, b) => (a.date + a.timeStart).localeCompare(b.date + b.timeStart));
+        const first = sorted[0];
+        const startAt = new Date(`${first.date}T${first.timeStart}:00+08:00`).toISOString();
+        const endAt = new Date(`${first.date}T${first.timeEnd}:00+08:00`).toISOString();
         if (isNaN(new Date(startAt).getTime()) || isNaN(new Date(endAt).getTime())) {
           throw new Error("Invalid date/time.");
         }
-        const wageMin = parseFloat(row.wageMin) || 0;
-        const wageMax = parseFloat(row.wageMax) || wageMin;
+        const wageMin = parseFloat(first.wageMin) || 0;
+        const wageMax = parseFloat(first.wageMax) || wageMin;
         if (wageMax < wageMin) throw new Error("Max pay must be ≥ min pay.");
         const payload = {
-          title: sanitizeBulkTextValue(row.title.trim()),
-          description: row.description ? sanitizeBulkTextValue(row.description.trim()) : null,
-          category: row.category,
-          location: sanitizeBulkTextValue((row.location || "").trim() || "Kuala Lumpur"),
-          dress_code: row.dress ? sanitizeBulkTextValue(row.dress.trim()) : null,
+          title: sanitizeBulkTextValue(first.title.trim()),
+          description: first.description ? sanitizeBulkTextValue(first.description.trim()) : null,
+          category: first.category,
+          location: sanitizeBulkTextValue((first.location || "").trim() || "Kuala Lumpur"),
+          dress_code: first.dress ? sanitizeBulkTextValue(first.dress.trim()) : null,
           start_at: startAt,
           end_at: endAt,
-          occurrences: [{ date: row.date, start: row.timeStart, end: row.timeEnd }],
+          occurrences: sorted.map(r => ({ date: r.date, start: r.timeStart, end: r.timeEnd })),
           wage_min: wageMin,
           wage_max: wageMax,
-          headcount: parseInt(row.headcount) || 1,
-          address_visibility: "public",
-          transport_allowance: parseFloat(row.transportAllowance) || 0,
+          headcount: parseInt(first.headcount) || 1,
+          address_visibility: first.addressVisibility === "accepted_only" ? "accepted_only" : "public",
+          transport_allowance: parseFloat(first.transportAllowance) || 0,
+          language_requirements: parseBulkLanguageList(first.languageRequirements),
+          requirements: first.specialRequirements && first.specialRequirements.trim() ? { special: sanitizeBulkTextValue(first.specialRequirements.trim()) } : {},
         };
         const { error } = await supabase.from('shifts').insert({ employer_id: user.id, status: 'open', ...payload });
         if (error) throw new Error(/row.?level security/i.test(error.message || "") ? t('employer.postShiftUnverifiedHint') : error.message);
         return true;
       }));
       setBulkUploadRows(rows => rows.map(r => {
-        const idx = chunk.findIndex(c => c._rowNum === r._rowNum);
-        if (idx === -1) return r;
-        const res = results[idx];
+        const groupIdx = chunk.findIndex(g => g.some(gr => gr._rowNum === r._rowNum));
+        if (groupIdx === -1) return r;
+        const res = results[groupIdx];
         return res.status === "fulfilled"
           ? { ...r, _status: "published", _error: null }
           : { ...r, _status: "failed", _error: res.reason?.message || "Failed to publish." };
       }));
       doneCount += chunk.length;
-      setBulkUploadProgress({ done: doneCount, total: readyRows.length });
+      setBulkUploadProgress({ done: doneCount, total: groups.length });
     }
     setBulkUploadPublishing(false);
   };
@@ -8192,7 +8298,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         address_visibility: form.addressVisibility || 'public',
                         transport_allowance: form.offersTransportAllowance ? (parseFloat(form.transportAllowance) || 0) : 0,
                         language_requirements: form.languageRequirements,
-                        requirements: form.specialRequirements.trim() ? { special: form.specialRequirements.trim() } : null,
+                        // {} not null: `requirements` is NOT NULL DEFAULT '{}'::jsonb live —
+                        // an explicit null still violates NOT NULL (the default only
+                        // applies when the column is omitted from the insert/update
+                        // entirely), which was silently failing every post/edit of a
+                        // shift with no special requirements filled in.
+                        requirements: form.specialRequirements.trim() ? { special: form.specialRequirements.trim() } : {},
                       };
                       let error;
                       if (editingShiftId) {
@@ -8254,6 +8365,20 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 {bulkUploadFileError && (
                   <div style={{ fontSize: 12, color: BRAND.red, marginTop: -8, marginBottom: 8 }}>{bulkUploadFileError}</div>
                 )}
+                <button type="button" onClick={() => setBulkGuideOpen(o => !o)}
+                  style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16, background: "none", border: "none", padding: 0, cursor: "pointer", color: BRAND.primary, fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
+                  <span style={{ display: "inline-block", transform: bulkGuideOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>▶</span>
+                  {t("employer.bulkGuideToggle")}
+                </button>
+                {bulkGuideOpen && (
+                  <div style={{ marginTop: 12, padding: 16, background: BRAND.grayLight, borderRadius: 10, fontSize: 13, lineHeight: 1.7, color: BRAND.text }}>
+                    <p style={{ margin: "0 0 10px" }}>{t("employer.bulkGuideIntro")}</p>
+                    <p style={{ margin: "0 0 10px" }}>• {t("employer.bulkGuideRequired")}</p>
+                    <p style={{ margin: "0 0 10px" }}>• {t("employer.bulkGuideCategory")}</p>
+                    <p style={{ margin: "0 0 10px" }}>• {t("employer.bulkGuideOptional")}</p>
+                    <p style={{ margin: 0 }}>• {t("employer.bulkGuideMultiDay")}</p>
+                  </div>
+                )}
               </Card>
             )}
 
@@ -8273,10 +8398,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     {t("employer.bulkRowsSummary").replace("{ready}", readyCount).replace("{total}", total).replace("{needsFix}", needsFixCount)}
                   </div>
                   <Card style={{ padding: 0, overflow: "auto", marginBottom: 16 }}>
-                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1280 }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1780 }}>
                       <thead>
                         <tr style={{ background: BRAND.grayLight }}>
-                          {[t("employer.bulkColRow"), t("employer.bulkColStatus"), t("employer.bulkColTitle"), t("employer.bulkColCategory"), t("employer.bulkColDate"), t("employer.bulkColStart"), t("employer.bulkColEnd"), t("employer.bulkColMinWage"), t("employer.bulkColMaxWage"), t("employer.bulkColHeadcount"), t("employer.bulkColLocation"), t("employer.bulkColDressCode"), t("employer.bulkColTransport"), ""].map(h => (
+                          {[t("employer.bulkColRow"), t("employer.bulkColGroupId"), t("employer.bulkColStatus"), t("employer.bulkColTitle"), t("employer.bulkColCategory"), t("employer.bulkColDate"), t("employer.bulkColStart"), t("employer.bulkColEnd"), t("employer.bulkColMinWage"), t("employer.bulkColMaxWage"), t("employer.bulkColHeadcount"), t("employer.bulkColLocation"), t("employer.bulkColDressCode"), t("employer.bulkColTransport"), t("employer.bulkColVisibility"), t("employer.bulkColLanguages"), t("employer.bulkColSpecialReq"), ""].map(h => (
                             <th key={h} style={{ padding: "10px 12px", fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}`, whiteSpace: "nowrap" }}>{h}</th>
                           ))}
                         </tr>
@@ -8288,6 +8413,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           return (
                             <tr key={row._rowNum} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
                               <td style={{ padding: "8px 12px", fontSize: 12, color: BRAND.textMuted }}>{row._rowNum}</td>
+                              <td style={{ padding: "8px 12px", minWidth: 120 }}><Input value={row.groupId} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "groupId", e.target.value)} style={{ marginBottom: 0 }} /></td>
                               <td style={{ padding: "8px 12px" }}>
                                 {pillFor(row._status)}
                                 {row._status === "failed" && row._error && (
@@ -8307,6 +8433,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                               <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.location} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "location", e.target.value)} style={{ marginBottom: 0 }} /></td>
                               <td style={{ padding: "8px 12px", minWidth: 150 }}><Input value={row.dress} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "dress", e.target.value)} style={{ marginBottom: 0 }} /></td>
                               <td style={{ padding: "8px 12px", minWidth: 90 }}><Input type="number" value={row.transportAllowance} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "transportAllowance", e.target.value)} style={{ marginBottom: 0 }} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 130 }}>
+                                <Select value={row.addressVisibility} onChange={e => updateBulkUploadRow(row._rowNum, "addressVisibility", e.target.value)} options={[{ value: "public", label: t("employer.addressVisibilityPublic") }, { value: "accepted_only", label: t("employer.addressVisibilityPrivate") }]} style={{ marginBottom: 0 }} />
+                              </td>
+                              <td style={{ padding: "8px 12px", minWidth: 150 }}><Input value={row.languageRequirements} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "languageRequirements", e.target.value)} style={{ marginBottom: 0 }} /></td>
+                              <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.specialRequirements} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "specialRequirements", e.target.value)} style={{ marginBottom: 0 }} /></td>
                               <td style={{ padding: "8px 12px" }}>
                                 {row._status === "failed" && (
                                   <Btn size="xs" variant="secondary" onClick={() => retryBulkUploadRow(row._rowNum)}>{t("employer.bulkRetry")}</Btn>
