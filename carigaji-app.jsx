@@ -439,6 +439,11 @@ const TRANSLATIONS = {
     "dispute.categoryUnsafeConditions": "Unsafe working conditions",
     "dispute.categoryPaymentIssue": "Payment issue",
     "dispute.categoryOther": "Other",
+    "disputes.myDisputesTitle": "My Disputes",
+    "disputes.myDisputesEmpty": "No disputes yet.",
+    "disputes.filedByYou": "Filed by you",
+    "disputes.filedAgainstYou": "Filed against you",
+    "disputes.resolvedLabel": "Resolved:",
     "rating.rateBtn": "Rate",
     "rating.modalTitle": "Rate your experience",
     "rating.overallPreview": "Overall rating",
@@ -1206,6 +1211,11 @@ const TRANSLATIONS = {
     "dispute.categoryUnsafeConditions": "Keadaan kerja tidak selamat",
     "dispute.categoryPaymentIssue": "Isu pembayaran",
     "dispute.categoryOther": "Lain-lain",
+    "disputes.myDisputesTitle": "Pertikaian Saya",
+    "disputes.myDisputesEmpty": "Belum ada pertikaian.",
+    "disputes.filedByYou": "Difailkan oleh anda",
+    "disputes.filedAgainstYou": "Difailkan terhadap anda",
+    "disputes.resolvedLabel": "Diselesaikan:",
     "rating.rateBtn": "Nilai",
     "rating.modalTitle": "Nilai pengalaman anda",
     "rating.overallPreview": "Penilaian keseluruhan",
@@ -4050,6 +4060,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
+  const [myDisputes, setMyDisputes] = useState(null);
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -4082,6 +4093,26 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     loadMyRatings();
     return () => { active = false; };
   }, [user]);
+
+  // Self-service dispute status view (settings tab) — RLS's disputes_owner_read
+  // policy already scopes this to disputes where the signed-in worker is the
+  // worker_id or employer_id on the linked application/shift, so no extra
+  // .eq() filter is needed here (a worker should also see disputes an
+  // employer filed against them, not just ones they filed themselves).
+  useEffect(() => {
+    if (!supabase || !user || tab !== "settings") return;
+    let active = true;
+    (async () => {
+      setMyDisputes(null);
+      const { data, error } = await supabase
+        .from("disputes")
+        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift:shifts(title, employer_id))")
+        .order("created_at", { ascending: false });
+      if (!active) return;
+      setMyDisputes(error ? [] : (data || []));
+    })();
+    return () => { active = false; };
+  }, [user, tab]);
 
   // Fetch aggregated ratings for the clicked ratee (any StarRating display) —
   // same 42P01-graceful degradation as above.
@@ -5748,6 +5779,33 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             </Card>
             )}
+            {user && (
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
+              {myDisputes === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+              {myDisputes?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("disputes.myDisputesEmpty")}</div>}
+              {myDisputes?.map(d => {
+                const categoryLabel = t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther");
+                const filedByYou = d.filed_by === user.id;
+                return (
+                  <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: BRAND.text }}>{categoryLabel}</span>
+                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
+                      <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
+                    </div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
+                    <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{d.description}</div>
+                    {d.resolved_at && (
+                      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6 }}>
+                        {t("disputes.resolvedLabel")} {new Date(d.resolved_at).toLocaleDateString("en-MY")}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </Card>
+            )}
             {(() => {
               const isAdminAccount = user?.app_metadata?.role === "admin";
               const canSeeEmployer = userRole === "employer" || isAdminAccount;
@@ -6124,6 +6182,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
+  const [myDisputes, setMyDisputes] = useState(null);
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -6168,6 +6227,26 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     loadMyRatings();
     return () => { active = false; };
   }, [user]);
+
+  // Self-service dispute status view (account view) — RLS's disputes_owner_read
+  // policy already scopes this to disputes where the signed-in employer is the
+  // employer_id or worker_id on the linked application/shift, so no extra
+  // .eq() filter is needed here (an employer should also see disputes a
+  // worker filed against them, not just ones they filed themselves).
+  useEffect(() => {
+    if (!supabase || !user || view !== "account") return;
+    let active = true;
+    (async () => {
+      setMyDisputes(null);
+      const { data, error } = await supabase
+        .from("disputes")
+        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift:shifts(title, employer_id))")
+        .order("created_at", { ascending: false });
+      if (!active) return;
+      setMyDisputes(error ? [] : (data || []));
+    })();
+    return () => { active = false; };
+  }, [user, view]);
 
   // Fetch aggregated ratings for the clicked ratee (any StarRating display) —
   // same 42P01-graceful degradation as above.
@@ -8010,6 +8089,31 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <Btn variant="secondary" onClick={saveEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>{t("settings.saveBanking")}</Btn>
                 <Btn onClick={verifyEmployerBankingDetails} disabled={bankingLoading} style={{ flex: 1, justifyContent: "center" }}>{t("settings.verifySecureSign")}</Btn>
               </div>
+            </Card>
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
+              {myDisputes === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+              {myDisputes?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("disputes.myDisputesEmpty")}</div>}
+              {myDisputes?.map(d => {
+                const categoryLabel = t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther");
+                const filedByYou = d.filed_by === user.id;
+                return (
+                  <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: BRAND.text }}>{categoryLabel}</span>
+                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
+                      <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
+                    </div>
+                    <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
+                    <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{d.description}</div>
+                    {d.resolved_at && (
+                      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6 }}>
+                        {t("disputes.resolvedLabel")} {new Date(d.resolved_at).toLocaleDateString("en-MY")}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("employer.outgoingObligationsTitle")}</div>
