@@ -590,6 +590,11 @@ const TRANSLATIONS = {
     "toast.sedcardSaved": "Profile saved.",
     "toast.sedcardSaveFailed": "Could not save profile: ",
     "qualification.forkliftLicense": "Forklift License",
+    "personalDetails.title": "Personal Details",
+    "personalDetails.subtitle": "Keep your contact and identity details up to date.",
+    "personalDetails.saveBtn": "Save details",
+    "toast.personalDetailsSaved": "Personal details saved.",
+    "toast.personalDetailsSaveFailed": "Could not save details: ",
     "profile.noRatingsTitle": "No ratings yet",
     "profile.noRatingsHint": "Ratings from employers will appear here after you complete shifts.",
     "auth.signinSubtitle": "Use your email and password to access CariGaji.",
@@ -1441,6 +1446,11 @@ const TRANSLATIONS = {
     "toast.sedcardSaved": "Profil disimpan.",
     "toast.sedcardSaveFailed": "Tidak dapat menyimpan profil: ",
     "qualification.forkliftLicense": "Lesen Forklift",
+    "personalDetails.title": "Butiran Peribadi",
+    "personalDetails.subtitle": "Pastikan butiran hubungan dan identiti anda terkini.",
+    "personalDetails.saveBtn": "Simpan butiran",
+    "toast.personalDetailsSaved": "Butiran peribadi disimpan.",
+    "toast.personalDetailsSaveFailed": "Tidak dapat menyimpan butiran: ",
     "profile.noRatingsTitle": "Belum ada penilaian",
     "profile.noRatingsHint": "Penilaian daripada majikan akan dipaparkan di sini selepas anda menyelesaikan syif.",
     "auth.signinSubtitle": "Gunakan e-mel dan kata laluan anda untuk mengakses CariGaji.",
@@ -4280,6 +4290,24 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
 
+  // Same referral-share logic as the header's ProfileMenu (account.referFriends)
+  // — duplicated locally rather than lifted, since ProfileMenu's copy is a
+  // small self-contained closure and this is the only other call site.
+  const shareWorkerReferralLink = async () => {
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "https://jiayutee.github.io/CariGaji/";
+    const shareText = t("account.referShareText");
+    if (navigator.share) {
+      try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
+      return;
+    }
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+      toast(t("toast.inviteLinkCopied"), "success");
+      return;
+    }
+    toast(shareUrl, "info", 8000);
+  };
+
   const handleAvatarUpload = async (file) => {
     if (!file || !user) return;
     setAvatarUploading(true);
@@ -4308,6 +4336,34 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [showSedcard, setShowSedcard] = useState(false);
   const [sedcardForm, setSedcardForm] = useState({ bio: "", languagesSpoken: [], qualifications: [], qualificationsOther: "" });
   const [sedcardSaving, setSedcardSaving] = useState(false);
+
+  // Personal Details editor: phone/identity/DOB/address are captured once
+  // at signup (DetailsGateModal) with no way to revisit them afterward — a
+  // worker with a mistyped phone number had no self-service fix.
+  const [showPersonalDetails, setShowPersonalDetails] = useState(false);
+  const [personalDetailsForm, setPersonalDetailsForm] = useState({ phone: "", identityType: "MyKad", idNumber: "", dateOfBirth: "", address: "" });
+  const [personalDetailsLoaded, setPersonalDetailsLoaded] = useState(false);
+  const [personalDetailsSaving, setPersonalDetailsSaving] = useState(false);
+  useEffect(() => {
+    if (!showPersonalDetails || !user) return;
+    let active = true;
+    setPersonalDetailsLoaded(false);
+    supabase.from('user_private').select('phone, identity_type, id_number, date_of_birth, address').eq('id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        setPersonalDetailsForm({
+          phone: data?.phone ?? "",
+          identityType: data?.identity_type ?? "MyKad",
+          idNumber: data?.id_number ?? "",
+          dateOfBirth: data?.date_of_birth ?? "",
+          address: data?.address ?? "",
+        });
+        setPersonalDetailsLoaded(true);
+      });
+    return () => { active = false; };
+  }, [showPersonalDetails, user]);
+  const [settingsHelpOpen, setSettingsHelpOpen] = useState(false);
+  const [settingsOpenFaq, setSettingsOpenFaq] = useState(null);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
   const [showTnC, setShowTnC] = useState(false);
@@ -4509,6 +4565,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (showQR) { setShowQR(false); return true; }
       if (checkoutTarget) { setCheckoutTarget(null); return true; }
       if (showSedcard) { setShowSedcard(false); return true; }
+      if (showPersonalDetails) { setShowPersonalDetails(false); return true; }
       if (showBidModal) { setShowBidModal(false); return true; }
       if (workerContractModal) { setWorkerContractModal(null); return true; }
       if (cancellationContractModal) { setCancellationContractModal(null); return true; }
@@ -5408,6 +5465,68 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     </div>
   );
 
+  if (showPersonalDetails) return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
+        <button onClick={() => setShowPersonalDetails(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
+          {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
+        </button>
+        <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
+        <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>{t("personalDetails.subtitle")}</div>
+        {!personalDetailsLoaded && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
+        {personalDetailsLoaded && (
+          <>
+            <Input
+              label={t("auth.phoneNumber")}
+              placeholder="+60123456789"
+              value={personalDetailsForm.phone}
+              onChange={e => setPersonalDetailsForm(f => ({ ...f, phone: e.target.value }))}
+            />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <Select
+                label={t("auth.identityType")}
+                value={personalDetailsForm.identityType}
+                onChange={e => setPersonalDetailsForm(f => ({ ...f, identityType: e.target.value, idNumber: "" }))}
+                options={[
+                  { value: "MyKad", label: t("auth.icMyKad") },
+                  { value: "Passport", label: t("auth.passport") },
+                  { value: "MyPR", label: t("auth.myPR") },
+                ]}
+              />
+              <Input
+                label={personalDetailsForm.identityType === "MyKad" ? t("auth.myKadNumber") : personalDetailsForm.identityType === "MyPR" ? t("auth.myPRNumber") : t("auth.passportNumber")}
+                placeholder={["MyKad", "MyPR"].includes(personalDetailsForm.identityType) ? "XXXXXX-XX-XXXX" : "A1234567"}
+                value={personalDetailsForm.idNumber}
+                onChange={e => setPersonalDetailsForm(f => ({ ...f, idNumber: formatIdentityNumber(e.target.value, f.identityType) }))}
+              />
+            </div>
+            <Input label={t("auth.dateOfBirth")} type="date" value={personalDetailsForm.dateOfBirth} onChange={e => setPersonalDetailsForm(f => ({ ...f, dateOfBirth: e.target.value }))} />
+            <Input label={t("auth.address")} value={personalDetailsForm.address} onChange={e => setPersonalDetailsForm(f => ({ ...f, address: e.target.value }))} />
+            <Btn
+              disabled={personalDetailsSaving}
+              onClick={async () => {
+                setPersonalDetailsSaving(true);
+                const { error } = await supabase.from('user_private').upsert({
+                  id: user.id,
+                  phone: personalDetailsForm.phone.trim(),
+                  identity_type: personalDetailsForm.identityType,
+                  id_number: personalDetailsForm.idNumber.trim(),
+                  date_of_birth: personalDetailsForm.dateOfBirth || null,
+                  address: sanitizeBulkTextValue(personalDetailsForm.address.trim()),
+                }, { onConflict: 'id' });
+                setPersonalDetailsSaving(false);
+                if (error) { toast(t('toast.personalDetailsSaveFailed') + error.message, 'error'); return; }
+                toast(t('toast.personalDetailsSaved'), 'success');
+              }}
+            >
+              {personalDetailsSaving ? "…" : t("personalDetails.saveBtn")}
+            </Btn>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   // Shift detail view with bottom nav
   if (selectedShift) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
@@ -6296,6 +6415,58 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.privacyValue")}</span>
               </div>
             </Card>
+            {user && (
+              <Card style={{ marginBottom: 16 }}>
+                {[
+                  { label: t("personalDetails.title"), icon: "🪪", onClick: () => setShowPersonalDetails(true) },
+                  { label: t("account.help"), icon: "❓", onClick: () => setSettingsHelpOpen(true) },
+                  { label: t("account.contactSupport"), icon: "💬", onClick: openMailtoSupport },
+                  { label: t("account.referFriends"), icon: "🎁", onClick: shareWorkerReferralLink },
+                  { label: t("account.signOut"), icon: "↩️", danger: true, onClick: () => supabase.auth.signOut() },
+                ].map((it, i, arr) => (
+                  <button
+                    key={it.label}
+                    onClick={it.onClick}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 10,
+                      padding: "12px 0", border: "none", background: "none", cursor: "pointer",
+                      fontFamily: "inherit", fontSize: 14, textAlign: "left",
+                      color: it.danger ? BRAND.red : BRAND.text,
+                      borderBottom: i < arr.length - 1 ? `1px solid ${BRAND.border}` : "none",
+                    }}
+                  >
+                    <span aria-hidden="true" style={{ fontSize: 16 }}>{it.icon}</span>
+                    <span style={{ flex: 1 }}>{it.label}</span>
+                    <span aria-hidden="true" style={{ color: BRAND.textMuted }}>›</span>
+                  </button>
+                ))}
+              </Card>
+            )}
+            {settingsHelpOpen && (
+              <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: 1200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setSettingsHelpOpen(false)}>
+                <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
+                    <button onClick={() => setSettingsHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+                  </div>
+                  {HELP_FAQS.map((faq, i) => (
+                    <div key={faq.qKey} style={{ borderBottom: `1px solid ${BRAND.border}`, padding: "10px 0" }}>
+                      <button onClick={() => setSettingsOpenFaq((o) => (o === i ? null : i))} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0, fontSize: 13, fontWeight: 600, color: BRAND.text }}>
+                        <span>{t(faq.qKey)}</span>
+                        <span aria-hidden="true">{settingsOpenFaq === i ? "−" : "+"}</span>
+                      </button>
+                      {settingsOpenFaq === i && <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.6 }}>{t(faq.aKey)}</div>}
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
+                    {t("help.stillNeedHelp")}{" "}
+                    <button onClick={() => { setSettingsHelpOpen(false); openMailtoSupport(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
+                      {t("help.contactSupportLink")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             {!user && (
               <Card style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
