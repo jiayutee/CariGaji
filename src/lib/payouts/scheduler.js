@@ -77,27 +77,6 @@ const hasRequiredVerifiedBanking = (record, role) => {
   return true;
 };
 
-// Mirror of carigaji-app.jsx's occurrenceHours/totalOccurrenceHours: duration
-// in hours of one occurrence, wrapping overnight shifts (end past midnight)
-// by treating a non-positive diff as crossing into the next day.
-const occurrenceHours = (occ) => {
-  if (!occ?.start || !occ?.end) return 0;
-  const [sh, sm] = occ.start.split(":").map(Number);
-  const [eh, em] = occ.end.split(":").map(Number);
-  let mins = (eh * 60 + em) - (sh * 60 + sm);
-  if (mins < 0) mins += 24 * 60;
-  return mins / 60;
-};
-
-const contractedHoursForShift = (shift) => {
-  const fromOccurrences = (shift?.occurrences || []).reduce((sum, occ) => sum + occurrenceHours(occ), 0);
-  if (fromOccurrences > 0) return fromOccurrences;
-  if (shift?.start_at && shift?.end_at) {
-    return Math.max(0, (new Date(shift.end_at) - new Date(shift.start_at)) / 3600000);
-  }
-  return 0;
-};
-
 const createAuditEntry = async (supabase, entry) => {
   const { error } = await supabase.from("payout_audit").insert(entry);
   if (error) {
@@ -134,7 +113,7 @@ export const runInternalPayoutScheduling = async (supabase, runForDate = new Dat
 
   const { data: candidateRows, error: candidateError } = await supabase
     .from("applications")
-    .select("id, worker_id, shift_id, wage_ask, status, cancellation_choice, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_disputed, shift:shifts(id, employer_id, start_at, end_at, status, occurrences)")
+    .select("id, worker_id, shift_id, wage_ask, status, cancellation_choice, checked_in_at, shift:shifts(id, employer_id, start_at, end_at, status)")
     .eq("status", "accepted");
 
   if (candidateError) {
@@ -203,33 +182,14 @@ export const runInternalPayoutScheduling = async (supabase, runForDate = new Dat
     const checkedIn = Boolean(row.checked_in_at);
     const attendanceEligible = !shiftEnded || checkedIn;
 
-    // Owner-confirmed end-of-shift checkout (2026-07-26): once the worker
-    // submits actual hours and the employer hasn't disputed them, pay for
-    // those hours instead of the full contracted duration. A dispute holds
-    // the payout outright rather than falling back to either party's
-    // unresolved figure.
-    const hoursDisputed = Boolean(row.employer_hours_disputed);
-    const contractedHours = contractedHoursForShift(row.shift);
-    // A single application only carries one checkout, so multi-occurrence
-    // (multi-day) shifts can't yet have their reported hours trusted to
-    // cover every occurrence -- fall back to the full contracted duration
-    // for those until per-occurrence checkout exists, instead of paying a
-    // single day's reported hours for the whole multi-day contract.
-    const singleOccurrenceShift = (row.shift?.occurrences || []).length <= 1;
-    const effectiveHours =
-      row.checked_out_at && !hoursDisputed && singleOccurrenceShift && Number(row.worker_reported_hours) > 0
-        ? Number(row.worker_reported_hours)
-        : contractedHours;
-    const amount = Math.round(Number(row.wage_ask || 0) * effectiveHours * 100) / 100;
-    const status = workerEligible && employerEligible && attendanceEligible && !hoursDisputed ? "ready" : "held";
+    const amount = Number(row.wage_ask || 0);
+    const status = workerEligible && employerEligible && attendanceEligible ? "ready" : "held";
 
     if (status === "held") held += 1;
     if (status === "ready") ready += 1;
 
     const holdReason = !attendanceEligible
       ? "worker_not_checked_in"
-      : hoursDisputed
-      ? "hours_disputed"
       : !workerEligible
       ? "worker_banking_not_verified"
       : !employerEligible
