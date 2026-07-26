@@ -109,6 +109,17 @@ const SHIFT_CATEGORIES = ["F&B", "Retail", "Event", "Promotion", "Warehouse", "O
 // supabase/migrations/20260711_shift_language_requirements.sql).
 const SHIFT_LANGUAGES = ["Bahasa Melayu", "English", "Mandarin", "Tamil", "Other"];
 
+// Worker Sedcard qualifications — reuses the same real-world labels already
+// defined for the employer's (currently unwired) "required documents"
+// checkboxes on the Post Shift form, so the two sides speak the same
+// vocabulary, plus one addition relevant to Warehouse/Logistics shifts.
+const SEDCARD_QUALIFICATIONS = [
+  { value: "food_handler", labelKey: "employer.docFoodHandler" },
+  { value: "first_aid", labelKey: "employer.docFirstAid" },
+  { value: "driving_license", labelKey: "employer.docDrivingLicense" },
+  { value: "forklift_license", labelKey: "qualification.forkliftLicense" },
+];
+
 // ─── Bulk shift upload (CSV) ─────────────────────────────────────────────────
 // Normalized header (lowercase, trimmed, stripped to [a-z0-9]) → form field.
 // Used to fuzzy-match whatever column names an employer's spreadsheet has.
@@ -564,6 +575,21 @@ const TRANSLATIONS = {
     "profile.reliabilityBuilding": "Building your reputation 📈",
     "profile.reliabilityLow": "Complete more shifts to improve your score",
     "profile.recentRatings": "Recent Ratings",
+    "profile.viewEditSedcard": "View / edit my profile ›",
+    "profile.shiftsDoneBadge": "{count} shifts done",
+    "sedcard.title": "My Profile",
+    "sedcard.subtitle": "Shown to employers reviewing your applications.",
+    "sedcard.bioLabel": "About me / experience",
+    "sedcard.bioPlaceholder": "e.g. 2 years of F&B service experience, comfortable with high-volume events…",
+    "sedcard.languagesLabel": "Languages I speak",
+    "sedcard.qualificationsLabel": "Qualifications",
+    "sedcard.qualificationsOtherLabel": "Other qualifications",
+    "sedcard.qualificationsOtherPlaceholder": "e.g. Barista certified, cash handling experience…",
+    "sedcard.saveBtn": "Save profile",
+    "sedcard.notProvided": "Not provided",
+    "toast.sedcardSaved": "Profile saved.",
+    "toast.sedcardSaveFailed": "Could not save profile: ",
+    "qualification.forkliftLicense": "Forklift License",
     "profile.noRatingsTitle": "No ratings yet",
     "profile.noRatingsHint": "Ratings from employers will appear here after you complete shifts.",
     "auth.signinSubtitle": "Use your email and password to access CariGaji.",
@@ -1400,6 +1426,21 @@ const TRANSLATIONS = {
     "profile.reliabilityBuilding": "Membina reputasi anda 📈",
     "profile.reliabilityLow": "Selesaikan lebih banyak syif untuk tingkatkan skor anda",
     "profile.recentRatings": "Penilaian Terkini",
+    "profile.viewEditSedcard": "Lihat / kemas kini profil saya ›",
+    "profile.shiftsDoneBadge": "{count} syif selesai",
+    "sedcard.title": "Profil Saya",
+    "sedcard.subtitle": "Dipaparkan kepada majikan yang menyemak permohonan anda.",
+    "sedcard.bioLabel": "Tentang saya / pengalaman",
+    "sedcard.bioPlaceholder": "cth. 2 tahun pengalaman perkhidmatan F&B, selesa dengan acara volum tinggi…",
+    "sedcard.languagesLabel": "Bahasa yang saya tuturkan",
+    "sedcard.qualificationsLabel": "Kelayakan",
+    "sedcard.qualificationsOtherLabel": "Kelayakan lain",
+    "sedcard.qualificationsOtherPlaceholder": "cth. Bersijil barista, berpengalaman mengendalikan tunai…",
+    "sedcard.saveBtn": "Simpan profil",
+    "sedcard.notProvided": "Tidak dinyatakan",
+    "toast.sedcardSaved": "Profil disimpan.",
+    "toast.sedcardSaveFailed": "Tidak dapat menyimpan profil: ",
+    "qualification.forkliftLicense": "Lesen Forklift",
     "profile.noRatingsTitle": "Belum ada penilaian",
     "profile.noRatingsHint": "Penilaian daripada majikan akan dipaparkan di sini selepas anda menyelesaikan syif.",
     "auth.signinSubtitle": "Gunakan e-mel dan kata laluan anda untuk mengakses CariGaji.",
@@ -4264,6 +4305,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setAvatarUploading(false);
   };
   const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0 });
+  const [showSedcard, setShowSedcard] = useState(false);
+  const [sedcardForm, setSedcardForm] = useState({ bio: "", languagesSpoken: [], qualifications: [], qualificationsOther: "" });
+  const [sedcardSaving, setSedcardSaving] = useState(false);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
   const [showTnC, setShowTnC] = useState(false);
@@ -4464,6 +4508,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     backHandlerRef.current = () => {
       if (showQR) { setShowQR(false); return true; }
       if (checkoutTarget) { setCheckoutTarget(null); return true; }
+      if (showSedcard) { setShowSedcard(false); return true; }
       if (showBidModal) { setShowBidModal(false); return true; }
       if (workerContractModal) { setWorkerContractModal(null); return true; }
       if (cancellationContractModal) { setCancellationContractModal(null); return true; }
@@ -4493,13 +4538,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   useEffect(() => {
     if (!user || tab !== 'profile') return;
     let active = true;
-    supabase.from('profiles').select('reliability_score, rating')
+    supabase.from('profiles').select('reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other')
       .eq('id', user.id).single()
       .then(({ data }) => {
-        if (active && data) setProfileStats({
-          reliability_score: data.reliability_score ?? 0,
-          rating: data.rating ?? 0
-        });
+        if (active && data) {
+          setProfileStats({
+            reliability_score: data.reliability_score ?? 0,
+            rating: data.rating ?? 0
+          });
+          setSedcardForm({
+            bio: data.bio ?? "",
+            languagesSpoken: data.languages_spoken ?? [],
+            qualifications: data.qualifications ?? [],
+            qualificationsOther: data.qualifications_other ?? "",
+          });
+        }
       });
     return () => { active = false; };
   }, [user, tab]);
@@ -5271,6 +5324,86 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           {checkoutSubmitting ? "…" : t("worker.submitCheckout")}
         </Btn>
         <Btn variant="secondary" onClick={() => setCheckoutTarget(null)} style={{ marginTop: 8 }}>{t("common.back")}</Btn>
+      </div>
+    </div>
+  );
+
+  if (showSedcard) return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
+        <button onClick={() => setShowSedcard(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
+          {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
+        </button>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <Avatar name={profileName} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
+          <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginTop: 10 }}>{profileName}</div>
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 6 }}>
+            <span style={{ color: BRAND.accent, fontSize: 14 }}>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span>
+            <Badge color="teal">{t("profile.shiftsDoneBadge").replace("{count}", workerShiftsDone ?? 0)}</Badge>
+          </div>
+        </div>
+        <div style={{ fontSize: 14, color: BRAND.textMuted, textAlign: "center", marginBottom: 20 }}>{t("sedcard.subtitle")}</div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("sedcard.bioLabel")}</label>
+          <textarea
+            value={sedcardForm.bio}
+            onChange={e => setSedcardForm(f => ({ ...f, bio: e.target.value }))}
+            placeholder={t("sedcard.bioPlaceholder")}
+            rows={4}
+            style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("sedcard.languagesLabel")}</label>
+          {SHIFT_LANGUAGES.map(lang => (
+            <label key={lang} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13, color: BRAND.text }}>
+              <input
+                type="checkbox"
+                checked={sedcardForm.languagesSpoken.includes(lang)}
+                onChange={() => setSedcardForm(f => ({ ...f, languagesSpoken: f.languagesSpoken.includes(lang) ? f.languagesSpoken.filter(l => l !== lang) : [...f.languagesSpoken, lang] }))}
+              /> {lang}
+            </label>
+          ))}
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("sedcard.qualificationsLabel")}</label>
+          {SEDCARD_QUALIFICATIONS.map(q => (
+            <label key={q.value} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13, color: BRAND.text }}>
+              <input
+                type="checkbox"
+                checked={sedcardForm.qualifications.includes(q.value)}
+                onChange={() => setSedcardForm(f => ({ ...f, qualifications: f.qualifications.includes(q.value) ? f.qualifications.filter(v => v !== q.value) : [...f.qualifications, q.value] }))}
+              /> {t(q.labelKey)}
+            </label>
+          ))}
+          <Input
+            label={t("sedcard.qualificationsOtherLabel")}
+            placeholder={t("sedcard.qualificationsOtherPlaceholder")}
+            value={sedcardForm.qualificationsOther}
+            onChange={e => setSedcardForm(f => ({ ...f, qualificationsOther: e.target.value }))}
+          />
+        </div>
+
+        <Btn
+          disabled={sedcardSaving}
+          onClick={async () => {
+            setSedcardSaving(true);
+            const { error } = await supabase.from('profiles').update({
+              bio: sedcardForm.bio.trim() ? sanitizeBulkTextValue(sedcardForm.bio.trim()) : null,
+              languages_spoken: sedcardForm.languagesSpoken,
+              qualifications: sedcardForm.qualifications,
+              qualifications_other: sedcardForm.qualificationsOther.trim() ? sanitizeBulkTextValue(sedcardForm.qualificationsOther.trim()) : null,
+            }).eq('id', user.id);
+            setSedcardSaving(false);
+            if (error) { toast(t('toast.sedcardSaveFailed') + error.message, 'error'); return; }
+            toast(t('toast.sedcardSaved'), 'success');
+          }}
+        >
+          {sedcardSaving ? "…" : t("sedcard.saveBtn")}
+        </Btn>
       </div>
     </div>
   );
@@ -6056,7 +6189,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <div>
             <div style={{ textAlign: "center", padding: isMobile ? "12px 0 16px" : "20px 0 24px" }}>
               <div style={{ display: "inline-block", position: "relative" }}>
-                <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} src={getAvatarUrl(user.user_metadata?.avatar_url)} />
+                <button onClick={() => setShowSedcard(true)} aria-label={t("sedcard.title")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", borderRadius: "50%" }}>
+                  <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} src={getAvatarUrl(user.user_metadata?.avatar_url)} />
+                </button>
                 <label style={{
                   position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
                   borderRadius: "50%", background: BRAND.primary, color: "#fff",
@@ -6077,6 +6212,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   freely retyped after the fact. */}
               <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
+              <button onClick={() => setShowSedcard(true)} style={{ background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginTop: 6, fontFamily: "inherit" }}>
+                {t("profile.viewEditSedcard")}
+              </button>
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">{t("profile.standardKyc")}</Badge>
                 <Badge color="green">🛡️ {profileStats.reliability_score}/100 {t("profile.reliabilitySuffix")}</Badge>
@@ -7167,7 +7305,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -7180,6 +7318,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           verified: a.worker?.kyc_level === 'Standard' || a.worker?.kyc_level === 'Advanced',
           reliability: a.worker?.reliability_score ?? 0,
           rating: a.worker?.rating ?? 0,
+          bio: a.worker?.bio ?? "",
+          languagesSpoken: a.worker?.languages_spoken ?? [],
+          qualifications: a.worker?.qualifications ?? [],
+          qualificationsOther: a.worker?.qualifications_other ?? "",
           wage: Number(a.wage_ask),
           wageBid: Number(a.wage_ask),
           completedShifts: 0,
@@ -8987,6 +9129,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <Stat label={t("employer.colRating")} value={workerProfileModal.rating ? workerProfileModal.rating.toFixed(1) : '—'} color={BRAND.accent} />
               </div>
               <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primary} />
+            </div>
+            <div style={{ background: BRAND.grayLight, borderRadius: 10, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.bioLabel")}</div>
+              <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, marginBottom: 10, whiteSpace: "pre-wrap" }}>{workerProfileModal.bio || t("sedcard.notProvided")}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.languagesLabel")}</div>
+              <div style={{ fontSize: 13, color: BRAND.text, marginBottom: 10 }}>{(workerProfileModal.languagesSpoken || []).length > 0 ? workerProfileModal.languagesSpoken.join(', ') : t("sedcard.notProvided")}</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.qualificationsLabel")}</div>
+              <div style={{ fontSize: 13, color: BRAND.text }}>
+                {[
+                  ...(workerProfileModal.qualifications || []).map(v => t(SEDCARD_QUALIFICATIONS.find(q => q.value === v)?.labelKey ?? v)),
+                  ...(workerProfileModal.qualificationsOther ? [workerProfileModal.qualificationsOther] : []),
+                ].join(', ') || t("sedcard.notProvided")}
+              </div>
             </div>
             <div style={{ fontSize:13, fontWeight:700, color: BRAND.text, marginBottom:8 }}>{t("employer.profileHistoryTitle")}</div>
             {workerHistory === null && <div style={{ fontSize:12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
