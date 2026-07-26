@@ -1068,6 +1068,35 @@ const TRANSLATIONS = {
     "contract.employerClause5": "Either party may cancel with reasonable notice. Last-minute cancellation may result in platform penalties.",
     "contract.employerClause6": "CariGaji acts as a marketplace intermediary and is not the employer in this arrangement.",
     "contract.employerClause7": "This agreement is governed by Malaysian law including the Employment Act 1955 and Gig Workers Act 2025.",
+    "contract.contractRefLabel": "Contract ref:",
+    "contract.generatedOnLabel": "Generated on:",
+    "contract.categoryLabel": "Category:",
+    "contract.scheduleLabel": "Schedule:",
+    "contract.totalHoursLabel": "Total contracted hours:",
+    "contract.dressCodeLabel": "Dress code:",
+    "contract.languagesLabel": "Language requirements:",
+    "contract.transportAllowanceLabel": "Transport allowance:",
+    "contract.estimatedTotalPayLabel": "Estimated total pay:",
+    "contract.jobDescriptionLabel": "Job description:",
+    "contract.notSpecified": "Not specified",
+    "contract.sectionParties": "Parties",
+    "contract.sectionEngagement": "Engagement Details",
+    "contract.sectionRemuneration": "Remuneration",
+    "contract.sectionAttendance": "Attendance & Hours",
+    "contract.sectionCancellation": "Cancellation & No-Show",
+    "contract.sectionHealthSafety": "Health & Safety",
+    "contract.sectionDataPrivacy": "Data Privacy",
+    "contract.sectionDisputes": "Disputes",
+    "contract.sectionPlatformRole": "Platform Role",
+    "contract.sectionGoverningLaw": "Governing Law",
+    "contract.paymentTimingText": "Payment is processed together with the worker's other CariGaji earnings for the month, on the 15th (or nearest business day) of the month following the shift.",
+    "contract.clauseAttendance": "The worker must check in via the CariGaji app's rotating code at the start of the shift, and submit the actual hours worked at checkout. The employer confirms or disputes the reported hours before payout.",
+    "contract.clauseCancellationNoShow": "A worker who does not check in for a shift they are contracted for forfeits pay for that shift and may see their reliability score affected.",
+    "contract.clauseCancellationLateByEmployer": "If the employer cancels the shift less than 24 hours before it is due to start, the worker may choose a one-time payout of 50% of the agreed wage, or show up in person and receive the full agreed wage.",
+    "contract.clauseCancellationMutual": "Outside of the above, either party may cancel with reasonable notice given through the app.",
+    "contract.clauseHealthSafety": "Both parties must comply with the Occupational Safety and Health Act 1994 and any workplace-specific safety rules communicated by the employer.",
+    "contract.clauseDataPrivacy": "Personal data collected for this shift (contact details, identity verification level) is shared only as needed to coordinate the engagement, and is otherwise handled per CariGaji's privacy policy.",
+    "contract.clauseDisputes": "Either party may file a dispute in the CariGaji app after the shift is completed. CariGaji may review and mediate but is not a party to the underlying employment relationship.",
     "contract.confirmSendNote": "By clicking \"Confirm & Send to Worker\", you agree to these terms and the contract will be sent to {name} for their signature.",
     "contract.confirmSendBtn": "Confirm & Send to Worker",
     "auth.showPassword": "Show password",
@@ -1865,6 +1894,35 @@ const TRANSLATIONS = {
     "contract.employerClause5": "Mana-mana pihak boleh membatalkan dengan notis munasabah. Pembatalan saat akhir mungkin mengakibatkan penalti platform.",
     "contract.employerClause6": "CariGaji bertindak sebagai orang tengah pasaran dan bukan majikan dalam susunan ini.",
     "contract.employerClause7": "Perjanjian ini tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955 dan Akta Pekerja Gig 2025.",
+    "contract.contractRefLabel": "Ruj. kontrak:",
+    "contract.generatedOnLabel": "Dijana pada:",
+    "contract.categoryLabel": "Kategori:",
+    "contract.scheduleLabel": "Jadual:",
+    "contract.totalHoursLabel": "Jumlah jam berkontrak:",
+    "contract.dressCodeLabel": "Kod pakaian:",
+    "contract.languagesLabel": "Keperluan bahasa:",
+    "contract.transportAllowanceLabel": "Elaun pengangkutan:",
+    "contract.estimatedTotalPayLabel": "Anggaran jumlah bayaran:",
+    "contract.jobDescriptionLabel": "Deskripsi kerja:",
+    "contract.notSpecified": "Tidak dinyatakan",
+    "contract.sectionParties": "Pihak-Pihak",
+    "contract.sectionEngagement": "Butiran Penglibatan",
+    "contract.sectionRemuneration": "Ganjaran",
+    "contract.sectionAttendance": "Kehadiran & Jam",
+    "contract.sectionCancellation": "Pembatalan & Tidak Hadir",
+    "contract.sectionHealthSafety": "Kesihatan & Keselamatan",
+    "contract.sectionDataPrivacy": "Privasi Data",
+    "contract.sectionDisputes": "Pertikaian",
+    "contract.sectionPlatformRole": "Peranan Platform",
+    "contract.sectionGoverningLaw": "Undang-Undang Terpakai",
+    "contract.paymentTimingText": "Bayaran diproses bersama pendapatan CariGaji pekerja yang lain untuk bulan tersebut, pada hari ke-15 (atau hari perniagaan terdekat) bulan berikutnya selepas syif.",
+    "contract.clauseAttendance": "Pekerja mesti mendaftar masuk melalui kod berputar aplikasi CariGaji pada permulaan syif, dan menghantar jam sebenar yang dibekerjakan semasa daftar keluar. Majikan mengesahkan atau mempertikaikan jam yang dilaporkan sebelum bayaran.",
+    "contract.clauseCancellationNoShow": "Pekerja yang tidak mendaftar masuk untuk syif yang dikontrak akan kehilangan bayaran untuk syif tersebut dan skor kebolehpercayaannya mungkin terjejas.",
+    "contract.clauseCancellationLateByEmployer": "Jika majikan membatalkan syif kurang daripada 24 jam sebelum ia sepatutnya bermula, pekerja boleh memilih bayaran sekali sebanyak 50% daripada gaji yang dipersetujui, atau hadir secara peribadi dan menerima gaji penuh yang dipersetujui.",
+    "contract.clauseCancellationMutual": "Selain daripada di atas, mana-mana pihak boleh membatalkan dengan notis munasabah melalui aplikasi.",
+    "contract.clauseHealthSafety": "Kedua-dua pihak mesti mematuhi Akta Keselamatan dan Kesihatan Pekerjaan 1994 dan sebarang peraturan keselamatan khusus tempat kerja yang dimaklumkan oleh majikan.",
+    "contract.clauseDataPrivacy": "Data peribadi yang dikumpul untuk syif ini (butiran hubungan, tahap pengesahan identiti) dikongsi hanya seperti yang diperlukan untuk menyelaraskan penglibatan ini, dan sebaliknya dikendalikan mengikut dasar privasi CariGaji.",
+    "contract.clauseDisputes": "Mana-mana pihak boleh memfailkan pertikaian dalam aplikasi CariGaji selepas syif selesai. CariGaji boleh menyemak dan menjadi orang tengah tetapi bukan pihak kepada hubungan pekerjaan yang mendasarinya.",
     "contract.confirmSendNote": "Dengan mengklik \"Sahkan & Hantar kepada Pekerja\", anda bersetuju dengan terma ini dan kontrak akan dihantar kepada {name} untuk tandatangan mereka.",
     "contract.confirmSendBtn": "Sahkan & Hantar kepada Pekerja",
     "auth.showPassword": "Tunjuk kata laluan",
@@ -3250,6 +3308,7 @@ const escapeHtml = (str) => String(str ?? "").replace(/[&<>"']/g, (c) => ({
 const openContractPrintWindow = ({ heading, subheading, rows }) => {
   const body = rows.map((r) => {
     if (typeof r === "string") return r === "" ? "<br/>" : `<p>${escapeHtml(r)}</p>`;
+    if (r.heading) return `<h2>${escapeHtml(r.heading)}</h2>`;
     return `<p><strong>${escapeHtml(r.label)}</strong> ${escapeHtml(r.value)}</p>`;
   }).join("");
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(heading)}</title>
@@ -3257,6 +3316,7 @@ const openContractPrintWindow = ({ heading, subheading, rows }) => {
   body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #1f2937; padding: 40px; max-width: 720px; margin: 0 auto; }
   .brand { font-weight: 800; font-size: 18px; margin-bottom: 28px; color: #2563EB; }
   h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 14px; margin: 22px 0 8px; color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
   .sub { font-size: 12px; color: #6b7280; margin-bottom: 24px; }
   p { font-size: 13px; line-height: 1.9; margin: 2px 0; }
   .actions { margin-top: 28px; }
@@ -3277,6 +3337,81 @@ ${body}
   win.focus();
   return true;
 };
+
+// Builds the full row list for a shift work contract — shared by the
+// worker's and employer's on-screen modal and print/PDF output, so the two
+// never drift and both carry the same complete job details + full T&Cs
+// (owner request 2026-07-26, benchmarked against a real Instaff contract
+// PDF: full engagement details, remuneration breakdown, and every T&C
+// section, not just a party/wage/signature summary). `termClauses` is the
+// perspective-specific "by signing you agree to" list (worker's own 5
+// personal obligations, or the employer's own 5) — the shared sections
+// below it (attendance, cancellation, health & safety, data privacy,
+// disputes, platform role, governing law) apply to both perspectives
+// identically since it's one shared contract.
+const buildContractRows = (t, {
+  contractRef, generatedAt, employerName, workerName,
+  shiftTitle, shiftCategory, shiftLocation, scheduleText, totalHours,
+  wageAsk, transportAllowance, dressCode, languages, description,
+  termClauses, platformRoleClause, governingLawClause,
+  employerSignedAt, workerSignedAt,
+}) => {
+  const ns = t("contract.notSpecified");
+  const fmt = (iso) => iso ? new Date(iso).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: MY_TIMEZONE }) : null;
+  const hours = Number(totalHours) || 0;
+  const estimatedTotal = (Number(wageAsk || 0) * hours + Number(transportAllowance || 0)).toFixed(2);
+  return [
+    { label: t("contract.contractRefLabel"), value: contractRef },
+    { label: t("contract.generatedOnLabel"), value: fmt(generatedAt) || contractRef },
+    "",
+    { heading: t("contract.sectionParties") },
+    { label: t("contract.employerLabel"), value: employerName || ns },
+    { label: t("contract.workerLabel"), value: workerName || ns },
+    { heading: t("contract.sectionEngagement") },
+    { label: t("contract.roleLabel"), value: shiftTitle || ns },
+    { label: t("contract.categoryLabel"), value: shiftCategory || ns },
+    { label: t("contract.locationLabel"), value: shiftLocation || ns },
+    { label: t("contract.scheduleLabel"), value: scheduleText || ns },
+    { label: t("contract.totalHoursLabel"), value: hours ? `${hours} h` : ns },
+    { label: t("contract.dressCodeLabel"), value: dressCode || ns },
+    { label: t("contract.languagesLabel"), value: languages || ns },
+    ...(description ? [{ label: t("contract.jobDescriptionLabel"), value: description }] : []),
+    { heading: t("contract.sectionRemuneration") },
+    { label: t("contract.agreedWageLabel"), value: `RM ${wageAsk}/hr` },
+    ...(Number(transportAllowance) > 0 ? [{ label: t("contract.transportAllowanceLabel"), value: `RM ${transportAllowance}` }] : []),
+    { label: t("contract.estimatedTotalPayLabel"), value: `RM ${estimatedTotal}` },
+    t("contract.paymentTimingText"),
+    { heading: t("contract.sectionAttendance") },
+    t("contract.clauseAttendance"),
+    { heading: t("contract.sectionCancellation") },
+    t("contract.clauseCancellationNoShow"),
+    t("contract.clauseCancellationLateByEmployer"),
+    t("contract.clauseCancellationMutual"),
+    { heading: t("contract.sectionHealthSafety") },
+    t("contract.clauseHealthSafety"),
+    { heading: t("contract.sectionDataPrivacy") },
+    t("contract.clauseDataPrivacy"),
+    { heading: t("contract.sectionDisputes") },
+    t("contract.clauseDisputes"),
+    { heading: t("contract.agreeToTermsHeading") },
+    ...termClauses.map((c, i) => `${i + 1}. ${c}`),
+    { heading: t("contract.sectionPlatformRole") },
+    platformRoleClause,
+    { heading: t("contract.sectionGoverningLaw") },
+    governingLawClause,
+    { heading: t("employer.contractSignaturesHeading") },
+    { label: t("contract.employerLabel"), value: employerSignedAt ? `${t("employer.contractSignedOnPrefix")}${fmt(employerSignedAt)}` : t("employer.contractNotSignedYet") },
+    { label: t("contract.workerLabel"), value: workerSignedAt ? `${t("employer.contractSignedOnPrefix")}${fmt(workerSignedAt)}` : t("employer.contractNotSignedYet") },
+  ];
+};
+
+// Renders the same row list as JSX for the on-screen modal, matching the
+// print output structure exactly (see buildContractRows above).
+const renderContractRowsJSX = (rows) => rows.map((r, i) => {
+  if (typeof r === "string") return r === "" ? null : <p key={i}>{r}</p>;
+  if (r.heading) return <p key={i} style={{ fontWeight: 700, marginTop: 14, marginBottom: 2 }}>{r.heading}</p>;
+  return <p key={i}>• <strong>{r.label}</strong> {r.value}</p>;
+});
 
 const uploadKycFile = async (userId, file, label) => {
   if (!file) return null;
@@ -4084,6 +4219,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // ids so multiple offer cards can each toggle independently.
   const [contractPreviewOpenIds, setContractPreviewOpenIds] = useState(() => new Set());
   const [liveApplications, setLiveApplications] = useState(null);
+  // Worker's own display name, for the contract's "Worker:" party line (was
+  // just a generic "You" before — mirrors the employer's own-profile fetch).
+  const [workerOwnName, setWorkerOwnName] = useState(null);
+  useEffect(() => {
+    if (!user) { setWorkerOwnName(null); return; }
+    let active = true;
+    supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle()
+      .then(({ data }) => { if (active) setWorkerOwnName(data?.full_name || null); });
+    return () => { active = false; };
+  }, [user]);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [cancellingBid, setCancellingBid] = useState(false);
   const [workerBanking, setWorkerBanking] = useState(null);
@@ -4386,7 +4531,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -4404,6 +4549,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         appliedAt: a.applied_at,
         offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
+        employerSignedAt: a.employer_signed_at ?? null,
         checkedInAt: a.checked_in_at ?? null,
         checkedOutAt: a.checked_out_at ?? null,
         workerReportedHours: a.worker_reported_hours ?? null,
@@ -5448,11 +5594,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                   {a.status === 'accepted' && !a.workerSignedAt && a.shiftStatus !== 'cancelled' && (
                     <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
-                        applicationId: a.id,
-                        shiftTitle: a.shiftTitle,
-                        shiftDate: a.date,
-                        wageAsk: a.wageBid,
-                        employerName: a.employer,
+                        ...a, applicationId: a.id, employerName: a.employer,
                       }); }}
                       style={{marginTop:6, padding:'6px 14px', borderRadius:6, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
                       {t("myBids.signContractBtn")}
@@ -5462,7 +5604,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     <div style={{display:'flex', alignItems:'center', gap:8, marginTop:4}}>
                       <span style={{fontSize:11, color:'#16a34a'}}>{t("myBids.contractSignedBadge")}</span>
                       <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
-                          applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer, readOnly: true,
+                          ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                         }); }}
                         style={{padding:'4px 10px', borderRadius:6, background:'none', color: BRAND.primary, border:`1px solid ${BRAND.primary}`, cursor:'pointer', fontSize:11, fontWeight:600}}>
                         {t("contract.viewContractBtn")}
@@ -5627,12 +5769,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 </>
               )}
               {a.status === "accepted" && !a.workerSignedAt && a.shiftStatus !== "cancelled" && (
-                <Btn onClick={() => setWorkerContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.signContractBtn")}</Btn>
+                <Btn onClick={() => setWorkerContractModal({ ...a, applicationId: a.id, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.signContractBtn")}</Btn>
               )}
               {a.status === "accepted" && a.workerSignedAt && a.shiftStatus !== "cancelled" && (
                 <>
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
-                      applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid, employerName: a.employer, readOnly: true,
+                      ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
                   {!a.checkedInAt && (
                     <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
@@ -6124,23 +6266,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>{t("contract.workerTitle")}</h3>
           <p style={{fontSize:12, color:'#6b7280', marginBottom:16}}>{t("contract.readCarefully")}</p>
 
+          {(() => {
+            const contractRows = buildContractRows(t, {
+              contractRef: (workerContractModal.applicationId || "").slice(0, 8).toUpperCase(),
+              generatedAt: new Date().toISOString(),
+              employerName: workerContractModal.employerName,
+              workerName: workerOwnName || t("contract.youLabel"),
+              shiftTitle: workerContractModal.shiftTitle,
+              shiftCategory: workerContractModal.shiftCategory,
+              shiftLocation: workerContractModal.shiftLocation,
+              scheduleText: workerContractModal.isMultiDay ? formatOccurrencesSummary(workerContractModal.shiftOccurrences) : workerContractModal.date,
+              totalHours: totalOccurrenceHours(workerContractModal.shiftOccurrences),
+              wageAsk: workerContractModal.wageBid,
+              transportAllowance: workerContractModal.shiftStipend,
+              dressCode: workerContractModal.shiftDress,
+              languages: (workerContractModal.shiftLanguages || []).join(', '),
+              description: workerContractModal.shiftDescription,
+              termClauses: [1, 2, 3, 4, 5].map(n => t(`contract.workerClause${n}`)),
+              platformRoleClause: t("contract.workerClause6"),
+              governingLawClause: t("contract.workerClause7"),
+              employerSignedAt: workerContractModal.employerSignedAt,
+              workerSignedAt: workerContractModal.workerSignedAt,
+            });
+            return (
           <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
             <p><strong>{t("contract.agreementHeading")}</strong></p>
-            <p>• <strong>{t("contract.employerLabel")}</strong> {workerContractModal.employerName}</p>
-            <p>• <strong>{t("contract.workerLabel")}</strong> {t("contract.youLabel")}</p>
-            <p>• <strong>{t("contract.roleLabel")}</strong> {workerContractModal.shiftTitle}</p>
-            <p>• <strong>{t("contract.dateLabel")}</strong> {workerContractModal.shiftDate}</p>
-            <p>• <strong>{t("contract.agreedWageLabel")}</strong> RM {workerContractModal.wageAsk}/hr</p>
-            <br/>
-            <p><strong>{t("contract.agreeToTermsHeading")}</strong></p>
-            <p>1. {t("contract.workerClause1")}</p>
-            <p>2. {t("contract.workerClause2")}</p>
-            <p>3. {t("contract.workerClause3")}</p>
-            <p>4. {t("contract.workerClause4")}</p>
-            <p>5. {t("contract.workerClause5")}</p>
-            <p>6. {t("contract.workerClause6")}</p>
-            <p>7. {t("contract.workerClause7")}</p>
+            {renderContractRowsJSX(contractRows)}
           </div>
+          );
+          })()}
 
           <div style={{display:'flex', gap:8}}>
             <button onClick={() => setWorkerContractModal(null)}
@@ -6151,22 +6305,27 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               const ok = openContractPrintWindow({
                 heading: t("contract.agreementHeading"),
                 subheading: workerContractModal.shiftTitle,
-                rows: [
-                  { label: t("contract.employerLabel"), value: workerContractModal.employerName },
-                  { label: t("contract.workerLabel"), value: t("contract.youLabel") },
-                  { label: t("contract.roleLabel"), value: workerContractModal.shiftTitle },
-                  { label: t("contract.dateLabel"), value: workerContractModal.shiftDate },
-                  { label: t("contract.agreedWageLabel"), value: `RM ${workerContractModal.wageAsk}/hr` },
-                  "",
-                  t("contract.agreeToTermsHeading"),
-                  `1. ${t("contract.workerClause1")}`,
-                  `2. ${t("contract.workerClause2")}`,
-                  `3. ${t("contract.workerClause3")}`,
-                  `4. ${t("contract.workerClause4")}`,
-                  `5. ${t("contract.workerClause5")}`,
-                  `6. ${t("contract.workerClause6")}`,
-                  `7. ${t("contract.workerClause7")}`,
-                ],
+                rows: buildContractRows(t, {
+                  contractRef: (workerContractModal.applicationId || "").slice(0, 8).toUpperCase(),
+                  generatedAt: new Date().toISOString(),
+                  employerName: workerContractModal.employerName,
+                  workerName: workerOwnName || t("contract.youLabel"),
+                  shiftTitle: workerContractModal.shiftTitle,
+                  shiftCategory: workerContractModal.shiftCategory,
+                  shiftLocation: workerContractModal.shiftLocation,
+                  scheduleText: workerContractModal.isMultiDay ? formatOccurrencesSummary(workerContractModal.shiftOccurrences) : workerContractModal.date,
+                  totalHours: totalOccurrenceHours(workerContractModal.shiftOccurrences),
+                  wageAsk: workerContractModal.wageBid,
+                  transportAllowance: workerContractModal.shiftStipend,
+                  dressCode: workerContractModal.shiftDress,
+                  languages: (workerContractModal.shiftLanguages || []).join(', '),
+                  description: workerContractModal.shiftDescription,
+                  termClauses: [1, 2, 3, 4, 5].map(n => t(`contract.workerClause${n}`)),
+                  platformRoleClause: t("contract.workerClause6"),
+                  governingLawClause: t("contract.workerClause7"),
+                  employerSignedAt: workerContractModal.employerSignedAt,
+                  workerSignedAt: workerContractModal.workerSignedAt,
+                }),
               });
               if (!ok) toast(t("toast.popupBlocked"), "error");
             }}
@@ -6533,7 +6692,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!user) return setLiveEmployerShifts(null);
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max')
+      .select('id, title, category, location, dress_code, transport_allowance, description, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max')
       .eq('employer_id', user.id)
       .order('start_at', { ascending: false });
     // Same fix as the worker My Bids loader: empty (not null) on error so
@@ -6558,6 +6717,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1)),
       category: s.category,
       languageRequirements: s.language_requirements || [],
+      location: displayProtectedText(s.location || ''),
+      dress: displayProtectedText(s.dress_code || ''),
+      transportAllowance: Number(s.transport_allowance ?? 0),
+      description: displayProtectedText(s.description || ''),
     })));
   }, [user]);
 
@@ -8585,25 +8748,35 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
             <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("contract.agreementHeading")}</h3>
             <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{selectedShift?.title}</p>
+            {(() => {
+              const contractRows = buildContractRows(t, {
+                contractRef: (viewContractModal.id || "").slice(0, 8).toUpperCase(),
+                generatedAt: new Date().toISOString(),
+                employerName: employerProfile?.full_name || t("contract.employerOnFile"),
+                workerName: viewContractModal.name,
+                shiftTitle: selectedShift?.title,
+                shiftCategory: selectedShift?.category,
+                shiftLocation: selectedShift?.location,
+                scheduleText: selectedShift?.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift?.date,
+                totalHours: totalOccurrenceHours(selectedShift?.occurrences),
+                wageAsk: viewContractModal.wageBid,
+                transportAllowance: selectedShift?.transportAllowance,
+                dressCode: selectedShift?.dress,
+                languages: (selectedShift?.languageRequirements || []).join(', '),
+                description: selectedShift?.description,
+                termClauses: [1, 2, 3, 4, 5].map(n => t(`contract.employerClause${n}`)),
+                platformRoleClause: t("contract.employerClause6"),
+                governingLawClause: t("contract.employerClause7"),
+                employerSignedAt: viewContractModal.employerSignedAt,
+                workerSignedAt: viewContractModal.workerSignedAt,
+              });
+              return (
             <div style={{background: BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color: BRAND.text, marginBottom:16}}>
               <p>{t("contract.enteredBetween")}</p>
-              <p>• <strong>{t("contract.employerLabel")}</strong> {t("contract.employerOnFile")}</p>
-              <p>• <strong>{t("contract.workerLabel")}</strong> {viewContractModal.name}</p>
-              <br/>
-              <p><strong>{t("contract.shiftDetailsHeading")}</strong></p>
-              <p>• {t("contract.roleLabel")} {selectedShift?.title}</p>
-              <p>• {t("contract.dateLabel")} {selectedShift?.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift?.date}</p>
-              <p>• {t("contract.timeLabel")} {selectedShift?.time}</p>
-              <p>• {t("contract.agreedWageLabel")} RM {viewContractModal.wageBid}/hr</p>
-              <br/>
-              <p><strong>{t("employer.contractSignaturesHeading")}</strong></p>
-              <p>• {t("contract.employerLabel")} {viewContractModal.employerSignedAt
-                ? `${t("employer.contractSignedOnPrefix")}${new Date(viewContractModal.employerSignedAt).toLocaleString('en-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: MY_TIMEZONE })}`
-                : t("employer.contractNotSignedYet")}</p>
-              <p>• {t("contract.workerLabel")} {viewContractModal.workerSignedAt
-                ? `${t("employer.contractSignedOnPrefix")}${new Date(viewContractModal.workerSignedAt).toLocaleString('en-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: MY_TIMEZONE })}`
-                : t("employer.contractNotSignedYet")}</p>
+              {renderContractRowsJSX(contractRows)}
             </div>
+              );
+            })()}
             {!viewContractModal.workerSignedAt && (
               <div style={{ padding:'8px 12px', background: BRAND.amberLight, borderRadius:8, fontSize:12, color: BRAND.amber, marginBottom:12 }}>{t("employer.contractAwaitingWorker")}</div>
             )}
@@ -8613,24 +8786,30 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 {t("common.close")}
               </button>
               <button onClick={() => {
-                const fmt = (iso) => iso ? `${t("employer.contractSignedOnPrefix")}${new Date(iso).toLocaleString('en-MY', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone: MY_TIMEZONE })}` : t("employer.contractNotSignedYet");
                 const ok = openContractPrintWindow({
                   heading: t("contract.agreementHeading"),
                   subheading: selectedShift?.title || "",
-                  rows: [
-                    { label: t("contract.employerLabel"), value: t("contract.employerOnFile") },
-                    { label: t("contract.workerLabel"), value: viewContractModal.name },
-                    "",
-                    t("contract.shiftDetailsHeading"),
-                    { label: t("contract.roleLabel"), value: selectedShift?.title || "" },
-                    { label: t("contract.dateLabel"), value: selectedShift?.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : (selectedShift?.date || "") },
-                    { label: t("contract.timeLabel"), value: selectedShift?.time || "" },
-                    { label: t("contract.agreedWageLabel"), value: `RM ${viewContractModal.wageBid}/hr` },
-                    "",
-                    t("employer.contractSignaturesHeading"),
-                    { label: t("contract.employerLabel"), value: fmt(viewContractModal.employerSignedAt) },
-                    { label: t("contract.workerLabel"), value: fmt(viewContractModal.workerSignedAt) },
-                  ],
+                  rows: buildContractRows(t, {
+                    contractRef: (viewContractModal.id || "").slice(0, 8).toUpperCase(),
+                    generatedAt: new Date().toISOString(),
+                    employerName: employerProfile?.full_name || t("contract.employerOnFile"),
+                    workerName: viewContractModal.name,
+                    shiftTitle: selectedShift?.title,
+                    shiftCategory: selectedShift?.category,
+                    shiftLocation: selectedShift?.location,
+                    scheduleText: selectedShift?.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift?.date,
+                    totalHours: totalOccurrenceHours(selectedShift?.occurrences),
+                    wageAsk: viewContractModal.wageBid,
+                    transportAllowance: selectedShift?.transportAllowance,
+                    dressCode: selectedShift?.dress,
+                    languages: (selectedShift?.languageRequirements || []).join(', '),
+                    description: selectedShift?.description,
+                    termClauses: [1, 2, 3, 4, 5].map(n => t(`contract.employerClause${n}`)),
+                    platformRoleClause: t("contract.employerClause6"),
+                    governingLawClause: t("contract.employerClause7"),
+                    employerSignedAt: viewContractModal.employerSignedAt,
+                    workerSignedAt: viewContractModal.workerSignedAt,
+                  }),
                 });
                 if (!ok) toast(t("toast.popupBlocked"), "error");
               }}
