@@ -424,6 +424,8 @@ const TRANSLATIONS = {
     "myBids.cancellationProofSubmitted": "Proof submitted — your full payout is on its way.",
     "myBids.cancellationAwaitingProof": "You chose to show up — take a photo at the location to claim your full payout.",
     "myBids.selectedNotice": "🎉 You've been selected! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.",
+    "myBids.viewContractTermsBtn": "View contract terms",
+    "myBids.hideContractTermsBtn": "Hide contract terms",
     "myBids.offerExpiredNotice": "This offer expired because it wasn't confirmed in time.",
     "myBids.cancelling": "Cancelling…",
     "myBids.cancelBidBtn": "Cancel Bid",
@@ -1196,6 +1198,8 @@ const TRANSLATIONS = {
     "myBids.cancellationProofSubmitted": "Bukti dihantar — bayaran penuh anda sedang diproses.",
     "myBids.cancellationAwaitingProof": "Anda memilih untuk hadir — ambil foto di lokasi untuk menuntut bayaran penuh anda.",
     "myBids.selectedNotice": "🎉 Anda telah dipilih! Sahkan atau tolak sebelum tarikh akhir di atas — jika anda tidak bertindak balas tepat pada masanya, tawaran akan dilepaskan secara automatik kembali kepada majikan.",
+    "myBids.viewContractTermsBtn": "Lihat terma kontrak",
+    "myBids.hideContractTermsBtn": "Sembunyikan terma kontrak",
     "myBids.offerExpiredNotice": "Tawaran ini telah tamat tempoh kerana tidak disahkan tepat pada masanya.",
     "myBids.cancelling": "Membatalkan…",
     "myBids.cancelBidBtn": "Batalkan Tawaran",
@@ -4018,6 +4022,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [checkinCode, setCheckinCode] = useState("");
   const [checkinSubmitting, setCheckinSubmitting] = useState(false);
   const [checkinResult, setCheckinResult] = useState(null); // { ok: true } | { ok: false, message }
+  // Lets a worker preview the binding contract terms on the offer-decision
+  // screen itself (owner-shared Instaff reference, 2026-07-25) instead of
+  // only seeing them after already confirming — set of expanded application
+  // ids so multiple offer cards can each toggle independently.
+  const [contractPreviewOpenIds, setContractPreviewOpenIds] = useState(() => new Set());
   const [liveApplications, setLiveApplications] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [cancellingBid, setCancellingBid] = useState(false);
@@ -5379,7 +5388,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {a.status === "offered" && a.shiftStatus !== "cancelled" && (
               <div style={{ padding: "10px 14px", background: BRAND.blueLight, borderRadius: 10, fontSize: 12, color: BRAND.blue, marginBottom: 16 }}>
-                {t("myBids.selectedNotice")}
+                <div>{t("myBids.selectedNotice")}</div>
+                <button
+                  onClick={() => setContractPreviewOpenIds(prev => { const next = new Set(prev); next.has(a.id) ? next.delete(a.id) : next.add(a.id); return next; })}
+                  style={{ background: "none", border: "none", padding: 0, marginTop: 8, cursor: "pointer", fontSize: 12, fontWeight: 700, color: BRAND.blue, textDecoration: "underline" }}
+                >
+                  {contractPreviewOpenIds.has(a.id) ? t("myBids.hideContractTermsBtn") : t("myBids.viewContractTermsBtn")}
+                </button>
+                {contractPreviewOpenIds.has(a.id) && (
+                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${BRAND.border}`, fontSize: 12, color: BRAND.text, lineHeight: 1.7 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{t("contract.agreeToTermsHeading")}</div>
+                    <div>1. {t("contract.workerClause1")}</div>
+                    <div>2. {t("contract.workerClause2")}</div>
+                    <div>3. {t("contract.workerClause3")}</div>
+                    <div>4. {t("contract.workerClause4")}</div>
+                    <div>5. {t("contract.workerClause5")}</div>
+                    <div>6. {t("contract.workerClause6")}</div>
+                    <div>7. {t("contract.workerClause7")}</div>
+                  </div>
+                )}
               </div>
             )}
             {a.status === "expired" && (
