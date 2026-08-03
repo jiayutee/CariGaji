@@ -109,6 +109,11 @@ const SHIFT_CATEGORIES = ["F&B", "Retail", "Event", "Promotion", "Warehouse", "O
 // supabase/migrations/20260711_shift_language_requirements.sql).
 const SHIFT_LANGUAGES = ["Bahasa Melayu", "English", "Mandarin", "Tamil", "Other"];
 
+// Employer-side commission: worker take-home is always wage_min/wage_max as
+// bid, the employer pays that wage plus this % on top. Owner-decided fee
+// model (2026-08-03) — worker payout math must never subtract this.
+const PLATFORM_FEE_PCT = 0.15;
+
 // Worker Sedcard qualifications — reuses the same real-world labels already
 // defined for the employer's (currently unwired) "required documents"
 // checkboxes on the Post Shift form, so the two sides speak the same
@@ -7114,9 +7119,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       applicants: 0,
       status: s.status,
       // Worst-case wage bill if every position fills at the top of the range,
-      // across every occurrence day (escrow/prepayment isn't built yet, so
-      // this is an estimate, not money actually held).
-      estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1)),
+      // across every occurrence day, plus the platform commission the
+      // employer pays on top (escrow/prepayment isn't built yet, so this is
+      // an estimate, not money actually held).
+      estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + PLATFORM_FEE_PCT)),
       category: s.category,
       languageRequirements: s.language_requirements || [],
       location: displayProtectedText(s.location || ''),
@@ -7152,7 +7158,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           filled: s.filled_count ?? 0,
           applicants: 0,
           status: s.status,
-          estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1)),
+          estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + PLATFORM_FEE_PCT)),
           category: s.category,
           languageRequirements: s.language_requirements || [],
         });
@@ -8574,7 +8580,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     // commitment. Each occurrence's own overnight handling
                     // (end time past midnight) is done inside occurrenceHours.
                     const totalHours = totalOccurrenceHours(form.occurrences);
-                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours;
+                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours * (1 + PLATFORM_FEE_PCT);
                     return (
                       <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
