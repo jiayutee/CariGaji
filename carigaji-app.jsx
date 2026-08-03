@@ -2768,7 +2768,7 @@ const openMailtoSupport = () => {
   window.location.href = "mailto:support@carigaji.com?subject=CariGaji%20Support%20Request";
 };
 
-const ProfileMenu = ({ user, onSignOut, onOpenSupportChat }) => {
+const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, isMobile = false }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -2820,12 +2820,19 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat }) => {
         style={{
           display: "flex", alignItems: "center", gap: 8, cursor: "pointer",
           border: `1px solid ${BRAND.border}`, background: BRAND.surface,
-          borderRadius: 99, padding: "4px 10px 4px 4px", fontFamily: "inherit",
+          borderRadius: 99, padding: isMobile ? 2 : "4px 10px 4px 4px", fontFamily: "inherit",
+          flexShrink: 0,
         }}
       >
         <Avatar name={displayName} size={32} color={BRAND.primary} src={avatarUrl} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>
-        <span aria-hidden="true" style={{ fontSize: 10, color: BRAND.textMuted }}>▼</span>
+        {/* Name text dropped on mobile — with the theme toggle and
+            notification bell also on the header row, a name string here
+            was pushing the row past the viewport width. Full name is still
+            shown in the dropdown once opened. */}
+        {!isMobile && (
+          <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>
+        )}
+        {!isMobile && <span aria-hidden="true" style={{ fontSize: 10, color: BRAND.textMuted }}>▼</span>}
       </button>
       {open && (
         <div role="menu" style={{
@@ -10487,7 +10494,7 @@ const AppBrandHeader = ({ onClick, isMobile }) => {
   );
 };
 
-const ThemeToggleButton = ({ themePreference, onClick }) => {
+const ThemeToggleButton = ({ themePreference, onClick, isMobile = false }) => {
   const { t } = useLanguage();
   const label = themePreference === "system" ? t("theme.system") : themePreference === "light" ? t("theme.light") : t("theme.dark");
   return (
@@ -10497,10 +10504,13 @@ const ThemeToggleButton = ({ themePreference, onClick }) => {
       onClick={onClick}
       aria-label={t("theme.ariaLabel").replace("{mode}", themePreference)}
       title={t("theme.title").replace("{mode}", themePreference)}
-      style={{ width: 112, justifyContent: "center", gap: 7 }}
+      // Icon-only on mobile — the fixed-width text button was a major
+      // contributor to the header overflowing/cramping on narrow screens
+      // once the notification bell + account menu are also on the row.
+      style={isMobile ? { width: 36, height: 36, padding: 0, gap: 0, flexShrink: 0 } : { width: 112, justifyContent: "center", gap: 7 }}
     >
       <span aria-hidden="true">{themePreference === "system" ? "🖥️" : themePreference === "light" ? "☀️" : "🌙"}</span>
-      <span>{label}</span>
+      {!isMobile && <span>{label}</span>}
     </Btn>
   );
 };
@@ -11441,19 +11451,20 @@ export default function CariGaji() {
           zIndex: 30,
         }}>
           <AppBrandHeader onClick={() => { setPortal("worker"); setHomeSignal(s => s + 1); }} isMobile={isMobile} />
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 12, minWidth: 0 }}>
             {!isMobile && (
               <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
                 {cfg.label}
               </Badge>
             )}
-            <ThemeToggleButton themePreference={themePreference} onClick={() => setThemePreference(current => cycleThemePreference(current))} />
+            <ThemeToggleButton themePreference={themePreference} onClick={() => setThemePreference(current => cycleThemePreference(current))} isMobile={isMobile} />
             {user && <NotificationBell user={user} onNavigate={handleNotificationNavigate} />}
             {user ? (
               <ProfileMenu
                 user={user}
                 onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
                 onOpenSupportChat={() => setSupportChatOpen(true)}
+                isMobile={isMobile}
               />
             ) : (
               <HeaderSignInButton onClick={() => openAuthModal("signin")} />
