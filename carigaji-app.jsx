@@ -1156,6 +1156,7 @@ const TRANSLATIONS = {
     "contract.workerClause5": "This is a casual short-term engagement. You are responsible for declaring your own income tax to LHDN if applicable.",
     "contract.workerClause6": "CariGaji acts as a marketplace intermediary and is not your employer.",
     "contract.workerClause7": "Governed by Malaysian law including the Employment Act 1955.",
+    "contract.workerClause8": "I confirm that I am in good health and fit to attend and perform this shift on the scheduled date (binding confirmation).",
     "contract.cancellationTitle": "📄 Cancellation Payout Contract",
     "contract.cancellationHeading": "CariGaji Platform — Shift Cancellation Agreement",
     "contract.cancellationClause1": "The employer cancelled this shift less than 24 hours before it was due to start.",
@@ -2012,6 +2013,7 @@ const TRANSLATIONS = {
     "contract.workerClause5": "Ini adalah penglibatan kasual jangka pendek. Anda bertanggungjawab untuk mengisytiharkan cukai pendapatan anda sendiri kepada LHDN jika berkenaan.",
     "contract.workerClause6": "CariGaji bertindak sebagai orang tengah pasaran dan bukan majikan anda.",
     "contract.workerClause7": "Tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955.",
+    "contract.workerClause8": "Saya mengesahkan bahawa saya sihat dan mampu menghadiri serta menjalankan syif ini pada tarikh yang dijadualkan (pengesahan mengikat).",
     "contract.cancellationTitle": "📄 Kontrak Bayaran Pembatalan",
     "contract.cancellationHeading": "Platform CariGaji — Perjanjian Pembatalan Syif",
     "contract.cancellationClause1": "Majikan membatalkan syif ini kurang daripada 24 jam sebelum ia dijadualkan bermula.",
@@ -6049,6 +6051,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     <div>5. {t("contract.workerClause5")}</div>
                     <div>6. {t("contract.workerClause6")}</div>
                     <div>7. {t("contract.workerClause7")}</div>
+                    <div>8. {t("contract.workerClause8")}</div>
                   </div>
                 )}
               </div>
@@ -6680,7 +6683,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               dressCode: workerContractModal.shiftDress,
               languages: (workerContractModal.shiftLanguages || []).join(', '),
               description: workerContractModal.shiftDescription,
-              termClauses: [1, 2, 3, 4, 5].map(n => t(`contract.workerClause${n}`)),
+              termClauses: [1, 2, 3, 4, 5, 8].map(n => t(`contract.workerClause${n}`)),
               platformRoleClause: t("contract.workerClause6"),
               governingLawClause: t("contract.workerClause7"),
               employerSignedAt: workerContractModal.employerSignedAt,
@@ -6718,7 +6721,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   dressCode: workerContractModal.shiftDress,
                   languages: (workerContractModal.shiftLanguages || []).join(', '),
                   description: workerContractModal.shiftDescription,
-                  termClauses: [1, 2, 3, 4, 5].map(n => t(`contract.workerClause${n}`)),
+                  termClauses: [1, 2, 3, 4, 5, 8].map(n => t(`contract.workerClause${n}`)),
                   platformRoleClause: t("contract.workerClause6"),
                   governingLawClause: t("contract.workerClause7"),
                   employerSignedAt: workerContractModal.employerSignedAt,
