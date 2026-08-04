@@ -4482,6 +4482,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // filed convention already used for disputes.
   const [myRatedApplicationIds, setMyRatedApplicationIds] = useState(new Set());
   const [ratingDetailsModal, setRatingDetailsModal] = useState(null); // { rateeId, direction, label, list }
+  // Ratings this worker has received from employers — null (not loaded yet)
+  // | [] (none) | array of { aspects, overall }. Powers the Profile tab's
+  // "Recent Ratings" card, which previously always rendered an empty state
+  // regardless of real data (never wired to get_ratee_ratings at all).
+  const [myReceivedRatings, setMyReceivedRatings] = useState(null);
+
+  useEffect(() => {
+    if (tab !== "profile" || !user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_ratee_ratings', { p_ratee_id: user.id, p_direction: 'employer_to_worker' });
+        if (!cancelled) setMyReceivedRatings(error ? [] : (data ?? []));
+      } catch {
+        if (!cancelled) setMyReceivedRatings([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tab, user]);
 
   // The `ratings` table (20260725b) may not be migrated in prod yet — any
   // query failure (including 42P01 relation-does-not-exist) degrades to an
@@ -6389,7 +6408,30 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </Card>
             <Card>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
-              <EmptyState icon="⭐" title={t("profile.noRatingsTitle")} hint={t("profile.noRatingsHint")} />
+              {myReceivedRatings === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
+              {myReceivedRatings && myReceivedRatings.length === 0 && (
+                <EmptyState icon="⭐" title={t("profile.noRatingsTitle")} hint={t("profile.noRatingsHint")} />
+              )}
+              {myReceivedRatings && myReceivedRatings.length > 0 && (
+                <>
+                  {RATING_ASPECTS.employer_to_worker.map(asp => {
+                    const scores = myReceivedRatings.map(r => r.aspects?.[asp.value]).filter(v => typeof v === "number");
+                    const avg = scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : null;
+                    return (
+                      <div key={asp.value} style={{ marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: BRAND.text }}>{t(asp.labelKey)}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: BRAND.accent }}>{avg != null ? avg.toFixed(1) : "—"}</span>
+                        </div>
+                        <Progress value={avg != null ? (avg / 5) * 100 : 0} color={BRAND.accent} />
+                      </div>
+                    );
+                  })}
+                  <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>
+                    {t("profile.rating")}: {(myReceivedRatings.reduce((s, r) => s + (r.overall || 0), 0) / myReceivedRatings.length).toFixed(1)} ({myReceivedRatings.length})
+                  </div>
+                </>
+              )}
             </Card>
           </div>
         )}
