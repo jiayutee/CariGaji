@@ -1233,6 +1233,9 @@ const TRANSLATIONS = {
     "admin.notAdminHint": "Your account is not an administrator.",
     "admin.signInHint": "Sign in with an administrator account to continue.",
     "admin.backToWorkerApp": "Back to Worker App",
+    "footer.quickLinks": "Quick Links",
+    "footer.categories": "Job Categories",
+    "footer.rightsReserved": "All rights reserved.",
   },
   bm: {
     "nav.discover": "Terokai",
@@ -2090,6 +2093,9 @@ const TRANSLATIONS = {
     "admin.notAdminHint": "Akaun anda bukan pentadbir.",
     "admin.signInHint": "Log masuk dengan akaun pentadbir untuk teruskan.",
     "admin.backToWorkerApp": "Kembali ke Aplikasi Pekerja",
+    "footer.quickLinks": "Pautan Pantas",
+    "footer.categories": "Kategori Kerja",
+    "footer.rightsReserved": "Hak cipta terpelihara.",
   },
 };
 
@@ -5155,6 +5161,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   };
 
   const cats = ["All", ...SHIFT_CATEGORIES];
+  // Shared style objects for the Discover-tab site footer below — kept out
+  // of the JSX to avoid repeating the same object literal per link/chip.
+  const footerLinkStyle = { border: "none", background: "transparent", padding: 0, textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: BRAND.textMuted };
+  const footerCategoryChipStyle = { border: `1px solid ${BRAND.border}`, background: BRAND.surface, borderRadius: 99, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit", fontSize: 12, color: BRAND.textMuted };
   const shiftsSource = liveShifts ?? [];
   // Shifts the worker has an active (still-pending-decision) bid on should not
   // reappear in Discover — they can only place one bid per shift, and the
@@ -5906,6 +5916,55 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 </Card>
               ))}
             </div>
+
+            {/* Site footer — minimal, scoped to the Discover (home/landing)
+                tab only, so it never crowds the functional in-app tabs
+                (My Bids/Chat/Earnings/Profile/Settings). Sits at the end of
+                the scrollable content, above the sticky bottom nav — see
+                Feature Backlog "Add website's footer". */}
+            <footer style={{
+              marginTop: 16,
+              padding: isMobile ? "20px 16px" : "28px 32px",
+              borderTop: `1px solid ${BRAND.border}`,
+              background: BRAND.grayLight,
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 20 : 40 }}>
+                <div style={{ flex: isMobile ? "1 1 100%" : "0 0 auto", minWidth: 160 }}>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.02em" }}>
+                    Cari<span style={{ color: BRAND.primary }}>Gaji</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{t("app.tagline")}</div>
+                </div>
+
+                <div style={{ flex: "1 1 140px" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.text, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("footer.quickLinks")}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <button onClick={() => setTab("discover")} style={footerLinkStyle}>{t("nav.discover")}</button>
+                    {!user && <button onClick={() => onRequireAuth("signin")} style={footerLinkStyle}>{t("common.signIn")}</button>}
+                    {!user && <button onClick={() => onRequireAuth("signup")} style={footerLinkStyle}>{t("common.signUp")}</button>}
+                    {!user && <button onClick={() => onRequireAuth("signup", "employer")} style={footerLinkStyle}>{t("common.postAShift")}</button>}
+                    {user && <button onClick={() => setTab("applications")} style={footerLinkStyle}>{t("nav.myBids")}</button>}
+                    {user && <button onClick={() => setTab("profile")} style={footerLinkStyle}>{t("nav.profile")}</button>}
+                  </div>
+                </div>
+
+                <div style={{ flex: "1 1 220px" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.text, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("footer.categories")}</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {SHIFT_CATEGORIES.map(c => (
+                      <button key={c} onClick={() => setFilterCat(c)} style={footerCategoryChipStyle}>{c}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ borderTop: `1px solid ${BRAND.border}`, paddingTop: 12, fontSize: 11, color: BRAND.textMuted }}>
+                © {new Date().getFullYear()} CariGaji. {t("footer.rightsReserved")}
+              </div>
+            </footer>
           </div>
         )}
 
