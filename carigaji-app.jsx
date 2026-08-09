@@ -2545,7 +2545,7 @@ const loadGoogleMaps = (() => {
     if (promise) return promise;
     promise = new Promise((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
       s.async = true;
       s.defer = true;
       s.onload = () => (window.google?.maps?.places ? resolve(window.google) : reject(new Error("places missing")));
