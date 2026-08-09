@@ -4449,6 +4449,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [bankingLoading, setBankingLoading] = useState(false);
   const [bankingMessage, setBankingMessage] = useState("");
   const [livePayouts, setLivePayouts] = useState(null);
+  const [payoutShiftTitles, setPayoutShiftTitles] = useState({}); // shift_id -> title, for the Earnings list
   const [liveShifts, setLiveShifts] = useState(null);
   const [filterCity, setFilterCity] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -5075,6 +5076,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
       if (!payoutError) {
         setLivePayouts(payoutData ?? []);
+        // source_refs only carries the raw shift_id (jsonb, not a real FK
+        // PostgREST can embed) — without this, the Earnings list rendered
+        // "Shift #<uuid>" to the worker instead of the shift's actual title.
+        const shiftIds = [...new Set((payoutData ?? []).map(p => p.source_refs?.shift_id).filter(Boolean))];
+        if (shiftIds.length) {
+          const { data: shiftRows } = await supabase.from("shifts").select("id, title").in("id", shiftIds);
+          if (active) setPayoutShiftTitles(Object.fromEntries((shiftRows ?? []).map(s => [s.id, s.title])));
+        }
       }
     };
 
@@ -5192,14 +5201,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => ({
       id: p.id,
-      shift: p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Completed shift",
+      shift: p.source_refs?.shift_id ? (payoutShiftTitles[p.source_refs.shift_id] || "Completed shift") : "Completed shift",
       amount: Number(p.amount || 0),
       date: p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA",
       status: p.status,
       errorMessage: p.error_message ?? null,
       travel: 0,
     })),
-    [livePayouts]
+    [livePayouts, payoutShiftTitles]
   );
 
   const totalEarned = useMemo(
@@ -5430,7 +5439,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   if (showSedcard) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <button onClick={() => setShowSedcard(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
         </button>
@@ -5510,7 +5519,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   if (showPersonalDetails) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <button onClick={() => setShowPersonalDetails(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
         </button>
@@ -9484,6 +9493,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [kycActions, setKycActions] = useState({});
   const [flagActions, setFlagActions] = useState({});
   const [livePayoutQueue, setLivePayoutQueue] = useState(null);
+  const [payoutQueueShiftTitles, setPayoutQueueShiftTitles] = useState({}); // shift_id -> title
+  const [payoutQueueWorkerNames, setPayoutQueueWorkerNames] = useState({}); // worker_id -> full_name
   const [payoutRunning, setPayoutRunning] = useState(false);
   const [payoutMessage, setPayoutMessage] = useState("");
   const [kycQueue, setKycQueue] = useState(null);
@@ -9516,6 +9527,17 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       return;
     }
     setLivePayoutQueue(data || []);
+    // Neither column is a real FK PostgREST can embed (source_refs is jsonb,
+    // worker_id has no embed configured here) — without this the admin table
+    // showed raw UUIDs for both "Worker" and "Shift" instead of a name/title.
+    const shiftIds = [...new Set((data ?? []).map(p => p.source_refs?.shift_id).filter(Boolean))];
+    const workerIds = [...new Set((data ?? []).map(p => p.worker_id).filter(Boolean))];
+    const [{ data: shiftRows }, { data: workerRows }] = await Promise.all([
+      shiftIds.length ? supabase.from("shifts").select("id, title").in("id", shiftIds) : Promise.resolve({ data: [] }),
+      workerIds.length ? supabase.from("profiles").select("id, full_name").in("id", workerIds) : Promise.resolve({ data: [] }),
+    ]);
+    setPayoutQueueShiftTitles(Object.fromEntries((shiftRows ?? []).map(s => [s.id, s.title])));
+    setPayoutQueueWorkerNames(Object.fromEntries((workerRows ?? []).map(w => [w.id, w.full_name])));
   };
 
   useEffect(() => {
@@ -10065,8 +10087,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   )}
                   {(livePayoutQueue || []).map((p) => (
                     <tr key={p.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
-                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>{p.worker_id || "N/A"}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.source_refs?.shift_id ? `Shift #${p.source_refs.shift_id}` : "Shift"}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>{(p.worker_id && payoutQueueWorkerNames[p.worker_id]) || "N/A"}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{(p.source_refs?.shift_id && payoutQueueShiftTitles[p.source_refs.shift_id]) || "Shift"}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: BRAND.green }}>{toCurrency(p.amount)}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</td>
                       <td style={{ padding: "10px 12px" }}>
