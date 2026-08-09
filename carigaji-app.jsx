@@ -2543,76 +2543,138 @@ const loadGoogleMaps = (() => {
     if (typeof window === "undefined") return Promise.reject(new Error("no window"));
     if (window.google?.maps?.places) return Promise.resolve(window.google);
     if (promise) return promise;
-    promise = new Promise((resolve, reject) => {
-      const s = document.createElement("script");
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
-      s.async = true;
-      s.defer = true;
-      s.onload = () => (window.google?.maps?.places ? resolve(window.google) : reject(new Error("places missing")));
-      s.onerror = () => reject(new Error("maps script failed"));
-      document.head.appendChild(s);
+    // Google's official inline bootstrap loader (see "Load the Maps
+    // JavaScript API" docs) — defines google.maps.importLibrary immediately
+    // and lazily injects the real API script only once a library is actually
+    // requested. Replaces a hand-rolled <script src=...&loading=async> +
+    // onload approach that looked fine but hung forever in practice: with
+    // loading=async, the base script's onload no longer guarantees
+    // google.maps.places (or even importLibrary itself) is ready yet, so
+    // calling importLibrary from inside onload raced Google's own internal
+    // bootstrap and silently never resolved or rejected.
+    (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b.maps || (b.maps = {}), r = new Set, e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + ""); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
+      key: apiKey,
+      v: "weekly",
     });
+    promise = window.google.maps.importLibrary("places").then(() => window.google);
     return promise;
   };
 })();
 
 // Location field with Google Places autocomplete (Malaysia-restricted).
 // Falls back to a plain text input when no API key is configured.
+//
+// Uses the PlaceAutocompleteElement Web Component rather than the older
+// google.maps.places.Autocomplete class — Google stopped offering the latter
+// to new customers in March 2025 (still functional for existing usage, but
+// no longer recommended; see places-migration-overview). Unlike the old
+// class, this one IS the input (a custom element with its own Shadow DOM),
+// so it's mounted imperatively into a container div rather than bound to a
+// React-controlled <input>. It also doesn't leak a body-level dropdown node
+// the way the old one did, so the manual cleanup hack is gone too.
 const LocationAutocomplete = ({ label = "Location", value, onChange, error = false }) => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const inputRef = useRef(null);
+  const containerRef = useRef(null);
+  const elRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
   useEffect(() => {
-    if (!apiKey || !inputRef.current) return;
+    if (!apiKey || !containerRef.current) return;
     let cancelled = false;
-    let listener = null;
-    let ac = null;
+    let el = null;
+    let selectListener = null;
+    let inputListener = null;
     loadGoogleMaps(apiKey).then(google => {
-      if (cancelled || !inputRef.current) return;
-      // Google's Autocomplete appends a `.pac-container` dropdown directly to
-      // document.body (outside React's tree) and never removes it itself.
-      // Diff body's children before/after construction to find the node it
-      // just added, so we can clean it up on unmount instead of leaking it.
-      const bodyChildrenBefore = new Set(document.body.children);
-      ac = new google.maps.places.Autocomplete(inputRef.current, {
-        componentRestrictions: { country: "my" },
-        fields: ["formatted_address", "name"],
+      if (cancelled || !containerRef.current) return;
+      el = new google.maps.places.PlaceAutocompleteElement({
+        includedRegionCodes: ["my"],
       });
-      const pacContainer = Array.from(document.body.children).find(el => !bodyChildrenBefore.has(el) && el.classList.contains("pac-container"));
-      if (pacContainer) ac._pacContainerEl = pacContainer;
-      listener = ac.addListener("place_changed", () => {
-        const place = ac.getPlace();
-        const name = place.name || "";
-        const address = place.formatted_address || "";
-        // Google's formatted_address often omits the venue name (e.g. "1 Utama
-        // Shopping Centre"), showing only the street address. Prepend the name
-        // so workers see the place, not just an address, on shift listings.
-        const combined = name && address && !address.toLowerCase().startsWith(name.toLowerCase())
-          ? `${name}, ${address}`
-          : (address || name || inputRef.current.value);
-        onChange(combined);
+      el.value = value || "";
+      // Two things had to be confirmed live, neither is documented clearly:
+      // (1) the element renders at ~2px tall with no explicit height set —
+      //     its internal input has no intrinsic height of its own.
+      // (2) it only supports plain CSS properties for color (background-color/
+      //     color/border), NOT a --gmp-mat-* custom-property system (that
+      //     system is real, but belongs to the different PlaceDetailsElement
+      //     family) — and it defaults color-scheme to "light dark", which is
+      //     why it rendered as a dark search bar even on the app's light
+      //     theme. Using the live BRAND CSS vars (not resolved strings) keeps
+      //     it in sync automatically when the user switches theme.
+      Object.assign(el.style, {
+        width: "100%", height: "42px", display: "block",
+        colorScheme: "normal",
+        backgroundColor: BRAND.input, color: BRAND.text,
       });
+      selectListener = async (e) => {
+        try {
+          const place = e.placePrediction.toPlace();
+          await place.fetchFields({ fields: ["displayName", "formattedAddress"] });
+          const name = place.displayName || "";
+          const address = place.formattedAddress || "";
+          // Google's formattedAddress often omits the venue name (e.g. "1 Utama
+          // Shopping Centre"), showing only the street address. Prepend the
+          // name so workers see the place, not just an address, on listings.
+          const combined = name && address && !address.toLowerCase().startsWith(name.toLowerCase())
+            ? `${name}, ${address}`
+            : (address || name || el.value);
+          el.value = combined;
+          onChangeRef.current(combined);
+        } catch { /* selection fetch failed — leave whatever the user typed */ }
+      };
+      // Manual typing (no suggestion selected) doesn't fire gmp-select, but
+      // the element still behaves like a normal form input for keystrokes —
+      // mirrors the old plain-<input>-onChange fallback path.
+      inputListener = () => onChangeRef.current(el.value);
+      el.addEventListener("gmp-select", selectListener);
+      el.addEventListener("input", inputListener);
+      containerRef.current.appendChild(el);
+      elRef.current = el;
     }).catch(() => {}); // silent fallback to manual typing
     return () => {
       cancelled = true;
-      if (listener) listener.remove();
-      if (ac) {
-        window.google?.maps?.event?.clearInstanceListeners(ac);
-        ac._pacContainerEl?.remove();
+      if (el) {
+        el.removeEventListener("gmp-select", selectListener);
+        el.removeEventListener("input", inputListener);
+        el.remove();
       }
+      elRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
-  return (
+
+  // Keep the widget's displayed text in sync with external value changes
+  // (e.g. the form resetting, or opening the edit-shift flow with a
+  // previously-saved location) without fighting the user's own typing.
+  useEffect(() => {
+    if (elRef.current && elRef.current.value !== value) elRef.current.value = value || "";
+  }, [value]);
+
+  if (!apiKey) return (
     <div style={{ marginBottom: 16 }}>
       {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
       <input
-        ref={inputRef}
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder={apiKey ? "Start typing an address or place…" : "e.g. KLCC, Kuala Lumpur"}
+        placeholder="e.g. KLCC, Kuala Lumpur"
         style={{
           width: "100%", padding: "10px 14px", borderRadius: 10,
           border: `1.5px solid ${error ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit",
           color: BRAND.text, background: BRAND.input, outline: "none", boxSizing: "border-box",
+        }}
+      />
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
+      <div
+        ref={containerRef}
+        style={{
+          width: "100%", borderRadius: 10,
+          border: `1.5px solid ${error ? BRAND.red : BRAND.border}`,
+          fontSize: 14, background: BRAND.input, boxSizing: "border-box", overflow: "hidden",
         }}
       />
     </div>
