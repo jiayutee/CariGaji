@@ -747,6 +747,11 @@ const TRANSLATIONS = {
     "earnings.noPayoutsTitle": "No payouts yet",
     "earnings.noPayoutsHint": "Complete a shift and verify your bank details to receive your first payout here.",
     "earnings.salaryPayout": "salary payout",
+    "earnings.monthlyChartTitle": "Monthly earnings",
+    "earnings.monthlyChartEmpty": "Your monthly earnings will appear here once you complete a shift.",
+    "earnings.monthlyChartTruncatedNote": "Showing the most recent 12 months.",
+    "earnings.loadMoreBtn": "Load more",
+    "earnings.loadingMoreBtn": "Loading…",
     "settings.salaryBankingTitle": "Salary Banking Details",
     "settings.salaryBankingHint": "Mid-month payouts require verified bank details via SecureSign.",
     "settings.bankLabel": "Bank",
@@ -1660,6 +1665,11 @@ const TRANSLATIONS = {
     "earnings.noPayoutsTitle": "Belum ada bayaran",
     "earnings.noPayoutsHint": "Lengkapkan satu syif dan sahkan butiran bank anda untuk menerima bayaran pertama anda di sini.",
     "earnings.salaryPayout": "bayaran gaji",
+    "earnings.monthlyChartTitle": "Pendapatan bulanan",
+    "earnings.monthlyChartEmpty": "Pendapatan bulanan anda akan dipaparkan di sini selepas anda menyelesaikan satu syif.",
+    "earnings.monthlyChartTruncatedNote": "Memaparkan 12 bulan terkini.",
+    "earnings.loadMoreBtn": "Muat lagi",
+    "earnings.loadingMoreBtn": "Memuatkan…",
     "settings.salaryBankingTitle": "Butiran Perbankan Gaji",
     "settings.salaryBankingHint": "Bayaran pertengahan bulan memerlukan butiran bank yang disahkan melalui SecureSign.",
     "settings.bankLabel": "Bank",
@@ -4511,6 +4521,70 @@ const DISPUTE_CATEGORIES = [
   { value: "other", labelKey: "dispute.categoryOther" },
 ];
 
+// Single-series (one worker, one measure: RM earned) bar chart for the
+// Earnings tab. Deliberately plain divs, not SVG or a charting library —
+// consistent with the rest of this file, and simple enough not to need
+// one. One accent color (BRAND.primary) since there's only one series, a
+// single flat baseline instead of a gridded axis, and a tap-to-reveal
+// value label on one bar at a time rather than labeling every bar.
+const MonthlyEarningsBarChart = ({ months, truncated, isMobile, t }) => {
+  const [selectedKey, setSelectedKey] = useState(null);
+  useEffect(() => {
+    // Default to the most recent month so the chart never opens with no
+    // value shown at all.
+    if (months.length) setSelectedKey(months[months.length - 1].key);
+  }, [months]);
+
+  if (!months.length) {
+    return (
+      <div style={{ fontSize: 12, color: BRAND.textMuted, padding: "16px 0" }}>{t("earnings.monthlyChartEmpty")}</div>
+    );
+  }
+
+  const max = Math.max(...months.map(m => m.total), 1);
+  const selected = months.find(m => m.key === selectedKey) || months[months.length - 1];
+  const chartHeight = 120;
+  const barMinHeight = 3; // keeps a RM0 month visible/tappable instead of invisible
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{selected.fullLabel}</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: BRAND.primary, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
+      </div>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 6 : 10, height: chartHeight, overflowX: months.length > 8 ? "auto" : "visible", paddingBottom: 2, borderBottom: `1px solid ${BRAND.border}` }}>
+        {months.map(m => {
+          const isSelected = m.key === selectedKey;
+          const barHeight = Math.max(barMinHeight, Math.round((m.total / max) * (chartHeight - 24)));
+          return (
+            <button
+              key={m.key}
+              onClick={() => setSelectedKey(m.key)}
+              aria-label={`${m.fullLabel}: ${toCurrency(m.total)}`}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                flex: months.length > 8 ? "0 0 28px" : "1 1 0",
+                minWidth: months.length > 8 ? 28 : undefined,
+                background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit",
+              }}
+            >
+              <div style={{
+                width: "100%", maxWidth: 32, height: barHeight, borderRadius: "4px 4px 0 0",
+                background: isSelected ? BRAND.primary : `${BRAND.primary}55`,
+                transition: "background 0.15s",
+              }} />
+              <div style={{ fontSize: 10, color: isSelected ? BRAND.text : BRAND.textMuted, fontWeight: isSelected ? 700 : 500, whiteSpace: "nowrap" }}>{m.shortLabel}</div>
+            </button>
+          );
+        })}
+      </div>
+      {truncated && (
+        <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 8 }}>{t("earnings.monthlyChartTruncatedNote")}</div>
+      )}
+    </div>
+  );
+};
+
 // Pre-signup landing content shown only to anonymous visitors on the
 // Discover tab (see WorkerPortal below) — the shift list alone doesn't
 // explain what CariGaji is or why the payment side is safe before someone
@@ -4809,6 +4883,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // history a worker has.
   const [workerPayoutSummary, setWorkerPayoutSummary] = useState(null);
   const [payoutShiftTitles, setPayoutShiftTitles] = useState({}); // shift_id -> title, for the Earnings list
+  const PAYOUT_PAGE_SIZE = 10;
+  const [payoutsHasMore, setPayoutsHasMore] = useState(false);
+  const [payoutsLoadingMore, setPayoutsLoadingMore] = useState(false);
   const [liveShifts, setLiveShifts] = useState(null);
   const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
   const [filterCity, setFilterCity] = useState('');
@@ -5470,10 +5547,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           .select("id, amount, scheduled_date, status, source_refs, error_message, created_at")
           .eq("worker_id", user.id)
           .order("created_at", { ascending: false })
-          .limit(10),
+          .range(0, PAYOUT_PAGE_SIZE - 1),
+        // Unlimited but light (no source_refs/error_message) — feeds the
+        // total, stat tiles, and the monthly bar chart, none of which
+        // should be capped to whatever page of "Recent Payouts" is loaded.
         supabase
           .from("payout_item")
-          .select("amount, status")
+          .select("amount, status, scheduled_date, created_at")
           .eq("worker_id", user.id),
       ]);
 
@@ -5494,6 +5574,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
       if (!payoutError) {
         setLivePayouts(payoutData ?? []);
+        setPayoutsHasMore((payoutData ?? []).length === PAYOUT_PAGE_SIZE);
         // source_refs only carries the raw shift_id (jsonb, not a real FK
         // PostgREST can embed) — without this, the Earnings list rendered
         // "Shift #<uuid>" to the worker instead of the shift's actual title.
@@ -5510,6 +5591,34 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       active = false;
     };
   }, [user]);
+
+  // Fetches the next page of "Recent Payouts" and appends it — the list
+  // used to hard-stop at the 10 most recent rows with no way to see
+  // anything older, which is exactly the "multiple months" gap this and
+  // the total-undercount fix (see workerPayoutSummary above) were both
+  // found from the same dogfooding pass.
+  const loadMorePayouts = async () => {
+    if (!user || payoutsLoadingMore) return;
+    setPayoutsLoadingMore(true);
+    const offset = (livePayouts || []).length;
+    const { data: moreRows, error } = await supabase
+      .from("payout_item")
+      .select("id, amount, scheduled_date, status, source_refs, error_message, created_at")
+      .eq("worker_id", user.id)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + PAYOUT_PAGE_SIZE - 1);
+    if (!error) {
+      setLivePayouts(prev => [...(prev || []), ...(moreRows ?? [])]);
+      setPayoutsHasMore((moreRows ?? []).length === PAYOUT_PAGE_SIZE);
+      const newShiftIds = [...new Set((moreRows ?? []).map(p => p.source_refs?.shift_id).filter(Boolean))]
+        .filter(id => !(id in payoutShiftTitles));
+      if (newShiftIds.length) {
+        const { data: shiftRows } = await supabase.from("shifts").select("id, title").in("id", newShiftIds);
+        setPayoutShiftTitles(prev => ({ ...prev, ...Object.fromEntries((shiftRows ?? []).map(s => [s.id, s.title])) }));
+      }
+    }
+    setPayoutsLoadingMore(false);
+  };
 
   const saveWorkerBankingDetails = async () => {
     if (!user) {
@@ -5631,26 +5740,77 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [shiftsSource, appliedShiftIds, filterCat, filterCity, filterArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
-    () => (livePayouts || []).map((p) => ({
-      id: p.id,
-      shift: p.source_refs?.shift_id ? (payoutShiftTitles[p.source_refs.shift_id] || "Completed shift") : "Completed shift",
-      amount: Number(p.amount || 0),
-      date: p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA",
-      status: p.status,
-      errorMessage: p.error_message ?? null,
-      travel: 0,
-    })),
+    () => (livePayouts || []).map((p) => {
+      const rawDate = p.scheduled_date || p.created_at || null;
+      return {
+        id: p.id,
+        shift: p.source_refs?.shift_id ? (payoutShiftTitles[p.source_refs.shift_id] || "Completed shift") : "Completed shift",
+        amount: Number(p.amount || 0),
+        date: p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA",
+        // YYYY-MM in the worker's own reading of the date, used only to
+        // group the list under month headers below — not shown as-is.
+        monthKey: rawDate ? rawDate.slice(0, 7) : null,
+        status: p.status,
+        errorMessage: p.error_message ?? null,
+        travel: 0,
+      };
+    }),
     [livePayouts, payoutShiftTitles]
   );
 
+  // Month headers for the "Recent Payouts" list — groups consecutive rows
+  // sharing a monthKey under one label, formatted from the first row of
+  // each group so it's a real localized month name, not the raw "YYYY-MM".
+  const payoutMonthLabels = useMemo(() => {
+    const labels = {};
+    payoutRows.forEach(row => {
+      if (!row.monthKey || labels[row.monthKey]) return;
+      const [y, m] = row.monthKey.split("-").map(Number);
+      labels[row.monthKey] = new Date(y, m - 1, 1).toLocaleDateString("en-MY", { month: "long", year: "numeric" });
+    });
+    return labels;
+  }, [payoutRows]);
+
   // Deliberately sourced from workerPayoutSummary (unlimited), not the
-  // 10-row-capped payoutRows list — see workerPayoutSummary's declaration
-  // for why summing the capped list would silently undercount a worker
-  // with more than 10 payout records.
+  // paginated payoutRows list — see workerPayoutSummary's declaration for
+  // why summing a capped list would silently undercount a worker with a
+  // long payout history. Same reasoning applies here: the monthly chart
+  // needs every payout, not just whatever page of the list is loaded.
   const totalEarned = useMemo(
     () => (workerPayoutSummary || []).reduce((sum, row) => sum + Number(row.amount || 0), 0),
     [workerPayoutSummary]
   );
+
+  // Monthly bar chart data — sums workerPayoutSummary by calendar month
+  // (worker's local reading of scheduled_date, falling back to created_at
+  // for payouts not yet scheduled), sorted chronologically, capped to the
+  // most recent 12 months so the chart stays readable on a phone screen.
+  // The cap is surfaced (not silent) via monthlyEarningsTruncated below.
+  const MONTHLY_CHART_MAX_MONTHS = 12;
+  const monthlyEarningsAll = useMemo(() => {
+    const byMonth = new Map();
+    (workerPayoutSummary || []).forEach(row => {
+      const rawDate = row.scheduled_date || row.created_at;
+      if (!rawDate) return;
+      const key = rawDate.slice(0, 7);
+      byMonth.set(key, (byMonth.get(key) || 0) + Number(row.amount || 0));
+    });
+    return [...byMonth.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, total]) => {
+        const [y, m] = key.split("-").map(Number);
+        return {
+          key,
+          total,
+          shortLabel: new Date(y, m - 1, 1).toLocaleDateString("en-MY", { month: "short" }),
+          fullLabel: new Date(y, m - 1, 1).toLocaleDateString("en-MY", { month: "long", year: "numeric" }),
+        };
+      });
+  }, [workerPayoutSummary]);
+  const monthlyEarningsTruncated = monthlyEarningsAll.length > MONTHLY_CHART_MAX_MONTHS;
+  const monthlyEarnings = monthlyEarningsTruncated
+    ? monthlyEarningsAll.slice(monthlyEarningsAll.length - MONTHLY_CHART_MAX_MONTHS)
+    : monthlyEarningsAll;
   const payoutEligibility = workerBanking?.verification_status === "verified";
   const profileName = user
     ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Your account")
@@ -6819,6 +6979,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <Stat label={t("earnings.statHeld")} value={String((workerPayoutSummary || []).filter(p => p.status === "held").length)} color={BRAND.red} />
               <Stat label={t("earnings.statBanking")} value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
             </div>
+            {!payoutsLoading && (
+              <Card style={{ marginBottom: 20, padding: isMobile ? "16px 14px" : "20px" }}>
+                <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.monthlyChartTitle")}</div>
+                <MonthlyEarningsBarChart months={monthlyEarnings} truncated={monthlyEarningsTruncated} isMobile={isMobile} t={t} />
+              </Card>
+            )}
             <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.recentPayouts")}</div>
             {payoutsLoading ? (
               <>
@@ -6833,23 +6999,44 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 hint={t("earnings.noPayoutsHint")}
               />
             ) : (
-              payoutRows.map((p) => (
-                <Card key={p.id} style={{ marginBottom: 10, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
-                      <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : t("earnings.salaryPayout")}</div>
+              <>
+                {payoutRows.map((p, i) => {
+                  // A month header renders once, right before the first row
+                  // of that month — payoutRows is already in descending
+                  // date order from the query, so consecutive same-month
+                  // rows never re-print the header.
+                  const showMonthHeader = p.monthKey && p.monthKey !== payoutRows[i - 1]?.monthKey;
+                  return (
+                    <div key={p.id}>
+                      {showMonthHeader && (
+                        <div style={{ fontSize: 11, fontWeight: 700, color: BRAND.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", margin: i === 0 ? "0 0 8px" : "18px 0 8px" }}>
+                          {payoutMonthLabels[p.monthKey]}
+                        </div>
+                      )}
+                      <Card style={{ marginBottom: 10, padding: "14px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
+                            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : t("earnings.salaryPayout")}</div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
+                            <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
+                          </div>
+                        </div>
+                        {p.status === "held" && payoutHoldReasonLabel(t, p.errorMessage) && (
+                          <div style={{ fontSize: 11, color: BRAND.red, marginTop: 6 }}>{payoutHoldReasonLabel(t, p.errorMessage)}</div>
+                        )}
+                      </Card>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
-                      <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
-                    </div>
-                  </div>
-                  {p.status === "held" && payoutHoldReasonLabel(t, p.errorMessage) && (
-                    <div style={{ fontSize: 11, color: BRAND.red, marginTop: 6 }}>{payoutHoldReasonLabel(t, p.errorMessage)}</div>
-                  )}
-                </Card>
-              ))
+                  );
+                })}
+                {payoutsHasMore && (
+                  <Btn variant="secondary" onClick={loadMorePayouts} disabled={payoutsLoadingMore} style={{ width: "100%", justifyContent: "center", marginTop: 4 }}>
+                    {payoutsLoadingMore ? t("earnings.loadingMoreBtn") : t("earnings.loadMoreBtn")}
+                  </Btn>
+                )}
+              </>
             )}
           </div>
         )}
