@@ -5142,9 +5142,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Tell BackGestureManager the user navigated in-app, so it re-arms the
   // history sentinel and the browser's swipe-back preview screenshot stays
   // close to the view back will actually reveal (kills the stale-page ghost).
+  // Must cover every piece of state backHandlerRef (above) knows how to
+  // close, not just tab/shift/application/chat — any of those left out
+  // meant opening it (e.g. the rating or bid modal, a contract view,
+  // checkout, Sedcard) never re-armed the sentinel, so swiping back while
+  // it was open showed a stale preview of whatever was on screen before it
+  // opened instead of the modal itself. That mismatch is exactly the
+  // flicker/wrong-page-flash a swipe-back would produce.
   useEffect(() => {
     if (typeof window !== "undefined") window.dispatchEvent(new Event("carigaji:nav"));
-  }, [tab, selectedShift, selectedApplication, activeChatShift]);
+  }, [tab, selectedShift, selectedApplication, activeChatShift, showQR, checkoutTarget, showSedcard, showPersonalDetails, showBidModal, workerContractModal, cancellationContractModal, disputeModal, ratingModal, ratingDetailsModal]);
 
   const navBaseHeight = isMobile ? 60 : 72;
   const navSafeAreaInset = "env(safe-area-inset-bottom, 0px)";
@@ -7941,10 +7948,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   });
 
   // Same nav ping as WorkerPortal — keeps the swipe-back preview screenshot
-  // fresh (see BackGestureManager).
+  // fresh (see BackGestureManager). Must cover every state the handler
+  // above checks, same reasoning as WorkerPortal's version.
   useEffect(() => {
     if (typeof window !== "undefined") window.dispatchEvent(new Event("carigaji:nav"));
-  }, [view, selectedShift, activeChatShift]);
+  }, [view, selectedShift, activeChatShift, viewContractModal, workerProfileModal, checkinCodeModal, contractModal, disputeModal, ratingModal, ratingDetailsModal]);
 
   // Mobile-only: the sidebar used to always render full-width, stacked above
   // the content, permanently expanded — eating over half the screen before
