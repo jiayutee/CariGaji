@@ -2864,9 +2864,15 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, isMobile = false }) =
       return;
     }
     if (navigator.clipboard) {
-      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-      toast(t("toast.inviteLinkCopied"), "success");
-      return;
+      // writeText can reject (e.g. permission explicitly denied by the
+      // browser/OS, or a restrictive in-app webview) rather than just being
+      // unsupported -- defend against that instead of letting an unhandled
+      // rejection silently kill the whole function with zero user feedback.
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        toast(t("toast.inviteLinkCopied"), "success");
+        return;
+      } catch { /* fall through to plain-text fallback below */ }
     }
     toast(shareUrl, "info", 8000);
   };
@@ -4383,9 +4389,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return;
     }
     if (navigator.clipboard) {
-      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
-      toast(t("toast.inviteLinkCopied"), "success");
-      return;
+      // writeText can reject (e.g. permission explicitly denied by the
+      // browser/OS, or a restrictive in-app webview) rather than just being
+      // unsupported -- defend against that instead of letting an unhandled
+      // rejection silently kill the whole function with zero user feedback.
+      try {
+        await navigator.clipboard.writeText(`${shareText} ${shareUrl}`);
+        toast(t("toast.inviteLinkCopied"), "success");
+        return;
+      } catch { /* fall through to plain-text fallback below */ }
     }
     toast(shareUrl, "info", 8000);
   };
