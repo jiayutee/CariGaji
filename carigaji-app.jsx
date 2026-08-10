@@ -3139,14 +3139,24 @@ const notificationTimeAgo = (iso, t) => {
   return new Date(iso).toLocaleDateString("en-MY");
 };
 
+const NOTIFICATION_PAGE_SIZE = 20;
+
 const NotificationBell = ({ user, onNavigate = () => {} }) => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [panelPos, setPanelPos] = useState(null); // { top, left } in viewport coords
+  const [notifHasMore, setNotifHasMore] = useState(false);
+  const [notifLoadingMore, setNotifLoadingMore] = useState(false);
   const ref = useRef(null);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // The panel only ever loads the most recent NOTIFICATION_PAGE_SIZE rows
+  // (below) -- a worker with months of history can easily have more unread
+  // notifications than that sitting further back, so the badge can't just
+  // count what's loaded, or it silently stops climbing past that page. A
+  // separate exact-count query keeps it honest regardless of how many
+  // pages exist.
+  const [unreadTotal, setUnreadTotal] = useState(0);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -3184,9 +3194,19 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(20)
+      .range(0, NOTIFICATION_PAGE_SIZE - 1)
       .then(({ data }) => {
-        if (active) setNotifications(data ?? []);
+        if (!active) return;
+        setNotifications(data ?? []);
+        setNotifHasMore((data ?? []).length === NOTIFICATION_PAGE_SIZE);
+      });
+    supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('read', false)
+      .then(({ count }) => {
+        if (active) setUnreadTotal(count ?? 0);
       });
     const channel = supabase
       .channel(`notifications-${user.id}`)
@@ -3196,7 +3216,9 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
         table: 'notifications',
         filter: `user_id=eq.${user.id}`,
       }, payload => {
-        if (active) setNotifications(prev => [payload.new, ...prev]);
+        if (!active) return;
+        setNotifications(prev => [payload.new, ...prev]);
+        setUnreadTotal(prev => prev + 1);
       })
       .subscribe();
     return () => {
@@ -3205,8 +3227,25 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
     };
   }, [user?.id]);
 
+  const loadMoreNotifications = async () => {
+    if (!user?.id || notifLoadingMore) return;
+    setNotifLoadingMore(true);
+    const offset = notifications.length;
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + NOTIFICATION_PAGE_SIZE - 1);
+    setNotifications(prev => [...prev, ...(data ?? [])]);
+    setNotifHasMore((data ?? []).length === NOTIFICATION_PAGE_SIZE);
+    setNotifLoadingMore(false);
+  };
+
   const markRead = async (id) => {
-    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
+    setNotifications(prev => prev.map(n => (n.id === id && !n.read ? { ...n, read: true } : n)));
+    const target = notifications.find(n => n.id === id);
+    if (target && !target.read) setUnreadTotal(prev => Math.max(0, prev - 1));
     await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
 
@@ -3218,11 +3257,15 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
     }
   };
 
+  // Updates every unread row for this user server-side (not just the
+  // loaded page) -- clearing only the on-screen rows used to leave older
+  // unread notifications permanently stuck as unread with no way to reach
+  // them, since the panel never paginated back far enough on its own.
   const markAllRead = async () => {
-    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
-    if (unreadIds.length === 0) return;
+    if (unreadTotal === 0) return;
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    await supabase.from('notifications').update({ read: true }).in('id', unreadIds);
+    setUnreadTotal(0);
+    await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
   };
 
   return (
@@ -3240,13 +3283,13 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
         }}
       >
         <span aria-hidden="true">🔔</span>
-        {unreadCount > 0 && (
+        {unreadTotal > 0 && (
           <span aria-hidden="true" style={{
             position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, padding: "0 3px",
             borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 10, fontWeight: 700,
             display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
           }}>
-            {unreadCount > 9 ? "9+" : unreadCount}
+            {unreadTotal > 9 ? "9+" : unreadTotal}
           </span>
         )}
       </button>
@@ -3261,7 +3304,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
             padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}`,
           }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{t("notification.title")}</div>
-            {unreadCount > 0 && (
+            {unreadTotal > 0 && (
               <button
                 onClick={markAllRead}
                 style={{
@@ -3308,6 +3351,19 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                   </div>
                 </button>
               ))
+            )}
+            {notifHasMore && (
+              <button
+                onClick={loadMoreNotifications}
+                disabled={notifLoadingMore}
+                style={{
+                  width: "100%", padding: "10px 14px", border: "none", background: "transparent",
+                  cursor: notifLoadingMore ? "default" : "pointer", fontFamily: "inherit",
+                  fontSize: 11.5, fontWeight: 600, color: BRAND.primary,
+                }}
+              >
+                {notifLoadingMore ? t("earnings.loadingMoreBtn") : t("earnings.loadMoreBtn")}
+              </button>
             )}
           </div>
         </div>
@@ -7709,6 +7765,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [companyDetailsMessage, setCompanyDetailsMessage] = useState("");
   const [companyDetailsLoading, setCompanyDetailsLoading] = useState(false);
   const [employerPayoutItems, setEmployerPayoutItems] = useState([]);
+  // Separate from employerPayoutItems (capped to the 100 most recent rows
+  // for the ledger list below) -- same bug class as the worker-side
+  // Earnings total fixed earlier: an employer active across many months
+  // and workers would otherwise see "Total paid out"/"Pending payout"
+  // silently undercount once they pass 100 payout_item rows. This
+  // unlimited, lightweight (amount + status only) query feeds those two
+  // totals instead.
+  const [employerPayoutSummary, setEmployerPayoutSummary] = useState([]);
   const [contractModal, setContractModal] = useState(null);
   // Read-only signed-contract view + worker profile card for the applicant
   // pool (owner request 2026-07-20).
@@ -8500,10 +8564,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       if (!user) {
         setEmployerBanking(null);
         setEmployerPayoutItems([]);
+        setEmployerPayoutSummary([]);
         return;
       }
 
-      const [{ data: bankData, error: bankError }, { data: payoutData, error: payoutError }] = await Promise.all([
+      const [{ data: bankData, error: bankError }, { data: payoutData, error: payoutError }, { data: summaryData, error: summaryError }] = await Promise.all([
         supabase
           .from("banking_details")
           .select("id, bank_name, account_holder_name, account_number_last4, verification_status, funding_ready, verified_at")
@@ -8516,6 +8581,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           .eq("employer_id", user.id)
           .order("created_at", { ascending: false })
           .limit(100),
+        supabase
+          .from("payout_item")
+          .select("amount, status")
+          .eq("employer_id", user.id),
       ]);
 
       if (!active) return;
@@ -8532,6 +8601,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         }
       }
       if (!payoutError) setEmployerPayoutItems(payoutData ?? []);
+      if (!summaryError) setEmployerPayoutSummary(summaryData ?? []);
     };
 
     loadEmployerPaymentData();
@@ -8742,10 +8812,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     toast(ids.length > 1 ? t('toast.offerSentMultiple').replace('{count}', ids.length) : t('toast.offerSentSingle'), 'success');
   };
 
-  const committedPayoutTotal = employerPayoutItems
+  const committedPayoutTotal = employerPayoutSummary
     .filter(item => ['queued', 'ready', 'scheduled', 'held'].includes(item.status))
     .reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const paidOutPayoutTotal = employerPayoutItems
+  const paidOutPayoutTotal = employerPayoutSummary
     .filter(item => item.status === 'processed_internal')
     .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
