@@ -776,6 +776,7 @@ const TRANSLATIONS = {
     "cookie.aboutBody": "CariGaji uses browser local storage — not third-party tracking cookies — to keep you signed in and to remember your preferences on this device. We don't use this data for tracking, and nothing here is shared with advertisers. See our Privacy Policy for the full details on what we collect and why, and our Terms of Service for how the platform works.",
     "cookie.savePreferences": "Save Preferences",
     "cookie.reopenPreferences": "Cookie preferences",
+    "cookie.hideBubble": "Hide this button (still available in Settings)",
     "supportChat.title": "CariGaji Support",
     "supportChat.greeting": "Hi! I'm the CariGaji support assistant. Ask me anything about shifts, bidding, KYC, payments, or your account.",
     "supportChat.inputPlaceholder": "Type your question…",
@@ -1639,6 +1640,7 @@ const TRANSLATIONS = {
     "cookie.aboutBody": "CariGaji menggunakan storan tempatan pelayar — bukan kuki penjejakan pihak ketiga — untuk mengekalkan log masuk anda dan mengingati keutamaan anda pada peranti ini. Kami tidak menggunakan data ini untuk penjejakan, dan tiada apa-apa di sini dikongsi dengan pengiklan. Lihat Dasar Privasi kami untuk butiran penuh tentang apa yang kami kumpul dan sebabnya, serta Terma Perkhidmatan kami untuk cara platform ini berfungsi.",
     "cookie.savePreferences": "Simpan Keutamaan",
     "cookie.reopenPreferences": "Keutamaan kuki",
+    "cookie.hideBubble": "Sembunyikan butang ini (masih ada dalam Tetapan)",
     "supportChat.title": "Sokongan CariGaji",
     "supportChat.greeting": "Hai! Saya pembantu sokongan CariGaji. Tanya saya apa-apa tentang syif, bidaan, KYC, pembayaran, atau akaun anda.",
     "supportChat.inputPlaceholder": "Taip soalan anda…",
@@ -2355,6 +2357,26 @@ const writeCookieConsent = (decision) => {
 // recorded consent decision. No decision yet (banner not actioned) is
 // treated as "no" — analytics only fires once the user opts in.
 const hasAnalyticsConsent = () => readCookieConsent()?.analytics === true;
+
+// The floating cookie bubble (bottom-left, see CookieConsentManager) sits
+// low enough to cover real content on some screens/viewport sizes. Once a
+// decision has been recorded, it's just a re-entry point — not something
+// that needs to sit on-screen permanently — so it can be dismissed. The
+// setting still has to stay reachable somehow, so dismissing it doesn't
+// delete the consent decision, just this one shortcut to it; Settings and
+// the footer both carry their own "Cookie preferences" link that works
+// even after the bubble is hidden (see CookieConsentManager's
+// carigaji:open-cookie-prefs listener below).
+const COOKIE_BUBBLE_HIDDEN_KEY = "carigaji_cookie_bubble_hidden";
+const readCookieBubbleHidden = () => {
+  if (typeof window === "undefined") return false;
+  return window.localStorage.getItem(COOKIE_BUBBLE_HIDDEN_KEY) === "true";
+};
+const writeCookieBubbleHidden = (hidden) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(COOKIE_BUBBLE_HIDDEN_KEY, hidden ? "true" : "false");
+};
+const OPEN_COOKIE_PREFS_EVENT = "carigaji:open-cookie-prefs";
 
 // ─── Toast system ───────────────────────────────────────────────────────────
 const ToastContext = createContext(() => {});
@@ -6704,10 +6726,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.notifications")}</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.notificationsValue")}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.privacy")}</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.privacyValue")}</span>
               </div>
+              {/* Always reachable here regardless of whether the floating
+                  bubble (bottom-left, see CookieConsentManager) has been
+                  hidden — hiding that bubble only removes the shortcut, not
+                  the ability to change the decision. */}
+              <button
+                onClick={() => window.dispatchEvent(new Event(OPEN_COOKIE_PREFS_EVENT))}
+                style={{
+                  width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "8px 0", border: "none", background: "none", cursor: "pointer",
+                  fontFamily: "inherit", fontSize: 13, color: BRAND.textMuted, textAlign: "left",
+                }}
+              >
+                <span>{t("cookie.reopenPreferences")}</span>
+                <span aria-hidden="true">›</span>
+              </button>
             </Card>
             {user && (
               <Card style={{ marginBottom: 16 }}>
@@ -9310,6 +9347,22 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
               ))}
             </Card>
+            {/* Same reopen hook as the worker-side Settings tab — reaches
+                CookieConsentManager (mounted once at the app root) via a
+                DOM event, since it isn't in this component's tree. */}
+            <Card style={{ marginBottom: 16 }}>
+              <button
+                onClick={() => window.dispatchEvent(new Event(OPEN_COOKIE_PREFS_EVENT))}
+                style={{
+                  width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                  border: "none", background: "none", cursor: "pointer",
+                  fontFamily: "inherit", fontSize: 13, color: BRAND.textMuted, textAlign: "left",
+                }}
+              >
+                <span>{t("cookie.reopenPreferences")}</span>
+                <span aria-hidden="true">›</span>
+              </button>
+            </Card>
           </div>
         )}
 
@@ -10610,10 +10663,28 @@ const CookieConsentManager = ({ isMobile }) => {
   const [consent, setConsent] = useState(() => readCookieConsent());
   const [panelOpen, setPanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("categories");
+  const [bubbleHidden, setBubbleHidden] = useState(() => readCookieBubbleHidden());
   const [draft, setDraft] = useState(() => {
     const stored = readCookieConsent();
     return stored ? { functional: !!stored.functional, analytics: !!stored.analytics } : DEFAULT_COOKIE_DRAFT;
   });
+
+  // Settings and the footer can't reach into this component's local state
+  // directly (they're mounted elsewhere in the tree), so they ask for the
+  // panel via a plain DOM event instead — same trick already used for
+  // opening the panel from the footer without prop-drilling it through
+  // every screen between App and here.
+  useEffect(() => {
+    const handler = () => openPanel("categories");
+    window.addEventListener(OPEN_COOKIE_PREFS_EVENT, handler);
+    return () => window.removeEventListener(OPEN_COOKIE_PREFS_EVENT, handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consent]);
+
+  const hideBubble = () => {
+    writeCookieBubbleHidden(true);
+    setBubbleHidden(true);
+  };
 
   const openPanel = (tab) => {
     const base = consent || DEFAULT_COOKIE_DRAFT;
@@ -10640,7 +10711,7 @@ const CookieConsentManager = ({ isMobile }) => {
   const handleSavePreferences = () => persist(draft);
 
   const bannerVisible = consent === null && !panelOpen;
-  const reopenVisible = consent !== null && !panelOpen;
+  const reopenVisible = consent !== null && !panelOpen && !bubbleHidden;
 
   // The mobile bottom nav is a *sticky* (not fixed) bar, but it still ends up
   // pinned to the physical bottom of the viewport on mobile (navBaseHeight
@@ -10678,21 +10749,40 @@ const CookieConsentManager = ({ isMobile }) => {
       )}
 
       {reopenVisible && createPortal(
-        <button
-          onClick={() => openPanel("categories")}
-          aria-label={t("cookie.reopenPreferences")}
-          title={t("cookie.reopenPreferences")}
-          style={{
-            position: "fixed", left: 16, bottom: edgeBottom, zIndex: 900,
-            width: 40, height: 40, borderRadius: "50%",
-            background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
-            boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 18, padding: 0,
-          }}
-        >
-          <span aria-hidden="true">🍪</span>
-        </button>,
+        <div style={{ position: "fixed", left: 16, bottom: edgeBottom, zIndex: 900, display: "flex", alignItems: "center", gap: 4 }}>
+          <button
+            onClick={() => openPanel("categories")}
+            aria-label={t("cookie.reopenPreferences")}
+            title={t("cookie.reopenPreferences")}
+            style={{
+              width: 40, height: 40, borderRadius: "50%",
+              background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
+              boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 18, padding: 0,
+            }}
+          >
+            <span aria-hidden="true">🍪</span>
+          </button>
+          {/* Dismisses just this shortcut bubble, not the consent decision —
+              it can look like it's blocking content on some screens/sizes.
+              Cookie preferences stay reachable via Settings (and the
+              Discover-tab footer) even after this is hidden. */}
+          <button
+            onClick={hideBubble}
+            aria-label={t("cookie.hideBubble")}
+            title={t("cookie.hideBubble")}
+            style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
+              boxShadow: `0 4px 10px ${BRAND.shadow}`, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 12, padding: 0, color: BRAND.textMuted, lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
+        </div>,
         document.body
       )}
 
