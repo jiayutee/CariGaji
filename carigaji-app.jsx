@@ -2957,7 +2957,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, isMobile = false }) =
             ))}
             <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
               {t("help.stillNeedHelp")}{" "}
-              <button onClick={() => { setHelpOpen(false); openMailtoSupport(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
+              <button onClick={() => { setHelpOpen(false); onOpenSupportChat(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
                 {t("help.contactSupportLink")}
               </button>
             </div>
@@ -4367,7 +4367,7 @@ const DISPUTE_CATEGORIES = [
 ];
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, onOpenSupportChat = openMailtoSupport }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -6607,7 +6607,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 {[
                   { label: t("personalDetails.title"), icon: "🪪", onClick: () => setShowPersonalDetails(true) },
                   { label: t("account.help"), icon: "❓", onClick: () => setSettingsHelpOpen(true) },
-                  { label: t("account.contactSupport"), icon: "💬", onClick: openMailtoSupport },
+                  { label: t("account.contactSupport"), icon: "💬", onClick: onOpenSupportChat },
                   { label: t("account.referFriends"), icon: "🎁", onClick: shareWorkerReferralLink },
                   { label: t("account.signOut"), icon: "↩️", danger: true, onClick: () => supabase.auth.signOut() },
                 ].map((it, i, arr) => (
@@ -6647,7 +6647,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   ))}
                   <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
                     {t("help.stillNeedHelp")}{" "}
-                    <button onClick={() => { setSettingsHelpOpen(false); openMailtoSupport(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
+                    <button onClick={() => { setSettingsHelpOpen(false); onOpenSupportChat(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
                       {t("help.contactSupportLink")}
                     </button>
                   </div>
@@ -11657,8 +11657,8 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
           {portal === "admin" && (
             isAdmin
               ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
