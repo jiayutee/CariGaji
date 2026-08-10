@@ -4799,6 +4799,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [bankingLoading, setBankingLoading] = useState(false);
   const [bankingMessage, setBankingMessage] = useState("");
   const [livePayouts, setLivePayouts] = useState(null);
+  // Separate from livePayouts (which is capped to the 10 most recent rows
+  // for the "Recent Payouts" list — see loadWorkerPayoutData below): a
+  // worker who has done more than 10 paid shifts would otherwise see their
+  // "Total Internal Payouts" figure quietly undercount real lifetime
+  // earnings, since it used to be summed from that same capped list. This
+  // unlimited, lightweight (amount + status only) query feeds the total
+  // and the stat tiles instead, so they stay correct no matter how much
+  // history a worker has.
+  const [workerPayoutSummary, setWorkerPayoutSummary] = useState(null);
   const [payoutShiftTitles, setPayoutShiftTitles] = useState({}); // shift_id -> title, for the Earnings list
   const [liveShifts, setLiveShifts] = useState(null);
   const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
@@ -5445,10 +5454,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) {
         setWorkerBanking(null);
         setLivePayouts(null);
+        setWorkerPayoutSummary(null);
         return;
       }
 
-      const [{ data: bankData, error: bankError }, { data: payoutData, error: payoutError }] = await Promise.all([
+      const [{ data: bankData, error: bankError }, { data: payoutData, error: payoutError }, { data: summaryData, error: summaryError }] = await Promise.all([
         supabase
           .from("banking_details")
           .select("id, bank_name, account_holder_name, account_number_last4, verification_status, verification_provider, verified_at")
@@ -5461,9 +5471,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           .eq("worker_id", user.id)
           .order("created_at", { ascending: false })
           .limit(10),
+        supabase
+          .from("payout_item")
+          .select("amount, status")
+          .eq("worker_id", user.id),
       ]);
 
       if (!active) return;
+
+      if (!summaryError) setWorkerPayoutSummary(summaryData ?? []);
 
       if (!bankError) {
         setWorkerBanking(bankData ?? null);
@@ -5627,9 +5643,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     [livePayouts, payoutShiftTitles]
   );
 
+  // Deliberately sourced from workerPayoutSummary (unlimited), not the
+  // 10-row-capped payoutRows list — see workerPayoutSummary's declaration
+  // for why summing the capped list would silently undercount a worker
+  // with more than 10 payout records.
   const totalEarned = useMemo(
-    () => payoutRows.reduce((sum, row) => sum + Number(row.amount || 0), 0),
-    [payoutRows]
+    () => (workerPayoutSummary || []).reduce((sum, row) => sum + Number(row.amount || 0), 0),
+    [workerPayoutSummary]
   );
   const payoutEligibility = workerBanking?.verification_status === "verified";
   const profileName = user
@@ -6794,9 +6814,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label={t("earnings.statRecords")} value={String(payoutRows.length)} color={BRAND.primary} />
-              <Stat label={t("earnings.statReady")} value={String(payoutRows.filter(p => p.status === "ready").length)} color={BRAND.green} />
-              <Stat label={t("earnings.statHeld")} value={String(payoutRows.filter(p => p.status === "held").length)} color={BRAND.red} />
+              <Stat label={t("earnings.statRecords")} value={String((workerPayoutSummary || []).length)} color={BRAND.primary} />
+              <Stat label={t("earnings.statReady")} value={String((workerPayoutSummary || []).filter(p => p.status === "ready").length)} color={BRAND.green} />
+              <Stat label={t("earnings.statHeld")} value={String((workerPayoutSummary || []).filter(p => p.status === "held").length)} color={BRAND.red} />
               <Stat label={t("earnings.statBanking")} value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
             </div>
             <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.recentPayouts")}</div>
