@@ -518,6 +518,7 @@ const TRANSLATIONS = {
     "myBids.declineBtn": "Decline",
     "myBids.confirmShiftBtn": "Confirm Shift",
     "myBids.fileDisputeBtn": "File a Dispute",
+    "myBids.disputeAlreadyFiledBadge": "Dispute filed",
     "myBids.fileDisputeTitle": "File a Dispute",
     "myBids.disputeCategoryLabel": "What's the issue?",
     "myBids.disputeDescriptionLabel": "Describe what happened",
@@ -1379,6 +1380,7 @@ const TRANSLATIONS = {
     "myBids.declineBtn": "Tolak",
     "myBids.confirmShiftBtn": "Sahkan Syif",
     "myBids.fileDisputeBtn": "Fail Pertikaian",
+    "myBids.disputeAlreadyFiledBadge": "Pertikaian difailkan",
     "myBids.fileDisputeTitle": "Fail Pertikaian",
     "myBids.disputeCategoryLabel": "Apakah isunya?",
     "myBids.disputeDescriptionLabel": "Terangkan apa yang berlaku",
@@ -4558,6 +4560,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
   const [myDisputes, setMyDisputes] = useState(null);
+  // application_ids this worker has already filed a dispute for — hides the
+  // File a Dispute button once filed. Separate from myDisputes above (which
+  // only loads on the Settings tab, so it's never available on My Bids where
+  // this button lives): confirmed live that without this, a worker could
+  // click "File a Dispute" repeatedly and create unlimited duplicate
+  // disputes for the same shift, with no client or DB-level guard.
+  const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Set());
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -4607,6 +4616,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       }
     };
     loadMyRatings();
+    return () => { active = false; };
+  }, [user]);
+
+  useEffect(() => {
+    let active = true;
+    const loadMyDisputedIds = async () => {
+      if (!user) { setMyDisputedApplicationIds(new Set()); return; }
+      try {
+        const { data, error } = await supabase
+          .from('disputes')
+          .select('application_id')
+          .eq('filed_by', user.id);
+        if (!active) return;
+        setMyDisputedApplicationIds(error ? new Set() : new Set((data ?? []).map(d => d.application_id)));
+      } catch {
+        if (active) setMyDisputedApplicationIds(new Set());
+      }
+    };
+    loadMyDisputedIds();
     return () => { active = false; };
   }, [user]);
 
@@ -5007,6 +5035,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setFilingDispute(false);
     if (error) { toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
     toast(t('toast.disputeFiled'), 'success');
+    setMyDisputedApplicationIds(prev => new Set(prev).add(disputeModal.applicationId));
     setDisputeModal(null);
     setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   };
@@ -6172,10 +6201,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </div>
                   )}
                   {a.shiftStatus === 'completed' && (
-                    <button onClick={(e) => { e.stopPropagation(); setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle }); }}
-                      style={{marginTop:8, padding:'6px 14px', borderRadius:6, background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}`, cursor:'pointer', fontSize:12, fontWeight:600}}>
-                      {t("myBids.fileDisputeBtn")}
-                    </button>
+                    myDisputedApplicationIds.has(a.id) ? (
+                      <span style={{marginTop:8, display:'inline-block', fontSize:12, fontWeight:600, color: BRAND.textMuted}}>{t("myBids.disputeAlreadyFiledBadge")}</span>
+                    ) : (
+                      <button onClick={(e) => { e.stopPropagation(); setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle }); }}
+                        style={{marginTop:8, padding:'6px 14px', borderRadius:6, background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}`, cursor:'pointer', fontSize:12, fontWeight:600}}>
+                        {t("myBids.fileDisputeBtn")}
+                      </button>
+                    )
                   )}
                 </Card>
               ))}
@@ -6359,8 +6392,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
                 <Btn variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: a.shiftTitle, rateeId: a.employerId, direction: 'worker_to_employer' }); }} style={{ flex: 1, justifyContent: "center" }}>{t("rating.rateBtn")}</Btn>
               )}
-              {a.shiftStatus === "completed" && (
+              {a.shiftStatus === "completed" && !myDisputedApplicationIds.has(a.id) && (
                 <Btn variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.fileDisputeBtn")}</Btn>
+              )}
+              {a.shiftStatus === "completed" && myDisputedApplicationIds.has(a.id) && (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: BRAND.textMuted }}>{t("myBids.disputeAlreadyFiledBadge")}</div>
               )}
             </div>
           </div>
@@ -7186,6 +7222,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
   const [myDisputes, setMyDisputes] = useState(null);
+  // Same duplicate-dispute guard as WorkerPortal (see there for why) —
+  // application_ids this employer has already filed a dispute for.
+  const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Set());
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -7228,6 +7267,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       }
     };
     loadMyRatings();
+    return () => { active = false; };
+  }, [user]);
+
+  useEffect(() => {
+    let active = true;
+    const loadMyDisputedIds = async () => {
+      if (!user) { setMyDisputedApplicationIds(new Set()); return; }
+      try {
+        const { data, error } = await supabase
+          .from('disputes')
+          .select('application_id')
+          .eq('filed_by', user.id);
+        if (!active) return;
+        setMyDisputedApplicationIds(error ? new Set() : new Set((data ?? []).map(d => d.application_id)));
+      } catch {
+        if (active) setMyDisputedApplicationIds(new Set());
+      }
+    };
+    loadMyDisputedIds();
     return () => { active = false; };
   }, [user]);
 
@@ -8144,6 +8202,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setFilingDispute(false);
     if (error) { toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
     toast(t('toast.disputeFiled'), 'success');
+    setMyDisputedApplicationIds(prev => new Set(prev).add(disputeModal.applicationId));
     setDisputeModal(null);
     setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   };
@@ -8571,7 +8630,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                             {!myRatedApplicationIds.has(a.id) && (
                               <Btn size="xs" variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: selectedShift.title, rateeId: a.workerId, direction: 'employer_to_worker' }); }}>{t("rating.rateBtn")}</Btn>
                             )}
-                            <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
+                            {myDisputedApplicationIds.has(a.id) ? (
+                              <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, alignSelf: "center" }}>{t("myBids.disputeAlreadyFiledBadge")}</span>
+                            ) : (
+                              <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
+                            )}
                           </div>
                         )}
                         {action === "accepted" && a.checkedOutAt && (
