@@ -819,6 +819,55 @@ const TRANSLATIONS = {
     "discover.filtersLabel": "Filters",
     "discover.hideFiltersLabel": "Hide Filters",
     "discover.verifiedEmployerTooltip": "SSM-verified employer",
+    "discover.welcomeBack": "Welcome back, {name} 👋",
+    "discover.subtitleLoggedIn": "Find shifts near you — bid your rate",
+    "discover.browseHeading": "Browse open shifts",
+    "landing.eyebrow": "Verified shift marketplace · Malaysia",
+    "landing.headline1": "Work a shift.",
+    "landing.headline2": "Get paid. No chasing.",
+    "landing.subhead": "CariGaji holds the employer's funds before your shift even starts, and releases your pay the moment hours are confirmed — so you never have to ask \"will they actually pay me?\"",
+    "landing.ctaFindShift": "Find a shift near you",
+    "landing.ctaPostShift": "Post a shift as an employer",
+    "landing.microFree": "Free to browse",
+    "landing.microKyc": "ID-verified workers",
+    "landing.microSsm": "SSM-verified employers",
+    "landing.trustEyebrow": "Trust & safety",
+    "landing.trustHeading": "Four checks stand between you and a bad shift",
+    "landing.trustIdTitle": "Workers are ID-verified",
+    "landing.trustIdBody": "MyKad or passport checked against a selfie before higher-paying shifts unlock.",
+    "landing.trustSsmTitle": "Employers are business-verified",
+    "landing.trustSsmBody": "Every employer's SSM registration is checked by our team before they can post a shift.",
+    "landing.trustEscrowTitle": "Funds are held, not promised",
+    "landing.trustEscrowBody": "The wage is committed to CariGaji before the shift starts — it's not an IOU from the employer.",
+    "landing.trustDisputeTitle": "Disputes get a human",
+    "landing.trustDisputeBody": "Disagree on hours or conditions? File a dispute in-app and our team reviews it — pay isn't just forfeited.",
+    "landing.moneyEyebrow": "How payment works",
+    "landing.moneyHeading": "Where your money actually goes",
+    "landing.moneySubhead": "Most gig apps ask you to trust that payment will \"sort itself out.\" Here's the exact sequence, so it doesn't have to be trust — it's just how the system works.",
+    "landing.moneyStep1Title": "Employer commits funds",
+    "landing.moneyStep1Body": "Before your bid is even accepted, the employer's estimated wage cost is reserved for this shift.",
+    "landing.moneyStep1Status": "Committed",
+    "landing.moneyStep2Title": "Held for the shift",
+    "landing.moneyStep2Body": "You check in with a rotating code and check out with your real hours worked.",
+    "landing.moneyStep2Status": "Held",
+    "landing.moneyStep3Title": "Hours confirmed",
+    "landing.moneyStep3Body": "The employer confirms your hours — or disputes them, which routes to our team instead of silence.",
+    "landing.moneyStep3Status": "Confirmed",
+    "landing.moneyStep4Title": "Paid out",
+    "landing.moneyStep4Body": "Released to your verified bank account with your other CariGaji earnings for the month.",
+    "landing.moneyStep4Status": "Released",
+    "landing.howWorkerEyebrow": "For workers",
+    "landing.howWorkerHeading": "Find shift work in four steps",
+    "landing.howEmployerEyebrow": "For employers",
+    "landing.howEmployerHeading": "Hire vetted workers in four steps",
+    "landing.sampleRateLabel": "Rate",
+    "landing.sampleLengthLabel": "Shift length",
+    "landing.samplePayLabel": "Estimated pay",
+    "landing.sampleEscrowNote": "RM 96.00 already committed by the employer and held by CariGaji until your hours are confirmed.",
+    "landing.sampleSealLine1": "SSM",
+    "landing.sampleSealLine2": "Verified",
+    "landing.sampleSealLine3": "Employer",
+    "landing.sampleFundedBadge": "✓ Funded",
     "discover.filterCity": "City",
     "discover.anyCity": "Any city",
     "discover.filterAreaPlaceholder": "Area e.g. Bukit Bintang",
@@ -1683,6 +1732,55 @@ const TRANSLATIONS = {
     "discover.filtersLabel": "Penapis",
     "discover.hideFiltersLabel": "Sembunyi Penapis",
     "discover.verifiedEmployerTooltip": "Majikan disahkan SSM",
+    "discover.welcomeBack": "Selamat kembali, {name} 👋",
+    "discover.subtitleLoggedIn": "Cari syif berhampiran anda — buat bidaan anda",
+    "discover.browseHeading": "Layari syif terbuka",
+    "landing.eyebrow": "Pasaran syif yang disahkan · Malaysia",
+    "landing.headline1": "Bekerja satu syif.",
+    "landing.headline2": "Dapat bayaran. Tanpa mengejar.",
+    "landing.subhead": "CariGaji menahan dana majikan sebelum syif anda bermula, dan melepaskan bayaran anda sebaik sahaja jam kerja disahkan — jadi anda tidak perlu tertanya-tanya \"adakah mereka akan benar-benar bayar saya?\"",
+    "landing.ctaFindShift": "Cari syif berhampiran anda",
+    "landing.ctaPostShift": "Siarkan syif sebagai majikan",
+    "landing.microFree": "Percuma untuk melayari",
+    "landing.microKyc": "Pekerja disahkan identiti",
+    "landing.microSsm": "Majikan disahkan SSM",
+    "landing.trustEyebrow": "Kepercayaan & keselamatan",
+    "landing.trustHeading": "Empat semakan berdiri antara anda dan syif yang buruk",
+    "landing.trustIdTitle": "Pekerja disahkan identiti",
+    "landing.trustIdBody": "MyKad atau pasport disemak dengan swafoto sebelum syif berbayar tinggi dibuka.",
+    "landing.trustSsmTitle": "Majikan disahkan perniagaan",
+    "landing.trustSsmBody": "Pendaftaran SSM setiap majikan disemak oleh pasukan kami sebelum mereka boleh menyiarkan syif.",
+    "landing.trustEscrowTitle": "Dana ditahan, bukan sekadar dijanjikan",
+    "landing.trustEscrowBody": "Gaji diserahkan kepada CariGaji sebelum syif bermula — ia bukan janji lisan daripada majikan.",
+    "landing.trustDisputeTitle": "Pertikaian dilayan oleh manusia",
+    "landing.trustDisputeBody": "Tidak bersetuju tentang jam atau keadaan kerja? Failkan pertikaian dalam aplikasi dan pasukan kami akan menyemaknya — bayaran tidak terus hilang begitu sahaja.",
+    "landing.moneyEyebrow": "Cara bayaran berfungsi",
+    "landing.moneyHeading": "Ke mana sebenarnya wang anda pergi",
+    "landing.moneySubhead": "Kebanyakan aplikasi gig meminta anda percaya bahawa bayaran akan \"selesai dengan sendirinya.\" Ini urutan sebenarnya, jadi ia bukan sekadar kepercayaan — ia memang cara sistem ini berfungsi.",
+    "landing.moneyStep1Title": "Majikan menyerahkan dana",
+    "landing.moneyStep1Body": "Sebelum bidaan anda diterima pun, anggaran kos gaji majikan telah diperuntukkan untuk syif ini.",
+    "landing.moneyStep1Status": "Diserahkan",
+    "landing.moneyStep2Title": "Ditahan sepanjang syif",
+    "landing.moneyStep2Body": "Anda daftar masuk dengan kod berputar dan daftar keluar dengan jam sebenar yang anda kerjakan.",
+    "landing.moneyStep2Status": "Ditahan",
+    "landing.moneyStep3Title": "Jam disahkan",
+    "landing.moneyStep3Body": "Majikan mengesahkan jam anda — atau mempertikaikannya, yang akan dirujuk kepada pasukan kami dan bukannya senyap begitu sahaja.",
+    "landing.moneyStep3Status": "Disahkan",
+    "landing.moneyStep4Title": "Dibayar",
+    "landing.moneyStep4Body": "Dilepaskan ke akaun bank anda yang disahkan bersama pendapatan CariGaji lain anda untuk bulan itu.",
+    "landing.moneyStep4Status": "Dilepaskan",
+    "landing.howWorkerEyebrow": "Untuk pekerja",
+    "landing.howWorkerHeading": "Cari kerja syif dalam empat langkah",
+    "landing.howEmployerEyebrow": "Untuk majikan",
+    "landing.howEmployerHeading": "Upah pekerja yang disahkan dalam empat langkah",
+    "landing.sampleRateLabel": "Kadar",
+    "landing.sampleLengthLabel": "Tempoh syif",
+    "landing.samplePayLabel": "Anggaran gaji",
+    "landing.sampleEscrowNote": "RM 96.00 telah diserahkan oleh majikan dan ditahan oleh CariGaji sehingga jam kerja anda disahkan.",
+    "landing.sampleSealLine1": "SSM",
+    "landing.sampleSealLine2": "Disahkan",
+    "landing.sampleSealLine3": "Majikan",
+    "landing.sampleFundedBadge": "✓ Berdana",
     "discover.filterCity": "Bandar",
     "discover.anyCity": "Mana-mana bandar",
     "discover.filterAreaPlaceholder": "Kawasan cth. Bukit Bintang",
@@ -4413,6 +4511,143 @@ const DISPUTE_CATEGORIES = [
   { value: "other", labelKey: "dispute.categoryOther" },
 ];
 
+// Pre-signup landing content shown only to anonymous visitors on the
+// Discover tab (see WorkerPortal below) — the shift list alone doesn't
+// explain what CariGaji is or why the payment side is safe before someone
+// signs up. Built around the platform's actual escrow-style payment
+// sequence and existing verification tiers (KYC, SSM) rather than
+// fabricated stats or testimonials, since those are real, checkable claims
+// this early rather than unverifiable social proof.
+const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
+  const sectionPad = isMobile ? "20px 16px" : "48px 32px";
+  const eyebrowStyle = { fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: BRAND.primary, marginBottom: 10 };
+  const headingStyle = { fontSize: isMobile ? 22 : 28, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.01em", margin: "0 0 10px" };
+
+  const trustItems = [
+    { icon: "🪪", color: BRAND.primary, title: t("landing.trustIdTitle"), body: t("landing.trustIdBody") },
+    { icon: "🏢", color: BRAND.primary, title: t("landing.trustSsmTitle"), body: t("landing.trustSsmBody") },
+    { icon: "🔒", color: BRAND.amber, title: t("landing.trustEscrowTitle"), body: t("landing.trustEscrowBody") },
+    { icon: "⚖️", color: BRAND.green, title: t("landing.trustDisputeTitle"), body: t("landing.trustDisputeBody") },
+  ];
+
+  const moneySteps = [
+    { title: t("landing.moneyStep1Title"), body: t("landing.moneyStep1Body"), status: t("landing.moneyStep1Status"), color: BRAND.primary },
+    { title: t("landing.moneyStep2Title"), body: t("landing.moneyStep2Body"), status: t("landing.moneyStep2Status"), color: BRAND.amber },
+    { title: t("landing.moneyStep3Title"), body: t("landing.moneyStep3Body"), status: t("landing.moneyStep3Status"), color: BRAND.amber },
+    { title: t("landing.moneyStep4Title"), body: t("landing.moneyStep4Body"), status: t("landing.moneyStep4Status"), color: BRAND.green },
+  ];
+
+  const howSteps = (prefix) => [1, 2, 3, 4].map(n => t(`intro.${prefix}Step${n}`));
+
+  return (
+    <div>
+      {/* Hero */}
+      <div style={{ padding: sectionPad, paddingBottom: isMobile ? 28 : 40, background: `linear-gradient(160deg, ${BRAND.primary}12, transparent)` }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 24 : 40, alignItems: "center" }}>
+          <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+            <div style={eyebrowStyle}>{t("landing.eyebrow")}</div>
+            <h1 style={{ fontSize: isMobile ? 26 : 38, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.02em", lineHeight: 1.08, margin: "0 0 14px" }}>
+              {t("landing.headline1")}<br />
+              <span style={{ color: BRAND.primary }}>{t("landing.headline2")}</span>
+            </h1>
+            <p style={{ fontSize: isMobile ? 13.5 : 15.5, color: BRAND.textMuted, lineHeight: 1.6, maxWidth: 480, margin: "0 0 20px" }}>{t("landing.subhead")}</p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+              <Btn onClick={() => onRequireAuth("register")}>{t("landing.ctaFindShift")}</Btn>
+              <Btn variant="secondary" onClick={() => onRequireAuth("register", "employer")}>{t("landing.ctaPostShift")}</Btn>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 12, color: BRAND.textMuted }}>
+              <span>{t("landing.microFree")}</span><span style={{ color: BRAND.border }}>·</span>
+              <span>{t("landing.microKyc")}</span><span style={{ color: BRAND.border }}>·</span>
+              <span>{t("landing.microSsm")}</span>
+            </div>
+          </div>
+
+          {/* Payslip-style sample shift card */}
+          <div style={{ flex: "0 0 auto", width: isMobile ? "100%" : 340, position: "relative" }}>
+            <div style={{ position: "absolute", top: -14, right: 4, width: 66, height: 66, borderRadius: "50%", border: `2px dashed ${BRAND.green}`, background: BRAND.surfaceElevated, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-8deg)", zIndex: 1 }}>
+              <div style={{ textAlign: "center", fontSize: 8, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", color: BRAND.green, lineHeight: 1.3 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
+            </div>
+            <div style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 14, boxShadow: `0 12px 32px ${BRAND.shadow}`, padding: 18 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12 }}>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 14, color: BRAND.text }}>F&amp;B Server — Corporate Dinner</div>
+                  <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2 }}>📍 Bangsar, Kuala Lumpur</div>
+                </div>
+                <span style={{ background: BRAND.greenLight, color: BRAND.green, fontSize: 10.5, fontWeight: 800, padding: "3px 8px", borderRadius: 99, whiteSpace: "nowrap" }}>{t("landing.sampleFundedBadge")}</span>
+              </div>
+              {[[t("landing.sampleRateLabel"), "RM 16.00 / hr"], [t("landing.sampleLengthLabel"), "6 hrs"], [t("landing.samplePayLabel"), "RM 96.00"]].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: BRAND.textMuted, padding: "5px 0" }}>
+                  <span>{k}</span><b style={{ color: BRAND.text, fontWeight: 700 }}>{v}</b>
+                </div>
+              ))}
+              <div style={{ marginTop: 10, background: BRAND.amberLight, borderRadius: 8, padding: "9px 11px", fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5 }}>
+                {t("landing.sampleEscrowNote")}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trust stamps */}
+      <div style={{ padding: sectionPad, paddingTop: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <div style={{ ...eyebrowStyle, textAlign: "center" }}>{t("landing.trustEyebrow")}</div>
+          <div style={{ ...headingStyle, textAlign: "center" }}>{t("landing.trustHeading")}</div>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12 }}>
+          {trustItems.map(item => (
+            <div key={item.title} style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "16px 12px", textAlign: "center" }}>
+              <div style={{ width: 42, height: 42, margin: "0 auto 10px", borderRadius: "50%", border: `2px solid ${item.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{item.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 12.5, color: BRAND.text, marginBottom: 4 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5 }}>{item.body}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Where the money goes */}
+      <div style={{ padding: sectionPad, background: BRAND.grayLight }}>
+        <div style={{ maxWidth: 560, marginBottom: 24 }}>
+          <div style={eyebrowStyle}>{t("landing.moneyEyebrow")}</div>
+          <div style={headingStyle}>{t("landing.moneyHeading")}</div>
+          <p style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: 1.6, margin: 0 }}>{t("landing.moneySubhead")}</p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)", gap: 16 }}>
+          {moneySteps.map((step, i) => (
+            <div key={step.title}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: BRAND.text, marginBottom: 10 }}>{i + 1}</div>
+              <div style={{ fontWeight: 700, fontSize: 13.5, color: BRAND.text, marginBottom: 5 }}>{step.title}</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.55, marginBottom: 10 }}>{step.body}</div>
+              <span style={{ fontSize: 11.5, fontWeight: 700, padding: "4px 9px", borderRadius: 6, background: `${step.color}1A`, color: step.color }}>RM 96.00 · {step.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How it works, for workers / for employers */}
+      <div style={{ padding: sectionPad }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 28 : 36 }}>
+          {[
+            { eyebrow: t("landing.howWorkerEyebrow"), heading: t("landing.howWorkerHeading"), steps: howSteps("worker") },
+            { eyebrow: t("landing.howEmployerEyebrow"), heading: t("landing.howEmployerHeading"), steps: howSteps("employer") },
+          ].map(col => (
+            <div key={col.heading}>
+              <div style={eyebrowStyle}>{col.eyebrow}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: BRAND.text, marginBottom: 12 }}>{col.heading}</div>
+              {col.steps.map((step, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i > 0 ? `1px solid ${BRAND.border}` : "none" }}>
+                  <span style={{ fontWeight: 800, fontSize: 12.5, color: BRAND.textMuted, flexShrink: 0, width: 18 }}>{i + 1}</span>
+                  <span style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.55 }}>{step}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
 const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, onOpenSupportChat = openMailtoSupport }) => {
   const toast = useToast();
@@ -5938,10 +6173,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
         {tab === "discover" && (
           <div>
+            {/* Anonymous visitors land straight on this tab with nothing to
+                explain what CariGaji is or why the payment side is safe —
+                the shift list alone doesn't build the trust a first-time
+                visitor needs before signing up. Signed-in users skip
+                straight to the personalized greeting + shift list they
+                already know. */}
+            {!user && (
+              <DiscoverLandingHero t={t} isMobile={isMobile} onRequireAuth={onRequireAuth} />
+            )}
             <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
-              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: BRAND.text, marginBottom: 2 }}>Selamat Datang 👋</div>
-              <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted, marginBottom: 12 }}>Find shifts near you — bid your rate</div>
-              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" }}>
+              <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: BRAND.text, marginBottom: 2 }}>
+                {user ? t("discover.welcomeBack").replace("{name}", workerOwnName || user.email?.split("@")[0] || "") : t("discover.browseHeading")}
+              </div>
+              {user && <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted, marginBottom: 12 }}>{t("discover.subtitleLoggedIn")}</div>}
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none", marginTop: user ? 0 : 12 }}>
                 {cats.map(c => (
                   <button key={c} onClick={() => setFilterCat(c)} style={{
                     padding: isMobile ? "6px 12px" : "8px 16px", borderRadius: 99, border: "none", cursor: "pointer", fontFamily: "inherit",
@@ -6137,8 +6383,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <button onClick={() => setTab("discover")} style={footerLinkStyle}>{t("nav.discover")}</button>
                     {!user && <button onClick={() => onRequireAuth("signin")} style={footerLinkStyle}>{t("common.signIn")}</button>}
-                    {!user && <button onClick={() => onRequireAuth("signup")} style={footerLinkStyle}>{t("common.signUp")}</button>}
-                    {!user && <button onClick={() => onRequireAuth("signup", "employer")} style={footerLinkStyle}>{t("common.postAShift")}</button>}
+                    {!user && <button onClick={() => onRequireAuth("register")} style={footerLinkStyle}>{t("common.signUp")}</button>}
+                    {!user && <button onClick={() => onRequireAuth("register", "employer")} style={footerLinkStyle}>{t("common.postAShift")}</button>}
                     {user && <button onClick={() => setTab("applications")} style={footerLinkStyle}>{t("nav.myBids")}</button>}
                     {user && <button onClick={() => setTab("profile")} style={footerLinkStyle}>{t("nav.profile")}</button>}
                   </div>
