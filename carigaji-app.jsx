@@ -816,6 +816,7 @@ const TRANSLATIONS = {
     "notification.dayAgo": "{n}d ago",
     "discover.filtersLabel": "Filters",
     "discover.hideFiltersLabel": "Hide Filters",
+    "discover.verifiedEmployerTooltip": "SSM-verified employer",
     "discover.filterCity": "City",
     "discover.anyCity": "Any city",
     "discover.filterAreaPlaceholder": "Area e.g. Bukit Bintang",
@@ -1676,6 +1677,7 @@ const TRANSLATIONS = {
     "notification.dayAgo": "{n}h lalu",
     "discover.filtersLabel": "Penapis",
     "discover.hideFiltersLabel": "Sembunyi Penapis",
+    "discover.verifiedEmployerTooltip": "Majikan disahkan SSM",
     "discover.filterCity": "Bandar",
     "discover.anyCity": "Mana-mana bandar",
     "discover.filterAreaPlaceholder": "Kawasan cth. Bukit Bintang",
@@ -4525,6 +4527,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [livePayouts, setLivePayouts] = useState(null);
   const [payoutShiftTitles, setPayoutShiftTitles] = useState({}); // shift_id -> title, for the Earnings list
   const [liveShifts, setLiveShifts] = useState(null);
+  const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
   const [filterCity, setFilterCity] = useState('');
   const [filterArea, setFilterArea] = useState('');
   const [filterDate, setFilterDate] = useState('');
@@ -5057,6 +5060,30 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     return () => { active = false; };
   }, [user]);
 
+  // Anonymous visitors get every employer shown as the literal word
+  // "Employer" above -- profiles has no `to anon` RLS policy (correctly, it
+  // holds KYC/banking-adjacent data), so the embedded join silently resolves
+  // to null. That undermines the one thing a public marketplace feed most
+  // needs before someone signs up: looking like it has real, vetted
+  // employers. Backfill via a narrow security-definer RPC that returns only
+  // the four fields already safe to show anyone (see
+  // 20260810_public_employer_trust_signals.sql) -- never the full profiles
+  // row. Runs only for anon visitors; signed-in users already got real data
+  // from the RLS-permitted embed above.
+  useEffect(() => {
+    if (user || !liveShifts || liveShifts.length === 0) return undefined;
+    const employerIds = [...new Set(liveShifts.map(s => s.employerId).filter(Boolean))];
+    if (employerIds.length === 0) return undefined;
+    let active = true;
+    supabase.rpc('get_public_employer_trust_signals', { p_employer_ids: employerIds })
+      .then(({ data, error }) => {
+        if (!active || error) return;
+        setAnonEmployerTrust(Object.fromEntries((data ?? []).map(e => [e.id, e])));
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [user, liveShifts]);
+
   // Deep link from a clicked notification (e.g. "bid accepted") — the target
   // shift may no longer be status 'open', so it can't be found in liveShifts
   // and needs its own by-id fetch.
@@ -5248,7 +5275,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // of the JSX to avoid repeating the same object literal per link/chip.
   const footerLinkStyle = { border: "none", background: "transparent", padding: 0, textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: BRAND.textMuted };
   const footerCategoryChipStyle = { border: `1px solid ${BRAND.border}`, background: BRAND.surface, borderRadius: 99, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit", fontSize: 12, color: BRAND.textMuted };
-  const shiftsSource = liveShifts ?? [];
+  const shiftsSource = useMemo(() => {
+    const base = liveShifts ?? [];
+    if (!anonEmployerTrust) return base;
+    return base.map(s => {
+      const trust = s.employerId ? anonEmployerTrust[s.employerId] : null;
+      if (!trust) return s;
+      return {
+        ...s,
+        employer: trust.full_name || s.employer,
+        reliabilityScore: trust.reliability_score ?? s.reliabilityScore,
+        rating: trust.rating ?? s.rating,
+        employerVerified: trust.employer_verification_status === 'verified',
+      };
+    });
+  }, [liveShifts, anonEmployerTrust]);
   // Shifts the worker has an active (still-pending-decision) bid on should not
   // reappear in Discover — they can only place one bid per shift, and the
   // shift already lives in My Bids.
@@ -5972,7 +6013,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                           <Badge color="amber" size="xs">{s.category}</Badge>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
-                        <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted }}>{s.employer}</div>
+                        <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
+                          {s.employer}
+                          {s.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.green, fontWeight: 700 }}>✓</span>}
+                        </div>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
                         {/* Estimated total for the shift (lower-bound rate × hours) is the
