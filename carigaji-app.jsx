@@ -421,7 +421,7 @@ const TRANSLATIONS = {
     "toast.updateFailed": "Update failed: ",
     "toast.escrowTopupUnavailable": "Adding funds isn’t available yet — coming with FPX/DuitNow integration.",
     "toast.signInToPostShift": "Sign in to post a shift.",
-    "toast.shiftFieldsRequired": "Title, date, and start/end times are required.",
+    "toast.shiftFieldsRequired": "Title, location, date, and start/end times are required.",
     "toast.scheduleDatePast": "Every scheduled day must be today or later.",
     "toast.scheduleDuplicateDate": "Each day can only be added once — remove the duplicate date.",
     "toast.maxPayGteMinPay": "Max pay must be ≥ min pay.",
@@ -884,6 +884,7 @@ const TRANSLATIONS = {
     "employer.jobDescriptionPlaceholder": "Describe the role, responsibilities, and what a good day looks like…",
     "employer.labelCategory": "Category",
     "employer.labelLocation": "Location",
+    "employer.locationHint": "Can't find it in the suggestions? You can type any area or landmark name — it doesn't need to match a suggestion.",
     "employer.addressVisibilityLabel": "Address visibility",
     "employer.addressVisibilityPublic": "Show full address on listing",
     "employer.addressVisibilityPrivate": "Reveal only to accepted workers",
@@ -1283,7 +1284,7 @@ const TRANSLATIONS = {
     "toast.updateFailed": "Gagal kemas kini: ",
     "toast.escrowTopupUnavailable": "Tambah dana belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
     "toast.signInToPostShift": "Log masuk untuk siarkan syif.",
-    "toast.shiftFieldsRequired": "Tajuk, tarikh, dan masa mula/tamat diperlukan.",
+    "toast.shiftFieldsRequired": "Tajuk, lokasi, tarikh, dan masa mula/tamat diperlukan.",
     "toast.scheduleDatePast": "Setiap hari yang dijadualkan mestilah hari ini atau lebih lewat.",
     "toast.scheduleDuplicateDate": "Setiap hari hanya boleh ditambah sekali — buang tarikh berulang.",
     "toast.maxPayGteMinPay": "Gaji maksimum mesti ≥ gaji minimum.",
@@ -1746,6 +1747,7 @@ const TRANSLATIONS = {
     "employer.jobDescriptionPlaceholder": "Terangkan peranan, tanggungjawab, dan bagaimana rupa hari yang baik…",
     "employer.labelCategory": "Kategori",
     "employer.labelLocation": "Lokasi",
+    "employer.locationHint": "Tidak jumpa dalam cadangan? Anda boleh taip mana-mana nama kawasan atau mercu tanda — tidak perlu sepadan dengan cadangan.",
     "employer.addressVisibilityLabel": "Keterlihatan alamat",
     "employer.addressVisibilityPublic": "Tunjukkan alamat penuh pada penyenaraian",
     "employer.addressVisibilityPrivate": "Dedahkan hanya kepada pekerja yang diterima",
@@ -2577,6 +2579,7 @@ const loadGoogleMaps = (() => {
 // React-controlled <input>. It also doesn't leak a body-level dropdown node
 // the way the old one did, so the manual cleanup hack is gone too.
 const LocationAutocomplete = ({ label = "Location", value, onChange, error = false }) => {
+  const { t } = useLanguage();
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const containerRef = useRef(null);
   const elRef = useRef(null);
@@ -2595,6 +2598,10 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
         includedRegionCodes: ["my"],
       });
       el.value = value || "";
+      // No official placeholder prop on this element (unlike the old
+      // Autocomplete class), but it forwards unrecognized properties to its
+      // internal <input>, so this works exactly like a normal placeholder.
+      el.placeholder = "e.g. KLCC, Kuala Lumpur";
       // Two things had to be confirmed live, neither is documented clearly:
       // (1) the element renders at ~2px tall with no explicit height set —
       //     its internal input has no intrinsic height of its own.
@@ -2681,6 +2688,14 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
           fontSize: 14, background: BRAND.input, boxSizing: "border-box", overflow: "hidden",
         }}
       />
+      {/* Google's suggestion dropdown renders its own top-layer UI we can't
+          inject into, so a no-match query (e.g. a typo or a very small venue
+          Google doesn't index) shows an empty panel with zero feedback. This
+          hint is the one place we can tell the user typing freeform text is
+          still a valid, saved answer even with no suggestion selected. */}
+      <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>
+        {t("employer.locationHint")}
+      </div>
     </div>
   );
 };
@@ -8893,7 +8908,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       if (!user) { toast(t('toast.signInToPostShift'), 'error'); return; }
                       if (!editingShiftId && !guardPosting()) return;
                       const reason = validateOccurrences(form.occurrences);
-                      if (!form.title || reason) {
+                      if (!form.title || !form.location.trim() || reason) {
                         toast(t('toast.shiftFieldsRequired'), 'error'); return;
                       }
                       const sortedOccurrences = [...form.occurrences].sort((a, b) => a.date.localeCompare(b.date));
