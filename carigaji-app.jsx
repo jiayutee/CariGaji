@@ -518,7 +518,7 @@ const TRANSLATIONS = {
     "worker.previewModeBanner": "Preview only — this is how the app looks to workers. You can browse, but not apply or take worker actions.",
     "worker.previewModeExitBtn": "Exit preview",
     "worker.previewModeBlocked": "Preview only — switch to a worker account to actually do this.",
-    "worker.previewModeBidBtn": "Bidding disabled in preview",
+    "worker.previewModeBidBtn": "Preview — can't submit",
     "myBids.signContractBtn": "✍️ Sign Contract",
     "myBids.contractSignedBadge": "✅ Contract signed",
     "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
@@ -1459,7 +1459,7 @@ const TRANSLATIONS = {
     "worker.previewModeBanner": "Pratonton sahaja — beginilah rupa aplikasi kepada pekerja. Anda boleh melayari, tetapi tidak boleh memohon atau mengambil tindakan pekerja.",
     "worker.previewModeExitBtn": "Keluar pratonton",
     "worker.previewModeBlocked": "Pratonton sahaja — tukar kepada akaun pekerja untuk benar-benar melakukan ini.",
-    "worker.previewModeBidBtn": "Bidaan dilumpuhkan dalam pratonton",
+    "worker.previewModeBidBtn": "Pratonton — tidak boleh hantar",
     "myBids.signContractBtn": "✍️ Tandatangan Kontrak",
     "myBids.contractSignedBadge": "✅ Kontrak ditandatangani",
     "myBids.shiftCancelledNotice": "Syif ini telah dibatalkan oleh majikan. Tiada tindakan lanjut diperlukan.",
@@ -6329,12 +6329,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 )}
               </div>
             )}
+            {/* The one place the preview actually stops — everything above
+                (rate slider, live pay calc) stays fully interactive so the
+                employer can see exactly what a worker sees. */}
+            {previewMode && (
+              <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.amber}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, fontSize: 12, color: BRAND.amber, lineHeight: 1.5 }}>
+                👁️ {t("worker.previewModeBlocked")}
+              </div>
+            )}
             <div style={{ display: "flex", gap: 10 }}>
               <Btn variant="secondary" onClick={() => setShowBidModal(false)} style={{ flex: 1 }}>{t("common.cancel")}</Btn>
-              <Btn onClick={() => {
+              <Btn
+                disabled={previewMode}
+                title={previewMode ? t("worker.previewModeBlocked") : undefined}
+                onClick={() => {
                 (async () => {
                   if (!bidAmount) return;
-                  if (guardPreview()) { setShowBidModal(false); return; }
+                  if (guardPreview()) return;
                   if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`${t("toast.maxBidPrefix")}${(selectedShift.wageMax * 1.5).toFixed(0)}/h`, "error"); return; }
                   if (!user) { setShowBidModal(false); onRequireAuth("signin"); return; }
                   // Guard: mock shifts use numeric ids — require a real UUID id to insert
@@ -6363,7 +6374,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   setLiveApplications(prev => prev ? [{ id: data[0].id, shiftId: selectedShift.id, shiftTitle: selectedShift.title, employer: selectedShift.employer, date: selectedShift.date, wageBid: Number(bidAmount), status: data[0].status || 'pending', appliedAt: data[0].applied_at }, ...prev] : null);
                   setTimeout(() => { setBidSuccess(false); setSelectedShift(null); setTab('applications'); }, 2000);
                 })();
-              }} style={{ flex: 1 }}>{t("common.submitBid")}</Btn>
+              }} style={{ flex: 1 }}>{previewMode ? t("worker.previewModeBidBtn") : t("common.submitBid")}</Btn>
             </div>
           </div>
         </div>
@@ -6453,17 +6464,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
           </Card>
+          {/* Deliberately NOT disabled in preview — the bid modal (rate
+              slider, live gross-pay calc, binding-offer copy) is a big part
+              of what an employer came here to see. The block lives on the
+              modal's own Submit Bid button instead, so the whole interface
+              stays explorable but nothing can actually be written. */}
           <Btn
-            disabled={previewMode}
-            title={previewMode ? t("worker.previewModeBlocked") : undefined}
             onClick={() => {
-              if (guardPreview()) return;
               if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); }
               else { setPendingBidAfterAuth(true); onRequireAuth("signin"); }
             }}
             style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}
           >
-            {previewMode ? t("worker.previewModeBidBtn") : user ? t("common.placeBid") : t("common.signInToBid")}
+            {user ? t("common.placeBid") : t("common.signInToBid")}
           </Btn>
         </div>
       </div>
