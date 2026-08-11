@@ -515,6 +515,10 @@ const TRANSLATIONS = {
     "myBids.yourBidPrefix": "Your bid: ",
     "myBids.chatBtn": "Chat →",
     "worker.checkInBtn": "Check In",
+    "worker.previewModeBanner": "Preview only — this is how the app looks to workers. You can browse, but not apply or take worker actions.",
+    "worker.previewModeExitBtn": "Exit preview",
+    "worker.previewModeBlocked": "Preview only — switch to a worker account to actually do this.",
+    "worker.previewModeBidBtn": "Bidding disabled in preview",
     "myBids.signContractBtn": "✍️ Sign Contract",
     "myBids.contractSignedBadge": "✅ Contract signed",
     "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
@@ -1452,6 +1456,10 @@ const TRANSLATIONS = {
     "myBids.yourBidPrefix": "Tawaran anda: ",
     "myBids.chatBtn": "Sembang →",
     "worker.checkInBtn": "Daftar Masuk",
+    "worker.previewModeBanner": "Pratonton sahaja — beginilah rupa aplikasi kepada pekerja. Anda boleh melayari, tetapi tidak boleh memohon atau mengambil tindakan pekerja.",
+    "worker.previewModeExitBtn": "Keluar pratonton",
+    "worker.previewModeBlocked": "Pratonton sahaja — tukar kepada akaun pekerja untuk benar-benar melakukan ini.",
+    "worker.previewModeBidBtn": "Bidaan dilumpuhkan dalam pratonton",
     "myBids.signContractBtn": "✍️ Tandatangan Kontrak",
     "myBids.contractSignedBadge": "✅ Kontrak ditandatangani",
     "myBids.shiftCancelledNotice": "Syif ini telah dibatalkan oleh majikan. Tiada tindakan lanjut diperlukan.",
@@ -4807,6 +4815,22 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
 
+  // "Return to Worker App" (employer sidebar) / the admin equivalent used to
+  // hand the SAME real account straight into a fully-interactive
+  // WorkerPortal — user.id was still the employer's own id, and nothing
+  // anywhere checked role before writing, so an employer really could place
+  // a real bid, sign a real contract, check in/out, rate someone, or file a
+  // dispute AS THEMSELVES while just poking around to see what workers see.
+  // Preview mode: browsing/viewing stays fully live (that's the point —
+  // see the real Discover feed, a real shift's detail, etc.), but every
+  // write path below is gated through guardPreview() first.
+  const previewMode = Boolean(user) && userRole !== "worker";
+  const guardPreview = () => {
+    if (!previewMode) return false;
+    toast(t("worker.previewModeBlocked"), "info");
+    return true;
+  };
+
   // Same referral-share logic as the header's ProfileMenu (account.referFriends)
   // — duplicated locally rather than lifted, since ProfileMenu's copy is a
   // small self-contained closure and this is the only other call site.
@@ -4833,6 +4857,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   const handleAvatarUpload = async (file) => {
     if (!file || !user) return;
+    if (guardPreview()) return;
     setAvatarUploading(true);
     try {
       const path = await uploadAvatarFile(user.id, file);
@@ -5111,6 +5136,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   };
 
   const submitRating = async () => {
+    if (guardPreview()) return;
     if (!ratingModal || !user) return;
     const aspects = RATING_ASPECTS[ratingModal.direction];
     if (aspects.some(a => !ratingForm[a.value])) return;
@@ -5293,6 +5319,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [activeChatShift, user]);
 
   const sendMessage = async () => {
+    if (guardPreview()) return;
     if (!chatInput.trim() || !activeChatShift || !user) return;
     const content = chatInput.trim();
     setChatInput('');
@@ -5398,6 +5425,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Worker confirms a shift offer -> status becomes 'accepted', which then
   // unlocks the existing digital-contract signing step (Sign Contract button).
   const confirmOffer = async (applicationId) => {
+    if (guardPreview()) return;
     setRespondingOffer(true);
     const { error } = await supabase.from('applications').update({ status: 'accepted' }).eq('id', applicationId);
     setRespondingOffer(false);
@@ -5408,6 +5436,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   };
   // Worker declines an offer -> employer is notified (via DB trigger) to pick a substitute.
   const declineOffer = async (applicationId) => {
+    if (guardPreview()) return;
     setRespondingOffer(true);
     const { error } = await supabase.from('applications').update({ status: 'rejected' }).eq('id', applicationId);
     setRespondingOffer(false);
@@ -5420,6 +5449,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Cancel (withdraw) a pending bid. Matches the RLS policy: worker may
   // update their own application from 'pending' to 'withdrawn' only.
   const cancelBid = async (applicationId) => {
+    if (guardPreview()) return;
     setCancellingBid(true);
     const { error } = await supabase.from('applications').update({ status: 'withdrawn' }).eq('id', applicationId);
     setCancellingBid(false);
@@ -5436,6 +5466,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // The payout itself is created server-side by trg_create_cancellation_payout
   // once the proof path lands — never trust a client-computed amount.
   const submitShowUpProof = async (applicationId, file) => {
+    if (guardPreview()) return;
     if (!file) return;
     setCancellationProofUploading(applicationId);
     try {
@@ -5467,6 +5498,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // supabase/migrations/20260712_disputes.sql for the RLS that scopes
   // inserts to completed shifts only.
   const submitDispute = async () => {
+    if (guardPreview()) return;
     if (!disputeModal || !user || !disputeForm.description.trim()) return;
     setFilingDispute(true);
     const { error } = await supabase.from('disputes').insert({
@@ -5709,6 +5741,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   };
 
   const saveWorkerBankingDetails = async () => {
+    if (guardPreview()) return;
     if (!user) {
       setBankingMessage("Sign in to save banking details.");
       return;
@@ -6016,6 +6049,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <Btn
           disabled={checkinSubmitting || checkinCode.length !== 6}
           onClick={async () => {
+            if (guardPreview()) return;
             setCheckinSubmitting(true);
             setCheckinResult(null);
             const { error } = await supabase.rpc("worker_check_in", {
@@ -6090,6 +6124,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <Btn
           disabled={checkoutSubmitting || !checkoutHours || Number(checkoutHours) <= 0}
           onClick={async () => {
+            if (guardPreview()) return;
             setCheckoutSubmitting(true);
             setCheckoutResult(null);
             const { error } = await supabase.rpc("worker_submit_checkout", {
@@ -6183,6 +6218,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <Btn
           disabled={sedcardSaving}
           onClick={async () => {
+            if (guardPreview()) return;
             setSedcardSaving(true);
             const { error } = await supabase.from('profiles').update({
               bio: sedcardForm.bio.trim() ? sanitizeBulkTextValue(sedcardForm.bio.trim()) : null,
@@ -6241,6 +6277,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Btn
               disabled={personalDetailsSaving}
               onClick={async () => {
+                if (guardPreview()) return;
                 setPersonalDetailsSaving(true);
                 const { error } = await supabase.from('user_private').upsert({
                   id: user.id,
@@ -6297,6 +6334,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <Btn onClick={() => {
                 (async () => {
                   if (!bidAmount) return;
+                  if (guardPreview()) { setShowBidModal(false); return; }
                   if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`${t("toast.maxBidPrefix")}${(selectedShift.wageMax * 1.5).toFixed(0)}/h`, "error"); return; }
                   if (!user) { setShowBidModal(false); onRequireAuth("signin"); return; }
                   // Guard: mock shifts use numeric ids — require a real UUID id to insert
@@ -6415,8 +6453,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
           </Card>
-          <Btn onClick={() => { if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); } else { setPendingBidAfterAuth(true); onRequireAuth("signin"); } }} style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}>
-            {user ? t("common.placeBid") : t("common.signInToBid")}
+          <Btn
+            disabled={previewMode}
+            title={previewMode ? t("worker.previewModeBlocked") : undefined}
+            onClick={() => {
+              if (guardPreview()) return;
+              if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); }
+              else { setPendingBidAfterAuth(true); onRequireAuth("signin"); }
+            }}
+            style={{ width: "100%", justifyContent: "center", fontSize: isMobile ? 14 : 16, padding: isMobile ? "12px 0" : "14px 0", marginBottom: 20 }}
+          >
+            {previewMode ? t("worker.previewModeBidBtn") : user ? t("common.placeBid") : t("common.signInToBid")}
           </Btn>
         </div>
       </div>
@@ -6440,6 +6487,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   return (
     <>
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      {/* Persistent preview banner — an employer/admin viewing the worker
+          app is looking at the real live feed with their own account, so
+          without this it's genuinely indistinguishable from being a worker
+          (the complaint that prompted preview mode). Sticky rather than
+          one-off so it stays true no matter how deep they navigate. */}
+      {previewMode && (
+        <div style={{
+          flexShrink: 0, background: BRAND.amberLight, borderBottom: `1px solid ${BRAND.amber}`,
+          padding: isMobile ? "8px 12px" : "10px 20px", display: "flex", alignItems: "center",
+          justifyContent: "center", gap: 10, flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: BRAND.amber, fontWeight: 600, textAlign: "center" }}>
+            👁️ {t("worker.previewModeBanner")}
+          </span>
+          <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.(userRole === "employer" ? "employer" : "admin")} style={{ padding: "3px 10px" }}>
+            {t("worker.previewModeExitBtn")}
+          </Btn>
+        </div>
+      )}
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
         {tab === "discover" && (
