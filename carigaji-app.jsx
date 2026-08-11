@@ -2749,93 +2749,74 @@ const loadGoogleMaps = (() => {
 // so it's mounted imperatively into a container div rather than bound to a
 // React-controlled <input>. It also doesn't leak a body-level dropdown node
 // the way the old one did, so the manual cleanup hack is gone too.
+// Switched from google.maps.places.PlaceAutocompleteElement (the new
+// custom-element API) to the older google.maps.places.Autocomplete class,
+// bound to a plain <input> we fully control — see the 2026-08-11
+// investigation this replaced: the new element's suggestion dropdown
+// silently rendered empty (a fixed-position container with 0 children)
+// EVEN THOUGH its own network request to the Places API was verified
+// (via direct XHR instrumentation) to succeed with real, correct results —
+// this was reproducible for well-known places (Pavilion KL, Mid Valley,
+// Suria KLCC), so it isn't a no-match edge case. Its internal <input> also
+// didn't respond to Backspace/Delete at all (typing forward worked, typing
+// backward silently did nothing), which independently explained the styling
+// complaint too — a real <input> could never diverge from every other form
+// field the way a Shadow-DOM custom element can. Google's own docs concede
+// the old class still works for existing usage, just isn't offered to new
+// customers as of March 2025 — appropriate here since this key predates
+// that cutoff, and the old class is the mature, battle-tested one.
 const LocationAutocomplete = ({ label = "Location", value, onChange, error = false }) => {
   const { t } = useLanguage();
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const containerRef = useRef(null);
-  const elRef = useRef(null);
+  const inputRef = useRef(null);
+  const autocompleteRef = useRef(null);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
   useEffect(() => {
-    if (!apiKey || !containerRef.current) return;
+    if (!apiKey || !inputRef.current) return;
     let cancelled = false;
-    let el = null;
-    let selectListener = null;
-    let inputListener = null;
+    let autocomplete = null;
+    let placeChangedListener = null;
     loadGoogleMaps(apiKey).then(google => {
-      if (cancelled || !containerRef.current) return;
-      el = new google.maps.places.PlaceAutocompleteElement({
-        includedRegionCodes: ["my"],
+      if (cancelled || !inputRef.current) return;
+      autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
+        componentRestrictions: { country: "my" },
+        fields: ["name", "formatted_address"],
       });
-      el.value = value || "";
-      // No official placeholder prop on this element (unlike the old
-      // Autocomplete class), but it forwards unrecognized properties to its
-      // internal <input>, so this works exactly like a normal placeholder.
-      el.placeholder = "e.g. KLCC, Kuala Lumpur";
-      // Two things had to be confirmed live, neither is documented clearly:
-      // (1) the element renders at ~2px tall with no explicit height set —
-      //     its internal input has no intrinsic height of its own.
-      // (2) it only supports plain CSS properties for color (background-color/
-      //     color/border), NOT a --gmp-mat-* custom-property system (that
-      //     system is real, but belongs to the different PlaceDetailsElement
-      //     family) — and it defaults color-scheme to "light dark", which is
-      //     why it rendered as a dark search bar even on the app's light
-      //     theme. Using the live BRAND CSS vars (not resolved strings) keeps
-      //     it in sync automatically when the user switches theme.
-      Object.assign(el.style, {
-        width: "100%", height: "42px", display: "block",
-        colorScheme: "normal",
-        backgroundColor: BRAND.input, color: BRAND.text,
-      });
-      selectListener = async (e) => {
-        try {
-          const place = e.placePrediction.toPlace();
-          await place.fetchFields({ fields: ["displayName", "formattedAddress"] });
-          const name = place.displayName || "";
-          const address = place.formattedAddress || "";
-          // Google's formattedAddress often omits the venue name (e.g. "1 Utama
-          // Shopping Centre"), showing only the street address. Prepend the
-          // name so workers see the place, not just an address, on listings.
-          const combined = name && address && !address.toLowerCase().startsWith(name.toLowerCase())
-            ? `${name}, ${address}`
-            : (address || name || el.value);
-          el.value = combined;
-          onChangeRef.current(combined);
-        } catch { /* selection fetch failed — leave whatever the user typed */ }
+      placeChangedListener = () => {
+        const place = autocomplete.getPlace();
+        const name = place?.name || "";
+        const address = place?.formatted_address || "";
+        // Same reasoning as before: formatted_address often omits the venue
+        // name (e.g. "1 Utama Shopping Centre"), showing only the street
+        // address, so prepend the name when it isn't already part of it.
+        const combined = name && address && !address.toLowerCase().startsWith(name.toLowerCase())
+          ? `${name}, ${address}`
+          : (address || name || inputRef.current.value);
+        onChangeRef.current(combined);
       };
-      // Manual typing (no suggestion selected) doesn't fire gmp-select, but
-      // the element still behaves like a normal form input for keystrokes —
-      // mirrors the old plain-<input>-onChange fallback path.
-      inputListener = () => onChangeRef.current(el.value);
-      el.addEventListener("gmp-select", selectListener);
-      el.addEventListener("input", inputListener);
-      containerRef.current.appendChild(el);
-      elRef.current = el;
+      autocomplete.addListener("place_changed", placeChangedListener);
+      autocompleteRef.current = autocomplete;
     }).catch(() => {}); // silent fallback to manual typing
     return () => {
       cancelled = true;
-      if (el) {
-        el.removeEventListener("gmp-select", selectListener);
-        el.removeEventListener("input", inputListener);
-        el.remove();
+      // window.google, not the callback-scoped `google` param above (out of
+      // scope here) — safe since this only runs after the .then already
+      // resolved and set window.google itself, per loadGoogleMaps.
+      if (autocomplete && window.google) {
+        window.google.maps.event.clearInstanceListeners(autocomplete);
       }
-      elRef.current = null;
+      autocompleteRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
 
-  // Keep the widget's displayed text in sync with external value changes
-  // (e.g. the form resetting, or opening the edit-shift flow with a
-  // previously-saved location) without fighting the user's own typing.
-  useEffect(() => {
-    if (elRef.current && elRef.current.value !== value) elRef.current.value = value || "";
-  }, [value]);
-
-  if (!apiKey) return (
+  return (
     <div style={{ marginBottom: 16 }}>
       {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
       <input
+        ref={inputRef}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder="e.g. KLCC, Kuala Lumpur"
@@ -2845,28 +2826,15 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
           color: BRAND.text, background: BRAND.input, outline: "none", boxSizing: "border-box",
         }}
       />
-    </div>
-  );
-
-  return (
-    <div style={{ marginBottom: 16 }}>
-      {label && <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
-      <div
-        ref={containerRef}
-        style={{
-          width: "100%", borderRadius: 10,
-          border: `1.5px solid ${error ? BRAND.red : BRAND.border}`,
-          fontSize: 14, background: BRAND.input, boxSizing: "border-box", overflow: "hidden",
-        }}
-      />
-      {/* Google's suggestion dropdown renders its own top-layer UI we can't
-          inject into, so a no-match query (e.g. a typo or a very small venue
-          Google doesn't index) shows an empty panel with zero feedback. This
-          hint is the one place we can tell the user typing freeform text is
-          still a valid, saved answer even with no suggestion selected. */}
-      <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>
-        {t("employer.locationHint")}
-      </div>
+      {/* The old Autocomplete class's dropdown is still Google's own
+          top-layer UI we can't inject a "no results" message into, so this
+          hint stays: a no-match query is still a valid, saved answer even
+          with no suggestion selected. */}
+      {apiKey && (
+        <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>
+          {t("employer.locationHint")}
+        </div>
+      )}
     </div>
   );
 };
