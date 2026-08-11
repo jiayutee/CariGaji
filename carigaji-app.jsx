@@ -425,6 +425,8 @@ const TRANSLATIONS = {
     "toast.scheduleDatePast": "Every scheduled day must be today or later.",
     "toast.scheduleDuplicateDate": "Each day can only be added once — remove the duplicate date.",
     "toast.maxPayGteMinPay": "Max pay must be ≥ min pay.",
+    "toast.applicationDeadlinePast": "Application deadline must be in the future.",
+    "toast.applicationDeadlineAfterStart": "Application deadline must be before the shift starts.",
     "toast.postShiftFailed": "Failed to post shift: ",
     "toast.shiftPublished": "Shift published! Workers will start applying shortly.",
     "toast.contractSent": "✅ Contract sent to worker for signature!",
@@ -468,6 +470,7 @@ const TRANSLATIONS = {
     "shiftDetail.dressCode": "👗 Dress Code",
     "shiftDetail.languagesRequired": "🗣️ Languages Required",
     "shiftDetail.headcount": "👥 Headcount",
+    "shiftDetail.applicationDeadline": "⏳ Applications close",
     "shiftDetail.workersNeeded": "workers needed",
     "shiftDetail.employerScore": "🏢 Employer Score",
     "shiftDetail.employerScoreSignInToView": "Sign in to view this employer's reliability score.",
@@ -700,6 +703,17 @@ const TRANSLATIONS = {
     "employer.editShift": "Edit shift",
     "employer.chatDisabledHint": "Chat unlocks once a worker is confirmed for this shift.",
     "employer.cancelShift": "Cancel shift",
+    "employer.closeApplicationsBtn": "Close applications",
+    "employer.closingApplications": "Closing…",
+    "employer.closeApplicationsHint": "Stop taking new applications now, without cancelling the shift. Workers who already applied are unaffected.",
+    "employer.confirmCloseApplications": "Stop taking new applications for \"{title}\"? Workers who already applied keep their place — you can still review, shortlist, and offer to them as normal.",
+    "employer.toastCloseApplicationsFailed": "Failed to close applications: ",
+    "employer.toastApplicationsClosed": "Applications closed. No new workers can apply — your existing applicants are unaffected.",
+    "employer.applicationDeadlineLabel": "Application deadline (optional)",
+    "employer.applicationDeadlineHint": "Applications stop automatically at this time. Leave blank to keep taking applications until you close them manually or the shift fills. Must be before the shift starts.",
+    "employer.applicationDeadlinePassedBanner": "This shift's application deadline has passed and it's still short on workers. Applications won't reopen on their own — if you need more applicants for a short-notice fill, extend or clear the deadline.",
+    "employer.applicationDeadlineActiveLabel": "Applications close:",
+    "employer.selectedTotalLabel": "Total for this selection:",
     "employer.cancellingShift": "Cancelling…",
     "employer.applicantPool": "Applicant pool",
     "employer.postAShiftTitle": "Post a Shift",
@@ -1346,6 +1360,8 @@ const TRANSLATIONS = {
     "toast.scheduleDatePast": "Setiap hari yang dijadualkan mestilah hari ini atau lebih lewat.",
     "toast.scheduleDuplicateDate": "Setiap hari hanya boleh ditambah sekali — buang tarikh berulang.",
     "toast.maxPayGteMinPay": "Gaji maksimum mesti ≥ gaji minimum.",
+    "toast.applicationDeadlinePast": "Tarikh akhir permohonan mesti pada masa hadapan.",
+    "toast.applicationDeadlineAfterStart": "Tarikh akhir permohonan mesti sebelum syif bermula.",
     "toast.postShiftFailed": "Gagal siarkan syif: ",
     "toast.shiftPublished": "Syif disiarkan! Pekerja akan mula memohon tidak lama lagi.",
     "toast.contractSent": "✅ Kontrak dihantar kepada pekerja untuk tandatangan!",
@@ -1389,6 +1405,7 @@ const TRANSLATIONS = {
     "shiftDetail.dressCode": "👗 Kod Pakaian",
     "shiftDetail.languagesRequired": "🗣️ Bahasa Diperlukan",
     "shiftDetail.headcount": "👥 Bilangan Pekerja",
+    "shiftDetail.applicationDeadline": "⏳ Permohonan ditutup",
     "shiftDetail.workersNeeded": "pekerja diperlukan",
     "shiftDetail.employerScore": "🏢 Skor Majikan",
     "shiftDetail.employerScoreSignInToView": "Log masuk untuk melihat skor kebolehpercayaan majikan ini.",
@@ -1621,6 +1638,17 @@ const TRANSLATIONS = {
     "employer.editShift": "Sunting syif",
     "employer.chatDisabledHint": "Sembang dibuka sebaik sahaja seorang pekerja disahkan untuk syif ini.",
     "employer.cancelShift": "Batalkan syif",
+    "employer.closeApplicationsBtn": "Tutup permohonan",
+    "employer.closingApplications": "Menutup…",
+    "employer.closeApplicationsHint": "Berhenti menerima permohonan baharu sekarang, tanpa membatalkan syif. Pekerja yang telah memohon tidak terjejas.",
+    "employer.confirmCloseApplications": "Berhenti menerima permohonan baharu untuk \"{title}\"? Pekerja yang telah memohon kekal tempat mereka — anda masih boleh menyemak, menyenarai pendek, dan menawarkan kepada mereka seperti biasa.",
+    "employer.toastCloseApplicationsFailed": "Gagal menutup permohonan: ",
+    "employer.toastApplicationsClosed": "Permohonan ditutup. Tiada pekerja baharu boleh memohon — pemohon sedia ada anda tidak terjejas.",
+    "employer.applicationDeadlineLabel": "Tarikh akhir permohonan (pilihan)",
+    "employer.applicationDeadlineHint": "Permohonan akan berhenti secara automatik pada masa ini. Biarkan kosong untuk terus menerima permohonan sehingga anda menutupnya secara manual atau syif itu penuh. Mesti sebelum syif bermula.",
+    "employer.applicationDeadlinePassedBanner": "Tarikh akhir permohonan syif ini telah berlalu dan masih kekurangan pekerja. Permohonan tidak akan dibuka semula dengan sendirinya — jika anda memerlukan lebih ramai pemohon untuk mengisi kekosongan tergempar, lanjutkan atau kosongkan tarikh akhir.",
+    "employer.applicationDeadlineActiveLabel": "Permohonan ditutup:",
+    "employer.selectedTotalLabel": "Jumlah untuk pilihan ini:",
     "employer.cancellingShift": "Membatalkan…",
     "employer.applicantPool": "Kumpulan Pemohon",
     "employer.postAShiftTitle": "Siar Syif",
@@ -5476,7 +5504,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score, rating)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -5499,6 +5527,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           isMultiDay: (s.occurrences ?? []).length > 1,
           time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
           hours: totalOccurrenceHours(s.occurrences) || (s.start_at && s.end_at ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000) : 0),
+          applicationsCloseAt: s.applications_close_at,
           wageMin: Number(s.wage_min),
           wageMax: Number(s.wage_max),
           headcount: s.headcount,
@@ -5558,7 +5587,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, employer:profiles(full_name, reliability_score, rating)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating)')
       .eq('id', deepLinkShift.shiftId)
       .maybeSingle()
       .then(({ data: s }) => {
@@ -5577,6 +5606,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           isMultiDay: (s.occurrences ?? []).length > 1,
           time: formatShiftTime(s.start_at) && formatShiftTime(s.end_at) ? `${formatShiftTime(s.start_at)}–${formatShiftTime(s.end_at)}` : 'TBA',
           hours: totalOccurrenceHours(s.occurrences) || (s.start_at && s.end_at ? Math.round((new Date(s.end_at) - new Date(s.start_at)) / 3600000) : 0),
+          applicationsCloseAt: s.applications_close_at,
           wageMin: Number(s.wage_min),
           wageMax: Number(s.wage_max),
           headcount: s.headcount,
@@ -6367,6 +6397,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               [t("shiftDetail.dressCode"), selectedShift.dress],
               selectedShift.languageRequirements && selectedShift.languageRequirements.length > 0 ? [t("shiftDetail.languagesRequired"), selectedShift.languageRequirements.join(", ")] : null,
               [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
+              selectedShift.applicationsCloseAt && new Date(selectedShift.applicationsCloseAt) > new Date()
+                ? [t("shiftDetail.applicationDeadline"), new Date(selectedShift.applicationsCloseAt).toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })]
+                : null,
               selectedShift.specialRequirements ? [t("employer.specialRequirementsLabel"), selectedShift.specialRequirements] : null,
               selectedShift.reliabilityScore != null ? [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`] : null,
             ].filter(Boolean).map(([k, v, note]) => (
@@ -7751,8 +7784,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
+  const [closingApplications, setClosingApplications] = useState(false);
   const [lateCancelWarning, setLateCancelWarning] = useState(null); // { shiftId, title, confirmedCount } or null
-  const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
+  const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "", applicationsCloseAt: "" });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
   const [bulkGuideOpen, setBulkGuideOpen] = useState(false);
@@ -7978,7 +8012,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!user) return setLiveEmployerShifts(null);
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, location, dress_code, transport_allowance, description, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max')
+      .select('id, title, category, location, dress_code, transport_allowance, description, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at')
       .eq('employer_id', user.id)
       .order('start_at', { ascending: false });
     // Same fix as the worker My Bids loader: empty (not null) on error so
@@ -8008,6 +8042,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       dress: displayProtectedText(s.dress_code || ''),
       transportAllowance: Number(s.transport_allowance ?? 0),
       description: displayProtectedText(s.description || ''),
+      applicationsCloseAt: s.applications_close_at,
     })));
   }, [user]);
 
@@ -8019,7 +8054,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max')
+      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at')
       .eq('id', deepLinkShift.shiftId)
       .eq('employer_id', user.id)
       .maybeSingle()
@@ -8040,6 +8075,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + PLATFORM_FEE_PCT)),
           category: s.category,
           languageRequirements: s.language_requirements || [],
+          applicationsCloseAt: s.applications_close_at,
         });
         setView('shifts');
       });
@@ -8282,7 +8318,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const startEditShift = async (shiftId) => {
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, address_visibility, transport_allowance, language_requirements, requirements')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, address_visibility, transport_allowance, language_requirements, requirements, applications_close_at')
       .eq('id', shiftId)
       .single();
     if (error || !data) { toast(t('employer.toastLoadShiftFailed'), 'error'); return; }
@@ -8290,6 +8326,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     const start = data.start_at ? new Date(data.start_at) : null;
     const end = data.end_at ? new Date(data.end_at) : null;
     const hhmm = d => d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+    // Same browser-local-getter convention as start/end above, for the same
+    // "datetime-local has no timezone" reason.
+    const closeAtDate = data.applications_close_at ? new Date(data.applications_close_at) : null;
+    const applicationsCloseAt = closeAtDate
+      ? `${closeAtDate.getFullYear()}-${pad(closeAtDate.getMonth() + 1)}-${pad(closeAtDate.getDate())}T${hhmm(closeAtDate)}`
+      : '';
     const transportAmt = Number(data.transport_allowance) || 0;
     // Pre-migration rows (or any row that somehow ended up with an empty
     // occurrences array) fall back to a single occurrence built from
@@ -8313,6 +8355,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       transportAllowance: transportAmt > 0 ? String(transportAmt) : '',
       languageRequirements: data.language_requirements || [],
       specialRequirements: data.requirements?.special || '',
+      applicationsCloseAt,
     });
     setEditingShiftId(shiftId);
     setSelectedShift(null);
@@ -8329,6 +8372,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === shiftId ? { ...s, status: 'cancelled' } : s));
     setSelectedShift(prev => prev ? { ...prev, status: 'cancelled' } : prev);
     setLateCancelWarning(null);
+  };
+
+  // Stops new applications without cancelling the shift -- unlike Cancel,
+  // this has no payout side effects and existing applicants are untouched;
+  // it only flips the shift out of 'open' so the applications_worker_insert
+  // RLS policy (which requires shift.status = 'open') blocks new bids.
+  const handleCloseApplicationsClick = () => {
+    if (!window.confirm(t('employer.confirmCloseApplications').replace('{title}', selectedShift.title))) return;
+    doCloseApplications(selectedShift.id);
+  };
+
+  const doCloseApplications = async (shiftId) => {
+    setClosingApplications(true);
+    const { error } = await supabase.from('shifts').update({ status: 'closed' }).eq('id', shiftId);
+    setClosingApplications(false);
+    if (error) { toast(t('employer.toastCloseApplicationsFailed') + error.message, 'error'); return; }
+    toast(t('employer.toastApplicationsClosed'), 'success');
+    setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === shiftId ? { ...s, status: 'closed' } : s));
+    setSelectedShift(prev => prev ? { ...prev, status: 'closed' } : prev);
   };
 
   const confirmCheckoutHours = async (applicationId) => {
@@ -8416,6 +8478,34 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const detailAvgBid = (liveApplicants ?? []).length
     ? (liveApplicants ?? []).reduce((sum, a) => sum + (a.wageBid || 0), 0) / liveApplicants.length
     : 0;
+
+  // Real running total for exactly who's checked in the bulk-select bar —
+  // unlike Est. budget (a worst-case ceiling at wage_max) or Avg bid (just
+  // informational), this is the actual amount owed if the offer goes out to
+  // precisely this selection, at each person's own bid rate.
+  const selectedApplicantsTotal = selectedShift
+    ? selectedApplicantIds.reduce((sum, id) => {
+        const a = (liveApplicants ?? []).find(x => x.id === id);
+        return sum + (a ? a.wageBid * totalOccurrenceHours(selectedShift.occurrences ?? []) : 0);
+      }, 0)
+    : 0;
+
+  // Live feedback in the Post Shift form, ahead of the submit-time block —
+  // same two checks as the submit handler (deadline must be in the future,
+  // and no later than the shift's own start), just surfaced as the user
+  // types instead of only after they hit Publish.
+  const applicationDeadlineError = (() => {
+    if (!form.applicationsCloseAt) return null;
+    const deadline = new Date(`${form.applicationsCloseAt}:00+08:00`);
+    if (Number.isNaN(deadline.getTime())) return null;
+    if (deadline <= new Date()) return t('toast.applicationDeadlinePast');
+    const firstOccurrence = [...form.occurrences].filter(o => o.date && o.start).sort((a, b) => a.date.localeCompare(b.date))[0];
+    if (firstOccurrence) {
+      const shiftStart = new Date(`${firstOccurrence.date}T${firstOccurrence.start}:00+08:00`);
+      if (!Number.isNaN(shiftStart.getTime()) && deadline > shiftStart) return t('toast.applicationDeadlineAfterStart');
+    }
+    return null;
+  })();
 
   // History between this employer and the clicked worker — RLS only returns
   // applications on THIS employer's own shifts, which is exactly the scope
@@ -8920,7 +9010,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </Card>
             )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open").length} color={BRAND.primary} />
+              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open" || s.status === "closed").length} color={BRAND.primary} />
               <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
               <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
               <Stat label={t("employer.statReliability")} value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
@@ -9071,6 +9161,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     {Icons.QrCode ? Icons.QrCode({ size: 14 }) : "🔢"} <span style={{ marginLeft: 6 }}>{t("employer.checkinCodeBtn")}</span>
                   </Btn>
                 )}
+                {selectedShift.status === "open" && (
+                  <Btn
+                    variant="secondary"
+                    disabled={closingApplications}
+                    onClick={handleCloseApplicationsClick}
+                    title={t("employer.closeApplicationsHint")}
+                    style={{ padding: "8px 14px" }}
+                  >
+                    {closingApplications ? t("employer.closingApplications") : t("employer.closeApplicationsBtn")}
+                  </Btn>
+                )}
                 {selectedShift.status !== "cancelled" && selectedShift.status !== "completed" && (
                   <Btn
                     variant="secondary"
@@ -9083,10 +9184,38 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 )}
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-              <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
+            <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "closed" ? "amber" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift.date}</span>
             </div>
+            {(() => {
+              // The deadline never auto-flips shift.status (no cron exists
+              // to do it) -- it's enforced purely at the RLS level on new
+              // application inserts, so a shift can sit displayed as "open"
+              // well past its own deadline. Surface that explicitly rather
+              // than let the employer wonder why applications stopped
+              // coming in despite the status pill still saying "open" --
+              // and give them the actual way out (short notice, still
+              // understaffed): editing the shift and pushing the deadline
+              // back, or clearing it, immediately reopens applications --
+              // it's a normal field like any other, not a one-way lock.
+              if (selectedShift.status !== 'open' || !selectedShift.applicationsCloseAt) return null;
+              if (new Date(selectedShift.applicationsCloseAt) > new Date()) return null;
+              if (selectedShift.filled >= selectedShift.headcount) return null;
+              return (
+                <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12.5, color: BRAND.amber, lineHeight: 1.5 }}>
+                  {t('employer.applicationDeadlinePassedBanner')}{' '}
+                  <button onClick={() => startEditShift(selectedShift.id)} style={{ border: 'none', background: 'none', color: BRAND.amber, textDecoration: 'underline', cursor: 'pointer', fontWeight: 700, padding: 0, fontFamily: 'inherit', fontSize: 12.5 }}>
+                    {t('employer.editShift')}
+                  </button>
+                </div>
+              );
+            })()}
+            {selectedShift.applicationsCloseAt && new Date(selectedShift.applicationsCloseAt) > new Date() && (
+              <div style={{ fontSize: 12.5, color: BRAND.textMuted, marginBottom: 16 }}>
+                {t('employer.applicationDeadlineActiveLabel')} <b style={{ color: BRAND.text }}>{new Date(selectedShift.applicationsCloseAt).toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })}</b>
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
@@ -9126,8 +9255,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </div>
             {bulkSelectMode && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BRAND.primaryLight, borderRadius: 10, marginBottom: 12 }}>
-                <span style={{ fontSize: 12, color: BRAND.primary, fontWeight: 600 }}>{t("employer.selectedOfTotal").replace("{selected}", selectedApplicantIds.length).replace("{total}", openSlotsRemaining())}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BRAND.primaryLight, borderRadius: 10, marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: BRAND.primary, fontWeight: 600 }}>{t("employer.selectedOfTotal").replace("{selected}", selectedApplicantIds.length).replace("{total}", openSlotsRemaining())}</div>
+                  {selectedApplicantIds.length > 0 && (
+                    <div style={{ fontSize: 12, color: BRAND.primary, marginTop: 2 }}>
+                      {t("employer.selectedTotalLabel")} <b>RM{selectedApplicantsTotal.toFixed(2)}</b>
+                    </div>
+                  )}
+                </div>
                 <Btn size="xs" disabled={selectedApplicantIds.length === 0 || offering} onClick={() => makeOffer(selectedApplicantIds)}>
                   {offering ? t("employer.sendingOffer") : t("employer.offerToWorkers").replace("{count}", selectedApplicantIds.length || '').replace("{plural}", selectedApplicantIds.length === 1 ? '' : t("common.pluralSuffix"))}
                 </Btn>
@@ -9350,6 +9486,20 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>{t("employer.scheduleHint")}</div>
                   </div>
                   <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.applicationDeadlineLabel")}</label>
+                    <input
+                      type="datetime-local"
+                      value={form.applicationsCloseAt}
+                      onChange={e => setForm(f => ({ ...f, applicationsCloseAt: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${applicationDeadlineError ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, outline: "none", boxSizing: "border-box" }}
+                    />
+                    {applicationDeadlineError ? (
+                      <div style={{ fontSize: 11, color: BRAND.red, marginTop: 6 }}>{applicationDeadlineError}</div>
+                    ) : (
+                      <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 6 }}>{t("employer.applicationDeadlineHint")}</div>
+                    )}
+                  </div>
+                  <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.wageRangeLabel")}</label>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       <Input placeholder={t("employer.wageMinPlaceholder")} type="number" value={form.wageMin} onChange={e => setForm(f => ({ ...f, wageMin: e.target.value }))} />
@@ -9388,6 +9538,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     if (reason === 'empty' || reason === 'incomplete') { toast(t('toast.shiftFieldsRequired'), 'error'); return; }
                     if (reason === 'pastDate') { toast(t('toast.scheduleDatePast'), 'error'); return; }
                     if (reason === 'duplicateDate') { toast(t('toast.scheduleDuplicateDate'), 'error'); return; }
+                    if (applicationDeadlineError) { toast(applicationDeadlineError, 'error'); return; }
                     setPostStep(2);
                   }} style={{ width: "100%", justifyContent: "center" }}>{t("employer.nextRequirements")}</Btn>
                 </div>
@@ -9495,6 +9646,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       const wageMin = parseFloat(form.wageMin) || 0;
                       const wageMax = parseFloat(form.wageMax) || 0;
                       if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
+                      // Reuses the same live-validated value shown inline
+                      // above (applicationDeadlineError) instead of
+                      // re-deriving separate submit-time logic that could
+                      // silently drift out of sync with it.
+                      if (applicationDeadlineError) { toast(applicationDeadlineError, 'error'); return; }
+                      // Same +08:00-literal convention as the occurrence
+                      // date/times above — the datetime-local input's value
+                      // has no timezone of its own, so it's treated as
+                      // Malaysia wall-clock time, not the browser's.
+                      const applicationsCloseAtIso = form.applicationsCloseAt
+                        ? new Date(`${form.applicationsCloseAt}:00+08:00`).toISOString()
+                        : null;
                       const payload = {
                         title:       sanitizeBulkTextValue(form.title.trim()),
                         description: form.description ? sanitizeBulkTextValue(form.description.trim()) : null,
@@ -9510,6 +9673,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         address_visibility: form.addressVisibility || 'public',
                         transport_allowance: form.offersTransportAllowance ? (parseFloat(form.transportAllowance) || 0) : 0,
                         language_requirements: form.languageRequirements,
+                        applications_close_at: applicationsCloseAtIso,
                         // {} not null: `requirements` is NOT NULL DEFAULT '{}'::jsonb live —
                         // an explicit null still violates NOT NULL (the default only
                         // applies when the column is omitted from the insert/update
