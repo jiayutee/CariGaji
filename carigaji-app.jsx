@@ -7223,22 +7223,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         {tab === "profile" && user && (
           <div>
             <div style={{ textAlign: "center", padding: isMobile ? "12px 0 16px" : "20px 0 24px" }}>
+              {/* In preview mode the avatar is a plain image and the
+                  edit-photo overlay is gone entirely: an employer edits
+                  their own profile and photo in the Employer Console →
+                  Account, so offering a second editing entry point here
+                  only implies the worker view is where they'd have to do
+                  it. Same reason the "View / edit my profile" link and the
+                  Personal Details row below are hidden in preview. */}
               <div style={{ display: "inline-block", position: "relative" }}>
-                <button onClick={() => setShowSedcard(true)} aria-label={t("sedcard.title")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", borderRadius: "50%" }}>
+                {previewMode ? (
                   <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} src={getAvatarUrl(user.user_metadata?.avatar_url)} />
-                </button>
-                <label style={{
-                  position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
-                  borderRadius: "50%", background: BRAND.primary, color: "#fff",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  cursor: avatarUploading ? "wait" : "pointer", fontSize: 13,
-                  border: `2px solid ${BRAND.surface}`,
-                }} title={t("profile.changePhoto")}>
-                  {avatarUploading ? "…" : "✎"}
-                  <input type="file" accept="image/*" disabled={avatarUploading}
-                    onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
-                    style={{ display: "none" }} />
-                </label>
+                ) : (
+                  <>
+                    <button onClick={() => setShowSedcard(true)} aria-label={t("sedcard.title")} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", borderRadius: "50%" }}>
+                      <Avatar name={profileName} size={isMobile ? 56 : 72} color={BRAND.primary} src={getAvatarUrl(user.user_metadata?.avatar_url)} />
+                    </button>
+                    <label style={{
+                      position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
+                      borderRadius: "50%", background: BRAND.primary, color: "#fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: avatarUploading ? "wait" : "pointer", fontSize: 13,
+                      border: `2px solid ${BRAND.surface}`,
+                    }} title={t("profile.changePhoto")}>
+                      {avatarUploading ? "…" : "✎"}
+                      <input type="file" accept="image/*" disabled={avatarUploading}
+                        onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
+                        style={{ display: "none" }} />
+                    </label>
+                  </>
+                )}
               </div>
               {/* Full name is not user-editable here: it's tied to KYC identity
                   verification and the employment contract, so it may only be
@@ -7247,9 +7260,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   freely retyped after the fact. */}
               <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
-              <button onClick={() => setShowSedcard(true)} style={{ background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginTop: 6, fontFamily: "inherit" }}>
-                {t("profile.viewEditSedcard")}
-              </button>
+              {!previewMode && (
+                <button onClick={() => setShowSedcard(true)} style={{ background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginTop: 6, fontFamily: "inherit" }}>
+                  {t("profile.viewEditSedcard")}
+                </button>
+              )}
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">{t("profile.standardKyc")}</Badge>
                 <Badge color="green">🛡️ {profileStats.reliability_score}/100 {t("profile.reliabilitySuffix")}</Badge>
@@ -7261,10 +7276,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <Stat label={t("profile.strikes")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
               <Stat label={t("profile.onTimeRate")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
             </div>
-            {kycLevel === "Basic" && (
+            {kycLevel === "Basic" && !previewMode && (
               // Worker deferred their KYC document uploads during progressive
               // sign-up (kyc_level never left the default). Nudge them to
               // finish — the button reopens the details modal in kycOnly mode.
+              // Hidden in preview: it's an identity-upload prompt aimed at the
+              // viewer themselves, which would read as an instruction to the
+              // employer rather than a demonstration of the worker experience.
               <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.amber, marginBottom: 4 }}>{t("profile.completeKycTitle")}</div>
                 <div style={{ fontSize: 12, color: BRAND.amber, marginBottom: 12, lineHeight: 1.5 }}>{t("profile.completeKycHint")}</div>
@@ -7372,12 +7390,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {user && (
               <Card style={{ marginBottom: 16 }}>
                 {[
-                  { label: t("personalDetails.title"), icon: "🪪", onClick: () => setShowPersonalDetails(true) },
+                  // Personal Details is an editing surface for the viewer's
+                  // OWN identity/contact record — an employer manages that in
+                  // the Employer Console, so it's hidden in preview rather
+                  // than offering a duplicate (and misleading) entry point.
+                  previewMode ? null : { label: t("personalDetails.title"), icon: "🪪", onClick: () => setShowPersonalDetails(true) },
                   { label: t("account.help"), icon: "❓", onClick: () => setSettingsHelpOpen(true) },
                   { label: t("account.contactSupport"), icon: "💬", onClick: onOpenSupportChat },
                   { label: t("account.referFriends"), icon: "🎁", onClick: shareWorkerReferralLink },
                   { label: t("account.signOut"), icon: "↩️", danger: true, onClick: () => supabase.auth.signOut() },
-                ].map((it, i, arr) => (
+                ].filter(Boolean).map((it, i, arr) => (
                   <button
                     key={it.label}
                     onClick={it.onClick}
