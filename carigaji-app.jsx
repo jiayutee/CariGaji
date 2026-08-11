@@ -1149,7 +1149,9 @@ const TRANSLATIONS = {
     "employer.savedAccountPrefix": "Saved account: ••••",
     "employer.tbaShort": "TBA",
     "employer.pendingPayout": "Pending payout",
+    "employer.pendingPayoutTooltip": "Funds committed for shifts that are queued, ready, or held — not yet released to workers.",
     "employer.totalPaidOut": "Total paid out",
+    "employer.totalPaidOutTooltip": "Funds already released to workers for completed, confirmed shifts.",
     "employer.escrowUnavailableNote": "Adding funds isn't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.",
     "employer.addFundsSoon": "+ Add Funds (soon)",
     "employer.payoutLedgerTitle": "Payout Ledger",
@@ -2084,7 +2086,9 @@ const TRANSLATIONS = {
     "employer.savedAccountPrefix": "Akaun disimpan: ••••",
     "employer.tbaShort": "Belum Ditetapkan",
     "employer.pendingPayout": "Bayaran tertunda",
+    "employer.pendingPayoutTooltip": "Dana yang diperuntukkan untuk syif yang sedang dalam giliran, sedia, atau ditahan — belum dilepaskan kepada pekerja.",
     "employer.totalPaidOut": "Jumlah dibayar",
+    "employer.totalPaidOutTooltip": "Dana yang telah dilepaskan kepada pekerja untuk syif yang selesai dan disahkan.",
     "employer.escrowUnavailableNote": "Menambah dana belum tersedia lagi — ini adalah pratonton sehingga get pembayaran sebenar (FPX/DuitNow) disepadukan.",
     "employer.addFundsSoon": "+ Tambah Dana (akan datang)",
     "employer.payoutLedgerTitle": "Lejar Bayaran",
@@ -9889,8 +9893,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
-              <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} color={BRAND.amber} />
-              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} color={BRAND.primary} />
+              <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} tooltip={t("employer.pendingPayoutTooltip")} color={BRAND.amber} />
+              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} tooltip={t("employer.totalPaidOutTooltip")} color={BRAND.primary} />
             </div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
               {t("employer.escrowUnavailableNote")}
