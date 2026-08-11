@@ -14,10 +14,13 @@
 -- 'cancelled', which calls off the shift entirely and triggers the
 -- late-cancellation payout flow for already-confirmed workers -- closing
 -- applications has no payout side effects at all.
-
-alter table public.shifts drop constraint if exists shifts_status_check;
-alter table public.shifts add constraint shifts_status_check
-  check (status in ('draft','open','filled','closed','completed','cancelled'));
+--
+-- MUST run 20260811a_widen_shift_status_enum.sql FIRST, separately -- that
+-- file adds the 'closed' label to the shift_status enum type. This file no
+-- longer touches a check constraint at all: shifts.status is a native
+-- Postgres enum (confirmed live, not text+check as the original
+-- 20260629_shifts_and_applications.sql assumed), so it's self-validating
+-- once the enum itself has the label -- no CHECK needed or possible here.
 
 -- Existing applicants (and anyone with a live application on the shift)
 -- still need read access once it leaves 'open' -- same reasoning that
