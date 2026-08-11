@@ -457,7 +457,8 @@ const TRANSLATIONS = {
     "shiftDetail.shiftDuration": "Shift Duration",
     "shiftDetail.daysCount": "{count} days",
     "shiftDetail.estimatedGross": "Estimated Gross",
-    "shiftDetail.atMaxRate": "at max rate",
+    "shiftDetail.atAvgRate": "at average rate",
+    "shiftDetail.estimatedGrossTooltip": "Average hourly rate (midpoint of RM{min}–{max}) × shift hours. Your actual pay depends on your accepted bid.",
     "shiftDetail.transportAllowance": "Transport Allowance",
     "shiftDetail.title": "Shift Details",
     "shiftDetail.aboutRole": "About this role",
@@ -1014,8 +1015,10 @@ const TRANSLATIONS = {
     "employer.statAppliedUsers": "Applied users",
     "employer.statSlotsFilled": "Slots filled",
     "employer.statEstBudget": "Est. budget (max)",
+    "employer.statEstBudgetTooltip": "Max hourly wage × total shift hours × headcount, plus {feePct}% platform fee. Your actual cost may be lower if accepted bids are below max wage.",
     "employer.listCardEstBudget": "RM{amount} est. budget",
     "employer.statAvgBid": "Avg bid",
+    "employer.statAvgBidTooltip": "Average of all bids submitted by workers for this shift so far.",
     "employer.positionsOpenHint": "{open} of {total} position{plural} still open.",
     "employer.appliedBadge": "{count} applied",
     "employer.selectMultiple": "Select multiple",
@@ -1375,7 +1378,8 @@ const TRANSLATIONS = {
     "shiftDetail.shiftDuration": "Tempoh Syif",
     "shiftDetail.daysCount": "{count} hari",
     "shiftDetail.estimatedGross": "Anggaran Kasar",
-    "shiftDetail.atMaxRate": "pada kadar maksimum",
+    "shiftDetail.atAvgRate": "pada kadar purata",
+    "shiftDetail.estimatedGrossTooltip": "Kadar sejam purata (titik tengah RM{min}–{max}) × jam syif. Gaji sebenar bergantung pada tawaran yang diterima.",
     "shiftDetail.transportAllowance": "Elaun Pengangkutan",
     "shiftDetail.title": "Butiran Syif",
     "shiftDetail.aboutRole": "Tentang peranan ini",
@@ -1932,8 +1936,10 @@ const TRANSLATIONS = {
     "employer.statAppliedUsers": "Pengguna memohon",
     "employer.statSlotsFilled": "Slot diisi",
     "employer.statEstBudget": "Anggaran bajet (maks)",
+    "employer.statEstBudgetTooltip": "Gaji sejam maksimum × jumlah jam syif × bilangan slot, ditambah yuran platform {feePct}%. Kos sebenar mungkin lebih rendah jika tawaran diterima di bawah gaji maksimum.",
     "employer.listCardEstBudget": "RM{amount} anggaran bajet",
     "employer.statAvgBid": "Purata tawaran",
+    "employer.statAvgBidTooltip": "Purata semua tawaran yang dihantar oleh pekerja untuk syif ini setakat ini.",
     "employer.positionsOpenHint": "{open} daripada {total} kekosongan{plural} masih terbuka.",
     "employer.appliedBadge": "{count} memohon",
     "employer.selectMultiple": "Pilih berbilang",
@@ -2650,9 +2656,12 @@ const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src = null 
   );
 });
 
-const Stat = memo(({ label, value, sub, color = BRAND.primary }) => (
-  <div style={{ background: BRAND.grayLight, borderRadius: 14, padding: "16px 20px" }}>
-    <div style={{ fontSize: 12, color: BRAND.textMuted, fontWeight: 500, marginBottom: 4 }}>{label}</div>
+const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip }) => (
+  <div title={tooltip} style={{ background: BRAND.grayLight, borderRadius: 14, padding: "16px 20px", cursor: tooltip ? "help" : "default" }}>
+    <div style={{ fontSize: 12, color: BRAND.textMuted, fontWeight: 500, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+      {label}
+      {tooltip && <span aria-hidden="true" style={{ color: BRAND.textMuted, opacity: 0.7, fontSize: 11, border: `1px solid ${BRAND.textMuted}`, borderRadius: "50%", width: 13, height: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>?</span>}
+    </div>
     <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
     {sub && <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>{sub}</div>}
   </div>
@@ -6329,7 +6338,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: isMobile ? 8 : 10, marginBottom: 16 }}>
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
             <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={selectedShift.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", selectedShift.occurrences.length) : selectedShift.date} color={BRAND.text} />
-            <Stat label={t("shiftDetail.estimatedGross")} value={`RM${selectedShift.wageMax * selectedShift.hours}`} sub={t("shiftDetail.atMaxRate")} color={BRAND.green} />
+            <Stat label={t("shiftDetail.estimatedGross")} value={`RM${(((selectedShift.wageMin + selectedShift.wageMax) / 2) * selectedShift.hours).toFixed(2)}`} sub={t("shiftDetail.atAvgRate")} tooltip={t("shiftDetail.estimatedGrossTooltip").replace("{min}", selectedShift.wageMin).replace("{max}", selectedShift.wageMax)} color={BRAND.green} />
             <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
           {selectedShift.description && (
@@ -9081,8 +9090,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
-              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} color={BRAND.primary} />
-              <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} color={BRAND.accent} />
+              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={t("employer.statEstBudgetTooltip").replace("{feePct}", PLATFORM_FEE_PCT * 100)} color={BRAND.primary} />
+              <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} tooltip={t("employer.statAvgBidTooltip")} color={BRAND.accent} />
             </div>
             {selectedShift.status === "cancelled" && confirmedSignedApplicants.length > 0 && (
               <Card style={{ marginBottom: 20 }}>
