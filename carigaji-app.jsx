@@ -12396,9 +12396,120 @@ const BackGestureManager = ({ enabled, backHandlerRef, authOpen, onCloseAuth }) 
   return null;
 };
 
+// Single source of truth for "is this a phone-sized viewport". Shared by the
+// isMobile viewport check and by backTrapActive() below, which has to agree
+// with it exactly — they select between two different navigation models.
+const MOBILE_BREAKPOINT = 768;
+
+// ─── PORTAL ROUTING ───────────────────────────────────────────────────────────
+// Top-level portals get real addresses so links, refresh, bookmarks and the
+// browser's own Back button work natively:
+//   /CariGaji/          -> worker
+//   /CariGaji/employer  -> employer console
+//   /CariGaji/admin     -> admin dashboard
+//
+// Deliberately NOT a router library: three routes don't justify the dependency
+// in an app whose only deps are React + Supabase, and a handful of helpers
+// matches this file's existing style. Tabs, sub-views and modals stay as
+// component state — routing those too would multiply the regression surface
+// for a fraction of the benefit.
+//
+// All path math is relative to Vite's `base` (/CariGaji/), never the domain
+// root — getting that wrong is the classic GitHub Pages project-site bug.
+const APP_BASE = (import.meta.env.BASE_URL || "/").replace(/\/+$/, ""); // "/CariGaji"
+const PORTAL_PATHS = { worker: "", employer: "employer", admin: "admin" };
+
+const portalToPath = (portal) => {
+  const seg = PORTAL_PATHS[portal] ?? "";
+  return `${APP_BASE}/${seg}`.replace(/\/{2,}/g, "/");
+};
+
+const portalFromPath = (pathname = "") => {
+  // Strip the base prefix, then take the first segment. Unknown segments fall
+  // back to the worker app rather than rendering nothing.
+  let rest = pathname;
+  if (APP_BASE && rest.startsWith(APP_BASE)) rest = rest.slice(APP_BASE.length);
+  const seg = rest.replace(/^\/+/, "").split("/")[0];
+  if (seg === "employer") return "employer";
+  if (seg === "admin") return "admin";
+  return "worker";
+};
+
+const samePath = (a, b) => (a.replace(/\/+$/, "") || "/") === (b.replace(/\/+$/, "") || "/");
+
+// Is BackGestureManager's history trap currently armed? It mounts on
+// `isMobile` (viewport width), so the same test answers it here without
+// threading state through — see the two navigation models it selects between
+// in the setPortal comment below.
+const backTrapActive = () =>
+  typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
-  const [portal, setPortal] = useState("worker");
+  const [portal, setPortalState] = useState(() =>
+    typeof window === "undefined" ? "worker" : portalFromPath(window.location.pathname)
+  );
+  const portalRef = useRef(portal);
+  portalRef.current = portal;
+
+  // Drop-in replacement for the old setPortal: every existing call site keeps
+  // working unchanged, but navigation now also moves the URL.
+  //
+  // Two navigation models, because BackGestureManager makes mobile genuinely
+  // different — it traps Back with sentinel history entries so back never
+  // leaves the app:
+  //
+  //   Desktop (trap off) — URL drives portal. Push a real entry, and let
+  //     popstate sync `portal` back. Browser Back moves between portals,
+  //     which is the whole point of the addresses.
+  //   Mobile (trap on) — portal drives URL. Push would be actively harmful:
+  //     the entry sits above the sentinel, so a back gesture pops OUR entry
+  //     instead of the sentinel, and BackGestureManager's `depth` counter
+  //     decrements for a sentinel that was never consumed (its "really exit"
+  //     history.go(-(depth+1)) then jumps to the wrong place). Replace keeps
+  //     the URL shareable/refreshable without touching the stack it owns.
+  //
+  // `replace` is also forced for automatic redirects (landing on the portal
+  // for your role at sign-in) so they don't litter history with entries the
+  // user never chose to visit.
+  const setPortal = useCallback((next, { replace = false } = {}) => {
+    if (typeof window !== "undefined") {
+      const target = portalToPath(next);
+      if (!samePath(target, window.location.pathname)) {
+        // state marker lets popstate tell OUR entries apart from the
+        // BackGestureManager sentinels that share this history stack.
+        const method = replace || backTrapActive() ? "replaceState" : "pushState";
+        window.history[method]({ carigajiPortal: next }, "", target);
+      }
+    }
+    setPortalState(next);
+  }, []);
+
+  // Which account the role-based landing redirect has already run for — see
+  // its use in the profile-load effect below.
+  const lastRoutedUserIdRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const onPop = () => {
+      if (backTrapActive()) {
+        // Mobile: BackGestureManager owns Back entirely, and the entries it
+        // pops are its own sentinels — whose URLs are whatever was current
+        // when they were pushed, i.e. stale. Reading `portal` off them would
+        // spuriously switch portals mid-gesture. Re-assert the URL from the
+        // portal we're actually showing instead.
+        const target = portalToPath(portalRef.current);
+        if (!samePath(target, window.location.pathname)) {
+          window.history.replaceState({ carigajiPortal: portalRef.current }, "", target);
+        }
+        return;
+      }
+      // Desktop: this is a real Back/Forward between portal addresses.
+      setPortalState(portalFromPath(window.location.pathname));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const [userRole, setUserRole] = useState(null);
   const [homeSignal, setHomeSignal] = useState(0);
   // Set when a notification with a "/worker/shifts/{id}",
@@ -12421,6 +12532,9 @@ export default function CariGaji() {
   const [themePreference, setThemePreference] = useState(() => readThemePreference());
   const [systemTheme, setSystemTheme] = useState(() => getSystemTheme());
   const [user, setUser] = useState(null);
+  // false until the initial session restore settles -- distinguishes
+  // "signed out" from "not known yet", which are both `user === null`.
+  const [authResolved, setAuthResolved] = useState(false);
   // Tri-state: undefined = not fetched yet (avoid flashing the T&C gate
   // before we know), null = signed in but hasn't accepted, timestamp string
   // = accepted. See the profile-role fetch effect below for how it's loaded.
@@ -12593,14 +12707,30 @@ export default function CariGaji() {
       const { data } = await supabase.auth.getUser();
       if (!mounted) return;
       setUser(data?.user ?? null);
+      setAuthResolved(true);
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setAuthResolved(true);
     });
 
     return () => { mounted = false; sub.subscription.unsubscribe(); };
   }, []);
+
+  // Portal addresses are now typeable, so a signed-out visitor can land
+  // straight on /CariGaji/employer -- which renders an Employer Console whose
+  // every query short-circuits on !user, i.e. a convincing but permanently
+  // empty dashboard with no way in. Send them to the worker landing page,
+  // which has the actual sign-in / "Post a shift" entry points.
+  //
+  // Gated on authResolved because `user` is null during session restore too:
+  // firing on that would bounce a signed-in employer off their own console on
+  // every refresh. /admin needs no equivalent -- AdminAccessRequired already
+  // covers both the signed-out and wrong-role cases.
+  useEffect(() => {
+    if (authResolved && !user && portal === "employer") setPortal("worker", { replace: true });
+  }, [authResolved, user, portal, setPortal]);
 
   // Basic analytics: one page_view per app mount.
   useEffect(() => {
@@ -12634,10 +12764,20 @@ export default function CariGaji() {
         setDetailsCompletedAt(data?.details_completed_at ?? null);
         setIntroSeenAt(data?.intro_seen_at ?? null);
         setProfileKycLevel(data?.kyc_level ?? null);
+        // Role-based landing portal. Guarded on "which account was last
+        // routed" rather than firing on every profile load: without this it
+        // re-ran on each fetch and would now yank the URL back, fighting the
+        // browser's own Back/Forward. Keyed on user id (not a one-shot flag)
+        // so signing out and back in as a different role still redirects.
+        // replace:true — an automatic redirect the user never chose shouldn't
+        // leave a history entry that Back bounces off.
         const isAdminAccount = user?.app_metadata?.role === 'admin';
-        if (isAdminAccount) setPortal('admin');
-        else if (role === 'employer') setPortal('employer');
-        else setPortal('worker');
+        if (lastRoutedUserIdRef.current !== user.id) {
+          lastRoutedUserIdRef.current = user.id;
+          if (isAdminAccount) setPortal('admin', { replace: true });
+          else if (role === 'employer') setPortal('employer', { replace: true });
+          else setPortal('worker', { replace: true });
+        }
 
         // Self-heal missing names: OAuth sign-up (Google/Apple/Facebook)
         // never writes to `profiles` at all — the only place a profiles row
@@ -12706,7 +12846,7 @@ export default function CariGaji() {
     };
   }, []);
 
-  const isMobile = viewport.width < 768;
+  const isMobile = viewport.width < MOBILE_BREAKPOINT;
 
   const portalConfig = {
     worker: { label: "Worker", color: BRAND.primary, width: 390, height: 780 },
@@ -12813,7 +12953,7 @@ export default function CariGaji() {
             {user ? (
               <ProfileMenu
                 user={user}
-                onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+                onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
                 onOpenSupportChat={() => setSupportChatOpen(true)}
                 isMobile={isMobile}
               />
@@ -12855,7 +12995,7 @@ export default function CariGaji() {
         open={Boolean(user) && tncAcceptedAt === null}
         accepting={tncAccepting}
         onAccept={acceptTnC}
-        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
       />
       {/* Progressive-signup sequence: T&C gate above, then required details,
           then the one-time intro. The gate conditions are mutually exclusive
@@ -12865,7 +13005,7 @@ export default function CariGaji() {
         user={user}
         role={userRole}
         onCompleted={ts => setDetailsCompletedAt(ts)}
-        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); setPortal("worker"); }}
+        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
       />
       <DetailsGateModal
         open={kycUploadOpen && Boolean(user)}
