@@ -43,6 +43,20 @@ const occurrenceHours = (occ) => {
 };
 const totalOccurrenceHours = (occurrences) => (occurrences ?? []).reduce((sum, occ) => sum + occurrenceHours(occ), 0);
 
+// occurrenceHours is exact minutes/60 (e.g. a 4:10-4:50 shift is
+// 0.6666666666666666h) — correct for math (pay = rate x hours), but
+// unreadable shown raw as "0.6666666666666666h". This is display-only:
+// callers doing arithmetic (estimated pay, budgets) must keep using the
+// raw number from occurrenceHours/totalOccurrenceHours directly, never this.
+const formatDurationHours = (hours) => {
+  const totalMinutes = Math.round((Number(hours) || 0) * 60);
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+};
+
 // Formats a date+time-range for a single day, in the same style as the
 // existing formatShiftTime/formatShiftDate helpers, but from plain
 // "YYYY-MM-DD"/"HH:MM" strings (no timezone conversion needed — these are
@@ -3814,7 +3828,7 @@ const buildContractRows = (t, {
     { label: t("contract.categoryLabel"), value: shiftCategory || ns },
     { label: t("contract.locationLabel"), value: shiftLocation || ns },
     { label: t("contract.scheduleLabel"), value: scheduleText || ns },
-    { label: t("contract.totalHoursLabel"), value: hours ? `${hours} h` : ns },
+    { label: t("contract.totalHoursLabel"), value: hours ? formatDurationHours(hours) : ns },
     { label: t("contract.dressCodeLabel"), value: dressCode || ns },
     { label: t("contract.languagesLabel"), value: languages || ns },
     ...(description ? [{ label: t("contract.jobDescriptionLabel"), value: description }] : []),
@@ -6051,7 +6065,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             value={checkoutHours}
             onChange={e => setCheckoutHours(e.target.value.replace(/[^0-9.]/g, ""))}
             inputMode="decimal"
-            placeholder={String(checkoutTarget.defaultHours ?? "")}
+            placeholder={checkoutTarget.defaultHours != null ? String(Math.round(checkoutTarget.defaultHours * 100) / 100) : ""}
             style={{ width: "100%", boxSizing: "border-box", fontSize: 18, fontWeight: 700, padding: "12px 14px", borderRadius: 12, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 14 }}
           />
           <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("worker.checkoutBreakLabel")}</div>
@@ -6339,7 +6353,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <div style={{ padding: isMobile ? 14 : 20 }}>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: isMobile ? 8 : 10, marginBottom: 16 }}>
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
-            <Stat label={t("shiftDetail.shiftDuration")} value={`${selectedShift.hours}h`} sub={selectedShift.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", selectedShift.occurrences.length) : selectedShift.date} color={BRAND.text} />
+            <Stat label={t("shiftDetail.shiftDuration")} value={formatDurationHours(selectedShift.hours)} sub={selectedShift.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", selectedShift.occurrences.length) : selectedShift.date} color={BRAND.text} />
             <Stat label={t("shiftDetail.estimatedGross")} value={`RM${(((selectedShift.wageMin + selectedShift.wageMax) / 2) * selectedShift.hours).toFixed(2)}`} sub={t("shiftDetail.atAvgRate")} tooltip={t("shiftDetail.estimatedGrossTooltip").replace("{min}", selectedShift.wageMin).replace("{max}", selectedShift.wageMax)} color={BRAND.green} />
             <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
@@ -6600,7 +6614,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       [s.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", s.occurrences.length) : s.date, "📅"],
                       // Listing cards only ever show the city/region, never the exact place.
                       [overviewLocation(s.location), "📍"],
-                      [`${s.hours}h`, "⏱️"],
+                      [formatDurationHours(s.hours), "⏱️"],
                       [`${s.headcount} pos · ${s.totalApplicants} applied`, "👥"],
                     ].map(([v, ico], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
