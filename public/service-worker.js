@@ -29,6 +29,20 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached || Response.error()))
+      .catch(() =>
+        caches.match(request).then((cached) => {
+          if (cached) return cached;
+          // Portal deep links (/CariGaji/employer, /CariGaji/admin) are SPA
+          // routes, not real files -- offline there is a cache miss on a URL
+          // that was never fetched as itself. Any navigation can be served by
+          // the one app shell, which then routes on location.pathname.
+          if (request.mode === "navigate") {
+            return caches
+              .match(new URL(self.registration.scope).pathname)
+              .then((shell) => shell || Response.error());
+          }
+          return Response.error();
+        })
+      )
   );
 });
