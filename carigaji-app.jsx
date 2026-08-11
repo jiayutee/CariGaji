@@ -1118,6 +1118,9 @@ const TRANSLATIONS = {
     "settings.openEmployerConsole": "Open Employer Console",
     "settings.openAdminDashboard": "Open Admin Dashboard",
     "employer.companyDetailsTitle": "Company Details",
+    "employer.profilePhotoTitle": "Profile photo",
+    "employer.profilePhotoHint": "A company logo or a clear photo of the hiring contact. Workers see this on your shift listings and in chat.",
+    "employer.personalDetailsHint": "Your own contact and identity details as the hiring contact — separate from your company's registration above.",
     "employer.viewContractBtn": "View contract",
     "employer.viewWorkerProfileHint": "View worker profile",
     "employer.contractSignaturesHeading": "Signatures",
@@ -2059,6 +2062,9 @@ const TRANSLATIONS = {
     "settings.openEmployerConsole": "Buka Konsol Majikan",
     "settings.openAdminDashboard": "Buka Papan Pemuka Admin",
     "employer.companyDetailsTitle": "Butiran Syarikat",
+    "employer.profilePhotoTitle": "Gambar profil",
+    "employer.profilePhotoHint": "Logo syarikat atau gambar jelas orang yang mengambil pekerja. Pekerja melihat ini pada penyenaraian syif anda dan dalam sembang.",
+    "employer.personalDetailsHint": "Butiran hubungan dan identiti anda sendiri sebagai orang yang mengambil pekerja — berasingan daripada pendaftaran syarikat di atas.",
     "employer.viewContractBtn": "Lihat kontrak",
     "employer.viewWorkerProfileHint": "Lihat profil pekerja",
     "employer.contractSignaturesHeading": "Tandatangan",
@@ -4831,6 +4837,27 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     return true;
   };
 
+  // Shared element rather than inline JSX: WorkerPortal has several
+  // early-return full-screen views (shift detail, checkout, QR check-in,
+  // Sedcard, personal details) that bypass the main layout entirely, so
+  // the banner has to be rendered inside each of them or it silently
+  // disappears the moment an employer opens a shift — exactly the gap
+  // reported after the first pass.
+  const previewBanner = previewMode ? (
+    <div style={{
+      flexShrink: 0, background: BRAND.amberLight, borderBottom: `1px solid ${BRAND.amber}`,
+      padding: isMobile ? "8px 12px" : "10px 20px", display: "flex", alignItems: "center",
+      justifyContent: "center", gap: 10, flexWrap: "wrap",
+    }}>
+      <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: BRAND.amber, fontWeight: 600, textAlign: "center" }}>
+        👁️ {t("worker.previewModeBanner")}
+      </span>
+      <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.(userRole === "employer" ? "employer" : "admin")} style={{ padding: "3px 10px" }}>
+        {t("worker.previewModeExitBtn")}
+      </Btn>
+    </div>
+  ) : null;
+
   // Same referral-share logic as the header's ProfileMenu (account.referFriends)
   // — duplicated locally rather than lifted, since ProfileMenu's copy is a
   // small self-contained closure and this is the only other call site.
@@ -6031,6 +6058,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Modal content - rendered on top of main content
   if (showQR) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>{t("worker.checkinTitle")}</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 8, textAlign: "center" }}>{checkinTarget?.shiftTitle}</div>
@@ -6089,6 +6117,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   if (checkoutTarget) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8, textAlign: "center" }}>{t("worker.checkoutTitle")}</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.shiftTitle}</div>
@@ -6158,6 +6187,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   if (showSedcard) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <button onClick={() => setShowSedcard(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
@@ -6239,6 +6269,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   if (showPersonalDetails) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
         <button onClick={() => setShowPersonalDetails(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
@@ -6303,6 +6334,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Shift detail view with bottom nav
   if (selectedShift) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
+      {previewBanner}
       {showBidModal && (
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
           <div style={{ background: BRAND.surface, borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
@@ -6500,25 +6532,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   return (
     <>
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
-      {/* Persistent preview banner — an employer/admin viewing the worker
-          app is looking at the real live feed with their own account, so
-          without this it's genuinely indistinguishable from being a worker
-          (the complaint that prompted preview mode). Sticky rather than
-          one-off so it stays true no matter how deep they navigate. */}
-      {previewMode && (
-        <div style={{
-          flexShrink: 0, background: BRAND.amberLight, borderBottom: `1px solid ${BRAND.amber}`,
-          padding: isMobile ? "8px 12px" : "10px 20px", display: "flex", alignItems: "center",
-          justifyContent: "center", gap: 10, flexWrap: "wrap",
-        }}>
-          <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: BRAND.amber, fontWeight: 600, textAlign: "center" }}>
-            👁️ {t("worker.previewModeBanner")}
-          </span>
-          <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.(userRole === "employer" ? "employer" : "admin")} style={{ padding: "3px 10px" }}>
-            {t("worker.previewModeExitBtn")}
-          </Btn>
-        </div>
-      )}
+      {previewBanner}
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
         {tab === "discover" && (
@@ -7862,7 +7876,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 };
 
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
-const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null }) => {
+const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null, onUserUpdated = () => {} }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [view, setView] = useState("dashboard");
@@ -7888,6 +7902,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [offering, setOffering] = useState(false);
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerProfile, setEmployerProfile] = useState(null);
+  // Profile photo + personal (contact-person) details, moved here from the
+  // worker app: an employer's own profile editing belongs in their own
+  // console, not behind a worker-app preview. Note the worker "Sedcard"
+  // (bio / languages spoken / qualifications) is deliberately NOT mirrored
+  // — it exists to sell a worker to employers reviewing their application,
+  // which has no employer-side equivalent; Company Details is that.
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [personalDetailsForm, setPersonalDetailsForm] = useState({ phone: "", identityType: "MyKad", idNumber: "", dateOfBirth: "", address: "" });
+  const [personalDetailsSaving, setPersonalDetailsSaving] = useState(false);
+  const [personalDetailsMessage, setPersonalDetailsMessage] = useState("");
   const [recentActivity, setRecentActivity] = useState([]);
   const [employerBanking, setEmployerBanking] = useState(null);
   const [employerBankForm, setEmployerBankForm] = useState({
@@ -8808,6 +8832,68 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // or the classic up-to-8-digit-plus-letter-suffix format. Re-submitting a
   // changed number here re-queues the profile to pending_review via the
   // guard_employer_verification_status trigger — no client-side status write.
+  // Loads the employer's own contact/identity record for the Personal
+  // Details card below. Same table and columns the worker app used before
+  // this moved here — only the surface changed, not the data model.
+  useEffect(() => {
+    if (view !== "account" || !user) return undefined;
+    let active = true;
+    supabase.from('user_private').select('phone, identity_type, id_number, date_of_birth, address').eq('id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!active) return;
+        setPersonalDetailsForm({
+          phone: data?.phone ?? "",
+          identityType: data?.identity_type ?? "MyKad",
+          idNumber: data?.id_number ?? "",
+          dateOfBirth: data?.date_of_birth ?? "",
+          address: data?.address ?? "",
+        });
+      });
+    return () => { active = false; };
+  }, [view, user]);
+
+  const saveEmployerPersonalDetails = async () => {
+    if (!user) return;
+    setPersonalDetailsSaving(true);
+    setPersonalDetailsMessage("");
+    const { error } = await supabase.from('user_private').upsert({
+      id: user.id,
+      phone: personalDetailsForm.phone.trim(),
+      identity_type: personalDetailsForm.identityType,
+      id_number: personalDetailsForm.idNumber.trim(),
+      date_of_birth: personalDetailsForm.dateOfBirth || null,
+      address: sanitizeBulkTextValue(personalDetailsForm.address.trim()),
+    });
+    setPersonalDetailsSaving(false);
+    if (error) { toast(t('toast.personalDetailsSaveFailed') + error.message, 'error'); return; }
+    toast(t('toast.personalDetailsSaved'), 'success');
+  };
+
+  const handleEmployerAvatarUpload = async (file) => {
+    if (!file || !user) return;
+    setAvatarUploading(true);
+    try {
+      const path = await uploadAvatarFile(user.id, file);
+      const { error } = await supabase.auth.updateUser({
+        data: { ...user.user_metadata, avatar_url: path },
+      });
+      if (error) throw error;
+      // Mirrors the worker-side upload: profiles.avatar_url is what other
+      // users read, user_metadata is what this session renders from, so
+      // both have to be written or the header goes stale until re-login.
+      await supabase.from('profiles').upsert(
+        { id: user.id, avatar_url: path, full_name: user.user_metadata?.full_name || user.user_metadata?.name || null },
+        { onConflict: 'id' }
+      );
+      onUserUpdated();
+      toast(t('toast.avatarUpdated'), 'success');
+    } catch (err) {
+      toast(t('toast.avatarUpdateFailed') + (err?.message ?? ''), 'error');
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const saveEmployerCompanyDetails = async () => {
     if (!user) {
       setCompanyDetailsMessage("Sign in to save company details.");
@@ -10018,6 +10104,55 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         {view === "account" && (
           <div style={{ maxWidth: 500 }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
+            {/* Profile photo — the employer-console home for what used to be
+                editable only via the worker-app view's avatar overlay. */}
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("employer.profilePhotoTitle")}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <Avatar name={employerProfile?.full_name || user?.email || "?"} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
+                  <label style={{
+                    position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
+                    borderRadius: "50%", background: BRAND.primary, color: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: avatarUploading ? "wait" : "pointer", fontSize: 13,
+                    border: `2px solid ${BRAND.surface}`,
+                  }} title={t("profile.changePhoto")}>
+                    {avatarUploading ? "…" : "✎"}
+                    <input type="file" accept="image/*" disabled={avatarUploading}
+                      onChange={(e) => handleEmployerAvatarUpload(e.target.files?.[0])}
+                      style={{ display: "none" }} />
+                  </label>
+                </div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>{t("employer.profilePhotoHint")}</div>
+              </div>
+            </Card>
+            {/* Personal (contact-person) details — same user_private record
+                the worker app edited; surfaced here so an employer never has
+                to enter the worker preview to maintain their own account. */}
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>{t("employer.personalDetailsHint")}</div>
+              <Input label={t("auth.phoneNumber")} value={personalDetailsForm.phone} onChange={e => setPersonalDetailsForm(f => ({ ...f, phone: e.target.value }))} />
+              <Select
+                label={t("auth.identityType")}
+                value={personalDetailsForm.identityType}
+                onChange={e => setPersonalDetailsForm(f => ({ ...f, identityType: e.target.value }))}
+                options={[{ value: "MyKad", label: t("auth.icMyKad") }, { value: "MyPR", label: t("auth.myPR") }, { value: "Passport", label: t("auth.passport") }]}
+              />
+              <Input
+                label={personalDetailsForm.identityType === "MyKad" ? t("auth.myKadNumber") : personalDetailsForm.identityType === "MyPR" ? t("auth.myPRNumber") : t("auth.passportNumber")}
+                placeholder={["MyKad", "MyPR"].includes(personalDetailsForm.identityType) ? "XXXXXX-XX-XXXX" : "A1234567"}
+                value={personalDetailsForm.idNumber}
+                onChange={e => setPersonalDetailsForm(f => ({ ...f, idNumber: e.target.value }))}
+              />
+              <Input label={t("auth.dateOfBirth")} type="date" value={personalDetailsForm.dateOfBirth} onChange={e => setPersonalDetailsForm(f => ({ ...f, dateOfBirth: e.target.value }))} />
+              <Input label={t("auth.address")} value={personalDetailsForm.address} onChange={e => setPersonalDetailsForm(f => ({ ...f, address: e.target.value }))} />
+              {personalDetailsMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{personalDetailsMessage}</div>}
+              <Btn onClick={saveEmployerPersonalDetails} disabled={personalDetailsSaving} style={{ width: "100%", justifyContent: "center" }}>
+                {personalDetailsSaving ? "…" : t("personalDetails.saveBtn")}
+              </Btn>
+            </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text }}>{t("employer.companyDetailsTitle")}</div>
@@ -12673,7 +12808,7 @@ export default function CariGaji() {
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
           {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
           {portal === "admin" && (
             isAdmin
               ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
