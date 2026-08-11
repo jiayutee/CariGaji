@@ -1119,7 +1119,7 @@ const TRANSLATIONS = {
     "settings.openAdminDashboard": "Open Admin Dashboard",
     "employer.companyDetailsTitle": "Company Details",
     "employer.profilePhotoTitle": "Profile photo",
-    "employer.profilePhotoHint": "A company logo or a clear photo of the hiring contact. Workers see this on your shift listings and in chat.",
+    "employer.profilePhotoHint": "A company logo or a clear photo of the hiring contact. Workers see this next to your name when they open one of your shifts.",
     "employer.personalDetailsHint": "Your own contact and identity details as the hiring contact — separate from your company's registration above.",
     "employer.viewContractBtn": "View contract",
     "employer.viewWorkerProfileHint": "View worker profile",
@@ -2063,7 +2063,7 @@ const TRANSLATIONS = {
     "settings.openAdminDashboard": "Buka Papan Pemuka Admin",
     "employer.companyDetailsTitle": "Butiran Syarikat",
     "employer.profilePhotoTitle": "Gambar profil",
-    "employer.profilePhotoHint": "Logo syarikat atau gambar jelas orang yang mengambil pekerja. Pekerja melihat ini pada penyenaraian syif anda dan dalam sembang.",
+    "employer.profilePhotoHint": "Logo syarikat atau gambar jelas orang yang mengambil pekerja. Pekerja melihat ini di sebelah nama anda apabila mereka membuka syif anda.",
     "employer.personalDetailsHint": "Butiran hubungan dan identiti anda sendiri sebagai orang yang mengambil pekerja — berasingan daripada pendaftaran syarikat di atas.",
     "employer.viewContractBtn": "Lihat kontrak",
     "employer.viewWorkerProfileHint": "Lihat profil pekerja",
@@ -5549,7 +5549,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, avatar_url)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -5567,6 +5567,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // from "verified 0/100" rather than showing a misleading red badge.
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
           rating: s.employer ? (s.employer.rating ?? 0) : null,
+          employerAvatarUrl: s.employer?.avatar_url ?? null,
           location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
@@ -5632,7 +5633,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, avatar_url)')
       .eq('id', deepLinkShift.shiftId)
       .maybeSingle()
       .then(({ data: s }) => {
@@ -5646,6 +5647,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           employerId: s.employer_id ?? null,
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
           rating: s.employer ? (s.employer.rating ?? 0) : null,
+          employerAvatarUrl: s.employer?.avatar_url ?? null,
           location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
@@ -6482,7 +6484,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             );
           })()}
           <Card style={{ marginBottom: 20, background: BRAND.grayLight, border: "none" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: BRAND.text }}>{t("shiftDetail.employerReliability")}</div>
+            {/* The employer's photo/logo alongside their name — this is the
+                screen where a worker decides whether to bid, so a real face
+                or company mark next to the reliability score is the point of
+                having an employer profile picture at all. Before this it was
+                uploaded but never fetched into any worker-facing view. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <Avatar name={selectedShift.employer || "?"} size={36} color={BRAND.primary} src={getAvatarUrl(selectedShift.employerAvatarUrl)} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, display: "flex", alignItems: "center", gap: 4 }}>
+                  {selectedShift.employer}
+                  {selectedShift.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.green, fontWeight: 700 }}>✓</span>}
+                </div>
+                <div style={{ fontSize: 11, color: BRAND.textMuted }}>{t("shiftDetail.employerReliability")}</div>
+              </div>
+            </div>
             {selectedShift.reliabilityScore != null ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
                 <div style={{ flex: 1 }}><Progress value={selectedShift.reliabilityScore} color={selectedShift.reliabilityScore > 90 ? BRAND.green : selectedShift.reliabilityScore > 75 ? BRAND.accent : BRAND.red} /></div>
