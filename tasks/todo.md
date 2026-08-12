@@ -135,7 +135,10 @@ migration and historical payouts keep the rate they were quoted at.
 
 ## 5. Steps (once D1–D3 are answered)
 
-- [ ] 1. Migration: block DELETE on shifts with accepted applications (3a)
+- [x] 1. Migration: block DELETE on shifts with accepted applications (3a)
+        DONE + verified in production: exploit refused, shift and signed
+        application both survive, no RLS recursion. Follow-up 20260814b
+        makes the refusal report an error instead of a misleading 204.
 - [ ] 2. Migration: extract `shift_contracted_hours`, reuse in the payout
         trigger, verify existing payouts are unchanged
 - [ ] 3. Migration: compensation-tier config table + `quote_shift_cancellation`
