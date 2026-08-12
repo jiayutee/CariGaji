@@ -25,3 +25,8 @@ Patterns learned from user corrections, kept up to date per CLAUDE.md's Self-Imp
 - Rule: never build an array with `arr || 'literal'` in plpgsql — always `array_append(arr, 'literal')`. One meaning, cannot mis-resolve.
 - Rule: when a write "silently does nothing", suspect a trigger before suspecting RLS, and re-run the request WITHOUT `-o /dev/null` — the error body was there the whole time and named the cause exactly. Read the response before theorising.
 - Rule: diagnosis tell — the cancellation path kept working while editing didn't. That asymmetry localised the fault to the new trigger's WHEN clause (which excludes 'cancelled'), not to permissions. Look for which paths still work.
+
+## 2026-08-12 — Read the row back with a token that can actually see it
+- Mistake: after cancelling a test shift, I checked whether it still existed using the ANON key and got `[]`, and briefly concluded the delete had succeeded. It hadn't — `shifts_read_open` only exposes status in ('open','filled','completed','closed'), so a *cancelled* shift is invisible to anon. The row was there the whole time.
+- Rule: an empty result proves nothing until the querying role is one that would be allowed to see the row. When verifying existence on an RLS-protected table, query as the owner (or admin), never as anon.
+- Rule: this is the mirror of the earlier `.limit()` bug — both are "the query answered a narrower question than I asked". Before believing a negative result, ask what the query was actually permitted to return.
