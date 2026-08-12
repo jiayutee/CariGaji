@@ -858,6 +858,31 @@ const TRANSLATIONS = {
     "notif.shift_cancelled.title": "Shift cancelled",
     "notif.shift_cancelled.body": "The shift \"{shift_title}\" was cancelled by the employer.",
     "notif.change.datetime": "date/time",
+    // Remaining notification types (20260813). Variant keys cover the three
+    // notifications whose body branches on an outcome.
+    "notif.bid_received.title": "New bid received",
+    "notif.bid_received.body": "Someone applied for \"{shift_title}\".",
+    "notif.bid_accepted.title": "Bid accepted",
+    "notif.bid_accepted.body": "Your bid for \"{shift_title}\" was accepted.",
+    "notif.bid_rejected.title": "Bid rejected",
+    "notif.bid_rejected.body": "Your bid for \"{shift_title}\" was rejected.",
+    "notif.shift_offer.title": "You've been selected!",
+    "notif.shift_offer.body": "You were selected for \"{shift_title}\". Please confirm or decline before {deadline_at}.",
+    "notif.offer_declined_or_expired.title": "Pick a substitute",
+    "notif.offer_declined_or_expired.declined.body": "{worker_name} declined \"{shift_title}\". Choose another applicant.",
+    "notif.offer_declined_or_expired.expired.body": "{worker_name} did not respond in time for \"{shift_title}\". Choose another applicant.",
+    "notif.not_selected.title": "Not selected this time",
+    "notif.not_selected.body": "The shift \"{shift_title}\" has been fully staffed. You were not selected.",
+    "notif.shift_cancellation_choice_pending.title": "Shift cancelled \u2014 choose your payout",
+    "notif.shift_cancellation_choice_pending.body": "The shift \"{shift_title}\" was cancelled less than 24 hours before it started. Choose to sign a 50% cancellation payout, or show up in person for 100% of your agreed wage. Respond by {deadline_at}.",
+    "notif.shift_cancellation_choice_made.title": "Worker responded to shift cancellation",
+    "notif.shift_cancellation_choice_made.contract_50.body": "A worker accepted the 50% cancellation payout for \"{shift_title}\".",
+    "notif.shift_cancellation_choice_made.show_up_100.body": "A worker is showing up for \"{shift_title}\" and has submitted proof for full pay.",
+    "notif.shift_checkout_submitted.title": "Worker submitted checkout hours",
+    "notif.shift_checkout_submitted.body": "A worker reported {hours} hours for \"{shift_title}\". Please confirm or dispute.",
+    "notif.shift_checkout_disputed.title": "Employer disputed your checkout hours",
+    "notif.shift_checkout_disputed.with_reason.body": "Reason: {reason}",
+    "notif.shift_checkout_disputed.no_reason.body": "The employer disputed the hours you reported. Please resubmit.",
     "notif.change.location": "location",
     "notif.change.pay": "pay",
     "notif.change.title": "title",
@@ -1828,6 +1853,29 @@ const TRANSLATIONS = {
     "notif.shift_cancelled.title": "Syif dibatalkan",
     "notif.shift_cancelled.body": "Syif \"{shift_title}\" telah dibatalkan oleh majikan.",
     "notif.change.datetime": "tarikh/masa",
+    "notif.bid_received.title": "Bidaan baharu diterima",
+    "notif.bid_received.body": "Seseorang telah memohon untuk \"{shift_title}\".",
+    "notif.bid_accepted.title": "Bidaan diterima",
+    "notif.bid_accepted.body": "Bidaan anda untuk \"{shift_title}\" telah diterima.",
+    "notif.bid_rejected.title": "Bidaan ditolak",
+    "notif.bid_rejected.body": "Bidaan anda untuk \"{shift_title}\" telah ditolak.",
+    "notif.shift_offer.title": "Anda telah dipilih!",
+    "notif.shift_offer.body": "Anda dipilih untuk \"{shift_title}\". Sila sahkan atau tolak sebelum {deadline_at}.",
+    "notif.offer_declined_or_expired.title": "Pilih pengganti",
+    "notif.offer_declined_or_expired.declined.body": "{worker_name} telah menolak \"{shift_title}\". Sila pilih pemohon lain.",
+    "notif.offer_declined_or_expired.expired.body": "{worker_name} tidak membalas dalam masa yang ditetapkan untuk \"{shift_title}\". Sila pilih pemohon lain.",
+    "notif.not_selected.title": "Tidak dipilih kali ini",
+    "notif.not_selected.body": "Syif \"{shift_title}\" telah penuh. Anda tidak dipilih.",
+    "notif.shift_cancellation_choice_pending.title": "Syif dibatalkan \u2014 pilih bayaran anda",
+    "notif.shift_cancellation_choice_pending.body": "Syif \"{shift_title}\" telah dibatalkan kurang daripada 24 jam sebelum ia bermula. Pilih untuk menandatangani bayaran pembatalan 50%, atau hadir sendiri untuk 100% daripada gaji yang dipersetujui. Sila balas sebelum {deadline_at}.",
+    "notif.shift_cancellation_choice_made.title": "Pekerja telah membalas pembatalan syif",
+    "notif.shift_cancellation_choice_made.contract_50.body": "Seorang pekerja menerima bayaran pembatalan 50% bagi \"{shift_title}\".",
+    "notif.shift_cancellation_choice_made.show_up_100.body": "Seorang pekerja akan hadir untuk \"{shift_title}\" dan telah menghantar bukti untuk bayaran penuh.",
+    "notif.shift_checkout_submitted.title": "Pekerja menghantar jam keluar",
+    "notif.shift_checkout_submitted.body": "Seorang pekerja melaporkan {hours} jam bagi \"{shift_title}\". Sila sahkan atau pertikaikan.",
+    "notif.shift_checkout_disputed.title": "Majikan mempertikaikan jam keluar anda",
+    "notif.shift_checkout_disputed.with_reason.body": "Sebab: {reason}",
+    "notif.shift_checkout_disputed.no_reason.body": "Majikan mempertikaikan jam yang anda laporkan. Sila hantar semula.",
     "notif.change.location": "lokasi",
     "notif.change.pay": "bayaran",
     "notif.change.title": "tajuk",
@@ -3285,7 +3333,13 @@ const notificationChangeLabel = (code, t) =>
 const notificationText = (n, t) => {
   const params = n?.params && typeof n.params === "object" && !Array.isArray(n.params) ? n.params : null;
   const titleKey = `notif.${n?.type}.title`;
-  const bodyKey = `notif.${n?.type}.body`;
+  // Three notifications have conditional bodies (offer declined vs expired,
+  // 50% payout vs showing up, dispute with vs without a reason). The trigger
+  // sends which branch it took as `variant` rather than baking an English
+  // sentence in, so each branch gets its own translatable key.
+  const bodyKey = params?.variant
+    ? `notif.${n?.type}.${params.variant}.body`
+    : `notif.${n?.type}.body`;
 
   if (!params || Object.keys(params).length === 0 || !hasTranslation(titleKey) || !hasTranslation(bodyKey)) {
     return { title: n?.title, body: n?.body };
@@ -3294,6 +3348,16 @@ const notificationText = (n, t) => {
   const filled = { ...params };
   if (Array.isArray(params.changed)) {
     filled.changed = params.changed.map(code => notificationChangeLabel(code, t)).join(", ");
+  }
+  // Timestamps travel raw so they can be rendered in the reader's locale and
+  // timezone rather than frozen in whatever format SQL's to_char() produced.
+  for (const [key, value] of Object.entries(filled)) {
+    if (key.endsWith("_at") && value) {
+      const d = new Date(value);
+      if (!Number.isNaN(d.getTime())) {
+        filled[key] = `${formatShiftDate(d.toISOString(), { day: "numeric", month: "short" })}, ${formatShiftTime(d.toISOString())}`;
+      }
+    }
   }
   return { title: t(titleKey, filled), body: t(bodyKey, filled) };
 };
