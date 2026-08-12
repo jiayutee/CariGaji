@@ -1,87 +1,58 @@
-# Todo — Portal URL routing
+# Todo — Notify applicants when a shift is edited
 
-Give each top-level portal its own address so links, refresh, bookmarks and
-browser Back work natively:
+Today an employer can silently change a shift's time, place or pay. Applicants
+— including workers who already signed a contract — are never told. This closes
+that gap.
 
-- `/CariGaji/` → worker app
-- `/CariGaji/employer` → Employer Console
-- `/CariGaji/admin` → Admin Dashboard
+## Decisions (owner, 2026-08-12)
+- **Notify on every listed field**: start_at, end_at, occurrences, location,
+  wage_min, wage_max, title, headcount, dress_code, requirements.
+- **Material changes require re-confirmation.** A worker who already signed is
+  notified *and* their booking is put back into a pending state — they must
+  actively re-accept the new terms.
+- Material = **start_at, end_at, occurrences, location, wage_min, wage_max**.
+  Title/headcount/dress code/requirements notify only; they don't unwind a
+  signature.
 
-Scope is deliberately **top-level portals only**. Tabs (Discover/My Bids/…),
-sub-views (`view === "shifts"`) and modals stay as component state — routing
-those too would multiply the regression surface across flows stabilised this
-session, for a fraction of the benefit.
+## Who gets notified
+`pending`, `shortlisted`, `offered`, `accepted` — anyone with a live stake.
+Never `rejected`, `withdrawn`, `expired`.
 
 ## Design decisions
-- **No router dependency.** Three routes don't justify react-router in an app
-  whose only deps are React + Supabase. A ~30-line history helper matches the
-  codebase's existing zero-dependency, single-file style.
-- **Keep `setPortal`'s signature.** It has 9 call sites; wrapping it so it also
-  pushes history means every existing call site keeps working untouched
-  (Simplicity First / Minimal Impact per CLAUDE.md).
-- **`base` is `/CariGaji/`**, so all path math must be relative to that prefix,
-  never assume the app is at the domain root.
+- **No `status` change for re-confirmation.** Dedicated columns instead, so the
+  20260717g status-transition guard is untouched and the signature audit trail
+  survives. `worker_signed_at` is never cleared — it's a record that they *did*
+  sign, and destroying it to express "needs re-signing" loses evidence.
+- **Guard the new columns.** Follows the established trusted-write idiom
+  (20260726b): a BEFORE UPDATE trigger reverts them unless a security-definer
+  RPC set the session flag. Without this an employer could clear
+  `terms_changed_at` via REST and keep a worker bound to terms they never
+  agreed to — which is the exact thing this feature exists to prevent.
+- **No background job for lapsing.** The deadline is derived at read time
+  (`min(shift start, terms_changed_at + 24h)`) rather than a scheduler
+  flipping rows. No new infra, and it can't leave rows in a stale state.
+- **Notification bodies are English-only**, consistent with every existing
+  notification in this codebase — they're generated in SQL, which has no access
+  to the app's TRANSLATIONS table. The in-app UI around them is translated.
 
 ## Steps
-- [x] 1. Path helpers + derive initial portal from `location.pathname`
-- [x] 2. `navigateToPortal` wrapper: pushState + setState; popstate syncs back
-- [x] 3. GitHub Pages SPA fallback (`404.html`) so deep links don't 404
-- [x] 4. Reconcile with BackGestureManager (mobile sentinel trap) — no regression
-- [x] 5. Verify: refresh, direct deep link, Back between portals, sign-out,
-        notification deep links, mobile back gesture
+- [ ] 1. Migration: widen `notifications_type_check` (+`shift_updated`,
+        +`shift_terms_changed`)
+- [ ] 2. Migration: `applications` gains `terms_changed_at`,
+        `terms_reconfirmed_at`, `terms_change_summary`
+- [ ] 3. Migration: guard trigger for those 3 columns + `worker_reconfirm_terms`
+        RPC
+- [ ] 4. Migration: `notify_shift_updated` trigger on shifts — diffs old/new,
+        notifies active applicants, stamps `terms_changed_at` on signed
+        accepted rows for material changes only
+- [ ] 5. Migration: fix `notify_shift_cancelled` to include `offered`
+        (pre-existing bug — a worker holding a live offer is never told the
+        shift was cancelled)
+- [ ] 6. Owner runs migration; verify every object via REST before wiring JS
+- [ ] 7. Worker UI: re-confirm prompt showing what changed; calls the RPC
+- [ ] 8. Employer UI: "awaiting re-confirmation" badge in the applicant pool
+- [ ] 9. i18n EN+BM for all new strings
+- [ ] 10. Verify end-to-end against production, clean up test data
 
 ## Review
-
-Shipped. `/CariGaji/`, `/CariGaji/employer` and `/CariGaji/admin` are now real
-addresses: refresh, bookmarks, direct links and browser Back all work.
-
-### What went in
-- **Path helpers** (`portalToPath` / `portalFromPath`, both relative to Vite's
-  `base`). Unknown segments fall back to the worker app rather than a blank
-  screen.
-- **`setPortal` wrapper** — same signature, so all 9 existing call sites are
-  untouched. It now moves the URL too.
-- **`404.html` SPA fallback** via a post-build copy of `dist/index.html`
-  (Vite plugin). Had to be a build-time copy, not a `public/404.html`, or it
-  would never get the hashed asset `<script src>`.
-- **Service worker navigation fallback** — offline, a portal deep link is a
-  cache miss on a URL that was never fetched as itself; navigations now fall
-  back to the cached app shell.
-
-### Two things the plan didn't anticipate
-1. **BackGestureManager conflict (step 4).** Its sentinel trap owns the mobile
-   history stack and counts entries with a `depth` counter. A pushed portal
-   entry sits *above* the sentinel, so a back gesture would pop ours instead,
-   decrementing `depth` for a sentinel that was never consumed — corrupting
-   the "really exit" `history.go(-(depth+1))`. Resolved with two navigation
-   models: desktop pushes and lets popstate drive `portal`; mobile replaces
-   and re-asserts the URL *from* `portal` on popstate. Shared
-   `MOBILE_BREAKPOINT` keeps the two tests in agreement.
-2. **Signed-out visitors can now type `/employer`.** EmployerPortal has no
-   signed-out branch — every query short-circuits on `!user`, so they'd get a
-   convincing but permanently empty dashboard with no way in. Added a redirect
-   to the landing page, gated on a new `authResolved` flag so it can't fire
-   during session restore and bounce a real employer off their own console.
-
-Also fixed in passing: the role-based landing redirect re-ran on every profile
-load (harmless before, but it would now fight Back), and `setPortal` was
-mutating history inside a `setState` updater, which StrictMode would run twice.
-
-### Verified
-Desktop: root → `/employer` via replace (no stray history entry); switch to
-worker preview → Back returns to the console → Forward returns to preview, no
-reload; refresh on `/employer` holds; `/admin` as an employer and an unknown
-segment both resolve and clean up the URL; sign-out returns to `/CariGaji/`.
-Mobile (375px): deep link loads the console; portal switch uses replace and
-leaves the sentinel topmost; repeated Back stays in-app with no portal flip.
-Signed out: `/employer` → landing page. Production build served through a
-GitHub-Pages simulator (404.html at HTTP 404): `/CariGaji/admin` boots and
-routes to the admin gate with the URL intact. Console clean apart from a
-pre-existing React style-shorthand warning.
-
-### Known trade-off (not a regression)
-An employer who refreshes while in worker preview is still bounced to
-`/employer` by the role redirect — same as before this change. Making the
-preview URL stick would require distinguishing "employer deliberately opened
-`/`" from "employer opened the app fresh", which `/` alone can't express.
-Left as-is; worth revisiting if the preview gets used enough to matter.
+(filled in once done)
