@@ -1,115 +1,151 @@
-# Todo — Notify applicants when a shift is edited
+# Plan — Cancelling a shift that already has accepted workers
 
-Today an employer can silently change a shift's time, place or pay. Applicants
-— including workers who already signed a contract — are never told. This closes
-that gap.
+Owner's ask: an employer must not be able to cancel single-endedly once workers
+are booked. They should see what compensation they owe, workers should be told,
+and workers should accept. Plus: confirm the two worker options already exist.
 
-## Decisions (owner, 2026-08-12)
-- **Notify on every listed field**: start_at, end_at, occurrences, location,
-  wage_min, wage_max, title, headcount, dress_code, requirements.
-- **Material changes require re-confirmation.** A worker who already signed is
-  notified *and* their booking is put back into a pending state — they must
-  actively re-accept the new terms.
-- Material = **start_at, end_at, occurrences, location, wage_min, wage_max**.
-  Title/headcount/dress code/requirements notify only; they don't unwind a
-  signature.
+## 1. What exists today (verified against the live database)
 
-## Who gets notified
-`pending`, `shortlisted`, `offered`, `accepted` — anyone with a live stake.
-Never `rejected`, `withdrawn`, `expired`.
+**The two worker options are real and working.** On `applications`:
+`cancellation_choice` is `'contract_50'` or `'show_up_100'`.
+- `contract_50` — sign for 50% of the agreed wage, don't show up.
+- `show_up_100` — turn up at the venue, upload proof, get 100%.
+`create_cancellation_payout` (20260717h) writes the payout row. It computes
+hours across every occurrence (multi-day aware, overnight wrapping), floors at
+0.25h, and refuses to pay unless the shift really is cancelled and the
+application really was accepted + signed.
 
-## Design decisions
-- **No `status` change for re-confirmation.** Dedicated columns instead, so the
-  20260717g status-transition guard is untouched and the signature audit trail
-  survives. `worker_signed_at` is never cleared — it's a record that they *did*
-  sign, and destroying it to express "needs re-signing" loses evidence.
-- **Guard the new columns.** Follows the established trusted-write idiom
-  (20260726b): a BEFORE UPDATE trigger reverts them unless a security-definer
-  RPC set the session flag. Without this an employer could clear
-  `terms_changed_at` via REST and keep a worker bound to terms they never
-  agreed to — which is the exact thing this feature exists to prevent.
-- **No background job for lapsing.** The deadline is derived at read time
-  (`min(shift start, terms_changed_at + 24h)`) rather than a scheduler
-  flipping rows. No new infra, and it can't leave rows in a stale state.
-- **Notification bodies are English-only**, consistent with every existing
-  notification in this codebase — they're generated in SQL, which has no access
-  to the app's TRANSLATIONS table. The in-app UI around them is translated.
+**Compensation is gated on a 24-hour window.**
+`notify_cancellation_choice_pending` only fires when
+`start_at - now() <= interval '24 hours'`. Outside that window, nothing is
+stamped and no choice is offered.
 
-## Steps
-- [x] 1. Migration: widen `notifications_type_check` (+`shift_updated`,
-        +`shift_terms_changed`)
-- [x] 2. Migration: `applications` gains `terms_changed_at`,
-        `terms_reconfirmed_at`, `terms_change_summary`
-- [x] 3. Migration: guard trigger for those 3 columns + `worker_reconfirm_terms`
-        RPC
-- [x] 4. Migration: `notify_shift_updated` trigger on shifts — diffs old/new,
-        notifies active applicants, stamps `terms_changed_at` on signed
-        accepted rows for material changes only
-- [x] 5. Migration: fix `notify_shift_cancelled` to include `offered`
-        (pre-existing bug — a worker holding a live offer is never told the
-        shift was cancelled)
-- [x] 6. Owner runs migration; verify every object via REST before wiring JS
-- [x] 7. Worker UI: re-confirm prompt showing what changed; calls the RPC
-- [x] 8. Employer UI: "awaiting re-confirmation" badge in the applicant pool
-- [x] 9. i18n EN+BM for all new strings
-- [ ] 10. Verify end-to-end against production, clean up test data
+**The employer already sees a warning** — but only inside 24h, and it names no
+amount: *"…has {count} confirmed worker(s). Cancelling now will offer each of
+them a choice…"*
+
+## 2. Gaps found
+
+**G1 — DELETE bypasses the entire system. (verified, most serious)**
+`shifts_employer_delete` (20260629) allows an employer to delete any shift they
+own, unconditionally, and `applications.shift_id` is `on delete cascade`.
+Proven live: created a shift, took a worker to accepted + contract-signed, then
+`DELETE /shifts?id=eq.<id>` as the employer → **HTTP 204**, shift gone,
+application gone, signed contract gone, no notification, no payout. The worker
+keeps two notifications pointing at a shift that no longer exists.
+**So the whole 50%/100% system is currently optional** — an employer facing a
+late-cancellation bill can simply delete instead of cancel and owe nothing.
+The UI exposes no delete button, but the REST API is public and authenticated.
+
+**G2 — Cancel at 25 hours' notice costs nothing.** A worker who signed a
+contract, turned down other shifts and arranged transport gets "Shift
+cancelled" and RM 0. The 24h cliff is absolute.
+
+**G3 — The employer is never shown a number.** The warning describes
+percentages; it never says "this will cost you RM 312.00". Nobody can weigh a
+decision they can't see the price of.
+
+**G4 — There is no worker acknowledgement.** Cancellation is unilateral. The
+worker picks a *payout mode* afterwards, but never accepts (or disputes) the
+cancellation itself.
+
+**G5 — The choice deadline is enforced client-side.** carigaji-app.jsx ~5634
+defaults a lapsed choice to `contract_50` in the browser, so it only runs if
+the worker happens to open the app. A worker who never opens it keeps an
+unresolved entitlement indefinitely.
+
+**G6 — Employers can't be billed.** `payout_items` records what the worker is
+owed; there is no corresponding charge to the employer. Compensation is
+currently a promise the platform makes with no funding mechanism behind it.
+
+## 3. Proposed design
+
+### 3a. Close the hole first (independent of everything else)
+Replace `shifts_employer_delete` with a policy that refuses when any
+application on the shift is `accepted`, plus a `before delete` trigger as
+defence in depth. Deleting a shift nobody has been booked onto stays fine.
+Cancellation must go through `status = 'cancelled'`, which is what every
+compensation trigger already hangs off.
+*This is a bug fix and should ship on its own, before the rest.*
+
+### 3b. One source of truth for the amount
+New RPC `quote_shift_cancellation(p_shift_id uuid)` returning one row per
+affected worker: `application_id`, `worker_name`, `wage_ask`,
+`contracted_hours`, `multiplier`, `amount`, plus a total.
+
+It must reuse `create_cancellation_payout`'s own hours calculation — the
+multi-day occurrence sum with the 0.25h floor — rather than reimplementing it
+in JS. If the quote and the payout disagree, the employer was misled about a
+figure they explicitly agreed to, which is the one thing this feature cannot
+get wrong. Extract that calculation into a shared
+`shift_contracted_hours(shift_id)` function and have both call it.
+
+### 3c. Employer flow
+1. **Cancel** on a shift with ≥1 accepted worker opens a quote screen, not a
+   confirm dialog.
+2. Itemised table: each worker, their agreed rate, contracted hours, the
+   multiplier that applies, the amount — and the total in bold.
+3. Explicit acceptance: a checkbox reading *"I understand I will be charged
+   RM X to cancel this shift"*. Not a generic "Cancel anyway".
+4. On confirm: shift → `cancelled`, per-worker compensation offers created,
+   workers notified.
+5. The shift detail then shows a live ledger: who has responded, who hasn't,
+   what's owed, what's settled.
+
+### 3d. Worker flow
+1. Notification: *"{employer} cancelled {shift}. You're entitled to
+   RM X."* — the amount, not a percentage.
+2. The bid detail shows a decision card with both existing options, each
+   showing its actual ringgit value:
+   - Accept RM X (50%), don't show up
+   - Show up and claim RM Y (100%) — with the existing proof upload
+3. **New third action: Dispute** — for "I already spent money on transport"
+   or "this is the third time". Routes into the existing `disputes` table,
+   which already has admin resolution built.
+4. Deadline handling moves server-side (fixes G5).
+
+### 3e. Notice-period tiers
+Replace the single 24h cliff with a ladder, so G2 stops being a cliff edge.
+Suggested starting point — **the owner sets the real numbers**:
+
+| Notice given | Compensation |
+|---|---|
+| more than 7 days | none |
+| 48h – 7 days | 25% |
+| 24 – 48h | 50% |
+| under 24h | 50%, or 100% if the worker shows up |
+
+Store this as a config table, not constants, so it can change without a
+migration and historical payouts keep the rate they were quoted at.
+
+## 4. Decisions needed before building
+
+- **D1 — the tier table.** Business/pricing policy, not a technical call.
+  Section 3e is a straw man.
+- **D2 — who funds it (G6).** Compensation is currently owed to workers with
+  nothing charging the employer. Options: charge the card on file, deduct from
+  a deposit, or invoice. Until this is answered the feature promises money the
+  platform can't collect. **This is the biggest open question.**
+- **D3 — is cancellation ever refusable?** "Single-end cancellation is not
+  possible" could mean (a) always allowed but always compensated, or (b) the
+  worker can refuse and the booking stands. (a) is what section 3 assumes; (b)
+  is much larger and raises "what if they refuse and nobody turns up".
+- **D4 — does the ladder apply to worker-side cancellation too?** A worker
+  dropping out 2h before a shift also hurts the employer. Out of scope here.
+
+## 5. Steps (once D1–D3 are answered)
+
+- [ ] 1. Migration: block DELETE on shifts with accepted applications (3a)
+- [ ] 2. Migration: extract `shift_contracted_hours`, reuse in the payout
+        trigger, verify existing payouts are unchanged
+- [ ] 3. Migration: compensation-tier config table + `quote_shift_cancellation`
+- [ ] 4. Employer quote screen with itemised amounts + explicit acceptance
+- [ ] 5. Worker decision card showing ringgit values; wire the Dispute route
+- [ ] 6. Move the choice deadline server-side (G5)
+- [ ] 7. Employer-side settlement ledger on the cancelled shift
+- [ ] 8. EN + BM strings throughout
+- [ ] 9. End-to-end verification per tier, both worker options, dispute path,
+        and a re-check that DELETE is now refused
 
 ## Review
-
-Feature works end-to-end and is verified in the browser in both languages.
-Migration `20260812c` still needs running (see Outstanding).
-
-### Shipped
-- `trg_notify_shift_updated` — diffs watched fields, notifies
-  pending/shortlisted/offered/accepted, never rejected/withdrawn/expired.
-- Material changes (date/time, location, pay) put an already-signed booking on
-  hold via `terms_changed_at`; the worker clears it through
-  `worker_reconfirm_terms`. Guarded columns, so neither side can fake it.
-- Worker UI: re-confirm banner (first thing in the bid detail, above the
-  status pills) plus a list badge, so a held booking is visible without
-  opening anything.
-- Employer UI: "awaiting re-confirmation" badge in the applicant pool, so a
-  slot at risk is visible while there's still time to backfill.
-- `t(key, params)` interpolation + `notificationText()` — notifications render
-  from `params` through TRANSLATIONS, in the reader's current language.
-- Pre-existing bug fixed: `notify_shift_cancelled` never told `offered`
-  workers, because 'offered' was added to the enum the day after that filter
-  was written.
-
-### The incident
-`20260812` broke shift editing in production. `changed || 'title'` is
-ambiguous — Postgres has both `anyarray || anyelement` and
-`anyarray || anyarray`, an unquoted literal is unknown-typed, so it resolved
-to array-to-array and tried to parse 'title' AS an array literal. The trigger
-raised inside AFTER UPDATE, which aborted the employer's UPDATE. Edits
-appeared to silently do nothing.
-
-I shipped it flagged as "unverified" because there's no local Postgres. That
-flag was worth nothing — the feature still broke. Two things changed as a
-result:
-1. `array_append()` everywhere; it has one meaning and can't mis-resolve.
-2. **Both notification triggers now have `exception when others` handlers.**
-   A notification is a side effect and must never be able to take down the
-   write that triggered it. Degrading to "no notification sent" restores the
-   status quo; raising takes out a core feature.
-
-### Verified
-Eight-case suite, all passing: no-op save doesn't notify; reordered
-occurrences don't notify (fingerprint); non-material edit notifies without
-demanding re-confirmation; material edit on a signed booking stamps
-`terms_changed_at` and notifies; employer tampering with `terms_changed_at`
-is reverted; worker self-stamping `terms_reconfirmed_at` is reverted; the RPC
-works; double re-confirm is rejected. Browser: banner and badge render, the
-button clears the hold (confirmed against the DB, not just the UI), a second
-material change re-arms it, and BM renders throughout. No console errors.
-
-### Outstanding
-- `20260812c` not yet run. It adds `notifications.params`, converts three
-  types to it, and deletes 15 orphaned QA notification rows.
-- Until it runs, `terms_change_summary` holds English prose, so the one
-  untranslated fragment in the BM banner is the change list ("date/time").
-  After it runs that's a code and renders as "tarikh/masa".
-- 11 notification types still write English-only text. The infrastructure
-  covers them; each needs its trigger updated to emit `params`.
-- `notifications` has no FK or cascade to shifts/applications, so deleting a
-  shift leaves workers with notifications whose link 404s. Separate fix.
+(filled in once built)
