@@ -848,6 +848,34 @@ const TRANSLATIONS = {
     "help.stillNeedHelp": "Still need help?",
     "help.contactSupportLink": "Contact support",
     "notification.title": "Notifications",
+
+    // Notification text rendered from a row's `params` instead of the English
+    // prose the DB trigger stored. See notificationText().
+    "notif.shift_updated.title": "Shift details changed",
+    "notif.shift_updated.body": "The employer changed the {changed} for \"{shift_title}\". Open the shift to see the updated details.",
+    "notif.shift_terms_changed.title": "Confirm the new shift terms",
+    "notif.shift_terms_changed.body": "The {changed} changed for \"{shift_title}\" after you signed. Your booking is on hold until you confirm the new terms.",
+    "notif.shift_cancelled.title": "Shift cancelled",
+    "notif.shift_cancelled.body": "The shift \"{shift_title}\" was cancelled by the employer.",
+    "notif.change.datetime": "date/time",
+    "notif.change.location": "location",
+    "notif.change.pay": "pay",
+    "notif.change.title": "title",
+    "notif.change.headcount": "headcount",
+    "notif.change.dress_code": "dress code",
+    "notif.change.requirements": "requirements",
+    // Worker re-confirmation of changed terms
+    "reconfirm.heading": "The employer changed this shift",
+    "reconfirm.body": "The {changed} changed after you signed. Your booking is on hold until you confirm you still want it on the new terms.",
+    "reconfirm.cta": "Confirm new terms",
+    "reconfirm.confirming": "Confirming\u2026",
+    "reconfirm.done": "New terms confirmed \u2014 your booking is active again.",
+    "reconfirm.failed": "Could not confirm. Please try again.",
+    "reconfirm.deadline": "Please confirm by {deadline}.",
+    "reconfirm.expired": "The deadline to confirm has passed. Contact the employer if you still want this shift.",
+    // Employer-side view of the same state
+    "employer.awaitingReconfirm": "Awaiting re-confirmation",
+    "employer.awaitingReconfirmHint": "You changed this shift's terms after this worker signed. Their booking is on hold until they confirm.",
     "notification.markAllRead": "Mark all as read",
     "notification.empty": "No notifications yet",
     "notification.justNow": "Just now",
@@ -1792,6 +1820,30 @@ const TRANSLATIONS = {
     "help.stillNeedHelp": "Masih perlukan bantuan?",
     "help.contactSupportLink": "Hubungi khidmat pelanggan",
     "notification.title": "Notifikasi",
+
+    "notif.shift_updated.title": "Butiran syif berubah",
+    "notif.shift_updated.body": "Majikan menukar {changed} bagi \"{shift_title}\". Buka syif untuk melihat butiran terkini.",
+    "notif.shift_terms_changed.title": "Sahkan terma syif baharu",
+    "notif.shift_terms_changed.body": "Bahagian {changed} bagi \"{shift_title}\" telah berubah selepas anda menandatangani. Tempahan anda ditangguhkan sehingga anda mengesahkan terma baharu.",
+    "notif.shift_cancelled.title": "Syif dibatalkan",
+    "notif.shift_cancelled.body": "Syif \"{shift_title}\" telah dibatalkan oleh majikan.",
+    "notif.change.datetime": "tarikh/masa",
+    "notif.change.location": "lokasi",
+    "notif.change.pay": "bayaran",
+    "notif.change.title": "tajuk",
+    "notif.change.headcount": "bilangan pekerja",
+    "notif.change.dress_code": "kod pakaian",
+    "notif.change.requirements": "keperluan",
+    "reconfirm.heading": "Majikan telah menukar syif ini",
+    "reconfirm.body": "Bahagian {changed} telah berubah selepas anda menandatangani. Tempahan anda ditangguhkan sehingga anda mengesahkan yang anda masih mahu syif ini dengan terma baharu.",
+    "reconfirm.cta": "Sahkan terma baharu",
+    "reconfirm.confirming": "Mengesahkan\u2026",
+    "reconfirm.done": "Terma baharu disahkan \u2014 tempahan anda aktif semula.",
+    "reconfirm.failed": "Gagal mengesahkan. Sila cuba lagi.",
+    "reconfirm.deadline": "Sila sahkan sebelum {deadline}.",
+    "reconfirm.expired": "Tempoh untuk mengesahkan telah tamat. Hubungi majikan jika anda masih mahukan syif ini.",
+    "employer.awaitingReconfirm": "Menunggu pengesahan semula",
+    "employer.awaitingReconfirmHint": "Anda menukar terma syif ini selepas pekerja menandatangani. Tempahan mereka ditangguhkan sehingga mereka mengesahkan.",
     "notification.markAllRead": "Tanda semua sudah dibaca",
     "notification.empty": "Belum ada notifikasi",
     "notification.justNow": "Baru sahaja",
@@ -2424,6 +2476,30 @@ const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 // 24-hour threshold check — how many hours from now until a shift starts.
 // Defaults to a large number (effectively "far away") when no start time is
 // known yet, so callers don't need a separate null-check.
+// A booking whose terms changed after the worker signed is on hold until they
+// re-confirm. The deadline is DERIVED rather than stored -- min(shift start,
+// 24h after the change) -- so there is no scheduled job to fall behind and no
+// row that can be left in a stale state.
+//
+// terms_change_summary holds change CODES ('datetime,pay'), not prose, so the
+// labels can be translated. Older rows may hold prose; notificationChangeLabel
+// falls back to showing the raw value, which degrades to English rather than
+// breaking.
+const RECONFIRM_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+const reconfirmState = (a) => {
+  if (!a?.termsChangedAt) return null;
+  const changedAt = new Date(a.termsChangedAt).getTime();
+  if (a.termsReconfirmedAt && new Date(a.termsReconfirmedAt).getTime() >= changedAt) return null;
+  const startAt = a.shiftStartAt ? new Date(a.shiftStartAt).getTime() : Infinity;
+  const deadline = Math.min(startAt, changedAt + RECONFIRM_WINDOW_MS);
+  return {
+    deadline,
+    expired: Date.now() > deadline,
+    codes: String(a.termsChangeSummary || "").split(",").map(c => c.trim()).filter(Boolean),
+  };
+};
+
 const hoursUntilShift = (shiftStartAt) => {
   const now = Date.now();
   const start = shiftStartAt ? new Date(shiftStartAt).getTime() : now + 999 * 3600000;
@@ -2492,7 +2568,19 @@ const LanguageProvider = ({ children }) => {
     }
   }, []);
 
-  const t = useCallback((key) => (TRANSLATIONS[language]?.[key] ?? TRANSLATIONS.en[key] ?? key), [language]);
+  // `params` interpolates {placeholders}. Optional, so every existing
+  // single-argument t("key") call site is unaffected. Needed because
+  // notification text is assembled from DB values (shift title, what changed)
+  // that can't live in TRANSLATIONS, and the two languages order those values
+  // differently — BM puts the shift name before the verb where EN doesn't, so
+  // string concatenation can't express both.
+  const t = useCallback((key, params) => {
+    const raw = TRANSLATIONS[language]?.[key] ?? TRANSLATIONS.en[key] ?? key;
+    if (!params) return raw;
+    return raw.replace(/\{(\w+)\}/g, (match, name) =>
+      (params[name] === undefined || params[name] === null ? match : String(params[name]))
+    );
+  }, [language]);
 
   const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
 
@@ -3176,6 +3264,40 @@ const notificationTimeAgo = (iso, t) => {
   return new Date(iso).toLocaleDateString("en-MY");
 };
 
+// Notification rows store their text as English prose, written by database
+// triggers that have no access to TRANSLATIONS. Rows also carry `params`: the
+// same event expressed as data (which shift, what changed), which CAN be
+// rendered in either language at display time.
+//
+// Rendering from params is all-or-nothing per row. A BM title above an English
+// body reads worse than consistent English, so a row falls back entirely
+// unless it has params AND both keys exist. That also makes this safe to ship
+// before the migration that populates `params` — every existing row simply
+// keeps rendering exactly as it does today.
+const hasTranslation = (key) => TRANSLATIONS.en[key] !== undefined;
+
+// Labels for the change codes in a shift_updated / shift_terms_changed row.
+// The trigger stores codes rather than prose precisely so this list can be
+// translated; a SQL-built "date/time, pay" string could only ever be English.
+const notificationChangeLabel = (code, t) =>
+  hasTranslation(`notif.change.${code}`) ? t(`notif.change.${code}`) : code;
+
+const notificationText = (n, t) => {
+  const params = n?.params && typeof n.params === "object" && !Array.isArray(n.params) ? n.params : null;
+  const titleKey = `notif.${n?.type}.title`;
+  const bodyKey = `notif.${n?.type}.body`;
+
+  if (!params || Object.keys(params).length === 0 || !hasTranslation(titleKey) || !hasTranslation(bodyKey)) {
+    return { title: n?.title, body: n?.body };
+  }
+
+  const filled = { ...params };
+  if (Array.isArray(params.changed)) {
+    filled.changed = params.changed.map(code => notificationChangeLabel(code, t)).join(", ");
+  }
+  return { title: t(titleKey, filled), body: t(bodyKey, filled) };
+};
+
 const NOTIFICATION_PAGE_SIZE = 20;
 
 const NotificationBell = ({ user, onNavigate = () => {} }) => {
@@ -3359,7 +3481,9 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                 {t("notification.empty")}
               </div>
             ) : (
-              notifications.map((n) => (
+              notifications.map((n) => {
+                const { title: notifTitle, body: notifBody } = notificationText(n, t);
+                return (
                 <button
                   key={n.id}
                   role="menuitem"
@@ -3380,14 +3504,15 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                     }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text }}>{n.title}</div>
-                    {n.body && (
-                      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(n.body)}</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text }}>{notifTitle}</div>
+                    {notifBody && (
+                      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(notifBody)}</div>
                     )}
                     <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at, t)}</div>
                   </div>
                 </button>
-              ))
+                );
+              })
             )}
             {notifHasMore && (
               <button
@@ -5373,7 +5498,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       if (!user) return setLiveApplications(null);
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -5392,6 +5517,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
         employerSignedAt: a.employer_signed_at ?? null,
+        termsChangedAt: a.terms_changed_at ?? null,
+        termsReconfirmedAt: a.terms_reconfirmed_at ?? null,
+        termsChangeSummary: a.terms_change_summary ?? null,
         checkedInAt: a.checked_in_at ?? null,
         checkedOutAt: a.checked_out_at ?? null,
         workerReportedHours: a.worker_reported_hours ?? null,
@@ -5449,6 +5577,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [liveApplications]);
 
   const [respondingOffer, setRespondingOffer] = useState(false);
+  const [reconfirming, setReconfirming] = useState(false);
   // Worker confirms a shift offer -> status becomes 'accepted', which then
   // unlocks the existing digital-contract signing step (Sign Contract button).
   const confirmOffer = async (applicationId) => {
@@ -5461,6 +5590,22 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, status: 'accepted' } : a));
     setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, status: 'accepted' } : prev);
   };
+  // Worker re-confirms terms the employer changed after they signed. Goes
+  // through the RPC rather than a direct UPDATE: terms_reconfirmed_at is
+  // guarded, so a plain PATCH is silently reverted -- deliberately, since
+  // otherwise a worker could clear the hold without ever seeing the change.
+  const reconfirmTerms = async (applicationId) => {
+    if (guardPreview()) return;
+    setReconfirming(true);
+    const { error } = await supabase.rpc('worker_reconfirm_terms', { p_application_id: applicationId });
+    setReconfirming(false);
+    if (error) { toast(t('reconfirm.failed'), 'error'); return; }
+    toast(t('reconfirm.done'), 'success');
+    const now = new Date().toISOString();
+    setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, termsReconfirmedAt: now } : a));
+    setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, termsReconfirmedAt: now } : prev);
+  };
+
   // Worker declines an offer -> employer is notified (via DB trigger) to pick a substitute.
   const declineOffer = async (applicationId) => {
     if (guardPreview()) return;
@@ -6809,6 +6954,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               )}
               {(liveApplications ?? []).map(a => (
                 <Card key={a.id} onClick={() => setSelectedApplication(a)} hover>
+                  {/* Surfaced in the list, not just the detail view: a booking
+                      on hold is the one thing a worker must act on, and it
+                      would otherwise be invisible until they opened the bid. */}
+                  {reconfirmState(a) && (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.amberLight, fontSize: 11, fontWeight: 700, color: "#92400E", marginBottom: 8 }}>
+                      ⚠️ {t("reconfirm.cta")}
+                    </div>
+                  )}
                   {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.grayLight, fontSize: 11, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>
                       {t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.shiftStartAt)}
@@ -6881,9 +7034,46 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
         {tab === "applications" && user && selectedApplication && (() => {
           const a = selectedApplication;
+          const reconfirm = reconfirmState(a);
           return (
           <div>
             <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("myBids.backToBids")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("myBids.backToBids")}</span></button>
+            {/* Terms changed after signing -- the booking is on hold until the
+                worker actively re-accepts. Deliberately the first thing in the
+                view, above the status pills, because nothing else on this
+                screen matters until it's resolved. */}
+            {reconfirm && (
+              <div style={{
+                border: `1px solid ${reconfirm.expired ? BRAND.red : BRAND.amber}`,
+                background: reconfirm.expired ? BRAND.redLight : BRAND.amberLight,
+                borderRadius: 12, padding: 14, marginBottom: 14,
+              }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.text, marginBottom: 6 }}>
+                  ⚠️ {t("reconfirm.heading")}
+                </div>
+                <div style={{ fontSize: 12.5, color: BRAND.text, lineHeight: 1.5, marginBottom: 10 }}>
+                  {t("reconfirm.body", {
+                    changed: reconfirm.codes.length
+                      ? reconfirm.codes.map(c => notificationChangeLabel(c, t)).join(", ")
+                      : notificationChangeLabel("datetime", t),
+                  })}
+                </div>
+                {reconfirm.expired ? (
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.red }}>{t("reconfirm.expired")}</div>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginBottom: 10 }}>
+                      {t("reconfirm.deadline", {
+                        deadline: `${formatShiftDate(new Date(reconfirm.deadline).toISOString(), { day: 'numeric', month: 'short' })}, ${formatShiftTime(new Date(reconfirm.deadline).toISOString())}`,
+                      })}
+                    </div>
+                    <Btn onClick={() => reconfirmTerms(a.id)} disabled={reconfirming} style={{ padding: "9px 16px" }}>
+                      {reconfirming ? t("reconfirm.confirming") : t("reconfirm.cta")}
+                    </Btn>
+                  </>
+                )}
+              </div>
+            )}
             {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.grayLight, fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>
                 {t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.shiftStartAt)}
@@ -8553,7 +8743,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -8589,6 +8779,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           cancellationChoice: a.cancellation_choice ?? null,
           cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
           cancellationProofPath: a.cancellation_proof_path ?? null,
+          termsChangedAt: a.terms_changed_at ?? null,
+          termsReconfirmedAt: a.terms_reconfirmed_at ?? null,
+          termsChangeSummary: a.terms_change_summary ?? null,
+          // reconfirmState() reads shiftStartAt to derive the deadline; here
+          // that comes from the shift being viewed, not a join.
+          shiftStartAt: selectedShift?.startAt ?? null,
         }));
         // Stable sort keeps applied_at order within each group — only
         // reorders verified workers ahead of unverified ones.
@@ -9503,6 +9699,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                               )}
                             </div>
                             <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
+                            {/* This worker signed, then the employer changed
+                                the terms -- the slot is NOT confirmed until
+                                they re-accept. Shown here so the employer can
+                                see the slot is at risk while there's still
+                                time to backfill it. */}
+                            {reconfirmState(a) && (
+                              <div
+                                title={t("employer.awaitingReconfirmHint")}
+                                style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 7px", borderRadius: 99, background: BRAND.amberLight, fontSize: 10.5, fontWeight: 700, color: "#92400E" }}
+                              >
+                                ⚠️ {t("employer.awaitingReconfirm")}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
