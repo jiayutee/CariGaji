@@ -848,6 +848,7 @@ const TRANSLATIONS = {
     "help.stillNeedHelp": "Still need help?",
     "help.contactSupportLink": "Contact support",
     "notification.title": "Notifications",
+    "notification.targetGone": "This shift is no longer listed.",
 
     // Notification text rendered from a row's `params` instead of the English
     // prose the DB trigger stored. See notificationText().
@@ -1847,6 +1848,7 @@ const TRANSLATIONS = {
     "help.stillNeedHelp": "Masih perlukan bantuan?",
     "help.contactSupportLink": "Hubungi khidmat pelanggan",
     "notification.title": "Notifikasi",
+    "notification.targetGone": "Syif ini tidak lagi disenaraikan.",
 
     "notif.shift_updated.title": "Butiran syif berubah",
     "notif.shift_updated.body": "Majikan menukar {changed} bagi \"{shift_title}\". Buka syif untuk melihat butiran terkini.",
@@ -3366,11 +3368,58 @@ const notificationText = (n, t) => {
   return { title: t(titleKey, filled), body: t(bodyKey, filled) };
 };
 
+// A notification's link points at a shift or application that may since have
+// been deleted. Nothing cascades notifications away when that happens, so the
+// row survives and the link goes nowhere -- clicking it currently navigates to
+// the portal and silently opens nothing.
+//
+// The row is deliberately NOT deleted. "You were selected for this shift" is
+// true; it happened. If the employer later removes the posting, erasing the
+// worker's copy quietly rewrites their history and destroys the only trace
+// they ever applied. Better to keep the record and say plainly that the shift
+// is gone.
+//
+// Resolution is batched: one query per table for the whole loaded page, not
+// one per row.
+const parseNotificationLink = (link) => {
+  const m = /^\/(worker|employer)\/(shifts|applications)\/([0-9a-f-]{36})$/i.exec(link || "");
+  return m ? { table: m[2], id: m[3] } : null;
+};
+
+const resolveDeadNotificationLinks = async (rows) => {
+  const wanted = { shifts: new Set(), applications: new Set() };
+  for (const n of rows || []) {
+    const target = parseNotificationLink(n?.link);
+    if (target) wanted[target.table].add(target.id);
+  }
+  const dead = new Set();
+  for (const table of ["shifts", "applications"]) {
+    const ids = [...wanted[table]];
+    if (!ids.length) continue;
+    const { data, error } = await supabase.from(table).select("id").in("id", ids);
+    // On error, assume everything is alive. Showing a live notification as
+    // dead is worse than the reverse: it tells the worker a real shift has
+    // vanished.
+    if (error) continue;
+    const alive = new Set((data ?? []).map(r => r.id));
+    ids.filter(id => !alive.has(id)).forEach(id => dead.add(id));
+  }
+  return dead;
+};
+
+const isNotificationDead = (n, deadIds) => {
+  const target = parseNotificationLink(n?.link);
+  return Boolean(target && deadIds?.has(target.id));
+};
+
 const NOTIFICATION_PAGE_SIZE = 20;
 
 const NotificationBell = ({ user, onNavigate = () => {} }) => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
+  // ids of shifts/applications a loaded notification links to that no longer
+  // exist -- those rows render as a tombstone instead of a dead link.
+  const [deadLinkIds, setDeadLinkIds] = useState(() => new Set());
   const [open, setOpen] = useState(false);
   const [panelPos, setPanelPos] = useState(null); // { top, left } in viewport coords
   const [notifHasMore, setNotifHasMore] = useState(false);
@@ -3422,10 +3471,12 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(0, NOTIFICATION_PAGE_SIZE - 1)
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (!active) return;
         setNotifications(data ?? []);
         setNotifHasMore((data ?? []).length === NOTIFICATION_PAGE_SIZE);
+        const dead = await resolveDeadNotificationLinks(data ?? []);
+        if (active) setDeadLinkIds(dead);
       });
     supabase
       .from('notifications')
@@ -3467,6 +3518,10 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
     setNotifications(prev => [...prev, ...(data ?? [])]);
     setNotifHasMore((data ?? []).length === NOTIFICATION_PAGE_SIZE);
     setNotifLoadingMore(false);
+    const dead = await resolveDeadNotificationLinks(data ?? []);
+    // union, not replace: earlier pages were already resolved and this batch
+    // only knows about its own rows.
+    if (dead.size) setDeadLinkIds(prev => new Set([...prev, ...dead]));
   };
 
   const markRead = async (id) => {
@@ -3478,6 +3533,9 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
 
   const handleNotificationClick = (n) => {
     markRead(n.id);
+    // A tombstone is still worth marking read, but navigating would land the
+    // user on a portal with nothing opened and no explanation.
+    if (isNotificationDead(n, deadLinkIds)) return;
     if (n.link) {
       setOpen(false);
       onNavigate(n.link);
@@ -3551,6 +3609,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
             ) : (
               notifications.map((n) => {
                 const { title: notifTitle, body: notifBody } = notificationText(n, t);
+                const notifDead = isNotificationDead(n, deadLinkIds);
                 return (
                 <button
                   key={n.id}
@@ -3560,7 +3619,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                     width: "100%", display: "flex", alignItems: "flex-start", gap: 8,
                     padding: "10px 14px", border: "none", borderBottom: `1px solid ${BRAND.border}`,
                     background: n.read ? "transparent" : BRAND.grayLight,
-                    cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                    cursor: notifDead ? "default" : "pointer", fontFamily: "inherit", textAlign: "left",
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = BRAND.grayLight; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = n.read ? "transparent" : BRAND.grayLight; }}
@@ -3572,9 +3631,16 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                     }} />
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text }}>{notifTitle}</div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: notifDead ? BRAND.textMuted : BRAND.text }}>{notifTitle}</div>
                     {notifBody && (
                       <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(notifBody)}</div>
+                    )}
+                    {/* The record stays -- it really happened -- but says so
+                        plainly instead of being a link that goes nowhere. */}
+                    {notifDead && (
+                      <div style={{ fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted, marginTop: 3, fontStyle: "italic" }}>
+                        {t("notification.targetGone")}
+                      </div>
                     )}
                     <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at, t)}</div>
                   </div>
