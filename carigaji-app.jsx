@@ -860,6 +860,8 @@ const TRANSLATIONS = {
     "notif.change.datetime": "date/time",
     // Remaining notification types (20260813). Variant keys cover the three
     // notifications whose body branches on an outcome.
+    "notif.offer_confirmed.title": "Worker confirmed",
+    "notif.offer_confirmed.body": "{worker_name} accepted your offer for \"{shift_title}\".",
     "notif.bid_received.title": "New bid received",
     "notif.bid_received.body": "Someone applied for \"{shift_title}\".",
     "notif.bid_accepted.title": "Bid accepted",
@@ -1853,6 +1855,8 @@ const TRANSLATIONS = {
     "notif.shift_cancelled.title": "Syif dibatalkan",
     "notif.shift_cancelled.body": "Syif \"{shift_title}\" telah dibatalkan oleh majikan.",
     "notif.change.datetime": "tarikh/masa",
+    "notif.offer_confirmed.title": "Pekerja telah mengesahkan",
+    "notif.offer_confirmed.body": "{worker_name} telah menerima tawaran anda untuk \"{shift_title}\".",
     "notif.bid_received.title": "Bidaan baharu diterima",
     "notif.bid_received.body": "Seseorang telah memohon untuk \"{shift_title}\".",
     "notif.bid_accepted.title": "Bidaan diterima",
