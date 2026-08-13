@@ -905,6 +905,7 @@ const TRANSLATIONS = {
     // Worker re-confirmation of changed terms
     // Withdrawing from a booking already accepted
     // Launch-phase issue reporting
+    "discover.applicationsClosed": "Applications for this shift have closed.",
     "issue.menuItem": "Report a problem",
     "issue.title": "Report a problem",
     "issue.subtitle": "Tell us what went wrong and we'll look into it. We're in early launch \u2014 reports like yours are how things get fixed quickly.",
@@ -1939,6 +1940,7 @@ const TRANSLATIONS = {
     "notif.change.headcount": "bilangan pekerja",
     "notif.change.dress_code": "kod pakaian",
     "notif.change.requirements": "keperluan",
+    "discover.applicationsClosed": "Permohonan untuk syif ini telah ditutup.",
     "issue.menuItem": "Laporkan masalah",
     "issue.title": "Laporkan masalah",
     "issue.subtitle": "Beritahu kami apa yang tidak kena dan kami akan menyiasatnya. Kami baru dilancarkan \u2014 laporan seperti anda inilah yang membantu kami membaiki dengan cepat.",
@@ -6857,6 +6859,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     </div>
   );
 
+  // Mirrors the applications_worker_insert RLS policy: the shift must be
+  // 'open' AND the deadline (if set) must not have passed. Kept as a derived
+  // value rather than duplicated at each use so the two conditions cannot
+  // drift apart.
+  const applicationsClosed = Boolean(selectedShift) && (
+    (selectedShift.status && selectedShift.status !== "open") ||
+    (selectedShift.applicationsCloseAt && new Date(selectedShift.applicationsCloseAt) <= new Date())
+  );
+
   // Shift detail view with bottom nav
   if (selectedShift) return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
@@ -6920,8 +6931,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
                   const { data, error } = await supabase.from('applications').insert(payload).select();
                   if (error) {
-                    // Unique constraint or FK errors will appear here
-                    toast(t("toast.applicationFailed") + error.message, "error");
+                    // The button is hidden once applications close, but the
+                    // shift can close between opening this modal and
+                    // submitting -- and RLS answers that with raw Postgres
+                    // text ("new row violates row-level security policy"),
+                    // which means nothing to a worker. Unique/FK errors still
+                    // surface verbatim; only the RLS refusal is translated.
+                    const closed = /row.?level security/i.test(error.message || "");
+                    toast(closed ? t("discover.applicationsClosed") : t("toast.applicationFailed") + error.message, "error");
                     return;
                   }
                   logAnalyticsEvent('bid_placed', { shift_id: selectedShift.id }, user.id);
@@ -7041,6 +7058,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               of what an employer came here to see. The block lives on the
               modal's own Submit Bid button instead, so the whole interface
               stays explorable but nothing can actually be written. */}
+          {/* The RLS policy is the real gate (shift must be 'open' and the
+              deadline unpassed). Mirroring it here is purely so the worker
+              learns WHY before tapping -- otherwise the insert is refused and
+              they are shown the raw Postgres text
+              "new row violates row-level security policy". */}
+          {applicationsClosed ? (
+            <div style={{
+              width: "100%", textAlign: "center", padding: isMobile ? "12px 10px" : "14px 12px",
+              marginBottom: 20, borderRadius: 10, border: `1px solid ${BRAND.border}`,
+              background: BRAND.grayLight, color: BRAND.textMuted, fontSize: 13, fontWeight: 600,
+            }}>
+              {t("discover.applicationsClosed")}
+            </div>
+          ) : (
           <Btn
             onClick={() => {
               if (user) { setBidAmount(String(selectedShift.wageMin)); setShowBidModal(true); }
@@ -7050,6 +7081,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           >
             {user ? t("common.placeBid") : t("common.signInToBid")}
           </Btn>
+          )}
         </div>
       </div>
       <div style={navBarStyle}>
