@@ -12,6 +12,12 @@ import { applyThemeToDocument, buildThemeVars, cycleThemePreference, getSystemTh
 // viewer's local timezone (that's the correct behavior for "when did I see
 // this"), so only shift-time-critical call sites use these.
 const MY_TIMEZONE = "Asia/Kuala_Lumpur";
+// Identifies which build a report came from. Vite replaces import.meta.env
+// at build time, so this pins to the deploy the reporter was actually running
+// -- without it, "it broke" arrives with no way to tell whether the fix that
+// followed was already live for them.
+const APP_BUILD_ID = `${import.meta.env.MODE ?? "unknown"}-${import.meta.env.VITE_BUILD_SHA ?? "local"}`;
+
 const formatShiftTime = (iso) => iso ? new Date(iso).toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit", timeZone: MY_TIMEZONE }) : "";
 const formatShiftDate = (iso, opts = {}) => iso ? new Date(iso).toLocaleDateString("en-MY", { ...opts, timeZone: MY_TIMEZONE }) : "";
 // 24h "HH:MM" in Malaysia time, for time-of-day filtering/sorting (not display).
@@ -898,6 +904,29 @@ const TRANSLATIONS = {
     "notif.change.requirements": "requirements",
     // Worker re-confirmation of changed terms
     // Withdrawing from a booking already accepted
+    // Launch-phase issue reporting
+    "issue.menuItem": "Report a problem",
+    "issue.title": "Report a problem",
+    "issue.subtitle": "Tell us what went wrong and we'll look into it. We're in early launch \u2014 reports like yours are how things get fixed quickly.",
+    "issue.categoryLabel": "What kind of problem?",
+    "issue.cat.bug": "Something is broken",
+    "issue.cat.confusing": "Confusing to use",
+    "issue.cat.missing": "Something is missing",
+    "issue.cat.payment": "Payment",
+    "issue.cat.account": "My account",
+    "issue.cat.other": "Other",
+    "issue.severityLabel": "How much is it blocking you?",
+    "issue.sev.blocking": "Can't continue",
+    "issue.sev.normal": "Annoying",
+    "issue.sev.minor": "Minor",
+    "issue.descriptionLabel": "What happened?",
+    "issue.descriptionPlaceholder": "What were you trying to do, and what happened instead? If you saw an error message, paste it here.",
+    "issue.contextNote": "We'll automatically include which page you were on ({page}) and your app version, so you don't have to describe it.",
+    "issue.submitBtn": "Send report",
+    "issue.sending": "Sending\u2026",
+    "issue.thanks": "Thank you \u2014 your report was sent. We read every one.",
+    "issue.needDescription": "Please describe what happened.",
+    "issue.failed": "Could not send the report: ",
     "withdraw.btn": "Withdraw from this shift",
     "withdraw.title": "Withdraw from this shift?",
     "withdraw.body": "You accepted \"{shift}\". Withdrawing frees your slot so the employer can fill it \u2014 the earlier you tell them, the easier that is.",
@@ -1910,6 +1939,28 @@ const TRANSLATIONS = {
     "notif.change.headcount": "bilangan pekerja",
     "notif.change.dress_code": "kod pakaian",
     "notif.change.requirements": "keperluan",
+    "issue.menuItem": "Laporkan masalah",
+    "issue.title": "Laporkan masalah",
+    "issue.subtitle": "Beritahu kami apa yang tidak kena dan kami akan menyiasatnya. Kami baru dilancarkan \u2014 laporan seperti anda inilah yang membantu kami membaiki dengan cepat.",
+    "issue.categoryLabel": "Jenis masalah apa?",
+    "issue.cat.bug": "Ada yang rosak",
+    "issue.cat.confusing": "Mengelirukan",
+    "issue.cat.missing": "Ada yang tiada",
+    "issue.cat.payment": "Pembayaran",
+    "issue.cat.account": "Akaun saya",
+    "issue.cat.other": "Lain-lain",
+    "issue.severityLabel": "Sejauh mana ia menghalang anda?",
+    "issue.sev.blocking": "Tidak boleh teruskan",
+    "issue.sev.normal": "Menyusahkan",
+    "issue.sev.minor": "Kecil",
+    "issue.descriptionLabel": "Apa yang berlaku?",
+    "issue.descriptionPlaceholder": "Apa yang anda cuba lakukan, dan apa yang berlaku sebaliknya? Jika anda melihat mesej ralat, tampalkannya di sini.",
+    "issue.contextNote": "Kami akan sertakan secara automatik halaman yang anda berada ({page}) dan versi aplikasi anda, jadi anda tidak perlu menerangkannya.",
+    "issue.submitBtn": "Hantar laporan",
+    "issue.sending": "Menghantar\u2026",
+    "issue.thanks": "Terima kasih \u2014 laporan anda telah dihantar. Kami membaca setiap satu.",
+    "issue.needDescription": "Sila terangkan apa yang berlaku.",
+    "issue.failed": "Gagal menghantar laporan: ",
     "withdraw.btn": "Tarik diri daripada syif ini",
     "withdraw.title": "Tarik diri daripada syif ini?",
     "withdraw.body": "Anda telah menerima \"{shift}\". Menarik diri akan mengosongkan slot anda supaya majikan boleh mengisinya \u2014 lebih awal anda beritahu, lebih mudah bagi mereka.",
@@ -3222,7 +3273,7 @@ const openMailtoSupport = () => {
   window.location.href = "mailto:support@carigaji.com?subject=CariGaji%20Support%20Request";
 };
 
-const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, isMobile = false }) => {
+const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = () => {}, isMobile = false }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -3266,6 +3317,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, isMobile = false }) =
   const items = [
     { label: t("account.help"), icon: "❓", onClick: () => setHelpOpen(true) },
     { label: t("account.contactSupport"), icon: "💬", onClick: onOpenSupportChat },
+    { label: t("issue.menuItem"), icon: "🐞", onClick: onOpenIssueReport },
     { label: t("account.referFriends"), icon: "🎁", onClick: shareReferralLink },
     { label: t("account.signOut"), icon: "↩️", danger: true, onClick: onSignOut },
   ];
@@ -3471,6 +3523,99 @@ const isNotificationDead = (n, deadIds) => {
 };
 
 const NOTIFICATION_PAGE_SIZE = 20;
+
+// Launch-phase issue reporting. Distinct from Contact Support (a
+// conversation) -- this captures "something is broken" with the context a
+// reporter shouldn't have to describe: which page, which role, which build.
+// Without those, "the button does nothing" is unactionable.
+const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
+  const { t } = useLanguage();
+  const toast = useToast();
+  const [category, setCategory] = useState("bug");
+  const [severity, setSeverity] = useState("normal");
+  const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) { setCategory("bug"); setSeverity("normal"); setDescription(""); }
+  }, [open]);
+
+  if (!open) return null;
+
+  const submit = async () => {
+    if (!description.trim()) { toast(t("issue.needDescription"), "error"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("issue_reports").insert({
+      user_id: user?.id ?? null,
+      reporter_role: userRole ?? null,
+      category,
+      severity,
+      description: description.trim(),
+      page_context: pageContext ?? null,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 400) : null,
+      app_version: APP_BUILD_ID,
+    });
+    setSaving(false);
+    if (error) { toast(t("issue.failed") + error.message, "error"); return; }
+    toast(t("issue.thanks"), "success");
+    onClose();
+  };
+
+  const CATEGORIES = ["bug", "confusing", "missing", "payment", "account", "other"];
+  const SEVERITIES = ["blocking", "normal", "minor"];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1400, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 460, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.text, margin: 0 }}>🐞 {t("issue.title")}</h3>
+          <button onClick={onClose} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+        </div>
+        <p style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.5, margin: "0 0 16px" }}>{t("issue.subtitle")}</p>
+
+        <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("issue.categoryLabel")}</label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+          {CATEGORIES.map(c => (
+            <button key={c} onClick={() => setCategory(c)} style={{
+              padding: "6px 11px", borderRadius: 99, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+              border: `1px solid ${category === c ? BRAND.primary : BRAND.border}`,
+              background: category === c ? BRAND.blueLight : "transparent",
+              color: category === c ? BRAND.primary : BRAND.textMuted,
+            }}>{t(`issue.cat.${c}`)}</button>
+          ))}
+        </div>
+
+        <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("issue.severityLabel")}</label>
+        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+          {SEVERITIES.map(sv => (
+            <button key={sv} onClick={() => setSeverity(sv)} style={{
+              flex: 1, padding: "7px 8px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+              border: `1px solid ${severity === sv ? BRAND.primary : BRAND.border}`,
+              background: severity === sv ? BRAND.blueLight : "transparent",
+              color: severity === sv ? BRAND.primary : BRAND.textMuted,
+            }}>{t(`issue.sev.${sv}`)}</button>
+          ))}
+        </div>
+
+        <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("issue.descriptionLabel")}</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={5}
+          placeholder={t("issue.descriptionPlaceholder")}
+          style={{ width: "100%", padding: 10, borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.bg, color: BRAND.text, fontFamily: "inherit", fontSize: 13, resize: "vertical", marginBottom: 8 }}
+        />
+        <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 16, lineHeight: 1.45 }}>
+          {t("issue.contextNote", { page: pageContext || "—" })}
+        </div>
+
+        <Btn onClick={submit} disabled={saving} style={{ width: "100%", justifyContent: "center" }}>
+          {saving ? t("issue.sending") : t("issue.submitBtn")}
+        </Btn>
+      </div>
+    </div>
+  );
+};
 
 const NotificationBell = ({ user, onNavigate = () => {} }) => {
   const { t } = useLanguage();
@@ -5133,7 +5278,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
 };
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, onOpenSupportChat = openMailtoSupport }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -7861,6 +8006,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   previewMode ? null : { label: t("personalDetails.title"), icon: "🪪", onClick: () => setShowPersonalDetails(true) },
                   { label: t("account.help"), icon: "❓", onClick: () => setSettingsHelpOpen(true) },
                   { label: t("account.contactSupport"), icon: "💬", onClick: onOpenSupportChat },
+                  { label: t("issue.menuItem"), icon: "🐞", onClick: onOpenIssueReport },
                   { label: t("account.referFriends"), icon: "🎁", onClick: shareWorkerReferralLink },
                   { label: t("account.signOut"), icon: "↩️", danger: true, onClick: () => supabase.auth.signOut() },
                 ].filter(Boolean).map((it, i, arr) => (
@@ -13055,6 +13201,7 @@ export default function CariGaji() {
   const backHandlerRef = useRef(null);
   const [authOpen, setAuthOpen] = useState(false);
   const [supportChatOpen, setSupportChatOpen] = useState(false);
+  const [issueReportOpen, setIssueReportOpen] = useState(false);
   const [authView, setAuthView] = useState("signin");
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
@@ -13454,6 +13601,7 @@ export default function CariGaji() {
               <ProfileMenu
                 user={user}
                 onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+                onOpenIssueReport={() => setIssueReportOpen(true)}
                 onOpenSupportChat={() => setSupportChatOpen(true)}
                 isMobile={isMobile}
               />
@@ -13463,8 +13611,8 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
-          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
+          {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
           {portal === "admin" && (
             isAdmin
               ? <AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} />
@@ -13490,12 +13638,23 @@ export default function CariGaji() {
         onOAuth={handleOAuth}
       />
       <SupportChatWidget isMobile={isMobile} open={supportChatOpen} onOpenChange={setSupportChatOpen} />
+      <IssueReportModal
+        open={issueReportOpen}
+        onClose={() => setIssueReportOpen(false)}
+        user={user}
+        userRole={userRole}
+        /* Which portal + address they were on when it broke -- the single most
+           useful thing for reproducing a report, and the thing a reporter is
+           least likely to think to mention. */
+        pageContext={`${portal} · ${typeof window !== "undefined" ? window.location.pathname : ""}`}
+      />
       <CookieConsentManager isMobile={isMobile} />
       <TnCGateModal
         open={Boolean(user) && tncAcceptedAt === null}
         accepting={tncAccepting}
         onAccept={acceptTnC}
         onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+                onOpenIssueReport={() => setIssueReportOpen(true)}
       />
       {/* Progressive-signup sequence: T&C gate above, then required details,
           then the one-time intro. The gate conditions are mutually exclusive
@@ -13506,6 +13665,7 @@ export default function CariGaji() {
         role={userRole}
         onCompleted={ts => setDetailsCompletedAt(ts)}
         onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+                onOpenIssueReport={() => setIssueReportOpen(true)}
       />
       <DetailsGateModal
         open={kycUploadOpen && Boolean(user)}
