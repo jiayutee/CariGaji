@@ -861,6 +861,10 @@ const TRANSLATIONS = {
     "notif.change.datetime": "date/time",
     // Remaining notification types (20260813). Variant keys cover the three
     // notifications whose body branches on an outcome.
+    "notif.worker_withdrew.title": "A worker withdrew",
+    "notif.worker_withdrew.body": "{worker_name} withdrew from \"{shift_title}\" with {notice_hours} hours notice. The slot is open again.",
+    "notif.slot_reopened.title": "A slot reopened",
+    "notif.slot_reopened.body": "A slot has reopened on \"{shift_title}\". Apply again if you are still free.",
     "notif.offer_confirmed.title": "Worker confirmed",
     "notif.offer_confirmed.body": "{worker_name} accepted your offer for \"{shift_title}\".",
     "notif.bid_received.title": "New bid received",
@@ -893,6 +897,20 @@ const TRANSLATIONS = {
     "notif.change.dress_code": "dress code",
     "notif.change.requirements": "requirements",
     // Worker re-confirmation of changed terms
+    // Withdrawing from a booking already accepted
+    "withdraw.btn": "Withdraw from this shift",
+    "withdraw.title": "Withdraw from this shift?",
+    "withdraw.body": "You accepted \"{shift}\". Withdrawing frees your slot so the employer can fill it \u2014 the earlier you tell them, the easier that is.",
+    "withdraw.noticeLabel": "You are giving about {hours} hours notice.",
+    "withdraw.penaltyWarning": "This will cost you {points} reliability points. Employers see your reliability score when choosing who to book.",
+    "withdraw.noPenalty": "That is enough notice that there is no reliability penalty.",
+    "withdraw.reasonLabel": "Reason (optional)",
+    "withdraw.reasonPlaceholder": "The employer will see this. A short reason helps them plan.",
+    "withdraw.keepBtn": "Keep the shift",
+    "withdraw.confirmBtn": "Withdraw",
+    "withdraw.withdrawing": "Withdrawing\u2026",
+    "withdraw.done": "You have withdrawn. The employer has been told and your slot is open again.",
+    "withdraw.failed": "Could not withdraw: ",
     "reconfirm.heading": "The employer changed this shift",
     "reconfirm.body": "The {changed} changed after you signed. Your booking is on hold until you confirm you still want it on the new terms.",
     "reconfirm.cta": "Confirm new terms",
@@ -1857,6 +1875,10 @@ const TRANSLATIONS = {
     "notif.shift_cancelled.title": "Syif dibatalkan",
     "notif.shift_cancelled.body": "Syif \"{shift_title}\" telah dibatalkan oleh majikan.",
     "notif.change.datetime": "tarikh/masa",
+    "notif.worker_withdrew.title": "Seorang pekerja menarik diri",
+    "notif.worker_withdrew.body": "{worker_name} menarik diri daripada \"{shift_title}\" dengan notis {notice_hours} jam. Slot itu terbuka semula.",
+    "notif.slot_reopened.title": "Slot dibuka semula",
+    "notif.slot_reopened.body": "Satu slot telah dibuka semula pada \"{shift_title}\". Mohon semula jika anda masih lapang.",
     "notif.offer_confirmed.title": "Pekerja telah mengesahkan",
     "notif.offer_confirmed.body": "{worker_name} telah menerima tawaran anda untuk \"{shift_title}\".",
     "notif.bid_received.title": "Bidaan baharu diterima",
@@ -1888,6 +1910,19 @@ const TRANSLATIONS = {
     "notif.change.headcount": "bilangan pekerja",
     "notif.change.dress_code": "kod pakaian",
     "notif.change.requirements": "keperluan",
+    "withdraw.btn": "Tarik diri daripada syif ini",
+    "withdraw.title": "Tarik diri daripada syif ini?",
+    "withdraw.body": "Anda telah menerima \"{shift}\". Menarik diri akan mengosongkan slot anda supaya majikan boleh mengisinya \u2014 lebih awal anda beritahu, lebih mudah bagi mereka.",
+    "withdraw.noticeLabel": "Anda memberi notis kira-kira {hours} jam.",
+    "withdraw.penaltyWarning": "Ini akan mengurangkan {points} mata kebolehpercayaan anda. Majikan melihat skor kebolehpercayaan anda semasa memilih pekerja.",
+    "withdraw.noPenalty": "Notis ini mencukupi, jadi tiada penalti kebolehpercayaan.",
+    "withdraw.reasonLabel": "Sebab (pilihan)",
+    "withdraw.reasonPlaceholder": "Majikan akan melihat ini. Sebab ringkas membantu mereka merancang.",
+    "withdraw.keepBtn": "Kekalkan syif",
+    "withdraw.confirmBtn": "Tarik diri",
+    "withdraw.withdrawing": "Menarik diri\u2026",
+    "withdraw.done": "Anda telah menarik diri. Majikan telah dimaklumkan dan slot anda dibuka semula.",
+    "withdraw.failed": "Gagal menarik diri: ",
     "reconfirm.heading": "Majikan telah menukar syif ini",
     "reconfirm.body": "Bahagian {changed} telah berubah selepas anda menandatangani. Tempahan anda ditangguhkan sehingga anda mengesahkan yang anda masih mahu syif ini dengan terma baharu.",
     "reconfirm.cta": "Sahkan terma baharu",
@@ -2539,6 +2574,29 @@ const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 // labels can be translated. Older rows may hold prose; notificationChangeLabel
 // falls back to showing the raw value, which degrades to English rather than
 // breaking.
+// Mirrors public.cancellation_tier_for('worker', n) so the warning shown
+// before confirming matches the penalty the RPC actually applies. Kept as a
+// literal ladder rather than fetched, because it only ever DISPLAYS the
+// consequence -- the server recomputes it from cancellation_tiers and its
+// number is the one that counts. If the two ever disagree the worker was
+// warned about the wrong figure, so the tiers are read from the DB on mount
+// where possible (see WITHDRAW_TIERS_FALLBACK use).
+const WITHDRAW_TIERS_FALLBACK = [
+  { minNoticeHours: 168, penalty: 0 },
+  { minNoticeHours: 48, penalty: 2 },
+  { minNoticeHours: 24, penalty: 5 },
+  { minNoticeHours: 0, penalty: 15 },
+];
+
+const withdrawalPenaltyFor = (shiftStartAt, tiers) => {
+  const ladder = (tiers && tiers.length ? tiers : WITHDRAW_TIERS_FALLBACK)
+    .slice()
+    .sort((a, b) => b.minNoticeHours - a.minNoticeHours);
+  const hours = Math.max(hoursUntilShift(shiftStartAt), 0);
+  const tier = ladder.find(x => hours >= x.minNoticeHours) ?? ladder[ladder.length - 1];
+  return { hours, penalty: tier?.penalty ?? 0 };
+};
+
 const RECONFIRM_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const reconfirmState = (a) => {
@@ -5724,6 +5782,48 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, status: 'accepted' } : a));
     setSelectedApplication(prev => prev && prev.id === applicationId ? { ...prev, status: 'accepted' } : prev);
   };
+  // Withdrawal tiers, read from the DB so the penalty a worker is warned about
+  // is the one the server will actually apply.
+  const [withdrawTiers, setWithdrawTiers] = useState(null);
+  useEffect(() => {
+    if (!user) return undefined;
+    let active = true;
+    supabase.from('cancellation_tiers')
+      .select('min_notice_hours, reliability_penalty')
+      .eq('party', 'worker')
+      .then(({ data, error }) => {
+        if (!active || error || !data) return;
+        setWithdrawTiers(data.map(r => ({
+          minNoticeHours: Number(r.min_notice_hours),
+          penalty: Number(r.reliability_penalty ?? 0),
+        })));
+      });
+    return () => { active = false; };
+  }, [user]);
+
+  const [withdrawTarget, setWithdrawTarget] = useState(null); // application, or null
+  const [withdrawReason, setWithdrawReason] = useState("");
+  const [withdrawing, setWithdrawing] = useState(false);
+
+  // Withdraw from a booking already accepted. Always permitted -- see the
+  // migration notes on why an employer-approval gate would produce no-shows
+  // rather than attendance -- but the cost is shown plainly first.
+  const confirmWithdraw = async () => {
+    if (guardPreview() || !withdrawTarget) return;
+    setWithdrawing(true);
+    const { error } = await supabase.rpc('worker_withdraw_from_shift', {
+      p_application_id: withdrawTarget.id,
+      p_reason: withdrawReason.trim() || null,
+    });
+    setWithdrawing(false);
+    if (error) { toast(t('withdraw.failed') + error.message, 'error'); return; }
+    toast(t('withdraw.done'), 'success');
+    setLiveApplications(prev => (prev ?? []).map(a => a.id === withdrawTarget.id ? { ...a, status: 'withdrawn' } : a));
+    setSelectedApplication(prev => prev && prev.id === withdrawTarget.id ? { ...prev, status: 'withdrawn' } : prev);
+    setWithdrawTarget(null);
+    setWithdrawReason("");
+  };
+
   // Worker re-confirms terms the employer changed after they signed. Goes
   // through the RPC rather than a direct UPDATE: terms_reconfirmed_at is
   // guarded, so a plain PATCH is silently reverted -- deliberately, since
@@ -7352,6 +7452,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {a.status === "accepted" && !a.workerSignedAt && a.shiftStatus !== "cancelled" && (
                 <Btn onClick={() => setWorkerContractModal({ ...a, applicationId: a.id, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.signContractBtn")}</Btn>
               )}
+              {/* Deliberately available whether or not the contract is signed,
+                  and never gated on employer approval -- a worker who cannot
+                  come needs a route that isn't "just don't turn up". Placed
+                  last and styled quietly so it is findable, not inviting. */}
+              {a.status === "accepted" && a.shiftStatus !== "cancelled" && !a.checkedInAt && (
+                <Btn variant="secondary" onClick={() => { setWithdrawTarget(a); setWithdrawReason(""); }}
+                     style={{ flex: 1, justifyContent: "center", color: BRAND.red, borderColor: BRAND.red }}>
+                  {t("withdraw.btn")}
+                </Btn>
+              )}
               {a.status === "accepted" && a.workerSignedAt && a.shiftStatus !== "cancelled" && (
                 <>
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
@@ -7987,6 +8097,53 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         ))}
       </div>
     </div>
+
+    {withdrawTarget && (() => {
+      const { hours, penalty } = withdrawalPenaltyFor(withdrawTarget.shiftStartAt, withdrawTiers);
+      return (
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setWithdrawTarget(null)}>
+        <div style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 430, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+          <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.text, margin: "0 0 8px" }}>{t("withdraw.title")}</h3>
+          <div style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 14 }}>
+            {t("withdraw.body", { shift: withdrawTarget.shiftTitle })}
+          </div>
+
+          {/* The cost, stated before the decision rather than after it. */}
+          <div style={{ border: `1px solid ${penalty > 0 ? BRAND.amber : BRAND.border}`, background: penalty > 0 ? BRAND.amberLight : BRAND.grayLight, borderRadius: 10, padding: 12, marginBottom: 14 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>
+              {t("withdraw.noticeLabel", { hours: Math.round(hours) })}
+            </div>
+            <div style={{ fontSize: 12.5, color: BRAND.text }}>
+              {penalty > 0
+                ? t("withdraw.penaltyWarning", { points: penalty })
+                : t("withdraw.noPenalty")}
+            </div>
+          </div>
+
+          <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>
+            {t("withdraw.reasonLabel")}
+          </label>
+          <textarea
+            value={withdrawReason}
+            onChange={(e) => setWithdrawReason(e.target.value)}
+            rows={3}
+            placeholder={t("withdraw.reasonPlaceholder")}
+            style={{ width: "100%", padding: 10, borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.bg, color: BRAND.text, fontFamily: "inherit", fontSize: 13, resize: "vertical", marginBottom: 16 }}
+          />
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <Btn variant="secondary" onClick={() => setWithdrawTarget(null)} style={{ flex: 1, justifyContent: "center" }}>
+              {t("withdraw.keepBtn")}
+            </Btn>
+            <Btn onClick={confirmWithdraw} disabled={withdrawing}
+                 style={{ flex: 1, justifyContent: "center", background: BRAND.red, borderColor: BRAND.red }}>
+              {withdrawing ? t("withdraw.withdrawing") : t("withdraw.confirmBtn")}
+            </Btn>
+          </div>
+        </div>
+      </div>
+      );
+    })()}
 
     {workerContractModal && (
       <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
