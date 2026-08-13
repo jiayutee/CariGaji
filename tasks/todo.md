@@ -139,8 +139,11 @@ migration and historical payouts keep the rate they were quoted at.
         DONE + verified in production: exploit refused, shift and signed
         application both survive, no RLS recursion. Follow-up 20260814b
         makes the refusal report an error instead of a misleading 204.
-- [ ] 2. Migration: extract `shift_contracted_hours`, reuse in the payout
+- [x] 2. Migration: extract `shift_contracted_hours`, reuse in the payout
         trigger, verify existing payouts are unchanged
+        DONE + verified: returns 8.0h for a contracted 8h shift; diff against
+        the real create_cancellation_payout confirmed only the inline block
+        was swapped.
 - [ ] 3. Migration: compensation-tier config table + `quote_shift_cancellation`
 - [ ] 4. Employer quote screen with itemised amounts + explicit acceptance
 - [ ] 5. Worker decision card showing ringgit values; wire the Dispute route
@@ -152,3 +155,46 @@ migration and historical payouts keep the rate they were quoted at.
 
 ## Review
 (filled in once built)
+
+
+## Dogfood sweep — 2026-08-13
+
+25 scenarios across altering / deadline / cancellation, both roles. **25/25
+passed.** Script: scratchpad/dogfood.py.
+
+Covered: no-op save is silent; non-material edit notifies without demanding
+re-confirmation; material edit holds only the SIGNED booking (not pending
+applicants) and stores change CODES not prose; the re-confirm RPC clears it;
+a withdrawn applicant stops being notified. Deadline in the past and status
+`closed` both block new applications (403) while keeping the shift visible.
+Cancellation >24h notifies without offering a payout choice; <24h stamps the
+choice deadline and notifies; choosing contract_50 writes a real payout row
+(RM 72.00 verified); an `offered` worker IS notified of cancellation (the
+July bug, confirmed fixed); deleting a booked shift raises the named error.
+
+### Found during the sweep
+
+**F1 — a cancelled shift with accepted workers can never be deleted, by
+anyone.** `worker_withdraw_from_shift` refuses once the shift is cancelled
+("This shift was already cancelled"), so those applications stay `accepted`
+forever and the delete guard blocks the shift permanently. Record-preservation
+is right, but there is no admin purge path at all, so test and abandoned data
+accumulates with no way to clear it. Needs an admin-only hard-delete RPC.
+
+**F2 — applying past the deadline shows a raw Postgres error.** The RLS
+policy correctly returns 403, but the UI does
+`toast(t("toast.applicationFailed") + error.message)`, so the worker sees
+"new row violates row-level security policy for table applications" instead
+of "Applications for this shift have closed." The JS never pre-checks
+`applications_close_at`.
+
+**F3 — `issue_reports` has no DELETE policy for anyone**, including admin
+(admin has `for all`, so admin is fine; reporters cannot remove their own).
+Consistent with triage-by-admin, but worth a deliberate decision.
+
+### Still open from the earlier review
+- No post-shift rating PROMPT — ratings work but are opt-in via a button
+  nobody is pointed at, so `profiles.rating` will not accumulate.
+- No-show costs a worker NOTHING automatically, while a responsible
+  withdrawal costs reliability points. The incentive is backwards until a
+  no-show penalty exists.
