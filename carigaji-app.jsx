@@ -562,6 +562,9 @@ const TRANSLATIONS = {
     "disputes.filedAgainstYou": "Filed against you",
     "disputes.resolvedLabel": "Resolved:",
     "rating.rateBtn": "Rate",
+    "rating.promptTitle": "You have {count} shift(s) to rate",
+    "rating.promptBody": "How was working on \"{shift}\"? Your rating helps other workers pick good employers \u2014 and employers see yours too.",
+    "rating.promptCta": "Rate now",
     "rating.modalTitle": "Rate your experience",
     "rating.overallPreview": "Overall rating",
     "rating.submitBtn": "Submit Rating",
@@ -906,6 +909,16 @@ const TRANSLATIONS = {
     // Withdrawing from a booking already accepted
     // Launch-phase issue reporting
     "discover.applicationsClosed": "Applications for this shift have closed.",
+    "employer.reportNoShowBtn": "Report no-show",
+    "employer.noShowReported": "Reported as no-show",
+    "employer.noShowTitle": "Report a no-show?",
+    "employer.noShowBody": "{name} was confirmed for this shift and never checked in. Only report this if they genuinely did not turn up.",
+    "employer.noShowConsequence": "This costs the worker 25 reliability points \u2014 more than withdrawing would have \u2014 and employers see that score when choosing who to book. They will be told, and can dispute it. It cannot be undone.",
+    "employer.noShowNoteLabel": "What happened? (optional)",
+    "employer.noShowNotePlaceholder": "The worker will see this. A short note helps if they dispute it.",
+    "employer.noShowConfirmBtn": "Report no-show",
+    "employer.noShowReporting": "Reporting\u2026",
+    "employer.noShowFailed": "Could not report the no-show: ",
     "issue.menuItem": "Report a problem",
     "issue.title": "Report a problem",
     "issue.subtitle": "Tell us what went wrong and we'll look into it. We're in early launch \u2014 reports like yours are how things get fixed quickly.",
@@ -1604,6 +1617,9 @@ const TRANSLATIONS = {
     "disputes.filedAgainstYou": "Difailkan terhadap anda",
     "disputes.resolvedLabel": "Diselesaikan:",
     "rating.rateBtn": "Nilai",
+    "rating.promptTitle": "Anda ada {count} syif untuk dinilai",
+    "rating.promptBody": "Bagaimana pengalaman anda dengan \"{shift}\"? Penilaian anda membantu pekerja lain memilih majikan yang baik \u2014 dan majikan juga melihat penilaian anda.",
+    "rating.promptCta": "Nilai sekarang",
     "rating.modalTitle": "Nilai pengalaman anda",
     "rating.overallPreview": "Penilaian keseluruhan",
     "rating.submitBtn": "Hantar Penilaian",
@@ -1941,6 +1957,16 @@ const TRANSLATIONS = {
     "notif.change.dress_code": "kod pakaian",
     "notif.change.requirements": "keperluan",
     "discover.applicationsClosed": "Permohonan untuk syif ini telah ditutup.",
+    "employer.reportNoShowBtn": "Laporkan tidak hadir",
+    "employer.noShowReported": "Dilaporkan tidak hadir",
+    "employer.noShowTitle": "Laporkan tidak hadir?",
+    "employer.noShowBody": "{name} telah disahkan untuk syif ini tetapi tidak pernah mendaftar masuk. Laporkan hanya jika mereka benar-benar tidak hadir.",
+    "employer.noShowConsequence": "Ini mengurangkan 25 mata kebolehpercayaan pekerja \u2014 lebih daripada jika mereka menarik diri \u2014 dan majikan melihat skor itu semasa memilih pekerja. Mereka akan dimaklumkan dan boleh mempertikaikannya. Ia tidak boleh dibatalkan.",
+    "employer.noShowNoteLabel": "Apa yang berlaku? (pilihan)",
+    "employer.noShowNotePlaceholder": "Pekerja akan melihat ini. Nota ringkas membantu jika mereka mempertikaikannya.",
+    "employer.noShowConfirmBtn": "Laporkan tidak hadir",
+    "employer.noShowReporting": "Melaporkan\u2026",
+    "employer.noShowFailed": "Gagal melaporkan tidak hadir: ",
     "issue.menuItem": "Laporkan masalah",
     "issue.title": "Laporkan masalah",
     "issue.subtitle": "Beritahu kami apa yang tidak kena dan kami akan menyiasatnya. Kami baru dilancarkan \u2014 laporan seperti anda inilah yang membantu kami membaiki dengan cepat.",
@@ -7352,9 +7378,32 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           />
         )}
 
-        {tab === "applications" && user && !selectedApplication && (
+        {tab === "applications" && user && !selectedApplication && (() => {
+          // Ratings were previously reachable ONLY through a button inside a
+          // bid's detail view, which nobody is ever pointed at -- so almost no
+          // shift got rated and profiles.rating could never accumulate. The
+          // whole marketplace leans on that number, so it needs asking for,
+          // not just allowing.
+          const unrated = (liveApplications ?? []).filter(
+            a => a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id)
+          );
+          return (
           <div>
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("nav.myBids")}</div>
+            {unrated.length > 0 && (
+              <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>
+                  ⭐ {t("rating.promptTitle", { count: unrated.length })}
+                </div>
+                <div style={{ fontSize: 12.5, color: BRAND.text, lineHeight: 1.5, marginBottom: 10 }}>
+                  {t("rating.promptBody", { shift: unrated[0].shiftTitle })}
+                </div>
+                <Btn onClick={() => { setRatingForm({}); setRatingModal({ applicationId: unrated[0].id, shiftTitle: unrated[0].shiftTitle, rateeId: unrated[0].employerId, direction: 'worker_to_employer' }); }}
+                     style={{ padding: "9px 16px" }}>
+                  {t("rating.promptCta")}
+                </Btn>
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {(liveApplications ?? []).length === 0 && (
                 <EmptyState
@@ -7441,7 +7490,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               ))}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {tab === "applications" && user && selectedApplication && (() => {
           const a = selectedApplication;
@@ -9198,6 +9248,30 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // firm commitment to lose).
   const confirmedSignedApplicants = (liveApplicants ?? []).filter(a => a.status === 'accepted' && a.workerSignedAt);
 
+  const [noShowTarget, setNoShowTarget] = useState(null);   // applicant row, or null
+  const [noShowNote, setNoShowNote] = useState("");
+  const [reportingNoShow, setReportingNoShow] = useState(false);
+
+  // Reporting a no-show costs the worker 25 reliability points -- more than
+  // any withdrawal tier, deliberately, so that giving notice is always the
+  // cheaper choice. It is a serious mark applied by the counterparty, so the
+  // confirm step says plainly what it does and that the worker can contest it.
+  const confirmNoShow = async () => {
+    if (!noShowTarget) return;
+    setReportingNoShow(true);
+    const { error } = await supabase.rpc('employer_mark_no_show', {
+      p_application_id: noShowTarget.id,
+      p_note: noShowNote.trim() || null,
+    });
+    setReportingNoShow(false);
+    if (error) { toast(t('employer.noShowFailed') + error.message, 'error'); return; }
+    toast(t('employer.noShowReported'), 'success');
+    const now = new Date().toISOString();
+    setLiveApplicants(prev => (prev ?? []).map(x => x.id === noShowTarget.id ? { ...x, noShowAt: now, noShowNote: noShowNote.trim() || null } : x));
+    setNoShowTarget(null);
+    setNoShowNote("");
+  };
+
   const handleCancelShiftClick = () => {
     if (confirmedSignedApplicants.length > 0 && hoursUntilShift(selectedShift.startAt) <= 24) {
       setLateCancelWarning({ shiftId: selectedShift.id, title: selectedShift.title, confirmedCount: confirmedSignedApplicants.length });
@@ -9212,7 +9286,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -9251,6 +9325,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           termsChangedAt: a.terms_changed_at ?? null,
           termsReconfirmedAt: a.terms_reconfirmed_at ?? null,
           termsChangeSummary: a.terms_change_summary ?? null,
+          noShowAt: a.no_show_at ?? null,
+          noShowNote: a.no_show_note ?? null,
           // reconfirmState() reads shiftStartAt to derive the deadline; here
           // that comes from the shift being viewed, not a join.
           shiftStartAt: selectedShift?.startAt ?? null,
@@ -10215,6 +10291,22 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                             <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>
                             <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
+                            {/* Only once the shift has actually started, and only
+                                for someone who never checked in -- the same
+                                preconditions employer_mark_no_show enforces, so
+                                the button is never offered where it would fail. */}
+                            {a.noShowAt ? (
+                              <span title={a.noShowNote || undefined} style={{ fontSize: 11, fontWeight: 700, color: BRAND.red }}>
+                                {t("employer.noShowReported")}
+                              </span>
+                            ) : (
+                              !a.checkedInAt && selectedShift.startAt && new Date(selectedShift.startAt) <= new Date() && (
+                                <Btn size="xs" variant="secondary" onClick={() => { setNoShowTarget(a); setNoShowNote(""); }}
+                                     style={{ color: BRAND.red, borderColor: BRAND.red }}>
+                                  {t("employer.reportNoShowBtn")}
+                                </Btn>
+                              )
+                            )}
                           </div>
                         )}
                         {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.notSelected")}</span>}
@@ -11330,6 +11422,36 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         </div>
       )}
 
+      {noShowTarget && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setNoShowTarget(null)}>
+          <div style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 430, width: "100%" }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.red, margin: "0 0 8px" }}>{t("employer.noShowTitle")}</h3>
+            <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, marginBottom: 12 }}>
+              {t("employer.noShowBody", { name: noShowTarget.name })}
+            </div>
+            {/* Said out loud, because the employer is about to affect someone
+                else's ability to get work, and because a mistaken report is
+                worth pausing over. */}
+            <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 10, padding: 12, marginBottom: 14, fontSize: 12.5, color: BRAND.text, lineHeight: 1.5 }}>
+              {t("employer.noShowConsequence")}
+            </div>
+            <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("employer.noShowNoteLabel")}</label>
+            <textarea
+              value={noShowNote}
+              onChange={(e) => setNoShowNote(e.target.value)}
+              rows={3}
+              placeholder={t("employer.noShowNotePlaceholder")}
+              style={{ width: "100%", padding: 10, borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.bg, color: BRAND.text, fontFamily: "inherit", fontSize: 13, resize: "vertical", marginBottom: 16 }}
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <Btn variant="secondary" onClick={() => setNoShowTarget(null)} style={{ flex: 1, justifyContent: "center" }}>{t("common.cancel")}</Btn>
+              <Btn onClick={confirmNoShow} disabled={reportingNoShow} style={{ flex: 1, justifyContent: "center", background: BRAND.red, borderColor: BRAND.red }}>
+                {reportingNoShow ? t("employer.noShowReporting") : t("employer.noShowConfirmBtn")}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
       {lateCancelWarning && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
           <div style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%'}}>
