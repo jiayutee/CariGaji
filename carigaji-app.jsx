@@ -379,6 +379,13 @@ const BRAND = {
   blueLight: "#E0F2FE",
   amber: "#D97706",
   amberLight: "#FEF3C7",
+  // Text colours for the fixed-light surfaces above. amberLight/redLight/
+  // greenLight/blueLight are literal hex and do NOT flip with the theme,
+  // while BRAND.text does -- so `background: amberLight, color: BRAND.text`
+  // renders light-on-light in dark mode. These mirror what Badge already
+  // pairs with each surface; use them instead of BRAND.text on any *Light bg.
+  onAmberLight: "#92400E",
+  onRedLight: "#991B1B",
   red: "#DC2626",
   redLight: "#FEE2E2",
   gray: "var(--cg-text-muted)",
@@ -7392,10 +7399,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("nav.myBids")}</div>
             {unrated.length > 0 && (
               <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 12, padding: 14, marginBottom: 14 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
                   ⭐ {t("rating.promptTitle", { count: unrated.length })}
                 </div>
-                <div style={{ fontSize: 12.5, color: BRAND.text, lineHeight: 1.5, marginBottom: 10 }}>
+                <div style={{ fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
                   {t("rating.promptBody", { shift: unrated[0].shiftTitle })}
                 </div>
                 <Btn onClick={() => { setRatingForm({}); setRatingModal({ applicationId: unrated[0].id, shiftTitle: unrated[0].shiftTitle, rateeId: unrated[0].employerId, direction: 'worker_to_employer' }); }}
@@ -7509,10 +7516,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 background: reconfirm.expired ? BRAND.redLight : BRAND.amberLight,
                 borderRadius: 12, padding: 14, marginBottom: 14,
               }}>
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.text, marginBottom: 6 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, marginBottom: 6 }}>
                   ⚠️ {t("reconfirm.heading")}
                 </div>
-                <div style={{ fontSize: 12.5, color: BRAND.text, lineHeight: 1.5, marginBottom: 10 }}>
+                <div style={{ fontSize: 12.5, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
                   {t("reconfirm.body", {
                     changed: reconfirm.codes.length
                       ? reconfirm.codes.map(c => notificationChangeLabel(c, t)).join(", ")
@@ -7523,7 +7530,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.red }}>{t("reconfirm.expired")}</div>
                 ) : (
                   <>
-                    <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginBottom: 10 }}>
+                    <div style={{ fontSize: 11.5, color: BRAND.onAmberLight, opacity: 0.85, marginBottom: 10 }}>
                       {t("reconfirm.deadline", {
                         deadline: `${formatShiftDate(new Date(reconfirm.deadline).toISOString(), { day: 'numeric', month: 'short' })}, ${formatShiftTime(new Date(reconfirm.deadline).toISOString())}`,
                       })}
@@ -8338,10 +8345,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
           {/* The cost, stated before the decision rather than after it. */}
           <div style={{ border: `1px solid ${penalty > 0 ? BRAND.amber : BRAND.border}`, background: penalty > 0 ? BRAND.amberLight : BRAND.grayLight, borderRadius: 10, padding: 12, marginBottom: 14 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: penalty > 0 ? BRAND.onAmberLight : BRAND.text, marginBottom: 4 }}>
               {t("withdraw.noticeLabel", { hours: Math.round(hours) })}
             </div>
-            <div style={{ fontSize: 12.5, color: BRAND.text }}>
+            <div style={{ fontSize: 12.5, color: penalty > 0 ? BRAND.onAmberLight : BRAND.text }}>
               {penalty > 0
                 ? t("withdraw.penaltyWarning", { points: penalty })
                 : t("withdraw.noPenalty")}
@@ -11432,7 +11439,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             {/* Said out loud, because the employer is about to affect someone
                 else's ability to get work, and because a mistaken report is
                 worth pausing over. */}
-            <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 10, padding: 12, marginBottom: 14, fontSize: 12.5, color: BRAND.text, lineHeight: 1.5 }}>
+            <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 10, padding: 12, marginBottom: 14, fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
               {t("employer.noShowConsequence")}
             </div>
             <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("employer.noShowNoteLabel")}</label>
