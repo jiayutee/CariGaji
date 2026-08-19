@@ -150,7 +150,17 @@ migration and historical payouts keep the rate they were quoted at.
         the code PAYS today (0 beyond 24h, 50%/100% inside) rather than the
         employer tier rows, which are still dead config -- a quote that
         disagreed with the payout would be worse than no quote.
-- [ ] 4. Employer quote screen with itemised amounts + explicit acceptance
+- [x] 4. Employer quote screen with itemised amounts + explicit acceptance
+        DONE + verified in the browser. One path replaces the old split of a
+        bare window.confirm beyond 24h and a countless warning inside it.
+        Itemised per worker (rate x hours x share), bold total, and the
+        confirm button stays DISABLED until the employer ticks
+        "I understand I will be charged RM80.00". Verified both branches: a
+        6-hour-notice shift quoted RM80.00 with a note that it becomes RM160
+        if everyone shows up, and a 6-day-notice shift quoted RM0.00 with an
+        explanation so it reads as deliberate rather than failed-to-load.
+        Cancelling from the RM0 screen worked end to end -- shift cancelled,
+        worker notified, no payout created.
 - [ ] 5. Worker decision card showing ringgit values; wire the Dispute route
 - [ ] 6. Move the choice deadline server-side (G5)
 - [ ] 7. Employer-side settlement ledger on the cancelled shift
