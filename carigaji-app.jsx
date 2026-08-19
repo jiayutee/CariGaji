@@ -570,6 +570,9 @@ const TRANSLATIONS = {
     "disputes.filedAgainstYou": "Filed against you",
     "disputes.resolvedLabel": "Resolved:",
     "rating.rateBtn": "Rate",
+    "employer.ratePromptTitle": "You have {count} worker(s) to rate",
+    "employer.ratePromptBody": "How did {name} do on \"{shift}\"? Your rating is what other employers see when choosing who to book \u2014 and workers see yours too.",
+    "employer.ratePromptCta": "Rate {name}",
     "rating.promptTitle": "You have {count} shift(s) to rate",
     "rating.promptBody": "How was working on \"{shift}\"? Your rating helps other workers pick good employers \u2014 and employers see yours too.",
     "rating.promptCta": "Rate now",
@@ -1639,6 +1642,9 @@ const TRANSLATIONS = {
     "disputes.filedAgainstYou": "Difailkan terhadap anda",
     "disputes.resolvedLabel": "Diselesaikan:",
     "rating.rateBtn": "Nilai",
+    "employer.ratePromptTitle": "Anda ada {count} pekerja untuk dinilai",
+    "employer.ratePromptBody": "Bagaimana prestasi {name} dalam \"{shift}\"? Penilaian anda dilihat oleh majikan lain semasa memilih pekerja \u2014 dan pekerja juga melihat penilaian anda.",
+    "employer.ratePromptCta": "Nilai {name}",
     "rating.promptTitle": "Anda ada {count} syif untuk dinilai",
     "rating.promptBody": "Bagaimana pengalaman anda dengan \"{shift}\"? Penilaian anda membantu pekerja lain memilih majikan yang baik \u2014 dan majikan juga melihat penilaian anda.",
     "rating.promptCta": "Nilai sekarang",
@@ -2700,6 +2706,9 @@ const TRANSLATIONS = {
     "disputes.filedAgainstYou": "针对您提交",
     "disputes.resolvedLabel": "已处理：",
     "rating.rateBtn": "评分",
+    "employer.ratePromptTitle": "您有 {count} 位员工待评价",
+    "employer.ratePromptBody": "{name} 在「{shift}」的表现如何？您的评价会显示给其他雇主作为选人参考——员工也能看到您的评价。",
+    "employer.ratePromptCta": "评价 {name}",
     "rating.promptTitle": "您有 {count} 个班次待评分",
     "rating.promptBody": "在「{shift}」的工作体验如何？您的评分能帮助其他员工挑选优质雇主 — 雇主也能看到您的评分。",
     "rating.promptCta": "立即评分",
@@ -9790,6 +9799,43 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // filed convention already used for disputes.
   const [myRatedApplicationIds, setMyRatedApplicationIds] = useState(new Set());
   const [ratingDetailsModal, setRatingDetailsModal] = useState(null); // { rateeId, direction, label, list }
+
+  // Workers the employer has finished a shift with but not yet rated.
+  //
+  // The Rate button already existed, but only inside the applicant pool of an
+  // individual completed shift -- so an employer had to remember to go back
+  // into a finished job to use it, and almost nobody does. Employer-to-worker
+  // ratings are the ones the marketplace leans on hardest (they are what other
+  // employers filter the applicant pool by), so they have to be ASKED for.
+  //
+  // Queried across all completed shifts rather than derived from
+  // liveEmployerShifts, which carries no applicant data.
+  const [pendingWorkerRatings, setPendingWorkerRatings] = useState([]);
+  useEffect(() => {
+    if (!user) { setPendingWorkerRatings([]); return undefined; }
+    let active = true;
+    supabase
+      .from('applications')
+      .select('id, worker_id, worker:profiles!applications_worker_id_profiles_fkey(full_name), shift:shifts!inner(id, title, status, employer_id)')
+      .eq('status', 'accepted')
+      .eq('shift.employer_id', user.id)
+      .eq('shift.status', 'completed')
+      .then(({ data, error }) => {
+        if (!active) return;
+        // Same convention as loadMyRatings: a query failure degrades to an
+        // empty prompt rather than breaking the dashboard.
+        if (error) { setPendingWorkerRatings([]); return; }
+        setPendingWorkerRatings((data ?? []).map(a => ({
+          id: a.id,
+          workerId: a.worker_id,
+          workerName: a.worker?.full_name ?? 'Worker',
+          shiftId: a.shift?.id ?? null,
+          shiftTitle: a.shift?.title ?? '',
+        })));
+      });
+    return () => { active = false; };
+  }, [user]);
+
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
@@ -11044,10 +11090,28 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {/* Main */}
       <div style={{ flex: 1, overflowY: "auto", padding: compact ? 16 : 28, background: BRAND.grayLight }}>
 
-        {view === "dashboard" && (
+        {view === "dashboard" && (() => {
+          const unrated = pendingWorkerRatings.filter(x => !myRatedApplicationIds.has(x.id));
+          return (
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("employer.dashboardTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.goodMorning")}{employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
+            {/* On the dashboard, not buried in a finished shift's applicant
+                pool -- this is the first screen an employer sees. */}
+            {unrated.length > 0 && (
+              <Card style={{ marginBottom: 20, border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
+                  ⭐ {t("employer.ratePromptTitle", { count: unrated.length })}
+                </div>
+                <div style={{ fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
+                  {t("employer.ratePromptBody", { name: unrated[0].workerName, shift: unrated[0].shiftTitle })}
+                </div>
+                <Btn onClick={() => { setRatingForm({}); setRatingModal({ applicationId: unrated[0].id, shiftTitle: unrated[0].shiftTitle, rateeId: unrated[0].workerId, direction: 'employer_to_worker' }); }}
+                     style={{ padding: "9px 16px" }}>
+                  {t("employer.ratePromptCta", { name: unrated[0].workerName })}
+                </Btn>
+              </Card>
+            )}
             {/* Verification workflow banner — posting is hard-gated on admin
                 SSM verification, so the employer always sees exactly where
                 they are in the process and what happens next. */}
@@ -11121,7 +11185,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {view === "shifts" && !selectedShift && (
           <div>
