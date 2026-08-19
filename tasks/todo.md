@@ -144,7 +144,12 @@ migration and historical payouts keep the rate they were quoted at.
         DONE + verified: returns 8.0h for a contracted 8h shift; diff against
         the real create_cancellation_payout confirmed only the inline block
         was swapped.
-- [ ] 3. Migration: compensation-tier config table + `quote_shift_cancellation`
+- [x] 3. Migration: compensation-tier config table + `quote_shift_cancellation`
+        DONE + verified 13/13 against production. The decisive check: a shift
+        quoted at RM80.00 paid out exactly RM80.00. Deliberately mirrors what
+        the code PAYS today (0 beyond 24h, 50%/100% inside) rather than the
+        employer tier rows, which are still dead config -- a quote that
+        disagreed with the payout would be worse than no quote.
 - [ ] 4. Employer quote screen with itemised amounts + explicit acceptance
 - [ ] 5. Worker decision card showing ringgit values; wire the Dispute route
 - [ ] 6. Move the choice deadline server-side (G5)
