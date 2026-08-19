@@ -738,6 +738,20 @@ const TRANSLATIONS = {
     "employer.editShift": "Edit shift",
     "employer.chatDisabledHint": "Chat unlocks once a worker is confirmed for this shift.",
     "employer.cancelShift": "Cancel shift",
+    "employer.cancelQuoteTitle": "Cancel this shift?",
+    "employer.cancelQuoteLoading": "Working out what this will cost\u2026",
+    "employer.cancelQuoteNoWorkers": "No worker has confirmed this shift yet, so cancelling costs you nothing and nobody is left without work.",
+    "employer.cancelQuoteRate": "Agreed rate",
+    "employer.cancelQuoteHours": "Hours",
+    "employer.cancelQuoteShare": "Owed",
+    "employer.cancelQuoteAmount": "Amount",
+    "employer.cancelQuoteTotal": "Total you will be charged",
+    "employer.cancelQuoteShowUpNote": "Each worker may instead choose to come to the venue anyway and be paid in full. If all of them do, the total becomes RM{max}.",
+    "employer.cancelQuoteNoCharge": "You are giving enough notice that no compensation is owed. The workers will be told the shift is off.",
+    "employer.cancelQuoteAccept": "I understand I will be charged RM{total} to cancel this shift.",
+    "employer.cancelQuoteKeep": "Keep the shift",
+    "employer.cancelQuoteConfirm": "Cancel shift",
+    "employer.cancelQuoteFailed": "Could not work out the cancellation cost: ",
     "employer.closeApplicationsBtn": "Close applications",
     "employer.closingApplications": "Closing…",
     "employer.closeApplicationsHint": "Stop taking new applications now, without cancelling the shift. Workers who already applied are unaffected.",
@@ -1161,9 +1175,6 @@ const TRANSLATIONS = {
     "employer.listCardLanguages": "Languages: {languages}",
     "employer.toastLoadShiftFailed": "Could not load shift for editing.",
     "employer.confirmCancelShift": "Cancel \"{title}\"? All applicants will be notified.",
-    "employer.lateCancelWarningTitle": "⚠️ Late cancellation",
-    "employer.lateCancelWarningBody": "This shift starts in less than 24 hours and has {count} confirmed worker(s). Cancelling now will offer each of them a choice: a 50% payout with no show-up, or the option to show up in person for 100% of their agreed wage.",
-    "employer.lateCancelWarningConfirmBtn": "Cancel shift anyway",
     "employer.cancellationOutcomesTitle": "Cancellation outcomes",
     "employer.cancellationAwaitingChoice": "Awaiting choice",
     "employer.cancellationTook50": "Took 50% payout",
@@ -1796,6 +1807,20 @@ const TRANSLATIONS = {
     "employer.editShift": "Sunting syif",
     "employer.chatDisabledHint": "Sembang dibuka sebaik sahaja seorang pekerja disahkan untuk syif ini.",
     "employer.cancelShift": "Batalkan syif",
+    "employer.cancelQuoteTitle": "Batalkan syif ini?",
+    "employer.cancelQuoteLoading": "Mengira kos pembatalan\u2026",
+    "employer.cancelQuoteNoWorkers": "Belum ada pekerja yang mengesahkan syif ini, jadi pembatalan tidak dikenakan sebarang kos dan tiada sesiapa kehilangan kerja.",
+    "employer.cancelQuoteRate": "Kadar dipersetujui",
+    "employer.cancelQuoteHours": "Jam",
+    "employer.cancelQuoteShare": "Terhutang",
+    "employer.cancelQuoteAmount": "Jumlah",
+    "employer.cancelQuoteTotal": "Jumlah yang akan dicaj kepada anda",
+    "employer.cancelQuoteShowUpNote": "Setiap pekerja boleh memilih untuk tetap hadir di lokasi dan dibayar penuh. Jika semua berbuat demikian, jumlahnya menjadi RM{max}.",
+    "employer.cancelQuoteNoCharge": "Anda memberi notis yang mencukupi, jadi tiada pampasan terhutang. Pekerja akan dimaklumkan syif ini dibatalkan.",
+    "employer.cancelQuoteAccept": "Saya faham saya akan dicaj RM{total} untuk membatalkan syif ini.",
+    "employer.cancelQuoteKeep": "Kekalkan syif",
+    "employer.cancelQuoteConfirm": "Batalkan syif",
+    "employer.cancelQuoteFailed": "Gagal mengira kos pembatalan: ",
     "employer.closeApplicationsBtn": "Tutup permohonan",
     "employer.closingApplications": "Menutup…",
     "employer.closeApplicationsHint": "Berhenti menerima permohonan baharu sekarang, tanpa membatalkan syif. Pekerja yang telah memohon tidak terjejas.",
@@ -2211,9 +2236,6 @@ const TRANSLATIONS = {
     "employer.listCardLanguages": "Bahasa: {languages}",
     "employer.toastLoadShiftFailed": "Tidak dapat memuatkan syif untuk disunting.",
     "employer.confirmCancelShift": "Batalkan \"{title}\"? Semua pemohon akan dimaklumkan.",
-    "employer.lateCancelWarningTitle": "⚠️ Pembatalan lewat",
-    "employer.lateCancelWarningBody": "Syif ini bermula kurang daripada 24 jam lagi dan mempunyai {count} pekerja yang disahkan. Membatalkan sekarang akan menawarkan setiap seorang pilihan: bayaran 50% tanpa perlu hadir, atau pilihan untuk hadir secara peribadi bagi 100% daripada gaji yang dipersetujui.",
-    "employer.lateCancelWarningConfirmBtn": "Batalkan syif juga",
     "employer.cancellationOutcomesTitle": "Hasil pembatalan",
     "employer.cancellationAwaitingChoice": "Menunggu pilihan",
     "employer.cancellationTook50": "Menerima bayaran 50%",
@@ -2846,6 +2868,20 @@ const TRANSLATIONS = {
     "employer.editShift": "编辑班次",
     "employer.chatDisabledHint": "员工确认此班次后即可解锁聊天功能。",
     "employer.cancelShift": "取消班次",
+    "employer.cancelQuoteTitle": "取消此班次？",
+    "employer.cancelQuoteLoading": "正在计算取消费用…",
+    "employer.cancelQuoteNoWorkers": "尚无员工确认此班次，因此取消不会产生任何费用，也不会有人因此失去工作。",
+    "employer.cancelQuoteRate": "约定时薪",
+    "employer.cancelQuoteHours": "工时",
+    "employer.cancelQuoteShare": "应付比例",
+    "employer.cancelQuoteAmount": "金额",
+    "employer.cancelQuoteTotal": "您需要支付的总额",
+    "employer.cancelQuoteShowUpNote": "每位员工也可选择照常到场并获得全额工资。若全部如此，总额将变为 RM{max}。",
+    "employer.cancelQuoteNoCharge": "您提前足够时间通知，因此无需支付赔偿。我们会通知员工班次已取消。",
+    "employer.cancelQuoteAccept": "我了解取消此班次将被收取 RM{total}。",
+    "employer.cancelQuoteKeep": "保留班次",
+    "employer.cancelQuoteConfirm": "取消班次",
+    "employer.cancelQuoteFailed": "无法计算取消费用：",
     "employer.closeApplicationsBtn": "关闭申请",
     "employer.closingApplications": "关闭中…",
     "employer.closeApplicationsHint": "立即停止接受新申请，但不取消此班次。已申请的员工不受影响。",
@@ -3260,9 +3296,6 @@ const TRANSLATIONS = {
     "employer.listCardLanguages": "语言：{languages}",
     "employer.toastLoadShiftFailed": "无法加载该班次以进行编辑。",
     "employer.confirmCancelShift": "取消「{title}」？所有申请人都将收到通知。",
-    "employer.lateCancelWarningTitle": "⚠️ 临时取消",
-    "employer.lateCancelWarningBody": "此班次将在不到 24 小时内开始，且已有 {count} 名已确认员工。现在取消将为每位员工提供选择：不出席领取 50% 赔偿，或亲自到场领取 100% 的约定薪资。",
-    "employer.lateCancelWarningConfirmBtn": "仍要取消班次",
     "employer.cancellationOutcomesTitle": "取消结果",
     "employer.cancellationAwaitingChoice": "等待选择",
     "employer.cancellationTook50": "已领取 50% 赔偿",
@@ -9681,7 +9714,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
   const [closingApplications, setClosingApplications] = useState(false);
-  const [lateCancelWarning, setLateCancelWarning] = useState(null); // { shiftId, title, confirmedCount } or null
   const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "", applicationsCloseAt: "" });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
@@ -10342,13 +10374,40 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setNoShowNote("");
   };
 
-  const handleCancelShiftClick = () => {
-    if (confirmedSignedApplicants.length > 0 && hoursUntilShift(selectedShift.startAt) <= 24) {
-      setLateCancelWarning({ shiftId: selectedShift.id, title: selectedShift.title, confirmedCount: confirmedSignedApplicants.length });
+  // One path for every cancellation, replacing the old split of a bare
+  // window.confirm beyond 24h and a countless warning inside it. Nobody can
+  // weigh a decision they cannot see the price of, and "50% of their agreed
+  // wage" is not a price -- RM 312.00 is.
+  //
+  // The figures come from quote_shift_cancellation, which reads the same
+  // shift_contracted_hours the payout trigger uses. A quote computed in JS
+  // would drift from what actually gets paid, and the employer would have
+  // agreed to a number that never materialises.
+  const [cancelQuote, setCancelQuote] = useState(null);   // { shiftId, title, rows, total, maxTotal } | null
+  const [cancelQuoteLoading, setCancelQuoteLoading] = useState(false);
+  const [cancelAccepted, setCancelAccepted] = useState(false);
+
+  const handleCancelShiftClick = async () => {
+    setCancelAccepted(false);
+    setCancelQuoteLoading(true);
+    setCancelQuote({ shiftId: selectedShift.id, title: selectedShift.title, rows: null, total: 0, maxTotal: 0 });
+    const { data, error } = await supabase.rpc('quote_shift_cancellation', { p_shift_id: selectedShift.id });
+    setCancelQuoteLoading(false);
+    if (error) {
+      // Fail closed: without a reliable figure the employer must not be asked
+      // to agree to one.
+      toast(t('employer.cancelQuoteFailed') + error.message, 'error');
+      setCancelQuote(null);
       return;
     }
-    if (!window.confirm(t('employer.confirmCancelShift').replace('{title}', selectedShift.title))) return;
-    doCancelShift(selectedShift.id);
+    const rows = data ?? [];
+    setCancelQuote({
+      shiftId: selectedShift.id,
+      title: selectedShift.title,
+      rows,
+      total: rows.reduce((sum, r) => sum + Number(r.amount || 0), 0),
+      maxTotal: rows.reduce((sum, r) => sum + Number(r.max_amount || 0), 0),
+    });
   };
 
   useEffect(() => {
@@ -12522,26 +12581,94 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           </div>
         </div>
       )}
-      {lateCancelWarning && (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-          <div style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%'}}>
-            <h3 style={{fontSize:18, fontWeight:700, color:BRAND.red, marginBottom:8}}>{t("employer.lateCancelWarningTitle")}</h3>
-            <p style={{fontSize:13, color:BRAND.text, lineHeight:1.6, marginBottom:16}}>
-              {t("employer.lateCancelWarningBody").replace('{count}', lateCancelWarning.confirmedCount)}
-            </p>
+      {cancelQuote && (() => {
+        const rows = cancelQuote.rows;
+        const owes = cancelQuote.total > 0;
+        return (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCancelQuote(null)}>
+          <div style={{background:BRAND.surface, borderRadius:16, padding:22, maxWidth:560, width:'100%', maxHeight:'85vh', overflowY:'auto'}} onClick={e => e.stopPropagation()}>
+            <h3 style={{fontSize:18, fontWeight:800, color:BRAND.text, margin:'0 0 4px'}}>{t("employer.cancelQuoteTitle")}</h3>
+            <div style={{fontSize:13, color:BRAND.textMuted, marginBottom:16}}>{cancelQuote.title}</div>
+
+            {cancelQuoteLoading || rows === null ? (
+              <div style={{fontSize:13, color:BRAND.textMuted, padding:'20px 0'}}>{t("employer.cancelQuoteLoading")}</div>
+            ) : rows.length === 0 ? (
+              <div style={{fontSize:13, color:BRAND.text, lineHeight:1.6, marginBottom:16}}>
+                {t("employer.cancelQuoteNoWorkers")}
+              </div>
+            ) : (
+              <>
+                {/* Itemised, because a single total invites the suspicion that
+                    it was made up. Each row shows the arithmetic. */}
+                <div style={{overflowX:'auto', border:`1px solid ${BRAND.border}`, borderRadius:10, marginBottom:12}}>
+                  <table style={{width:'100%', minWidth:420, borderCollapse:'collapse', fontSize:12.5}}>
+                    <thead>
+                      <tr style={{background:BRAND.grayLight}}>
+                        {[t("employer.colWorker"), t("employer.cancelQuoteRate"), t("employer.cancelQuoteHours"), t("employer.cancelQuoteShare"), t("employer.cancelQuoteAmount")].map(h => (
+                          <th key={h} style={{padding:'9px 12px', textAlign:'left', fontWeight:700, color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map(r => (
+                        <tr key={r.application_id}>
+                          <td style={{padding:'9px 12px', color:BRAND.text, borderBottom:`1px solid ${BRAND.border}`}}>{r.worker_name}</td>
+                          <td style={{padding:'9px 12px', color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>RM{Number(r.wage_ask).toFixed(2)}/h</td>
+                          <td style={{padding:'9px 12px', color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{Number(r.contracted_hours)}h</td>
+                          <td style={{padding:'9px 12px', color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{Math.round(Number(r.rate) * 100)}%</td>
+                          <td style={{padding:'9px 12px', fontWeight:700, color:BRAND.text, borderBottom:`1px solid ${BRAND.border}`}}>RM{Number(r.amount).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10}}>
+                  <span style={{fontSize:13, fontWeight:700, color:BRAND.text}}>{t("employer.cancelQuoteTotal")}</span>
+                  <span style={{fontSize:20, fontWeight:800, color: owes ? BRAND.red : BRAND.text}}>RM{cancelQuote.total.toFixed(2)}</span>
+                </div>
+
+                {owes ? (
+                  <div style={{border:`1px solid ${BRAND.amber}`, background:BRAND.amberLight, color:BRAND.onAmberLight, borderRadius:10, padding:12, marginBottom:14, fontSize:12.5, lineHeight:1.5}}>
+                    {t("employer.cancelQuoteShowUpNote", { max: cancelQuote.maxTotal.toFixed(2) })}
+                  </div>
+                ) : (
+                  /* RM0 is the truth today, not an error -- say why, so it does
+                     not look like the figure failed to load. */
+                  <div style={{border:`1px solid ${BRAND.border}`, background:BRAND.grayLight, color:BRAND.text, borderRadius:10, padding:12, marginBottom:14, fontSize:12.5, lineHeight:1.5}}>
+                    {t("employer.cancelQuoteNoCharge")}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* An explicit agreement to the amount, not a generic "are you
+                sure". Only required when there IS an amount. */}
+            {owes && (
+              <label style={{display:'flex', alignItems:'flex-start', gap:8, marginBottom:14, cursor:'pointer'}}>
+                <input type="checkbox" checked={cancelAccepted} onChange={e => setCancelAccepted(e.target.checked)} style={{marginTop:2}} />
+                <span style={{fontSize:12.5, color:BRAND.text, lineHeight:1.5}}>
+                  {t("employer.cancelQuoteAccept", { total: cancelQuote.total.toFixed(2) })}
+                </span>
+              </label>
+            )}
+
             <div style={{display:'flex', gap:8}}>
-              <button onClick={() => setLateCancelWarning(null)}
-                style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background:BRAND.grayLight, cursor:'pointer', color:BRAND.textMuted}}>
-                {t("common.cancel")}
+              <button onClick={() => setCancelQuote(null)}
+                style={{flex:1, padding:'11px', borderRadius:8, border:`1px solid ${BRAND.border}`, background:BRAND.grayLight, cursor:'pointer', color:BRAND.text, fontFamily:'inherit', fontWeight:600}}>
+                {t("employer.cancelQuoteKeep")}
               </button>
-              <button onClick={() => doCancelShift(lateCancelWarning.shiftId)} disabled={cancellingShift}
-                style={{flex:2, padding:'10px', borderRadius:8, background:BRAND.red, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-                {cancellingShift ? t("employer.cancellingShift") : t("employer.lateCancelWarningConfirmBtn")}
+              <button
+                onClick={() => { doCancelShift(cancelQuote.shiftId); setCancelQuote(null); }}
+                disabled={cancellingShift || cancelQuoteLoading || rows === null || (owes && !cancelAccepted)}
+                style={{flex:2, padding:'11px', borderRadius:8, background:(owes && !cancelAccepted) || cancelQuoteLoading || rows === null ? BRAND.textMuted : BRAND.red, color:'#fff', border:'none', cursor:(owes && !cancelAccepted) ? 'not-allowed' : 'pointer', fontWeight:700, fontFamily:'inherit'}}>
+                {cancellingShift ? t("employer.cancellingShift") : t("employer.cancelQuoteConfirm")}
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
