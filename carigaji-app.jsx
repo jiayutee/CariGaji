@@ -8468,7 +8468,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                     <button
                       onClick={() => setShowFilters(f => !f)}
-                      style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:'1px solid #e2e8f0',background:'#f8fafc',cursor:'pointer',color:'#64748b'}}
+                      style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:`1px solid ${BRAND.border}`,background:BRAND.grayLight,cursor:'pointer',color:BRAND.textMuted}}
                     >
                       {showFilters ? `${t("discover.hideFiltersLabel")} ▲` : `${t("discover.filtersLabel")}${activeFilterCount > 0 ? ` (${activeFilterCount})` : ''} ▼`}
                     </button>
@@ -8476,13 +8476,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 );
               })()}
               {showFilters && (
-                <div style={{marginBottom:12, padding:12, background:'#f8fafc', borderRadius:8, border:'1px solid #e2e8f0'}}>
+                <div style={{marginBottom:12, padding:12, background:BRAND.grayLight, borderRadius:8, border:`1px solid ${BRAND.border}`}}>
                   {/* Row 1: Location, Date, Duration */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterCity")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterCity")}</div>
                       <select value={filterCity} onChange={e=>{ setFilterCity(e.target.value); setFilterArea(''); }}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff', marginBottom:4}}>
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, marginBottom:4}}>
                         <option value="">{t("discover.anyCity")}</option>
                         {Object.keys(CITY_REGIONS).map(city => (
                           <option key={city} value={city}>{city}</option>
@@ -8490,64 +8490,64 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       </select>
                       {filterCity && (
                         <input placeholder={t("discover.filterAreaPlaceholder")} value={filterArea} onChange={e=>setFilterArea(e.target.value)}
-                          style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:12, boxSizing:'border-box', color:'#64748b'}} />
+                          style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:12, boxSizing:'border-box', color:BRAND.textMuted, background:BRAND.input}} />
                       )}
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterDate")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterDate")}</div>
                       <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMaxDuration")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMaxDuration")}</div>
                       <input type="number" min="0" placeholder={t("discover.filterMaxDurationPlaceholder")} value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                   </div>
                   {/* Row 2: Job type, Min pay, Max pay */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterJobType")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterJobType")}</div>
                       <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff'}}>
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input}}>
                         <option value="All">{t("discover.allTypes")}</option>
                         {SHIFT_CATEGORIES.map(c => <option key={c} value={c}>{shiftCategoryLabel(c, t)}</option>)}
                       </select>
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMinPay")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMinPay")}</div>
                       <input type="number" min="0" placeholder={t("discover.filterMinPayPlaceholder")} value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterMaxPay")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMaxPay")}</div>
                       <input type="number" min="0" placeholder={t("discover.filterMaxPayPlaceholder")} value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                   </div>
                   {/* Row 3: Start time, End time */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterStartsAfter")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterStartsAfter")}</div>
                       <input type="time" value={filterTimeStart} onChange={e=>setFilterTimeStart(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:'#64748b', marginBottom:3}}>{t("discover.filterEndsBy")}</div>
+                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterEndsBy")}</div>
                       <input type="time" value={filterTimeEnd} onChange={e=>setFilterTimeEnd(e.target.value)}
-                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box'}} />
+                        style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                   </div>
                   {/* Row 4: Toggles */}
                   <div style={{display:'flex', gap:16, flexWrap:'wrap'}}>
-                    <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:'#374151'}}>
+                    <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:BRAND.text}}>
                       <input type="checkbox" checked={filterHighBooking} onChange={e=>setFilterHighBooking(e.target.checked)}
-                        style={{width:15, height:15, accentColor:'#2563EB'}} />
+                        style={{width:15, height:15, accentColor:BRAND.primary}} />
                       {t("discover.highBookingChance")}
                     </label>
-                    <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:'#374151'}}>
+                    <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer', fontSize:13, color:BRAND.text}}>
                       <input type="checkbox" checked={filterWeekend} onChange={e=>setFilterWeekend(e.target.checked)}
-                        style={{width:15, height:15, accentColor:'#2563EB'}} />
+                        style={{width:15, height:15, accentColor:BRAND.primary}} />
                       {t("discover.weekendsOnly")}
                     </label>
                   </div>
@@ -8559,7 +8559,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         setFilterDuration(''); setFilterCat('All');
                         setFilterHighBooking(false); setFilterWeekend(false);
                         setFilterTimeStart(''); setFilterTimeEnd('');
-                      }} style={{fontSize:12, padding:'5px 14px', borderRadius:6, border:'1px solid #fca5a5', background:'#fef2f2', cursor:'pointer', color:'#ef4444'}}>
+                      }} style={{fontSize:12, padding:'5px 14px', borderRadius:6, border:`1px solid ${BRAND.red}`, background:BRAND.redLight, cursor:'pointer', color:BRAND.onRedLight}}>
                         {t("discover.clearAll")}
                       </button>
                     )}
