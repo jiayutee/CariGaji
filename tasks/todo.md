@@ -151,3 +151,27 @@ payout settlement" could not be wired — there is no settlement to hook into.
 Next: create the payout when hours are confirmed, and capture the hold against
 it. That single change makes the happy path pay, and completes the wallet's
 capture side at the same time.
+
+## 2026-08-20 — the happy path pays, verified
+
+7/7 through the real API, first time in this project that completing a shift
+produced money:
+
+- worker checked in with the genuine rotating code (not a stamped column)
+- checked out reporting 7.5h worked with a 30m break
+- employer confirmed -> **payout RM150.00 created**, `reason: shift_completed`
+- break correctly NOT deducted (20 x 7.5, not 20 x 7.0) — the judgement call
+  renders as intended
+- re-confirming produced no second payout
+
+Funded capture side is covered by tasks/funded_capture_test.sql, which asserts
+hold 160 -> worker paid 150 -> 10 released -> available 350, and raises on any
+wrong number.
+
+### Still open on the deposit
+- Worker gets no notification that they have been paid (needs a new
+  notification type + strings in 3 languages)
+- Ledger history list in Billing
+- Admin UI for recording a top-up (RPC exists, SQL-only)
+- Flip enforcement on once real top-ups exist
+- Phase 2: FPX/DuitNow, then restore the stronger landing claim
