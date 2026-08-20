@@ -226,10 +226,22 @@ survives with its money intact. Deliberately not keyed on `pg_trigger_depth()`
 "nothing about this movement changed", and would hand a bypass to any trigger
 added later.
 
-**(3) needs an owner decision, not a technical one:** whether a financial record
-outlives the account it belongs to. Keeping it means making `employer_id`
-nullable with `on delete set null`; erasing it means letting the cascade
-through. Not building either until that is answered.
+**(3) was an owner decision, answered 2026-08-20: keep the ledger, drop the
+link.** A financial record outlives the account it belongs to, so `employer_id`
+becomes nullable with `on delete set null` — the account can be deleted and the
+movements survive, anonymised.
+
+**A third defect surfaced while building the fix.** Unblocking the purge would
+have left the hold pointing at a deleted application, and `employer_release_hold`
+finds a hold BY application_id — so the money would have become unreachable, and
+`held` derives as (holds − releases − captures), meaning an orphaned hold cuts
+available balance forever. The pre-fix refusal was loud and safe; the fix alone
+would have traded it for silently frozen funds. `admin_purge_shift` therefore
+releases open holds before deleting anything, and reports `holds_released`.
+
+All of it ships as `20260822b_wallet_entry_cascade_and_retention.sql`, whose
+in-database self-test raises rather than reports, and rolls its own rows back —
+a test row in an append-only table would be a permanent phantom hold.
 
 ### Still open on the deposit
 - Ledger history list in Billing
