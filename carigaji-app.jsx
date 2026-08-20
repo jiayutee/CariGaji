@@ -10355,7 +10355,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     toast(t('employer.toastShiftCancelled'), 'success');
     setLiveEmployerShifts(prev => (prev ?? []).map(s => s.id === shiftId ? { ...s, status: 'cancelled' } : s));
     setSelectedShift(prev => prev ? { ...prev, status: 'cancelled' } : prev);
-    setLateCancelWarning(null);
   };
 
   // Stops new applications without cancelling the shift -- unlike Cancel,
@@ -11469,7 +11468,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
                         />
                         {action === 'offered' && a.offerExpiresAt && (
-                          <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {new Date(a.offerExpiresAt).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                          <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}</div>
                         )}
                       </td>
                       <td style={{ padding: "12px 14px" }}>
