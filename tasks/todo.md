@@ -168,9 +168,26 @@ Funded capture side is covered by tasks/funded_capture_test.sql, which asserts
 hold 160 -> worker paid 150 -> 10 released -> available 350, and raises on any
 wrong number.
 
+## 2026-08-20 — payout notification, verified
+
+8/8 through the API: hours confirmed -> payout RM108.00 (18 x 6, break not
+deducted) -> worker notified, params carry shift_title / amount / hours, link
+points at the application, and re-confirming produced neither a second payout
+nor a second notification.
+
+Browser, all three languages, rendered from `params` through TRANSLATIONS
+rather than the stored English prose:
+- EN  "Your hours for "PN payout notice" were confirmed. RM108.00 is on its way."
+- BM  "Jam kerja anda untuk "PN payout notice" telah disahkan. RM108.00 ..."
+- ZH  "您在「PN payout notice」的工时已确认，RM108.00 正在发放中。"
+
+The BM pass caught a real defect: jsonb stores 108.00 as the number 108, so
+`RM{amount}` rendered **RM108** — less precise than the English prose the row
+already carries, i.e. translating made the copy worse. notificationText now
+formats `amount` / `*_amount` to two decimals, the same way it already
+normalises `*_at` timestamps into the reader's locale.
+
 ### Still open on the deposit
-- Worker gets no notification that they have been paid (needs a new
-  notification type + strings in 3 languages)
 - Ledger history list in Billing
 - Admin UI for recording a top-up (RPC exists, SQL-only)
 - Flip enforcement on once real top-ups exist

@@ -4642,12 +4642,18 @@ const notificationText = (n, t) => {
   }
   // Timestamps travel raw so they can be rendered in the reader's locale and
   // timezone rather than frozen in whatever format SQL's to_char() produced.
+  // Money travels raw for the same reason, and for the same reason needs
+  // formatting here: jsonb stores 108.00 as the number 108, so interpolating
+  // it directly renders "RM108" -- less precise than the English prose the row
+  // already carries, which would make the translated copy the worse one.
   for (const [key, value] of Object.entries(filled)) {
     if (key.endsWith("_at") && value) {
       const d = new Date(value);
       if (!Number.isNaN(d.getTime())) {
         filled[key] = `${formatShiftDate(d.toISOString(), { day: "numeric", month: "short" })}, ${formatShiftTime(d.toISOString())}`;
       }
+    } else if ((key === "amount" || key.endsWith("_amount")) && value !== null && value !== undefined && !Number.isNaN(Number(value))) {
+      filled[key] = Number(value).toFixed(2);
     }
   }
   return { title: t(titleKey, filled), body: t(bodyKey, filled) };
