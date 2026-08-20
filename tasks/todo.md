@@ -126,3 +126,28 @@ all along, just expiring between polling round trips.
 - Admin UI for recording a top-up (RPC exists, SQL-only today)
 - Flip enforcement on once real top-ups exist
 - Phase 2: FPX/DuitNow, and restoring the stronger landing claim
+
+## 2026-08-20 — the gap found while wiring capture
+
+**Completing a shift creates no payout at all.** Verified four ways:
+- every `insert into public.payout_item` in the schema is inside a
+  *cancellation* function;
+- `employer_confirm_checkout` stamps `employer_hours_confirmed_at` and
+  inserts nothing;
+- no trigger watches that column;
+- every JS touch of `payout_item` is a `.select()`, except one admin
+  `.update({status})` on rows that already exist;
+- the live table holds zero rows with any non-cancellation reason.
+
+So a worker who applies, is booked, works the shift, checks out and has their
+hours confirmed by the employer receives **nothing** — no payout row, so
+nothing in Earnings and nothing to pay out. The only way to get paid on this
+platform today is for the shift to be *cancelled*.
+
+This is larger than the deposit, the tier ladder and the quote work combined:
+the platform's core promise has no implementation. It is also why "capture on
+payout settlement" could not be wired — there is no settlement to hook into.
+
+Next: create the payout when hours are confirmed, and capture the hold against
+it. That single change makes the happy path pay, and completes the wallet's
+capture side at the same time.
