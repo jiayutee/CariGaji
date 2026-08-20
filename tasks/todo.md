@@ -187,6 +187,24 @@ already carries, i.e. translating made the copy worse. notificationText now
 formats `amount` / `*_amount` to two decimals, the same way it already
 normalises `*_at` timestamps into the reader's locale.
 
+### Suspected: a hold may make its shift impossible to delete
+`employer_wallet_entry.shift_id` and `.application_id` are FKs declared
+`on delete set null`, while the table also carries an unconditional
+`before update or delete` trigger that raises "append-only" with no
+trusted-write escape. A referential SET NULL is an ordinary UPDATE on the
+referencing row, so deleting a shift or application that has any ledger entry
+looks like it would hit that trigger and abort -- making every held shift
+permanently unpurgeable, including by admin_purge_shift.
+
+Currently latent and unproven: both QA employers' ledgers are empty (the funded
+capture test lives in a DO block that raises at the end, so its rows roll back),
+and an unfunded offer creates no entry, so nothing in the live database is
+blocked today. Worth proving before enforcement is switched on, since from that
+point every offer writes a hold. Fix, if confirmed, is to let the immutability
+guard pass a cascade-driven SET NULL -- an FK nulling a reference is not a
+rewrite of the movement -- while still refusing edits to employer_id, kind or
+amount.
+
 ### Still open on the deposit
 - Ledger history list in Billing
 - Admin UI for recording a top-up (RPC exists, SQL-only)
