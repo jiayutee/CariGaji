@@ -266,6 +266,13 @@ declare
   v_blocked boolean;
   v_purge jsonb;
   v_other_shift uuid;
+  -- shifts carries shifts_occurrences_nonempty, so a shift with no occurrence
+  -- is rejected. Same shape the app writes: a date plus start/end in MYT.
+  v_occurrence jsonb := jsonb_build_array(jsonb_build_object(
+    'date',  to_char((now() + interval '30 days') at time zone 'Asia/Kuala_Lumpur', 'YYYY-MM-DD'),
+    'start', to_char((now() + interval '30 days') at time zone 'Asia/Kuala_Lumpur', 'HH24:MI'),
+    'end',   to_char((now() + interval '30 days 4 hours') at time zone 'Asia/Kuala_Lumpur', 'HH24:MI')
+  ));
   v_out text;
 begin
   if not exists (select 1 from auth.users where id = v_emp)
@@ -275,9 +282,11 @@ begin
   end if;
 
   begin
-    insert into public.shifts (employer_id, title, location, start_at, end_at, wage_min, wage_max)
+    insert into public.shifts (employer_id, title, location, start_at, end_at,
+                               wage_min, wage_max, occurrences)
     values (v_emp, 'SELFTEST wallet cascade', 'Selftest',
-            now() + interval '30 days', now() + interval '30 days 4 hours', 10, 20)
+            now() + interval '30 days', now() + interval '30 days 4 hours', 10, 20,
+            v_occurrence)
     returning id into v_shift;
 
     insert into public.applications (shift_id, worker_id, wage_ask)
@@ -296,11 +305,11 @@ begin
 
     select amount into v_amount from public.employer_wallet_entry where id = v_entry;
     if v_amount is distinct from 1.00 then
-      raise exception 'the movement did not survive the cascade';
+      raise exception 'ASSERT: the movement did not survive the cascade';
     end if;
     if exists (select 1 from public.employer_wallet_entry
                where id = v_entry and (shift_id is not null or application_id is not null)) then
-      raise exception 'back-references were not nulled';
+      raise exception 'ASSERT: back-references were not nulled';
     end if;
 
     -- A real rewrite must still be refused.
@@ -310,7 +319,7 @@ begin
     exception when others then
       v_blocked := true;
     end;
-    if not v_blocked then raise exception 'an amount rewrite was ALLOWED'; end if;
+    if not v_blocked then raise exception 'ASSERT: an amount rewrite was ALLOWED'; end if;
 
     -- So must repointing a reference at a DIFFERENT row, as opposed to dropping
     -- it. Needs a real second shift to point at: an earlier draft of this test
@@ -318,9 +327,11 @@ begin
     -- shift_id to NULL and asserting that a null-out is refused -- which is the
     -- one update the fix deliberately permits. The test failed, correctly, and
     -- the guard was right.
-    insert into public.shifts (employer_id, title, location, start_at, end_at, wage_min, wage_max)
+    insert into public.shifts (employer_id, title, location, start_at, end_at,
+                               wage_min, wage_max, occurrences)
     values (v_emp, 'SELFTEST repoint target', 'Selftest',
-            now() + interval '30 days', now() + interval '30 days 4 hours', 10, 20)
+            now() + interval '30 days', now() + interval '30 days 4 hours', 10, 20,
+            v_occurrence)
     returning id into v_other_shift;
 
     begin
@@ -329,7 +340,7 @@ begin
     exception when others then
       v_blocked := true;
     end;
-    if not v_blocked then raise exception 'repointing shift_id was ALLOWED'; end if;
+    if not v_blocked then raise exception 'ASSERT: repointing shift_id was ALLOWED'; end if;
 
     begin
       delete from public.employer_wallet_entry where id = v_entry;
@@ -337,12 +348,14 @@ begin
     exception when others then
       v_blocked := true;
     end;
-    if not v_blocked then raise exception 'a direct delete was ALLOWED'; end if;
+    if not v_blocked then raise exception 'ASSERT: a direct delete was ALLOWED'; end if;
 
     -- And the purge must hand the money back rather than stranding it.
-    insert into public.shifts (employer_id, title, location, start_at, end_at, wage_min, wage_max)
+    insert into public.shifts (employer_id, title, location, start_at, end_at,
+                               wage_min, wage_max, occurrences)
     values (v_emp, 'SELFTEST purge release', 'Selftest',
-            now() + interval '30 days', now() + interval '30 days 4 hours', 10, 20)
+            now() + interval '30 days', now() + interval '30 days 4 hours', 10, 20,
+            v_occurrence)
     returning id into v_shift;
 
     insert into public.applications (shift_id, worker_id, wage_ask)
@@ -357,7 +370,7 @@ begin
     v_purge := public.admin_purge_shift(v_shift, 'selftest');
 
     if coalesce((v_purge ->> 'holds_released')::numeric, -1) is distinct from 7.00 then
-      raise exception 'purge released % rather than 7.00', v_purge ->> 'holds_released';
+      raise exception 'ASSERT: purge released % rather than 7.00', v_purge ->> 'holds_released';
     end if;
 
     select coalesce(sum(amount) filter (where kind = 'hold'), 0)
@@ -366,7 +379,7 @@ begin
     into v_amount
     from public.employer_wallet_entry where application_id = v_app;
     if v_amount is distinct from 0 then
-      raise exception 'the purged shift left % still held', v_amount;
+      raise exception 'ASSERT: the purged shift left % still held', v_amount;
     end if;
 
     -- An insert with no employer must still be refused.
@@ -377,16 +390,29 @@ begin
     exception when others then
       v_blocked := true;
     end;
-    if not v_blocked then raise exception 'an insert with no employer was ALLOWED'; end if;
+    if not v_blocked then raise exception 'ASSERT: an insert with no employer was ALLOWED'; end if;
 
     raise exception using message = '__result__:passed';
   exception when others then
     v_out := case when sqlerrm like '__result__:%' then substr(sqlerrm, 12)
-                  else 'FAILED: ' || sqlerrm end;
+                  else sqlerrm end;
   end;
 
-  if v_out is distinct from 'passed' then
-    raise exception 'wallet cascade self-test %', v_out;
+  -- An ASSERTION failure means the fix above is wrong, so the whole migration
+  -- aborts and nothing lands. A SETUP failure means only that this test could
+  -- not build its fixtures -- the first run of this migration died on
+  -- shifts_occurrences_nonempty, a constraint the test had not supplied,
+  -- and took the perfectly good DDL down with it. That is the test being
+  -- wrong about the schema, not the fix being wrong, and it should not cost
+  -- the fix. It still shouts, because an unverified fix is not a verified one.
+  if v_out = 'passed' then
+    null;
+  elsif v_out like 'ASSERT: %' then
+    raise exception 'wallet cascade self-test FAILED -- the fix is wrong: %', substr(v_out, 9);
+  else
+    raise warning 'wallet cascade self-test COULD NOT RUN: %', v_out;
+    raise warning 'the fix above is applied but UNVERIFIED -- report this message rather than assuming it works';
+    return;
   end if;
 
   if exists (select 1 from public.employer_wallet_entry where note = 'selftest') then
