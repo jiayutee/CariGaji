@@ -1327,6 +1327,17 @@ const TRANSLATIONS = {
     "employer.walletHeldHint": "When you offer a shift, the full agreed wage is set aside so the worker's pay is committed, not just promised. It is released if the offer is declined or the shift is called off in time.",
     "employer.walletWarnOnlyNote": "Deposits are not required yet — you can still hire with a zero balance. We will tell you well before that changes.",
     "employer.walletShortfallWarning": "Heads up: your deposit balance is RM{amount} short of covering the wages for this offer. Nothing is blocked yet.",
+    "employer.walletHistoryTitle": "Deposit activity",
+    "employer.walletHistoryHint": "Each line is one movement. The available and held figures above are worked out from these, never stored as a number of their own.",
+    "employer.walletHistoryEmpty": "No deposit activity yet.",
+    "employer.walletHistoryError": "Couldn't load your deposit activity just now. Your balance and history are unaffected — try again in a moment.",
+    "employer.walletHistoryTruncated": "Showing the {n} most recent movements.",
+    "employer.walletHistoryShiftGone": "Shift no longer listed",
+    "employer.walletKind.topup": "Added",
+    "employer.walletKind.hold": "Set aside",
+    "employer.walletKind.release": "Returned",
+    "employer.walletKind.capture": "Paid to worker",
+    "employer.walletKind.refund": "Refunded",
     "employer.verificationLabel": "Verification",
     "employer.outgoingObligationsTitle": "Outgoing Salary Obligations",
     "employer.noPayoutObligations": "No payout obligations yet for this employer account.",
@@ -2399,6 +2410,17 @@ const TRANSLATIONS = {
     "employer.walletHeldHint": "Apabila anda menawarkan syif, gaji penuh yang dipersetujui akan diasingkan supaya bayaran pekerja terjamin, bukan sekadar dijanjikan. Ia dilepaskan jika tawaran ditolak atau syif dibatalkan pada masanya.",
     "employer.walletWarnOnlyNote": "Deposit belum diwajibkan — anda masih boleh mengupah dengan baki sifar. Kami akan memaklumkan lebih awal sebelum ini berubah.",
     "employer.walletShortfallWarning": "Perhatian: baki deposit anda kurang RM{amount} untuk menampung gaji tawaran ini. Tiada apa-apa disekat buat masa ini.",
+    "employer.walletHistoryTitle": "Aktiviti deposit",
+    "employer.walletHistoryHint": "Setiap baris ialah satu pergerakan. Jumlah tersedia dan ditahan di atas dikira daripada semua ini, bukan disimpan sebagai nombor tersendiri.",
+    "employer.walletHistoryEmpty": "Belum ada aktiviti deposit.",
+    "employer.walletHistoryError": "Aktiviti deposit anda tidak dapat dimuatkan buat masa ini. Baki dan rekod anda tidak terjejas — sila cuba sebentar lagi.",
+    "employer.walletHistoryTruncated": "Memaparkan {n} pergerakan terkini.",
+    "employer.walletHistoryShiftGone": "Syif tidak lagi disenaraikan",
+    "employer.walletKind.topup": "Ditambah",
+    "employer.walletKind.hold": "Diasingkan",
+    "employer.walletKind.release": "Dikembalikan",
+    "employer.walletKind.capture": "Dibayar kepada pekerja",
+    "employer.walletKind.refund": "Bayaran balik",
     "employer.verificationLabel": "Pengesahan",
     "employer.outgoingObligationsTitle": "Tanggungan Gaji Keluar",
     "employer.noPayoutObligations": "Belum ada tanggungan bayaran untuk akaun majikan ini.",
@@ -3470,6 +3492,17 @@ const TRANSLATIONS = {
     "employer.walletHeldHint": "当您发出班次邀约时，约定的全额薪资会被预留，让员工的薪资有保障而非空口承诺。若邀约被拒或班次及时取消，款项将自动解冻。",
     "employer.walletWarnOnlyNote": "目前尚未强制要求保证金——余额为零仍可招聘。此规则若有变动，我们会提前通知您。",
     "employer.walletShortfallWarning": "提醒：您的保证金余额尚差 RM{amount} 才足以覆盖此邀约的薪资。目前不会阻止任何操作。",
+    "employer.walletHistoryTitle": "保证金动态",
+    "employer.walletHistoryHint": "每一行都是一笔变动。上方的可用与冻结金额由这些记录推算得出，并非单独存储的数字。",
+    "employer.walletHistoryEmpty": "尚无保证金动态。",
+    "employer.walletHistoryError": "暂时无法载入您的保证金动态。您的余额与记录不受影响，请稍后再试。",
+    "employer.walletHistoryTruncated": "显示最近 {n} 笔变动。",
+    "employer.walletHistoryShiftGone": "班次已不再列出",
+    "employer.walletKind.topup": "已充值",
+    "employer.walletKind.hold": "已预留",
+    "employer.walletKind.release": "已退回",
+    "employer.walletKind.capture": "已支付给员工",
+    "employer.walletKind.refund": "已退款",
     "employer.verificationLabel": "验证状态",
     "employer.outgoingObligationsTitle": "待支付薪资义务",
     "employer.noPayoutObligations": "此雇主账户目前尚无待发放的薪资义务。",
@@ -3786,6 +3819,28 @@ const validateMalaysianBankAccount = (bankName, accountNumber) => {
 };
 
 const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
+
+// How many ledger movements the Billing tab lists. Display only -- see the
+// comment on walletEntries. When the page is full the UI says so rather than
+// trailing off, so a truncated list never reads as a complete one.
+const WALLET_HISTORY_LIMIT = 25;
+
+// Plain-language name for a ledger movement. Deliberately NOT signed (+/-):
+// a movement's effect on `available` is not its own amount -- capturing RM150
+// against a RM160 hold RAISES available, because the untouched RM10 is released
+// and the whole hold stops being reserved. Signing each line would state
+// arithmetic that does not hold, so the kind carries the meaning instead.
+const walletKindLabel = (kind, t) => {
+  const key = `employer.walletKind.${kind}`;
+  return hasTranslation(key) ? t(key) : String(kind || '');
+};
+
+const walletKindColor = (kind) => (
+  kind === 'topup' || kind === 'refund' || kind === 'release' ? 'green'
+    : kind === 'hold' ? 'amber'
+    : kind === 'capture' ? 'blue'
+    : 'gray'
+);
 
 // Shared by the offer-deadline scaling below and the late-cancellation
 // 24-hour threshold check — how many hours from now until a shift starts.
@@ -9863,11 +9918,34 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // the self-declared "funding account has sufficient balance" checkbox, which
   // was the employer asserting something about themselves that nothing checked.
   const [wallet, setWallet] = useState(null);   // { available, held, topped_up, captured } | null
+  // The movements behind that balance. Fetched separately and DISPLAY ONLY --
+  // the figures above come from employer_wallet_balance, which sums the whole
+  // ledger server-side. Nothing here is ever added up: a .limit() feeding a
+  // total has silently undercounted three separate times in this project, and
+  // a wrong deposit balance is the worst place for it to happen again.
+  const [walletEntries, setWalletEntries] = useState([]);
+  // A failed load must not render as "no activity yet". An employer whose
+  // request timed out would otherwise be told, in plain language, that their
+  // deposit history is empty -- which is a statement about their money, and
+  // false. Transient ERR_INTERNET_DISCONNECTED failures showed up while
+  // building this, so it is not a hypothetical.
+  const [walletEntriesFailed, setWalletEntriesFailed] = useState(false);
   const refreshWalletBalance = useCallback(async () => {
-    if (!user) { setWallet(null); return; }
+    if (!user) { setWallet(null); setWalletEntries([]); setWalletEntriesFailed(false); return; }
     const { data, error } = await supabase.rpc('employer_wallet_balance', { p_employer_id: user.id });
-    if (error) { setWallet(null); return; }
-    setWallet(Array.isArray(data) ? (data[0] ?? null) : (data ?? null));
+    if (error) { setWallet(null); } else {
+      setWallet(Array.isArray(data) ? (data[0] ?? null) : (data ?? null));
+    }
+    // A cascade can null shift_id (see 20260822b), so the join returns null for
+    // any movement whose shift has since been removed -- expected, not an error.
+    const { data: rows, error: entryError } = await supabase
+      .from('employer_wallet_entry')
+      .select('id, kind, amount, note, created_at, shift:shifts(id, title)')
+      .eq('employer_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(WALLET_HISTORY_LIMIT);
+    setWalletEntriesFailed(Boolean(entryError));
+    setWalletEntries(entryError ? [] : (rows || []));
   }, [user]);
   useEffect(() => { refreshWalletBalance(); }, [refreshWalletBalance]);
 
@@ -12139,6 +12217,54 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               {/* Said plainly, so a RM0.00 balance does not read as "hiring is
                   blocked" when nothing is enforced yet. */}
               <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 8, fontStyle: "italic" }}>{t("employer.walletWarnOnlyNote")}</div>
+            </Card>
+            {/* What the two figures above are made of. The ledger is
+                append-only and the balance is derived from it, so this list IS
+                the explanation of the balance rather than a separate record. */}
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 10 }}>{t("employer.walletHistoryTitle")}</div>
+              {walletEntriesFailed ? (
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("employer.walletHistoryError")}</div>
+              ) : walletEntries.length === 0 ? (
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("employer.walletHistoryEmpty")}</div>
+              ) : (
+                <>
+                  {walletEntries.map(entry => (
+                    <div key={entry.id} style={{
+                      display: "flex", alignItems: "center", gap: 10,
+                      padding: "10px 0", borderBottom: `1px solid ${BRAND.border}`,
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                          <Pill label={walletKindLabel(entry.kind, t)} color={walletKindColor(entry.kind)} />
+                          <span style={{ fontSize: 11.5, color: BRAND.textMuted }}>
+                            {entry.created_at ? formatShiftDate(entry.created_at, { day: "numeric", month: "short" }) : ""}
+                          </span>
+                        </div>
+                        {/* shift is null when the shift has since been removed --
+                            the movement outlives it by design. */}
+                        <div style={{
+                          fontSize: 12.5, color: BRAND.textMuted,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }}>
+                          {entry.shift?.title || entry.note || t("employer.walletHistoryShiftGone")}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, flexShrink: 0 }}>
+                        RM{Number(entry.amount ?? 0).toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                  {/* Say when the list is capped. A truncated list that trails
+                      off silently reads as a complete one. */}
+                  {walletEntries.length >= WALLET_HISTORY_LIMIT && (
+                    <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 10 }}>
+                      {t("employer.walletHistoryTruncated", { n: WALLET_HISTORY_LIMIT })}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 10 }}>{t("employer.walletHistoryHint")}</div>
+                </>
+              )}
             </Card>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
               <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} tooltip={t("employer.pendingPayoutTooltip")} color={BRAND.amber} />

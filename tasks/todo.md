@@ -256,8 +256,36 @@ scaffolded from), and a verifier whose LIKE pattern could never match the
 function's aligned source, which reported a failure that did not exist. Both
 lessons are in tasks/lessons.md.
 
+### Ledger history in Billing — done 2026-08-20
+
+The Billing tab now lists the movements behind the balance, under the two
+figures they explain. Display only: `available` and `held` still come from
+`employer_wallet_balance`, which sums the whole ledger server-side. Nothing in
+the list is added up — a `.limit()` feeding a total has silently undercounted
+three times in this project, and a deposit balance is the worst place for a
+fourth.
+
+Two judgement calls worth recording:
+- **Movements are not signed.** A line's effect on `available` is not its own
+  amount: capturing RM150 against a RM160 hold RAISES available, because the
+  RM10 remainder is released and the whole RM160 stops being reserved. A +/-
+  per line would state arithmetic that does not hold, so the kind label carries
+  the meaning instead ("Added", "Set aside", "Returned", "Paid to worker",
+  "Refunded").
+- **A failed load says so.** It first rendered identically to "no deposit
+  activity yet" — telling an employer their money has no history because a
+  request timed out. Transient network failures appeared while building it, so
+  that was not hypothetical.
+
+Verified live in the employer console: empty state, populated state (all five
+kinds, shift title when present, note as fallback, "Shift no longer listed"
+when a cascade has nulled the reference), the error branch, EN/BM/ZH, and
+dark-mode contrast measured at 6.37–7.60 on the pills and 7.34–15.21 on the
+text. The populated and error states were forced through a temporary local
+fixture and a deliberately invalid column, both reverted — no rows were written,
+because the ledger is append-only and a QA top-up could never be removed.
+
 ### Still open on the deposit
-- Ledger history list in Billing
 - Admin UI for recording a top-up (RPC exists, SQL-only)
 - Flip enforcement on once real top-ups exist
 - Phase 2: FPX/DuitNow, then restore the stronger landing claim
