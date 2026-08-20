@@ -49,6 +49,14 @@ const occurrenceHours = (occ) => {
 };
 const totalOccurrenceHours = (occurrences) => (occurrences ?? []).reduce((sum, occ) => sum + occurrenceHours(occ), 0);
 
+// Estimated late-cancellation payout for a given multiplier (0.5 for the
+// contract_50 choice, 1.0 for show_up_100) — mirrors create_cancellation_payout
+// in 20260717h exactly (same floor of 0.25h, same round-to-2dp), so the
+// worker-facing decision card never disagrees with what the server actually
+// queues once they make their choice.
+const cancellationPayoutAmount = (wageBid, occurrences, multiplier) =>
+  Math.round(Number(wageBid ?? 0) * Math.max(0.25, totalOccurrenceHours(occurrences)) * multiplier * 100) / 100;
+
 // occurrenceHours is exact minutes/60 (e.g. a 4:10-4:50 shift is
 // 0.6666666666666666h) — correct for math (pay = rate x hours), but
 // unreadable shown raw as "0.6666666666666666h". This is display-only:
@@ -538,8 +546,8 @@ const TRANSLATIONS = {
     "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
     "myBids.lateCancellationTitle": "This shift was cancelled less than 24 hours before it started",
     "myBids.lateCancellationBody": "Choose to sign a 50% cancellation payout now, or show up in person and submit a photo for 100% of your agreed wage.",
-    "myBids.cancellation50Btn": "Sign cancellation contract (50%)",
-    "myBids.cancellationShowUpLabel": "Show up for full pay (100%)",
+    "myBids.cancellation50Btn": "Sign cancellation contract (50% — you'll receive {amount})",
+    "myBids.cancellationShowUpLabel": "Show up for full pay (100% — you'll receive {amount})",
     "myBids.cancellationShowUpHint": "Take a photo of yourself at the shift location to claim full payout.",
     "myBids.cancellationProofUploading": "Uploading proof…",
     "myBids.cancellationChose50": "You chose the 50% cancellation payout. It's on its way.",
@@ -1610,8 +1618,8 @@ const TRANSLATIONS = {
     "myBids.shiftCancelledNotice": "Syif ini telah dibatalkan oleh majikan. Tiada tindakan lanjut diperlukan.",
     "myBids.lateCancellationTitle": "Syif ini dibatalkan kurang daripada 24 jam sebelum ia bermula",
     "myBids.lateCancellationBody": "Pilih untuk menandatangani bayaran pembatalan 50% sekarang, atau hadir secara peribadi dan hantar foto untuk 100% daripada gaji yang dipersetujui.",
-    "myBids.cancellation50Btn": "Tandatangan kontrak pembatalan (50%)",
-    "myBids.cancellationShowUpLabel": "Hadir untuk bayaran penuh (100%)",
+    "myBids.cancellation50Btn": "Tandatangan kontrak pembatalan (50% — anda akan menerima {amount})",
+    "myBids.cancellationShowUpLabel": "Hadir untuk bayaran penuh (100% — anda akan menerima {amount})",
     "myBids.cancellationShowUpHint": "Ambil foto diri anda di lokasi syif untuk menuntut bayaran penuh.",
     "myBids.cancellationProofUploading": "Memuat naik bukti…",
     "myBids.cancellationChose50": "Anda memilih bayaran pembatalan 50%. Ia sedang diproses.",
@@ -2674,8 +2682,8 @@ const TRANSLATIONS = {
     "myBids.shiftCancelledNotice": "此班次已被雇主取消，无需采取其他行动。",
     "myBids.lateCancellationTitle": "此班次在开始前不到 24 小时被取消",
     "myBids.lateCancellationBody": "您可以选择立即签署 50% 的取消赔偿，或亲自到场并提交照片以领取 100% 的约定薪资。",
-    "myBids.cancellation50Btn": "签署取消合同（50%）",
-    "myBids.cancellationShowUpLabel": "到场领取全额薪资（100%）",
+    "myBids.cancellation50Btn": "签署取消合同（50%，您将获得 {amount}）",
+    "myBids.cancellationShowUpLabel": "到场领取全额薪资（100%，您将获得 {amount}）",
     "myBids.cancellationShowUpHint": "在班次地点拍摄一张自拍照以申领全额薪资。",
     "myBids.cancellationProofUploading": "正在上传证明…",
     "myBids.cancellationChose50": "您已选择 50% 的取消赔偿，款项即将发放。",
@@ -8674,11 +8682,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                   <Btn variant="secondary" style={{ flex: 1, justifyContent: "center" }}
                     onClick={() => setCancellationContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid })}>
-                    {t("myBids.cancellation50Btn")}
+                    {t("myBids.cancellation50Btn", { amount: `RM${cancellationPayoutAmount(a.wageBid, a.shiftOccurrences, 0.5).toFixed(2)}` })}
                   </Btn>
                 </div>
                 <label style={{ display: "block" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.cancellationShowUpLabel")}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.cancellationShowUpLabel", { amount: `RM${cancellationPayoutAmount(a.wageBid, a.shiftOccurrences, 1.0).toFixed(2)}` })}</div>
                   <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 8 }}>{t("myBids.cancellationShowUpHint")}</div>
                   <input
                     type="file" accept="image/*" capture="environment"
