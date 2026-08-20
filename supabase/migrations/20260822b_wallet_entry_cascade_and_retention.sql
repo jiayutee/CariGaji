@@ -27,6 +27,18 @@
 -- a rewrite and a dropped back-reference. (3) is fixed by the retention
 -- decision below.
 
+-- ── 0. which version of this file am I? ─────────────────────────────────────
+-- Revision 2 exists because revision 1's self-test inserted a shift without
+-- `occurrences` and died on shifts_occurrences_nonempty, rolling back DDL that
+-- was correct. If a run reports that constraint again, it is revision 1 being
+-- run a second time -- rev2 cannot produce that error, because it supplies
+-- occurrences and because a setup failure warns instead of raising.
+do $stamp$
+begin
+  raise notice '20260822b revision 2 (occurrences-aware self-test) starting';
+end
+$stamp$;
+
 -- ── 1. the guard tells a rewrite from a dropped reference ────────────────────
 -- A cascade nulling a back-reference does not rewrite the movement: who paid,
 -- what kind, how much, and when are all untouched. Only a pointer to a row that
