@@ -54,8 +54,19 @@ const totalOccurrenceHours = (occurrences) => (occurrences ?? []).reduce((sum, o
 // in 20260717h exactly (same floor of 0.25h, same round-to-2dp), so the
 // worker-facing decision card never disagrees with what the server actually
 // queues once they make their choice.
-const cancellationPayoutAmount = (wageBid, occurrences, multiplier) =>
-  Math.round(Number(wageBid ?? 0) * Math.max(0.25, totalOccurrenceHours(occurrences)) * multiplier * 100) / 100;
+// startAt/endAt mirror shift_contracted_hours' FALLBACK: when no occurrence
+// carries a parseable start/end, the SQL derives hours from end_at - start_at
+// instead. Without it this returned the 0.25h floor, so a worker would be
+// shown RM5.00 for a shift the server pays RM160.00 for. No live row hits
+// that today (every occurrence written by the app has start/end), but the
+// payout is real money and the estimate must not be able to drift from it.
+const cancellationPayoutAmount = (wageBid, occurrences, multiplier, startAt = null, endAt = null) => {
+  let hours = totalOccurrenceHours(occurrences);
+  if (hours <= 0 && startAt && endAt) {
+    hours = (new Date(endAt).getTime() - new Date(startAt).getTime()) / 3600000;
+  }
+  return Math.round(Number(wageBid ?? 0) * Math.max(0.25, hours) * multiplier * 100) / 100;
+};
 
 // occurrenceHours is exact minutes/60 (e.g. a 4:10-4:50 shift is
 // 0.6666666666666666h) — correct for math (pay = rate x hours), but
@@ -8682,11 +8693,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                   <Btn variant="secondary" style={{ flex: 1, justifyContent: "center" }}
                     onClick={() => setCancellationContractModal({ applicationId: a.id, shiftTitle: a.shiftTitle, shiftDate: a.date, wageAsk: a.wageBid })}>
-                    {t("myBids.cancellation50Btn", { amount: `RM${cancellationPayoutAmount(a.wageBid, a.shiftOccurrences, 0.5).toFixed(2)}` })}
+                    {t("myBids.cancellation50Btn", { amount: `RM${cancellationPayoutAmount(a.wageBid, a.shiftOccurrences, 0.5, a.shiftStartAt, a.shiftEndAt).toFixed(2)}` })}
                   </Btn>
                 </div>
                 <label style={{ display: "block" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.cancellationShowUpLabel", { amount: `RM${cancellationPayoutAmount(a.wageBid, a.shiftOccurrences, 1.0).toFixed(2)}` })}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("myBids.cancellationShowUpLabel", { amount: `RM${cancellationPayoutAmount(a.wageBid, a.shiftOccurrences, 1.0, a.shiftStartAt, a.shiftEndAt).toFixed(2)}` })}</div>
                   <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 8 }}>{t("myBids.cancellationShowUpHint")}</div>
                   <input
                     type="file" accept="image/*" capture="environment"
