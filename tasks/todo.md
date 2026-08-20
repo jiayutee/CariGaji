@@ -80,12 +80,19 @@ So the work splits:
   offers on day one. Needs a grace period, a pilot allowlist, or admin credit.
 
 ## 5. Steps (once D1–D3 are answered)
-- [ ] 1. Copy fix on the landing trust claim (independent of everything else)
-- [ ] 2. Migration: `employer_wallet_entry` ledger + derived-balance function
-- [ ] 3. Migration: hold/release/capture RPCs, guarded like every other money path
+- [x] 1. Copy fix on the landing trust claim — shipped e1616b6, all 3 languages,
+        padlock icon replaced (it implied custody of money)
+- [x] 2. Ledger + derived balance — 20260820, verified
+- [x] 3. hold/release/capture RPCs — 20260820b, plus 20260820c which fixed two
+        of them having NO authorization check at all (a worker could call them)
 - [ ] 4. Wire `capture` into the existing payout + cancellation-compensation flows
-- [ ] 5. Enforcement at the offer step, with a clear "top up to continue" state
-- [ ] 6. Employer Billing tab: real balance, held vs available, ledger history
+- [x] 5. Hold fires at the offer step; warn-only, so it reports a shortfall
+        rather than blocking. Verified live: RPC returns held=false /
+        shortfall=200 and the employer sees "your deposit balance is RM200.00
+        short... Nothing is blocked yet"
+- [x] 6. Billing tab shows real derived available/held. The self-declared
+        "funding account has sufficient balance" checkbox is gone.
+        Ledger history list still to do.
 - [ ] 7. Admin: record a manual top-up
 - [ ] 8. EN + BM + ZH strings
 - [ ] 9. End-to-end verification, including that held funds cannot be
@@ -93,3 +100,29 @@ So the work splits:
 
 ## Review
 (filled in once built)
+
+## Verified so far (2026-08-20)
+
+API side 10/10: balance starts at zero; enforcement confirmed off; an employer
+cannot INSERT a ledger row (403) nor call admin_record_topup; an unfunded offer
+reports a RM160 shortfall creating no entry; required == wage x contracted
+hours; a foreign employer is refused.
+
+In-database self-test (shipped inside 20260820c, raises rather than reports):
+topup, hold, idempotent re-hold, **double-spend refused** (RM200 balance, RM160
+held, a second RM160 offer must not be funded), capture with the unused
+remainder released, over-capture refused, ledger immutability.
+
+Browser: Billing shows real derived figures; offering fires
+employer_hold_for_offer then employer_wallet_balance; both the "Offer sent" and
+the RM200 shortfall toasts confirmed via a MutationObserver — they were firing
+all along, just expiring between polling round trips.
+
+## Still to do
+- Ledger history list in Billing (entries exist, nothing lists them yet)
+- Wire `capture` into payout settlement and cancellation compensation, and
+  `release` into decline / expiry / withdrawal — the ledger records holds but
+  nothing yet converts or frees them automatically
+- Admin UI for recording a top-up (RPC exists, SQL-only today)
+- Flip enforcement on once real top-ups exist
+- Phase 2: FPX/DuitNow, and restoring the stronger landing claim
