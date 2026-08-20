@@ -239,9 +239,22 @@ available balance forever. The pre-fix refusal was loud and safe; the fix alone
 would have traded it for silently frozen funds. `admin_purge_shift` therefore
 releases open holds before deleting anything, and reports `holds_released`.
 
-All of it ships as `20260822b_wallet_entry_cascade_and_retention.sql`, whose
+All of it shipped as `20260822b_wallet_entry_cascade_and_retention.sql`, whose
 in-database self-test raises rather than reports, and rolls its own rows back —
 a test row in an append-only table would be a permanent phantom hold.
+
+**Live, verified 2026-08-20** against the real database: the guard carries its
+`tg_op` branch (md5 bbf01db05c2cf45de3cfae35c8e6d92b), `employer_id` is
+nullable, its FK is SET NULL, the require-employer insert trigger is attached,
+and `admin_purge_shift` releases holds. The insert guard was also confirmed
+through the live API — posting a ledger row with no employer returns
+`employer_wallet_entry.employer_id is required on insert`.
+
+Two rounds were lost to my own tooling on the way: a self-test that inserted a
+shift without `occurrences` (a constraint added long after the CREATE TABLE I
+scaffolded from), and a verifier whose LIKE pattern could never match the
+function's aligned source, which reported a failure that did not exist. Both
+lessons are in tasks/lessons.md.
 
 ### Still open on the deposit
 - Ledger history list in Billing
