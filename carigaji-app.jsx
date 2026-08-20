@@ -143,6 +143,27 @@ const logAnalyticsEvent = (eventType, metadata = {}, userId = null) => {
 // supabase/migrations/20260705g_widen_shift_categories.sql).
 const SHIFT_CATEGORIES = ["F&B", "Retail", "Event", "Promotion", "Warehouse", "Office", "Security", "Production", "Market Research", "Student", "Logistics", "Other"];
 
+// Categories are STORED in English -- shifts.category is constrained to exactly
+// these strings by shifts_category_check, and the bulk-upload parser matches
+// against them. So this translates the LABEL only; the value written to the
+// database, filtered on, and compared never changes. Anything that renders a
+// category to a person should go through here, and nothing should ever write
+// what this returns.
+const shiftCategoryLabel = (value, t) => {
+  const key = `category.${value}`;
+  return hasTranslation(key) ? t(key) : String(value ?? '');
+};
+
+// banking_details.verification_status is a raw database value ('pending',
+// 'verified', 'rejected') and was rendered straight into the Earnings panel, so
+// a Chinese or Malay reader saw an English word where a status was promised.
+// Unknown values fall back to the raw string rather than to an empty cell: a
+// status nobody has a label for is still information.
+const bankVerificationLabel = (status, t) => {
+  const key = `earnings.bankStatus${String(status || 'pending').replace(/^./, c => c.toUpperCase())}`;
+  return hasTranslation(key) ? t(key) : String(status || 'pending');
+};
+
 // ─── Shift language requirements ─────────────────────────────────────────────
 // Kept in sync with the shifts_language_requirements_check DB constraint (see
 // supabase/migrations/20260711_shift_language_requirements.sql).
@@ -1328,6 +1349,25 @@ const TRANSLATIONS = {
     "employer.walletWarnOnlyNote": "Deposits are not required yet — you can still hire with a zero balance. We will tell you well before that changes.",
     "employer.walletShortfallWarning": "Heads up: your deposit balance is RM{amount} short of covering the wages for this offer. Nothing is blocked yet.",
     "employer.walletHistoryTitle": "Deposit activity",
+    "category.F&B": "F&B",
+    "category.Retail": "Retail",
+    "category.Event": "Event",
+    "category.Promotion": "Promotion",
+    "category.Warehouse": "Warehouse",
+    "category.Office": "Office",
+    "category.Security": "Security",
+    "category.Production": "Production",
+    "category.Market Research": "Market Research",
+    "category.Student": "Student",
+    "category.Logistics": "Logistics",
+    "category.Other": "Other",
+    "category.all": "All",
+    "discover.perHour": "/hour",
+    "discover.posApplied": "{headcount} pos · {applied} applied",
+    "earnings.bankStatusPending": "Pending",
+    "earnings.bankStatusVerified": "Verified",
+    "earnings.bankStatusRejected": "Rejected",
+    "form.locationPlaceholder": "e.g. KLCC, Kuala Lumpur",
     "employer.walletHistoryHint": "Each line is one movement. The available and held figures above are worked out from these, never stored as a number of their own.",
     "employer.walletHistoryEmpty": "No deposit activity yet.",
     "employer.walletHistoryError": "Couldn't load your deposit activity just now. Your balance and history are unaffected — try again in a moment.",
@@ -2411,6 +2451,25 @@ const TRANSLATIONS = {
     "employer.walletWarnOnlyNote": "Deposit belum diwajibkan — anda masih boleh mengupah dengan baki sifar. Kami akan memaklumkan lebih awal sebelum ini berubah.",
     "employer.walletShortfallWarning": "Perhatian: baki deposit anda kurang RM{amount} untuk menampung gaji tawaran ini. Tiada apa-apa disekat buat masa ini.",
     "employer.walletHistoryTitle": "Aktiviti deposit",
+    "category.F&B": "Makanan & Minuman",
+    "category.Retail": "Peruncitan",
+    "category.Event": "Acara",
+    "category.Promotion": "Promosi",
+    "category.Warehouse": "Gudang",
+    "category.Office": "Pejabat",
+    "category.Security": "Keselamatan",
+    "category.Production": "Pengeluaran",
+    "category.Market Research": "Kajian Pasaran",
+    "category.Student": "Pelajar",
+    "category.Logistics": "Logistik",
+    "category.Other": "Lain-lain",
+    "category.all": "Semua",
+    "discover.perHour": "/jam",
+    "discover.posApplied": "{headcount} kekosongan · {applied} memohon",
+    "earnings.bankStatusPending": "Menunggu",
+    "earnings.bankStatusVerified": "Disahkan",
+    "earnings.bankStatusRejected": "Ditolak",
+    "form.locationPlaceholder": "cth. KLCC, Kuala Lumpur",
     "employer.walletHistoryHint": "Setiap baris ialah satu pergerakan. Jumlah tersedia dan ditahan di atas dikira daripada semua ini, bukan disimpan sebagai nombor tersendiri.",
     "employer.walletHistoryEmpty": "Belum ada aktiviti deposit.",
     "employer.walletHistoryError": "Aktiviti deposit anda tidak dapat dimuatkan buat masa ini. Baki dan rekod anda tidak terjejas — sila cuba sebentar lagi.",
@@ -2597,7 +2656,7 @@ const TRANSLATIONS = {
     "footer.categories": "Kategori Kerja",
     "footer.rightsReserved": "Hak cipta terpelihara.",
   },
-  zh: {
+  ch: {
     "nav.discover": "发现",
     "nav.myBids": "我的出价",
     "nav.chat": "聊天",
@@ -3493,6 +3552,25 @@ const TRANSLATIONS = {
     "employer.walletWarnOnlyNote": "目前尚未强制要求保证金——余额为零仍可招聘。此规则若有变动，我们会提前通知您。",
     "employer.walletShortfallWarning": "提醒：您的保证金余额尚差 RM{amount} 才足以覆盖此邀约的薪资。目前不会阻止任何操作。",
     "employer.walletHistoryTitle": "保证金动态",
+    "category.F&B": "餐饮",
+    "category.Retail": "零售",
+    "category.Event": "活动",
+    "category.Promotion": "推广",
+    "category.Warehouse": "仓储",
+    "category.Office": "办公室",
+    "category.Security": "保安",
+    "category.Production": "生产",
+    "category.Market Research": "市场调研",
+    "category.Student": "学生",
+    "category.Logistics": "物流",
+    "category.Other": "其他",
+    "category.all": "全部",
+    "discover.perHour": "/小时",
+    "discover.posApplied": "{headcount} 个名额 · {applied} 人申请",
+    "earnings.bankStatusPending": "待处理",
+    "earnings.bankStatusVerified": "已验证",
+    "earnings.bankStatusRejected": "已拒绝",
+    "form.locationPlaceholder": "例如：KLCC，吉隆坡",
     "employer.walletHistoryHint": "每一行都是一笔变动。上方的可用与冻结金额由这些记录推算得出，并非单独存储的数字。",
     "employer.walletHistoryEmpty": "尚无保证金动态。",
     "employer.walletHistoryError": "暂时无法载入您的保证金动态。您的余额与记录不受影响，请稍后再试。",
@@ -3941,10 +4019,21 @@ const payoutHoldReasonLabel = (t, errorMessage) => ({
 // ─── Language / i18n ────────────────────────────────────────────────────────
 const LANGUAGE_STORAGE_KEY = "carigaji_lang";
 
+// Chinese is stored as "ch". It was "zh" until 2026-08-20, so a browser that
+// last set the language before the rename still holds "zh" -- mapped rather
+// than ignored, because falling through to the default would silently switch a
+// Chinese reader back to English on their next visit.
+const LANGUAGE_LEGACY_CODES = { zh: "ch" };
+const SUPPORTED_LANGUAGES = ["en", "bm", "ch"];
+
+const normalizeLanguage = (value) => {
+  const mapped = LANGUAGE_LEGACY_CODES[value] || value;
+  return SUPPORTED_LANGUAGES.includes(mapped) ? mapped : "en";
+};
+
 const readLanguagePreference = () => {
   if (typeof window === "undefined") return "en";
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return stored === "bm" || stored === "zh" ? stored : "en";
+  return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
 };
 
 const LanguageContext = createContext({ language: "en", setLanguage: () => {}, t: (key) => key });
@@ -3954,7 +4043,7 @@ const LanguageProvider = ({ children }) => {
   const [language, setLanguageState] = useState(() => readLanguagePreference());
 
   const setLanguage = useCallback((lang) => {
-    const next = lang === "bm" || lang === "zh" ? lang : "en";
+    const next = normalizeLanguage(lang);
     setLanguageState(next);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, next);
@@ -4328,7 +4417,7 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
         ref={inputRef}
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder="e.g. KLCC, Kuala Lumpur"
+        placeholder={t("form.locationPlaceholder")}
         style={{
           width: "100%", padding: "10px 14px", borderRadius: 10,
           border: `1.5px solid ${error ? BRAND.red : BRAND.border}`, fontSize: 14, fontFamily: "inherit",
@@ -5537,7 +5626,7 @@ const buildContractRows = (t, {
     { label: t("contract.workerLabel"), value: workerName || ns },
     { heading: t("contract.sectionEngagement") },
     { label: t("contract.roleLabel"), value: shiftTitle || ns },
-    { label: t("contract.categoryLabel"), value: shiftCategory || ns },
+    { label: t("contract.categoryLabel"), value: shiftCategory ? shiftCategoryLabel(shiftCategory, t) : ns },
     { label: t("contract.locationLabel"), value: shiftLocation || ns },
     { label: t("contract.scheduleLabel"), value: scheduleText || ns },
     { label: t("contract.totalHoursLabel"), value: hours ? formatDurationHours(hours) : ns },
@@ -8201,7 +8290,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label={t("common.back")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-            <Badge color="amber">{selectedShift.category}</Badge>
+            <Badge color="amber">{shiftCategoryLabel(selectedShift.category, t)}</Badge>
             <Badge color="green">{t("shiftDetail.positions")} {selectedShift.headcount}</Badge>
             <Badge color="blue">{t("shiftDetail.applied")} {selectedShift.totalApplicants}</Badge>
           </div>
@@ -8365,7 +8454,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     background: filterCat === c ? BRAND.primary : BRAND.grayLight,
                     color: filterCat === c ? "#fff" : BRAND.textMuted,
                     transition: "all 0.15s",
-                  }}>{c}</button>
+                  }}>{c === "All" ? t("category.all") : shiftCategoryLabel(c, t)}</button>
                 ))}
               </div>
             </div>
@@ -8422,7 +8511,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #e2e8f0', fontSize:13, boxSizing:'border-box', background:'#fff'}}>
                         <option value="All">{t("discover.allTypes")}</option>
-                        {SHIFT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        {SHIFT_CATEGORIES.map(c => <option key={c} value={c}>{shiftCategoryLabel(c, t)}</option>)}
                       </select>
                     </div>
                     <div>
@@ -8492,7 +8581,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6, gap: 8 }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
-                          <Badge color="amber" size="xs">{s.category}</Badge>
+                          <Badge color="amber" size="xs">{shiftCategoryLabel(s.category, t)}</Badge>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
                         <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
@@ -8504,7 +8593,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         {/* Estimated total for the shift (lower-bound rate × hours) is the
                             headline figure; the hourly range drops to the small muted line. */}
                         <div style={{ fontWeight: 800, fontSize: isMobile ? 15 : 18, color: BRAND.primary }}>~RM{Math.round(s.wageMin * s.hours)}</div>
-                        <div style={{ fontSize: isMobile ? 10 : 11, color: BRAND.textMuted }}>RM{s.wageMin}–{s.wageMax}/hour</div>
+                        <div style={{ fontSize: isMobile ? 10 : 11, color: BRAND.textMuted }}>RM{s.wageMin}–{s.wageMax}{t("discover.perHour")}</div>
                       </div>
                     </div>
                   </div>
@@ -8514,7 +8603,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       // Listing cards only ever show the city/region, never the exact place.
                       [overviewLocation(s.location), "📍"],
                       [formatDurationHours(s.hours), "⏱️"],
-                      [`${s.headcount} pos · ${s.totalApplicants} applied`, "👥"],
+                      [t("discover.posApplied", { headcount: s.headcount, applied: s.totalApplicants }), "👥"],
                     ].map(([v, ico], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
                         <div style={{ fontSize: isMobile ? 11 : 13 }}>{ico}</div>
@@ -8564,7 +8653,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.text, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("footer.categories")}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {SHIFT_CATEGORIES.map(c => (
-                      <button key={c} onClick={() => setFilterCat(c)} style={footerCategoryChipStyle}>{c}</button>
+                      <button key={c} onClick={() => setFilterCat(c)} style={footerCategoryChipStyle}>{shiftCategoryLabel(c, t)}</button>
                     ))}
                   </div>
                 </div>
@@ -8759,7 +8848,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
                 color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
               />
-              {a.shiftCategory && <Badge color="amber">{a.shiftCategory}</Badge>}
+              {a.shiftCategory && <Badge color="amber">{shiftCategoryLabel(a.shiftCategory, t)}</Badge>}
             </div>
             {a.shiftStatus === "cancelled" && !a.cancellationChoiceDeadline && (
               <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: 10, fontSize: 12, color: BRAND.red, marginBottom: 16 }}>
@@ -9046,7 +9135,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <Stat label={t("earnings.statRecords")} value={String((workerPayoutSummary || []).length)} color={BRAND.primary} />
               <Stat label={t("earnings.statReady")} value={String((workerPayoutSummary || []).filter(p => p.status === "ready").length)} color={BRAND.green} />
               <Stat label={t("earnings.statHeld")} value={String((workerPayoutSummary || []).filter(p => p.status === "held").length)} color={BRAND.red} />
-              <Stat label={t("earnings.statBanking")} value={workerBanking?.verification_status || "pending"} sub="SecureSign" color={BRAND.blue} />
+              <Stat label={t("earnings.statBanking")} value={bankVerificationLabel(workerBanking?.verification_status, t)} sub="SecureSign" color={BRAND.blue} />
             </div>
             {!payoutsLoading && (
               <Card style={{ marginBottom: 20, padding: isMobile ? "16px 14px" : "20px" }}>
@@ -9262,9 +9351,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </Btn>
                   <Btn
                     size="xs"
-                    variant={language === "zh" ? "primary" : "secondary"}
-                    onClick={() => setLanguage("zh")}
-                    aria-pressed={language === "zh"}
+                    variant={language === "ch" ? "primary" : "secondary"}
+                    onClick={() => setLanguage("ch")}
+                    aria-pressed={language === "ch"}
                   >
                     {t("settings.languageChinese")}
                   </Btn>
@@ -11738,7 +11827,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, height: 80, resize: "none", boxSizing: "border-box" }}
                     />
                   </div>
-                  <Select label={t("employer.labelCategory")} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: v }))} />
+                  <Select label={t("employer.labelCategory")} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: shiftCategoryLabel(v, t) }))} />
                   <LocationAutocomplete label={t("employer.labelLocation")} value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
                   <div style={{marginTop:8, marginBottom:16}}>
                     <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>{t("employer.addressVisibilityLabel")}</div>
@@ -12110,7 +12199,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                               </td>
                               <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.title} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "title", e.target.value)} style={{ marginBottom: 0 }} error={!row.title.trim()} /></td>
                               <td style={{ padding: "8px 12px", minWidth: 140 }}>
-                                <Select value={row.category} onChange={e => updateBulkUploadRow(row._rowNum, "category", e.target.value)} options={[{ value: "", label: t("employer.bulkSelectCategoryPlaceholder") }, ...SHIFT_CATEGORIES.map(c => ({ value: c, label: c }))]} style={{ marginBottom: 0 }} />
+                                <Select value={row.category} onChange={e => updateBulkUploadRow(row._rowNum, "category", e.target.value)} options={[{ value: "", label: t("employer.bulkSelectCategoryPlaceholder") }, ...SHIFT_CATEGORIES.map(c => ({ value: c, label: shiftCategoryLabel(c, t) }))]} style={{ marginBottom: 0 }} />
                               </td>
                               <td style={{ padding: "8px 12px", minWidth: 140 }}><Input type="date" value={row.date} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "date", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{4}-\d{2}-\d{2}$/.test(row.date)} /></td>
                               <td style={{ padding: "8px 12px", minWidth: 100 }}><Input type="time" value={row.timeStart} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "timeStart", e.target.value)} style={{ marginBottom: 0 }} error={!/^\d{2}:\d{2}$/.test(row.timeStart)} /></td>
