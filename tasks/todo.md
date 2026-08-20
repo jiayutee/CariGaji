@@ -187,23 +187,49 @@ already carries, i.e. translating made the copy worse. notificationText now
 formats `amount` / `*_amount` to two decimals, the same way it already
 normalises `*_at` timestamps into the reader's locale.
 
-### Suspected: a hold may make its shift impossible to delete
-`employer_wallet_entry.shift_id` and `.application_id` are FKs declared
-`on delete set null`, while the table also carries an unconditional
-`before update or delete` trigger that raises "append-only" with no
-trusted-write escape. A referential SET NULL is an ordinary UPDATE on the
-referencing row, so deleting a shift or application that has any ledger entry
-looks like it would hit that trigger and abort -- making every held shift
-permanently unpurgeable, including by admin_purge_shift.
+### CONFIRMED: a hold makes its shift, and its employer's account, undeletable
 
-Currently latent and unproven: both QA employers' ledgers are empty (the funded
-capture test lives in a DO block that raises at the end, so its rows roll back),
-and an unfunded offer creates no entry, so nothing in the live database is
-blocked today. Worth proving before enforcement is switched on, since from that
-point every offer writes a hold. Fix, if confirmed, is to let the immutability
-guard pass a cascade-driven SET NULL -- an FK nulling a reference is not a
-rewrite of the movement -- while still refusing edits to employer_id, kind or
-amount.
+Reproduced on PostgreSQL 17.4 in a throwaway local cluster --
+`tasks/wallet_cascade_repro.sql` re-runs it. Not run against production: only
+the DDL's shape is needed, and the ledger is append-only, so a probe row in the
+real table could never be removed.
+
+`employer_wallet_entry`'s FKs are `on delete set null` / `on delete cascade`,
+while the table carries an unconditional `before update or delete` trigger with
+no trusted-write escape. A referential action is an ordinary UPDATE/DELETE, so
+it fires that trigger. Postgres names the statement in the error CONTEXT, which
+is the proof outright:
+
+    UPDATE ONLY "public"."employer_wallet_entry" SET "shift_id" = NULL ...
+    ERROR: employer_wallet_entry is append-only
+
+Four operations abort once a single ledger row exists:
+1. deleting the application -- which is the FIRST thing admin_purge_shift does
+2. deleting the shift
+3. deleting the employer's auth user (cascade DELETE, trigger depth 2)
+4. deleting the admin who recorded a top-up (`created_by` SET NULL)
+
+(3) is the serious one and was not in the original suspicion: **an employer who
+has ever had a ledger entry can never have their account deleted**, which is an
+erasure-request problem, not just a QA-cleanup one.
+
+Still latent today -- no employer is funded and an unfunded offer writes no
+entry -- and it stops being latent the moment enforcement is switched on,
+because from then on every offer writes a hold.
+
+**Fix for (1), (2) and (4), tested in the same repro:** let the guard accept an
+UPDATE whose only change is a back-reference going to NULL, and refuse
+everything else. Verified to still block editing amount, kind or employer_id,
+repointing shift_id at a different shift, and any direct delete; the movement
+survives with its money intact. Deliberately not keyed on `pg_trigger_depth()`
+-- depth asserts "another trigger did this", which is a weaker claim than
+"nothing about this movement changed", and would hand a bypass to any trigger
+added later.
+
+**(3) needs an owner decision, not a technical one:** whether a financial record
+outlives the account it belongs to. Keeping it means making `employer_id`
+nullable with `on delete set null`; erasing it means letting the cascade
+through. Not building either until that is answered.
 
 ### Still open on the deposit
 - Ledger history list in Billing
