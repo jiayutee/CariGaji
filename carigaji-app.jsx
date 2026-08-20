@@ -1319,6 +1319,12 @@ const TRANSLATIONS = {
     "employer.accountHolderPlaceholder": "Company account holder",
     "employer.accountNumberPlaceholder": "Employer funding account",
     "employer.fundingReadyLabel": "Funding account has sufficient balance for this cycle",
+    "employer.walletTitle": "Your deposit balance",
+    "employer.walletAvailable": "Available",
+    "employer.walletHeld": "Held for booked shifts",
+    "employer.walletHeldHint": "When you offer a shift, the full agreed wage is set aside so the worker's pay is committed, not just promised. It is released if the offer is declined or the shift is called off in time.",
+    "employer.walletWarnOnlyNote": "Deposits are not required yet — you can still hire with a zero balance. We will tell you well before that changes.",
+    "employer.walletShortfallWarning": "Heads up: your deposit balance is RM{amount} short of covering the wages for this offer. Nothing is blocked yet.",
     "employer.verificationLabel": "Verification",
     "employer.outgoingObligationsTitle": "Outgoing Salary Obligations",
     "employer.noPayoutObligations": "No payout obligations yet for this employer account.",
@@ -2383,6 +2389,12 @@ const TRANSLATIONS = {
     "employer.accountHolderPlaceholder": "Pemegang akaun syarikat",
     "employer.accountNumberPlaceholder": "Akaun pembiayaan majikan",
     "employer.fundingReadyLabel": "Akaun pembiayaan mempunyai baki yang mencukupi untuk kitaran ini",
+    "employer.walletTitle": "Baki deposit anda",
+    "employer.walletAvailable": "Tersedia",
+    "employer.walletHeld": "Ditahan untuk syif yang ditempah",
+    "employer.walletHeldHint": "Apabila anda menawarkan syif, gaji penuh yang dipersetujui akan diasingkan supaya bayaran pekerja terjamin, bukan sekadar dijanjikan. Ia dilepaskan jika tawaran ditolak atau syif dibatalkan pada masanya.",
+    "employer.walletWarnOnlyNote": "Deposit belum diwajibkan — anda masih boleh mengupah dengan baki sifar. Kami akan memaklumkan lebih awal sebelum ini berubah.",
+    "employer.walletShortfallWarning": "Perhatian: baki deposit anda kurang RM{amount} untuk menampung gaji tawaran ini. Tiada apa-apa disekat buat masa ini.",
     "employer.verificationLabel": "Pengesahan",
     "employer.outgoingObligationsTitle": "Tanggungan Gaji Keluar",
     "employer.noPayoutObligations": "Belum ada tanggungan bayaran untuk akaun majikan ini.",
@@ -3446,6 +3458,12 @@ const TRANSLATIONS = {
     "employer.accountHolderPlaceholder": "公司账户持有人",
     "employer.accountNumberPlaceholder": "雇主资金账户",
     "employer.fundingReadyLabel": "资金账户余额足以支付本周期款项",
+    "employer.walletTitle": "您的保证金余额",
+    "employer.walletAvailable": "可用",
+    "employer.walletHeld": "已为预订班次冻结",
+    "employer.walletHeldHint": "当您发出班次邀约时，约定的全额薪资会被预留，让员工的薪资有保障而非空口承诺。若邀约被拒或班次及时取消，款项将自动解冻。",
+    "employer.walletWarnOnlyNote": "目前尚未强制要求保证金——余额为零仍可招聘。此规则若有变动，我们会提前通知您。",
+    "employer.walletShortfallWarning": "提醒：您的保证金余额尚差 RM{amount} 才足以覆盖此邀约的薪资。目前不会阻止任何操作。",
     "employer.verificationLabel": "验证状态",
     "employer.outgoingObligationsTitle": "待支付薪资义务",
     "employer.noPayoutObligations": "此雇主账户目前尚无待发放的薪资义务。",
@@ -9829,6 +9847,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   //
   // Queried across all completed shifts rather than derived from
   // liveEmployerShifts, which carries no applicant data.
+  // Real balance, derived server-side from the append-only ledger. Replaces
+  // the self-declared "funding account has sufficient balance" checkbox, which
+  // was the employer asserting something about themselves that nothing checked.
+  const [wallet, setWallet] = useState(null);   // { available, held, topped_up, captured } | null
+  const refreshWalletBalance = useCallback(async () => {
+    if (!user) { setWallet(null); return; }
+    const { data, error } = await supabase.rpc('employer_wallet_balance', { p_employer_id: user.id });
+    if (error) { setWallet(null); return; }
+    setWallet(Array.isArray(data) ? (data[0] ?? null) : (data ?? null));
+  }, [user]);
+  useEffect(() => { refreshWalletBalance(); }, [refreshWalletBalance]);
+
   const [pendingWorkerRatings, setPendingWorkerRatings] = useState([]);
   useEffect(() => {
     if (!user) { setPendingWorkerRatings([]); return undefined; }
@@ -11040,6 +11070,27 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setSelectedApplicantIds([]);
     setBulkSelectMode(false);
     toast(ids.length > 1 ? t('toast.offerSentMultiple').replace('{count}', ids.length) : t('toast.offerSentSingle'), 'success');
+
+    // Hold the full contracted wage now — the moment the amount is known and
+    // the employer acts, so an unfunded employer learns before a worker has
+    // relied on the booking.
+    //
+    // Runs AFTER the offer while the wallet is warn-only: the hold cannot
+    // refuse anything yet, so gating the offer on it would take hiring down
+    // for every employer (all balances are zero) in exchange for nothing.
+    // When enforcement is switched on, this moves ahead of the update.
+    let shortfall = 0;
+    for (const id of ids) {
+      const { data, error } = await supabase.rpc('employer_hold_for_offer', { p_application_id: id });
+      if (error) { console.error('employer_hold_for_offer failed:', error.message); continue; }
+      if (data && data.held === false && data.reason === 'insufficient_funds') {
+        shortfall += Number(data.shortfall || 0);
+      }
+    }
+    if (shortfall > 0) {
+      toast(t('employer.walletShortfallWarning', { amount: shortfall.toFixed(2) }), 'info', 6000);
+    }
+    refreshWalletBalance();
   };
 
   const committedPayoutTotal = employerPayoutSummary
@@ -12059,6 +12110,24 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         {view === "billing" && (
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
+            {/* The deposit reads first: it is what backs the payout figures
+                below. Replaces a checkbox the employer ticked about
+                themselves, which nothing verified. */}
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 10 }}>{t("employer.walletTitle")}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                <span style={{ fontSize: 12.5, color: BRAND.textMuted }}>{t("employer.walletAvailable")}</span>
+                <span style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>RM{Number(wallet?.available ?? 0).toFixed(2)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+                <span style={{ fontSize: 12.5, color: BRAND.textMuted }}>{t("employer.walletHeld")}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>RM{Number(wallet?.held ?? 0).toFixed(2)}</span>
+              </div>
+              <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5 }}>{t("employer.walletHeldHint")}</div>
+              {/* Said plainly, so a RM0.00 balance does not read as "hiring is
+                  blocked" when nothing is enforced yet. */}
+              <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 8, fontStyle: "italic" }}>{t("employer.walletWarnOnlyNote")}</div>
+            </Card>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
               <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} tooltip={t("employer.pendingPayoutTooltip")} color={BRAND.amber} />
               <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} tooltip={t("employer.totalPaidOutTooltip")} color={BRAND.primary} />
@@ -12202,14 +12271,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 value={employerBankForm.accountNumber}
                 onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
               />
-              <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, fontSize: 13, color: BRAND.text }}>
-                <input
-                  type="checkbox"
-                  checked={employerBankForm.fundingReady}
-                  onChange={(e) => setEmployerBankForm((prev) => ({ ...prev, fundingReady: e.target.checked }))}
-                />
-                {t("employer.fundingReadyLabel")}
-              </label>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("employer.verificationLabel")}</span>
                 <Pill
