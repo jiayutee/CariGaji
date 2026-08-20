@@ -914,6 +914,8 @@ const TRANSLATIONS = {
     "notif.change.datetime": "date/time",
     // Remaining notification types (20260813). Variant keys cover the three
     // notifications whose body branches on an outcome.
+    "notif.payout_created.title": "You have been paid",
+    "notif.payout_created.body": "Your hours for \"{shift_title}\" were confirmed. RM{amount} is on its way.",
     "notif.worker_withdrew.title": "A worker withdrew",
     "notif.worker_withdrew.body": "{worker_name} withdrew from \"{shift_title}\" with {notice_hours} hours notice. The slot is open again.",
     "notif.slot_reopened.title": "A slot reopened",
@@ -1988,6 +1990,8 @@ const TRANSLATIONS = {
     "notif.shift_cancelled.title": "Syif dibatalkan",
     "notif.shift_cancelled.body": "Syif \"{shift_title}\" telah dibatalkan oleh majikan.",
     "notif.change.datetime": "tarikh/masa",
+    "notif.payout_created.title": "Anda telah dibayar",
+    "notif.payout_created.body": "Jam kerja anda untuk \"{shift_title}\" telah disahkan. RM{amount} sedang dalam proses pembayaran.",
     "notif.worker_withdrew.title": "Seorang pekerja menarik diri",
     "notif.worker_withdrew.body": "{worker_name} menarik diri daripada \"{shift_title}\" dengan notis {notice_hours} jam. Slot itu terbuka semula.",
     "notif.slot_reopened.title": "Slot dibuka semula",
@@ -3057,6 +3061,8 @@ const TRANSLATIONS = {
     "notif.shift_cancelled.title": "班次已取消",
     "notif.shift_cancelled.body": "班次「{shift_title}」已被雇主取消。",
     "notif.change.datetime": "日期/时间",
+    "notif.payout_created.title": "您已获得报酬",
+    "notif.payout_created.body": "您在「{shift_title}」的工时已确认，RM{amount} 正在发放中。",
     "notif.worker_withdrew.title": "有员工退出",
     "notif.worker_withdrew.body": "{worker_name} 提前 {notice_hours} 小时通知，退出了「{shift_title}」。该名额已重新开放。",
     "notif.slot_reopened.title": "名额已重新开放",
