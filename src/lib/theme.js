@@ -11,6 +11,10 @@ const THEME_PALETTES = {
     border: "#E5E7EB",
     text: "#111827",
     textMuted: "#6B7280",
+    // BRAND.primary as TEXT on a surface. Unchanged in light; lightened in
+    // dark, where #2563EB on the card reaches only 3.43:1 -- and the wage is
+    // the number a worker actually reads the card for.
+    primaryOnSurface: "#2563EB",
     shadow: "rgba(15,23,42,0.08)",
     overlay: "rgba(17,24,39,0.58)",
   },
@@ -24,6 +28,7 @@ const THEME_PALETTES = {
     border: "#243044",
     text: "#E5E7EB",
     textMuted: "#94A3B8",
+    primaryOnSurface: "#5B8DEF",
     shadow: "rgba(0,0,0,0.35)",
     overlay: "rgba(2,6,23,0.72)",
   },
@@ -67,6 +72,7 @@ export const buildThemeVars = (resolvedTheme) => {
     "--cg-border": palette.border,
     "--cg-text": palette.text,
     "--cg-text-muted": palette.textMuted,
+    "--cg-primary-on-surface": palette.primaryOnSurface,
     "--cg-shadow": palette.shadow,
     "--cg-overlay": palette.overlay,
     colorScheme: resolvedTheme,
