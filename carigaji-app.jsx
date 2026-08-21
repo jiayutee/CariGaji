@@ -426,6 +426,7 @@ const BRAND = {
   // pairs with each surface; use them instead of BRAND.text on any *Light bg.
   onAmberLight: "#92400E",
   onRedLight: "#991B1B",
+  onGreenLight: "#065F46",
   red: "#DC2626",
   redLight: "#FEE2E2",
   gray: "var(--cg-text-muted)",
@@ -438,6 +439,12 @@ const BRAND = {
   border: "var(--cg-border)",
   text: "var(--cg-text)",
   textMuted: "var(--cg-text-muted)",
+  // Use instead of BRAND.primary whenever primary is TEXT sitting on a
+  // surface. BRAND.primary is a fixed brand blue chosen against white; it
+  // stays correct as a BUTTON fill with white text, but as text on the dark
+  // card it measures 3.43:1. This token is the same blue in light mode and a
+  // lighter one in dark, so the brand reads the same and the contrast holds.
+  primaryOnSurface: "var(--cg-primary-on-surface)",
   shadow: "var(--cg-shadow)",
   overlay: "var(--cg-overlay)",
 };
@@ -6527,14 +6534,14 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
                   <div style={{ fontWeight: 800, fontSize: 14, color: BRAND.text }}>F&amp;B Server — Corporate Dinner</div>
                   <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2 }}>📍 Bangsar, Kuala Lumpur</div>
                 </div>
-                <span style={{ background: BRAND.greenLight, color: BRAND.green, fontSize: 10.5, fontWeight: 800, padding: "3px 8px", borderRadius: 99, whiteSpace: "nowrap" }}>{t("landing.sampleFundedBadge")}</span>
+                <span style={{ background: BRAND.greenLight, color: BRAND.onGreenLight, fontSize: 10.5, fontWeight: 800, padding: "3px 8px", borderRadius: 99, whiteSpace: "nowrap" }}>{t("landing.sampleFundedBadge")}</span>
               </div>
               {[[t("landing.sampleRateLabel"), "RM 16.00 / hr"], [t("landing.sampleLengthLabel"), "6 hrs"], [t("landing.samplePayLabel"), "RM 96.00"]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: BRAND.textMuted, padding: "5px 0" }}>
                   <span>{k}</span><b style={{ color: BRAND.text, fontWeight: 700 }}>{v}</b>
                 </div>
               ))}
-              <div style={{ marginTop: 10, background: BRAND.amberLight, borderRadius: 8, padding: "9px 11px", fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5 }}>
+              <div style={{ marginTop: 10, background: BRAND.amberLight, borderRadius: 8, padding: "9px 11px", fontSize: 11, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
                 {t("landing.sampleEscrowNote")}
               </div>
             </div>
@@ -6636,7 +6643,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       padding: isMobile ? "8px 12px" : "10px 20px", display: "flex", alignItems: "center",
       justifyContent: "center", gap: 10, flexWrap: "wrap",
     }}>
-      <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: BRAND.amber, fontWeight: 600, textAlign: "center" }}>
+      {/* onAmberLight, not amber: amberLight is a fixed light surface, and
+          BRAND.amber on it measures 2.86:1. Same pairing rule as every other
+          *Light surface in this file. */}
+      <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: BRAND.onAmberLight, fontWeight: 600, textAlign: "center" }}>
         👁️ {t("worker.previewModeBanner")}
       </span>
       <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.(userRole === "employer" ? "employer" : "admin")} style={{ padding: "3px 10px" }}>
@@ -8592,7 +8602,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
                         {/* Estimated total for the shift (lower-bound rate × hours) is the
                             headline figure; the hourly range drops to the small muted line. */}
-                        <div style={{ fontWeight: 800, fontSize: isMobile ? 15 : 18, color: BRAND.primary }}>~RM{Math.round(s.wageMin * s.hours)}</div>
+                        <div style={{ fontWeight: 800, fontSize: isMobile ? 15 : 18, color: BRAND.primaryOnSurface }}>~RM{Math.round(s.wageMin * s.hours)}</div>
                         <div style={{ fontSize: isMobile ? 10 : 11, color: BRAND.textMuted }}>RM{s.wageMin}–{s.wageMax}{t("discover.perHour")}</div>
                       </div>
                     </div>
