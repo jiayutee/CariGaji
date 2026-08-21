@@ -75,6 +75,7 @@
   const fails = [];
   let checked = 0;
   let skippedGradient = 0;
+  let skippedEmoji = 0;
   document.querySelectorAll('*').forEach((el) => {
     // Leaf text only: a parent's colour is not what the eye reads.
     if (el.children.length) return;
@@ -87,16 +88,24 @@
 
     const size = parseFloat(cs.fontSize);
     const bold = +cs.fontWeight >= 700;
+    // A run with no letters or digits is a glyph, not text: a ✓ bullet, an
+    // emoji, a chevron. WCAG 1.4.3 governs text; non-text content falls under
+    // 1.4.11 at 3:1, and an emoji carries its own colours so a ratio against
+    // its background means nothing at all. Scored at 3.0 and counted
+    // separately, so real prose failures are never buried under ✓ and 🍪.
+    const isGlyph = !/[\p{L}\p{N}]/u.test(text);
+    const isEmoji = /\p{Extended_Pictographic}/u.test(text);
     // WCAG "large" is 24px, or 18.66px when bold. 15px bold is NOT large --
     // that exact misreading is why the wage figure sat at 3.43 for months.
-    const threshold = size >= 24 || (bold && size >= 18.66) ? 3.0 : 4.5;
+    const threshold = isGlyph ? 3.0 : (size >= 24 || (bold && size >= 18.66) ? 3.0 : 4.5);
 
     if (hasImageBackdrop(el)) { skippedGradient++; return; }
+    if (isEmoji) { skippedEmoji++; return; }
     const r = ratio(cs.color, backdrop(el));
     if (r === null) return;
     checked++;
     if (r < threshold) {
-      fails.push({ text: text.slice(0, 44), ratio: r, needs: threshold, size: cs.fontSize, weight: cs.fontWeight, fg: cs.color, bg: backdrop(el) });
+      fails.push({ text: text.slice(0, 44), kind: isGlyph ? 'glyph' : 'text', ratio: r, needs: threshold, size: cs.fontSize, weight: cs.fontWeight, fg: cs.color, bg: backdrop(el) });
     }
   });
 
@@ -105,7 +114,9 @@
     url: location.pathname + location.hash,
     checked,
     skippedGradient,
+    skippedEmoji,
     failCount: fails.length,
+    textFailCount: fails.filter((f) => f.kind === 'text').length,
     fails: fails.sort((a, b) => a.ratio - b.ratio).slice(0, 15),
   }, null, 1);
 })()
