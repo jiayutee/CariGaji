@@ -6481,7 +6481,10 @@ const MonthlyEarningsBarChart = ({ months, truncated, isMobile, t }) => {
 // this early rather than unverifiable social proof.
 const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   const sectionPad = isMobile ? "20px 16px" : "48px 32px";
-  const eyebrowStyle = { fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: BRAND.primary, marginBottom: 10 };
+  // primaryOnSurface, not primary: every landing eyebrow is 11px primary text
+  // sitting on the page, which measures 3.43:1 in dark mode. 11px/800 is not
+  // WCAG large text, so 4.5 applies.
+  const eyebrowStyle = { fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: BRAND.primaryOnSurface, marginBottom: 10 };
   const headingStyle = { fontSize: isMobile ? 22 : 28, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.01em", margin: "0 0 10px" };
 
   const trustItems = [
@@ -7965,7 +7968,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
             display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
             borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
+            color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
             <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
@@ -8235,7 +8238,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 (rate slider, live pay calc) stays fully interactive so the
                 employer can see exactly what a worker sees. */}
             {previewMode && (
-              <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.amber}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, fontSize: 12, color: BRAND.amber, lineHeight: 1.5 }}>
+              <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.amber}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, fontSize: 12, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
                 👁️ {t("worker.previewModeBlocked")}
               </div>
             )}
@@ -8423,7 +8426,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
             display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
             borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
+            color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
             <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
@@ -8760,7 +8763,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     {a.status === "accepted" && a.shiftStatus !== "cancelled" && renderCheckState(a, (e) => e.stopPropagation())}
                   </div>
                   {a.status === "shortlisted" && (
-                    <div style={{ marginTop: 12, padding: "8px 12px", background: BRAND.amberLight, borderRadius: 8, fontSize: 12, color: BRAND.amber }}>
+                    <div style={{ marginTop: 12, padding: "8px 12px", background: BRAND.amberLight, borderRadius: 8, fontSize: 12, color: BRAND.onAmberLight }}>
                       {t("myBids.shortlistedBanner")}
                     </div>
                   )}
@@ -8960,7 +8963,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               ))}
             </Card>
             {a.status === "shortlisted" && (
-              <div style={{ padding: "10px 14px", background: BRAND.amberLight, borderRadius: 10, fontSize: 12, color: BRAND.amber, marginBottom: 16 }}>
+              <div style={{ padding: "10px 14px", background: BRAND.amberLight, borderRadius: 10, fontSize: 12, color: BRAND.onAmberLight, marginBottom: 16 }}>
                 {t("myBids.shortlistedBanner")}
               </div>
             )}
@@ -9631,7 +9634,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
             display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
             borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primary : BRAND.textMuted,
+            color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
             <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
@@ -11585,7 +11588,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               if (new Date(selectedShift.applicationsCloseAt) > new Date()) return null;
               if (selectedShift.filled >= selectedShift.headcount) return null;
               return (
-                <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12.5, color: BRAND.amber, lineHeight: 1.5 }}>
+                <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
                   {t('employer.applicationDeadlinePassedBanner')}{' '}
                   <button onClick={() => startEditShift(selectedShift.id)} style={{ border: 'none', background: 'none', color: BRAND.amber, textDecoration: 'underline', cursor: 'pointer', fontWeight: 700, padding: 0, fontFamily: 'inherit', fontSize: 12.5 }}>
                     {t('employer.editShift')}
@@ -12821,7 +12824,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               );
             })()}
             {!viewContractModal.workerSignedAt && (
-              <div style={{ padding:'8px 12px', background: BRAND.amberLight, borderRadius:8, fontSize:12, color: BRAND.amber, marginBottom:12 }}>{t("employer.contractAwaitingWorker")}</div>
+              <div style={{ padding:'8px 12px', background: BRAND.amberLight, borderRadius:8, fontSize:12, color: BRAND.onAmberLight, marginBottom:12 }}>{t("employer.contractAwaitingWorker")}</div>
             )}
             <div style={{display:'flex', gap:8}}>
               <button onClick={() => setViewContractModal(null)}
@@ -13921,7 +13924,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           </div>
         )}
         {escalate && (
-          <div style={{ marginTop: 4, padding: "10px 12px", borderRadius: 10, background: BRAND.amberLight, color: BRAND.amber, fontSize: 12.5, display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ marginTop: 4, padding: "10px 12px", borderRadius: 10, background: BRAND.amberLight, color: BRAND.onAmberLight, fontSize: 12.5, display: "flex", flexDirection: "column", gap: 8 }}>
             <span>{t("supportChat.escalateText")}</span>
             <button
               onClick={openMailtoSupport}
