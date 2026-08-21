@@ -427,6 +427,7 @@ const BRAND = {
   onAmberLight: "#92400E",
   onRedLight: "#991B1B",
   onGreenLight: "#065F46",
+  onPrimaryLight: "#1E40AF",
   red: "#DC2626",
   redLight: "#FEE2E2",
   gray: "var(--cg-text-muted)",
@@ -3920,6 +3921,29 @@ const walletKindLabel = (kind, t) => {
   return hasTranslation(key) ? t(key) : String(kind || '');
 };
 
+// A status chip carries meaning in its colour, so it cannot just be grey -- but
+// the way it was built could not survive a theme flip. It tinted the hue at 10%
+// for the background and used the SAME hue at full strength for the text:
+//
+//     background: `${BRAND.amber}1A`, color: BRAND.amber
+//
+// Over white that is a pale wash behind a saturated word, which reads. Over the
+// dark page the same 10% tint composites to a dark, barely-there version of the
+// hue, and the text measured 3.16:1 against it.
+//
+// Fixed by using the surface/on pairs this file already has for exactly this --
+// the same ones Pill uses. Both halves are fixed light values, so the chip
+// looks identical in both themes and cannot invert. The tone is named rather
+// than derived from a colour value, so an unmapped tone fails visibly here
+// instead of silently rendering an unreadable chip.
+const CHIP_TONES = {
+  primary: { background: BRAND.primaryLight, color: BRAND.onPrimaryLight },
+  amber: { background: BRAND.amberLight, color: BRAND.onAmberLight },
+  green: { background: BRAND.greenLight, color: BRAND.onGreenLight },
+  red: { background: BRAND.redLight, color: BRAND.onRedLight },
+};
+const chipTone = (tone) => CHIP_TONES[tone] || CHIP_TONES.primary;
+
 const walletKindColor = (kind) => (
   kind === 'topup' || kind === 'refund' || kind === 'release' ? 'green'
     : kind === 'hold' ? 'amber'
@@ -6495,10 +6519,10 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   ];
 
   const moneySteps = [
-    { title: t("landing.moneyStep1Title"), body: t("landing.moneyStep1Body"), status: t("landing.moneyStep1Status"), color: BRAND.primary },
-    { title: t("landing.moneyStep2Title"), body: t("landing.moneyStep2Body"), status: t("landing.moneyStep2Status"), color: BRAND.amber },
-    { title: t("landing.moneyStep3Title"), body: t("landing.moneyStep3Body"), status: t("landing.moneyStep3Status"), color: BRAND.amber },
-    { title: t("landing.moneyStep4Title"), body: t("landing.moneyStep4Body"), status: t("landing.moneyStep4Status"), color: BRAND.green },
+    { title: t("landing.moneyStep1Title"), body: t("landing.moneyStep1Body"), status: t("landing.moneyStep1Status"), tone: "primary" },
+    { title: t("landing.moneyStep2Title"), body: t("landing.moneyStep2Body"), status: t("landing.moneyStep2Status"), tone: "amber" },
+    { title: t("landing.moneyStep3Title"), body: t("landing.moneyStep3Body"), status: t("landing.moneyStep3Status"), tone: "amber" },
+    { title: t("landing.moneyStep4Title"), body: t("landing.moneyStep4Body"), status: t("landing.moneyStep4Status"), tone: "green" },
   ];
 
   const howSteps = (prefix) => [1, 2, 3, 4].map(n => t(`intro.${prefix}Step${n}`));
@@ -6582,7 +6606,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
               <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: BRAND.text, marginBottom: 10 }}>{i + 1}</div>
               <div style={{ fontWeight: 700, fontSize: 13.5, color: BRAND.text, marginBottom: 5 }}>{step.title}</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.55, marginBottom: 10 }}>{step.body}</div>
-              <span style={{ fontSize: 11.5, fontWeight: 700, padding: "4px 9px", borderRadius: 6, background: `${step.color}1A`, color: step.color }}>RM 96.00 · {step.status}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 700, padding: "4px 9px", borderRadius: 6, ...chipTone(step.tone) }}>RM 96.00 · {step.status}</span>
             </div>
           ))}
         </div>
