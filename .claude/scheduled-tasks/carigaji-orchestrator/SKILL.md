@@ -135,6 +135,40 @@ c) If the message is too ambiguous to turn into a concrete agenda item (no
 
 5. Read state.txt and trim whitespace. If its content is exactly `paused` (and no "resume" command was received in step 4 above), EXIT immediately. Any other content (including `active`, empty, or missing file) means proceed normally.
 
+## STEP 0.4 — Anything the owner is asked to run must exist in the repo first
+
+If a cycle produces SQL for the owner to run — a migration, a cleanup script, a
+one-off fix — **write it to `supabase/migrations/` (or `tasks/`) and commit it
+BEFORE sending the Telegram message about it.** The message links to or quotes
+the file; it is never the only copy.
+
+This is not bookkeeping. On Day 53 a `disputes_owner_insert` widening was
+drafted, pasted into Telegram, and never written to disk. Eight consecutive
+days of reminders then asked the owner to approve and run a file that did not
+exist — approving it would have changed nothing, because there was nothing to
+run. It was eventually regenerated from scratch on Day 55.
+
+A pasted script cannot be diffed against the live definition it modifies,
+cannot be reviewed after the message scrolls away, cannot be re-sent without
+retyping, and silently becomes the *only* record of a decision. This project
+has already shipped one hand-transcribed policy that dropped a guard.
+
+So, every cycle:
+
+- **Before sending**: the file is committed. Say its path in the message.
+- **When re-pinging a pending approval** (STEP 3's dedup), first check the file
+  still exists at that path. If it does not, the item is NOT waiting on the
+  owner — it is waiting on you to write it. Say so plainly rather than sending
+  a ninth identical reminder.
+- **Generate by patching real source**, not by retyping: read the current
+  definition out of the migration that created it, apply the change
+  programmatically, and diff the result to prove only the intended lines moved.
+- **RLS changes carry no in-migration self-test.** `auth.uid()` is NULL in a
+  direct database session, so such a test passes or fails for the wrong reason.
+  Verify through PostgREST with a real user token after it is applied, and
+  include a negative control — a case that must still be refused. A policy
+  verified only by the happy path has not been verified.
+
 ## STEP 0.5 — Check for foreign uncommitted work (mandatory, before any other reads)
 
 Run `git status --porcelain` and `git log -1 --format=%H`. If the working tree is

@@ -3916,6 +3916,17 @@ const WALLET_HISTORY_LIMIT = 25;
 // against a RM160 hold RAISES available, because the untouched RM10 is released
 // and the whole hold stops being reserved. Signing each line would state
 // arithmetic that does not hold, so the kind carries the meaning instead.
+// Mirrors the disputes_owner_insert policy (20260822c) exactly. Kept as one
+// predicate rather than repeated inline, because when the two drift the failure
+// is silent in the worse direction: a button that RLS then refuses looks like a
+// broken app, and a missing button removes a worker's only escalation route
+// without anyone noticing. If the policy changes, this changes in the same
+// commit.
+const canFileDispute = (a) => (
+  a?.shiftStatus === "completed"
+  || (a?.shiftStatus === "cancelled" && a?.status === "accepted" && Boolean(a?.workerSignedAt))
+);
+
 const walletKindLabel = (kind, t) => {
   const key = `employer.walletKind.${kind}`;
   return hasTranslation(key) ? t(key) : String(kind || '');
@@ -8810,7 +8821,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       </button>
                     </div>
                   )}
-                  {a.shiftStatus === 'completed' && (
+                  {canFileDispute(a) && (
                     myDisputedApplicationIds.has(a.id) ? (
                       <span style={{marginTop:8, display:'inline-block', fontSize:12, fontWeight:600, color: BRAND.textMuted}}>{t("myBids.disputeAlreadyFiledBadge")}</span>
                     ) : (
@@ -9050,7 +9061,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
                 <Btn variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: a.shiftTitle, rateeId: a.employerId, direction: 'worker_to_employer' }); }} style={{ flex: 1, justifyContent: "center" }}>{t("rating.rateBtn")}</Btn>
               )}
-              {a.shiftStatus === "completed" && !myDisputedApplicationIds.has(a.id) && (
+              {canFileDispute(a) && !myDisputedApplicationIds.has(a.id) && (
                 <Btn variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.fileDisputeBtn")}</Btn>
               )}
               {a.shiftStatus === "completed" && myDisputedApplicationIds.has(a.id) && (
