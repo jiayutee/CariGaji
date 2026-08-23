@@ -525,6 +525,7 @@ const TRANSLATIONS = {
     "chat.dayToday": "Today",
     "chat.previewYou": "You",
     "chat.newMessagesDivider": "New messages",
+    "chat.viewShiftBtn": "View shift",
     "chat.previewSomeone": "Someone",
     "chat.dayYesterday": "Yesterday",
     "chat.unreadA11y": "{n} conversation(s) with new messages",
@@ -1688,6 +1689,7 @@ const TRANSLATIONS = {
     "chat.dayToday": "Hari ini",
     "chat.previewYou": "Anda",
     "chat.newMessagesDivider": "Mesej baharu",
+    "chat.viewShiftBtn": "Lihat syif",
     "chat.previewSomeone": "Seseorang",
     "chat.dayYesterday": "Semalam",
     "chat.unreadA11y": "{n} perbualan dengan mesej baharu",
@@ -2843,6 +2845,7 @@ const TRANSLATIONS = {
     "chat.dayToday": "今天",
     "chat.previewYou": "你",
     "chat.newMessagesDivider": "新消息",
+    "chat.viewShiftBtn": "查看班次",
     "chat.previewSomeone": "某人",
     "chat.dayYesterday": "昨天",
     "chat.unreadA11y": "{n} 个对话有新消息",
@@ -7445,6 +7448,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [payoutsHasMore, setPayoutsHasMore] = useState(false);
   const [payoutsLoadingMore, setPayoutsLoadingMore] = useState(false);
   const [liveShifts, setLiveShifts] = useState(null);
+  // Set by the "View shift" shortcut in a chat room; cleared once the detail
+  // view is open so the same shift can be reopened later.
+  const [openShiftId, setOpenShiftId] = useState(null);
   const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
   const [filterCity, setFilterCity] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -8150,12 +8156,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       setTab('applications');
       return undefined;
     }
-    if (!deepLinkShift?.shiftId) return undefined;
+    // Either a tapped notification or the "View shift" shortcut in a chat
+    // room. Both need the same thing -- an id turned into the detail view --
+    // so they share one loader rather than each carrying its own copy of this
+    // query and its 30-line row mapping.
+    const wantedShiftId = deepLinkShift?.shiftId || openShiftId;
+    if (!wantedShiftId) return undefined;
     let active = true;
     supabase
       .from('shifts')
       .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, avatar_url)')
-      .eq('id', deepLinkShift.shiftId)
+      .eq('id', wantedShiftId)
       .maybeSingle()
       .then(({ data: s }) => {
         if (!active || !s) return;
@@ -8193,7 +8204,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         setTab('applications');
       });
     return () => { active = false; };
-  }, [deepLinkShift]);
+  }, [deepLinkShift, openShiftId]);
 
   useEffect(() => {
     let active = true;
@@ -9790,10 +9801,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
-                  <div>
+                  <div style={{minWidth:0, flex:1}}>
                     <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
                     <div style={{fontSize:12, color:BRAND.textMuted}}>{activeChatShift.otherUserLabel}</div>
                   </div>
+                  {/* The conversation is about a specific shift, and half of
+                      what gets asked in it ("what time again?", "where?") is
+                      answered on that shift's page. Going there should not mean
+                      backing out of the room and hunting for it. */}
+                  <Btn size="xs" variant="secondary" onClick={() => setOpenShiftId(activeChatShift.shiftId)} style={{flexShrink:0}}>
+                    {t("chat.viewShiftBtn")}
+                  </Btn>
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
                   {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
@@ -10858,6 +10876,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
+  // Set by the chat room's "View shift" shortcut; see the deep-link loader.
+  const [openShiftId, setOpenShiftId] = useState(null);
   const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   // Same control as the worker console. An employer waiting on a bid or a
   // cancellation needs the phone to buzz just as much as a worker does, and
@@ -11095,12 +11115,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   // Deep link from a clicked notification (e.g. "new bid received").
   useEffect(() => {
-    if (!deepLinkShift?.shiftId || !user) return undefined;
+    // Shared by tapped notifications and the chat room's "View shift" shortcut.
+    const wantedShiftId = deepLinkShift?.shiftId || openShiftId;
+    if (!wantedShiftId || !user) return undefined;
     let active = true;
     supabase
       .from('shifts')
       .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at')
-      .eq('id', deepLinkShift.shiftId)
+      .eq('id', wantedShiftId)
       .eq('employer_id', user.id)
       .maybeSingle()
       .then(({ data: s }) => {
@@ -11125,7 +11147,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         setView('shifts');
       });
     return () => { active = false; };
-  }, [deepLinkShift, user]);
+  }, [deepLinkShift, user, openShiftId]);
 
   // Employer's own profile (real name + reliability score for the dashboard
   // greeting/stats — replaces the old hardcoded "Grand Hyatt KL" demo copy).
@@ -13513,10 +13535,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
-                  <div>
+                  <div style={{minWidth:0, flex:1}}>
                     <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
                     <div style={{fontSize:12, color:BRAND.textMuted}}>{activeChatShift.otherUserLabel}</div>
                   </div>
+                  {/* The conversation is about a specific shift, and half of
+                      what gets asked in it ("what time again?", "where?") is
+                      answered on that shift's page. Going there should not mean
+                      backing out of the room and hunting for it. */}
+                  <Btn size="xs" variant="secondary" onClick={() => { setOpenShiftId(activeChatShift.shiftId); setView("shifts"); }} style={{flexShrink:0}}>
+                    {t("chat.viewShiftBtn")}
+                  </Btn>
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
                   {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
