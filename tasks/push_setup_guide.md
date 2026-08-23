@@ -45,13 +45,18 @@ the push services (Google, Mozilla) can reach the sender if the notifications
 cause a problem — abuse reports, rate limiting. Nobody contacts you in normal
 operation; it is an accountability field, not a feature.
 
-It must be a `mailto:` or `https:` URI:
+It must be a `mailto:` or `https:` URI.
 
-    VAPID_SUBJECT=mailto:you@example.com
+**It is optional.** Leave it unset and the function falls back to
+`https://jiayutee.github.io/CariGaji/` — a valid https: subject pointing at a
+page we actually control, so push works today without a domain or a support
+inbox. Set it properly once both exist:
 
-Once the domain exists, prefer a role address (`mailto:support@carigaji.my`)
-over a personal one — it survives the project changing hands. Unlike the keys,
-changing the subject later is harmless: it does not invalidate subscriptions.
+    VAPID_SUBJECT=mailto:support@<your-domain>
+
+A role address survives the project changing hands in a way a personal one does
+not. Unlike the keys, changing the subject later is harmless — it does not
+invalidate a single subscription.
 
 ---
 
