@@ -123,16 +123,29 @@ Or: sidebar → Integrations → Database Webhooks → *Enable webhooks* (first 
 only) → **Create a new hook**. If it has moved again, the dashboard's search box
 finds it faster than the sidebar does.
 
-| field | value |
-|---|---|
-| Name | `send_push_on_notification` |
-| Schema / Table | `public` / `notifications` |
-| Events | Insert only |
-| Type of webhook | Supabase Edge Functions |
-| Edge Function | `send-push` |
-| Method | POST |
-| Timeout | 5000 ms |
-| HTTP Headers | leave as-is — the dashboard fills in the auth header |
+You need **two** hooks, both pointing at `send-push`:
+
+| | hook 1 | hook 2 |
+|---|---|---|
+| Name | `send_push_on_notification` | `send_push_on_message` |
+| Schema / Table | `public` / `notifications` | `public` / **`messages`** |
+| Events | Insert only | Insert only |
+| Type of webhook | Supabase Edge Functions | Supabase Edge Functions |
+| Edge Function | `send-push` | `send-push` |
+| Method | POST | POST |
+| Timeout | 5000 ms | 5000 ms |
+| HTTP Headers | leave as-is | leave as-is |
+
+**Hook 2 is not optional if chat should reach a phone.** Nothing in the schema
+inserts a `notifications` row when a chat message is sent, so a hook on
+`notifications` alone leaves chat completely silent — push, email and the bell
+alike. This was missed when push was first set up and only surfaced when a real
+message failed to arrive.
+
+Chat deliberately bypasses the notifications table rather than being made to
+write one: that would put every message in the notification bell and send an
+email per message. It goes straight to push, and the in-app chat badge covers
+everything else.
 
 **No VAPID key goes in this form.** The webhook only says "call this function
 when a row is inserted". The keys live in step 2 (Supabase secrets) and step 3

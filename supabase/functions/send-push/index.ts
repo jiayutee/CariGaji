@@ -51,16 +51,71 @@ Deno.serve(async (req) => {
 
     const payload = await req.json();
     const record = payload.record ?? payload;
-    const { user_id, title, body, link } = record;
 
-    if (!user_id || !body) {
-      return new Response(JSON.stringify({ skipped: true, reason: "missing user_id/body" }), { status: 200 });
+    // Two webhooks feed this function, because two different things are worth
+    // waking a phone for and they live in different tables.
+    //
+    // A chat message does NOT create a notifications row -- nothing in the
+    // schema does that -- so a webhook on notifications alone left chat
+    // completely silent, which is what the owner hit. Rather than making every
+    // chat message insert a notification (which would fill the bell and send an
+    // email per message), the messages table gets its own hook straight to
+    // push.
+    const isMessage = payload.table === "messages" || (record.shift_id && record.content);
+
+    let recipients: string[] = [];
+    let title = "";
+    let body = "";
+    let link = "/CariGaji/";
+
+    if (isMessage) {
+      // Group room: recipient_id is null and everyone in the room should hear
+      // about it except whoever sent it. A legacy 1:1 row (recipient_id set)
+      // goes only to that person.
+      if (!record.shift_id || !record.content) {
+        return new Response(JSON.stringify({ skipped: true, reason: "message missing shift_id/content" }), { status: 200 });
+      }
+
+      if (record.recipient_id) {
+        recipients = [record.recipient_id];
+      } else {
+        const { data: shift } = await supabaseAdmin
+          .from("shifts").select("employer_id, title").eq("id", record.shift_id).maybeSingle();
+        const { data: apps } = await supabaseAdmin
+          .from("applications").select("worker_id").eq("shift_id", record.shift_id).eq("status", "accepted");
+        recipients = [shift?.employer_id, ...(apps || []).map((a: { worker_id: string }) => a.worker_id)]
+          .filter((id): id is string => Boolean(id) && id !== record.sender_id);
+        link = "/CariGaji/";
+        title = shift?.title ? `New message · ${shift.title}` : "New message";
+      }
+
+      const { data: sender } = await supabaseAdmin
+        .from("profiles").select("full_name").eq("id", record.sender_id).maybeSingle();
+      const who = sender?.full_name || "Someone";
+      if (!title) title = "New message";
+      const text = String(record.content);
+      body = `${who}: ${text.length > 120 ? `${text.slice(0, 120)}…` : text}`;
+    } else {
+      if (!record.user_id || !record.body) {
+        return new Response(JSON.stringify({ skipped: true, reason: "missing user_id/body" }), { status: 200 });
+      }
+      recipients = [record.user_id];
+      title = record.title || "CariGaji";
+      body = record.body;
+      link = record.link ? `/CariGaji${record.link}` : "/CariGaji/";
+    }
+
+    // Deduplicate: the same person can be both employer and an accepted worker
+    // on a test shift, and would otherwise get two copies.
+    recipients = [...new Set(recipients)];
+    if (!recipients.length) {
+      return new Response(JSON.stringify({ sent: 0, reason: "no recipients" }), { status: 200 });
     }
 
     const { data: subs, error } = await supabaseAdmin
       .from("push_subscriptions")
       .select("id, endpoint, p256dh, auth")
-      .eq("user_id", user_id);
+      .in("user_id", recipients);
 
     if (error) {
       return new Response(JSON.stringify({ sent: 0, error: error.message }), { status: 200 });
@@ -69,14 +124,16 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ sent: 0, reason: "no devices registered" }), { status: 200 });
     }
 
-    // The stored English prose, not a translated string -- the service worker
-    // cannot reach the app's TRANSLATIONS table. Tapping through lands on the
-    // in-app notification, which IS rendered in the reader's language.
+    // English prose, not a translated string -- the service worker cannot reach
+    // the app's TRANSLATIONS table. Tapping through lands in the app, where
+    // everything IS rendered in the reader's language.
     const message = JSON.stringify({
-      title: title || "CariGaji",
+      title,
       body,
-      link: link ? `/CariGaji${link}` : "/CariGaji/",
-      tag: link || `notification-${record.id ?? ""}`,
+      link,
+      // One tag per room (or per notification) so a burst of chat messages
+      // replaces itself in the tray instead of stacking ten deep.
+      tag: isMessage ? `chat-${record.shift_id}` : (record.link || `notification-${record.id ?? ""}`),
     });
 
     const results = await Promise.all(subs.map(async (sub) => {
@@ -134,9 +191,20 @@ Deno.serve(async (req) => {
  *    so the deployed bundle has it. Without it, pushSupported() returns false
  *    and the app quietly falls back to email -- no errors, no broken toggle.
  *
- * 4. Supabase Dashboard -> Integrations -> Database Webhooks -> Create a new
- *    hook. (Not under Database any more -- Supabase moved it.)
- *      Table: notifications | Events: Insert
- *      Type: Supabase Edge Functions | Function: send-push
- *    (Leave the existing send-notification-email hook in place; both fire.)
+ * 4. Supabase Dashboard -> Integrations -> Database Webhooks. (Not under
+ *    Database any more -- Supabase moved it.) Create TWO hooks, both pointing
+ *    at send-push:
+ *
+ *      a) Table: notifications | Events: Insert   -- offers, payouts, cancellations
+ *      b) Table: messages      | Events: Insert   -- chat
+ *
+ *    (b) is not optional if chat should reach a phone. Nothing in the schema
+ *    inserts a notifications row when a message is sent, so a hook on
+ *    notifications alone leaves chat silent -- push, email and the bell all.
+ *
+ *    Chat deliberately does NOT go through the notifications table: that would
+ *    put every message in the bell and send an email for each one. It goes
+ *    straight to push instead, and the in-app chat badge covers the rest.
+ *
+ *    Leave the existing send-notification-email hook on notifications in place.
  */

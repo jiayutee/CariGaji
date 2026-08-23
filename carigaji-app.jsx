@@ -10067,10 +10067,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </Btn>
                 </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.notifications")}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.notificationsValue")}</span>
-              </div>
               {/* Phone-tray notifications. Only offered where the browser can
                   actually deliver them -- an iPhone in a Safari tab cannot, so
                   it is told why rather than shown a switch that does nothing. */}
