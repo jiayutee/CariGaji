@@ -523,6 +523,9 @@ const TRANSLATIONS = {
     "chat.employerSubtitle": "Chat with workers on accepted shifts",
     "chat.loading": "Loading...",
     "chat.dayToday": "Today",
+    "chat.previewYou": "You",
+    "chat.newMessagesDivider": "New messages",
+    "chat.previewSomeone": "Someone",
     "chat.dayYesterday": "Yesterday",
     "chat.unreadA11y": "{n} conversation(s) with new messages",
     "chat.inputPlaceholder": "Type a message…",
@@ -1683,6 +1686,9 @@ const TRANSLATIONS = {
     "chat.employerSubtitle": "Berbual dengan pekerja untuk syif yang diterima",
     "chat.loading": "Memuatkan...",
     "chat.dayToday": "Hari ini",
+    "chat.previewYou": "Anda",
+    "chat.newMessagesDivider": "Mesej baharu",
+    "chat.previewSomeone": "Seseorang",
     "chat.dayYesterday": "Semalam",
     "chat.unreadA11y": "{n} perbualan dengan mesej baharu",
     "chat.inputPlaceholder": "Taip mesej…",
@@ -2835,6 +2841,9 @@ const TRANSLATIONS = {
     "chat.employerSubtitle": "与已接受班次的员工聊天",
     "chat.loading": "加载中...",
     "chat.dayToday": "今天",
+    "chat.previewYou": "你",
+    "chat.newMessagesDivider": "新消息",
+    "chat.previewSomeone": "某人",
     "chat.dayYesterday": "昨天",
     "chat.unreadA11y": "{n} 个对话有新消息",
     "chat.inputPlaceholder": "输入消息…",
@@ -5268,22 +5277,37 @@ const writeChatSeen = (userId, shiftId, iso) => {
 // three conversations need attention is more useful than three messages in one.
 const useUnreadChatRooms = (user) => {
   const [unreadRooms, setUnreadRooms] = useState(0);
+  const [previewSenderNames, setPreviewSenderNames] = useState({});
+  const [unreadRoomIds, setUnreadRoomIds] = useState(() => new Set());
+
+  // The newest message per room, whoever sent it -- this is what the chat list
+  // previews. Kept in the same pass as the unread count because both need the
+  // same rows; a second query would double the traffic to answer half a
+  // question.
+  const [roomPreviews, setRoomPreviews] = useState(() => new Map());
 
   const recompute = useCallback((rows) => {
-    if (!user?.id) { setUnreadRooms(0); return; }
+    if (!user?.id) { setUnreadRooms(0); setUnreadRoomIds(new Set()); setRoomPreviews(new Map()); return; }
     const seen = readChatSeen(user.id);
-    const newestByRoom = new Map();
+    const newestByRoom = new Map();      // excludes my own -- drives the badge
+    const previewByRoom = new Map();     // includes my own -- drives the list
     for (const m of rows || []) {
+      const prevPreview = previewByRoom.get(m.shift_id);
+      if (!prevPreview || new Date(m.created_at) > new Date(prevPreview.created_at)) {
+        previewByRoom.set(m.shift_id, m);
+      }
       if (m.sender_id === user.id) continue;          // my own messages are read by definition
       const prev = newestByRoom.get(m.shift_id);
       if (!prev || new Date(m.created_at) > new Date(prev)) newestByRoom.set(m.shift_id, m.created_at);
     }
-    let n = 0;
+    const unread = new Set();
     for (const [shiftId, newest] of newestByRoom) {
       const mark = seen[shiftId];
-      if (!mark || new Date(newest) > new Date(mark)) n += 1;
+      if (!mark || new Date(newest) > new Date(mark)) unread.add(shiftId);
     }
-    setUnreadRooms(n);
+    setUnreadRoomIds(unread);
+    setUnreadRooms(unread.size);
+    setRoomPreviews(previewByRoom);
   }, [user?.id]);
 
   const refresh = useCallback(async () => {
@@ -5292,12 +5316,27 @@ const useUnreadChatRooms = (user) => {
     // needed here -- and adding one would mean first fetching the room list.
     const { data, error } = await supabase
       .from('messages')
-      .select('shift_id, sender_id, created_at')
+      .select('shift_id, sender_id, content, created_at')
       .is('recipient_id', null)
       .order('created_at', { ascending: false })
       .limit(300);
-    if (error) { setUnreadRooms(0); return; }
+    if (error) { setUnreadRooms(0); setUnreadRoomIds(new Set()); setRoomPreviews(new Map()); return; }
     recompute(data || []);
+
+    // Names for whoever sent those previews. One query for the distinct
+    // senders rather than one per row, and skipped entirely when the only
+    // sender is the current user.
+    const senderIds = [...new Set((data || []).map(m => m.sender_id).filter(id => id && id !== user.id))];
+    if (senderIds.length) {
+      const { data: profiles } = await supabase
+        .from('profiles').select('id, full_name').in('id', senderIds);
+      if (profiles?.length) {
+        setPreviewSenderNames(prev => ({
+          ...prev,
+          ...Object.fromEntries(profiles.map(pr => [pr.id, pr.full_name || null])),
+        }));
+      }
+    }
   }, [user?.id, recompute]);
 
   useEffect(() => {
@@ -5314,13 +5353,30 @@ const useUnreadChatRooms = (user) => {
     return () => { supabase.removeChannel(channel); };
   }, [user?.id, refresh]);
 
-  return { unreadRooms, refreshUnreadChat: refresh };
+  return { unreadRooms, refreshUnreadChat: refresh, roomPreviews, previewSenderNames, unreadRoomIds };
 };
 
 // A bare time is ambiguous across days: a reply sent at 08:05 the next morning
 // reads as five minutes after an 08:00 message from yesterday. Messages are
 // therefore grouped under a day heading, and the full date and time is on the
 // bubble's title attribute for anyone who needs to be precise.
+// The preview line under a conversation title: who spoke last and what they
+// said. Truncated here rather than by CSS so the string that reaches the DOM is
+// already short -- a 2000-character message would otherwise sit in the markup
+// of every row, clipped only visually.
+const CHAT_PREVIEW_MAX = 70;
+
+const chatPreviewLine = (msg, user, senderNames, t) => {
+  if (!msg) return null;
+  const isMe = msg.sender_id === user?.id;
+  const name = isMe
+    ? t("chat.previewYou")
+    : (senderNames?.[msg.sender_id] || t("chat.previewSomeone"));
+  const body = (msg.content || "").replace(/\s+/g, " ").trim();
+  const text = body.length > CHAT_PREVIEW_MAX ? `${body.slice(0, CHAT_PREVIEW_MAX)}…` : body;
+  return { name, text, at: msg.created_at, isMe };
+};
+
 const chatDayKey = (iso) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-CA", { timeZone: MY_TIMEZONE });
@@ -7354,8 +7410,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [filterTimeEnd, setFilterTimeEnd] = useState('');
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
-  const { unreadRooms, refreshUnreadChat } = useUnreadChatRooms(user);
+  const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   const [chatMessages, setChatMessages] = useState([]);
+  // Where the "new messages" divider goes: the read-marker as it stood the
+  // instant this room was opened, captured BEFORE the mark-seen effect below
+  // moves it forward. Read once per room rather than derived from state, so
+  // the line stays put while the room is open instead of sliding down as each
+  // arriving message marks itself read.
+  //
+  // Reopening a room with nothing new gives a marker at or past the newest
+  // message, so no divider is drawn -- which is the behaviour asked for: it
+  // must not reappear once the messages have been read.
+  const [chatUnreadFrom, setChatUnreadFrom] = useState(null);
+  useEffect(() => {
+    if (!user?.id || !activeChatShift?.shiftId) { setChatUnreadFrom(null); return; }
+    setChatUnreadFrom(readChatSeen(user.id)[activeChatShift.shiftId] || null);
+  }, [user?.id, activeChatShift?.shiftId]);
+
   // Opening a room marks it seen, up to its newest message. Runs on
   // chatMessages so a message that arrives while the room is on screen counts
   // as read too -- otherwise the badge would light up for a conversation the
@@ -9625,11 +9696,43 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
                     style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                    <div>
-                      <div style={{fontWeight:600, color:BRAND.text}}>{conv.title}</div>
+                    <div style={{minWidth:0, flex:1}}>
+                      <div style={{fontWeight: unreadRoomIds.has(conv.shiftId) ? 800 : 600, color:BRAND.text, display:'flex', alignItems:'center', gap:6}}>
+                        {/* A dot as well as the weight: bold alone is easy to
+                            miss, and is invisible to anyone who cannot compare
+                            two rows side by side. */}
+                        {unreadRoomIds.has(conv.shiftId) && (
+                          <span aria-hidden="true" style={{width:8, height:8, borderRadius:99, background:BRAND.red, flexShrink:0}} />
+                        )}
+                        {conv.title}
+                      </div>
                       <div style={{fontSize:12, color:BRAND.textMuted}}>{conv.date} · {conv.otherUserLabel}</div>
+                      {/* Who spoke last and what they said, so the list is
+                          readable without opening every room. */}
+                      {(() => {
+                        const preview = chatPreviewLine(roomPreviews.get(conv.shiftId), user, previewSenderNames, t);
+                        if (!preview) return null;
+                        return (
+                          <div style={{
+                            fontSize:12.5, marginTop:4,
+                            color: unreadRoomIds.has(conv.shiftId) ? BRAND.text : BRAND.textMuted,
+                            fontWeight: unreadRoomIds.has(conv.shiftId) ? 600 : 400,
+                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                          }}>
+                            <span style={{fontWeight:700, color:BRAND.text}}>{preview.name}:</span>{' '}
+                            {displayProtectedText(preview.text)}
+                          </div>
+                        );
+                      })()}
                     </div>
-                    <span style={{color:BRAND.textMuted}}>›</span>
+                    <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0, marginLeft:10}}>
+                      {(() => {
+                        const preview = chatPreviewLine(roomPreviews.get(conv.shiftId), user, previewSenderNames, t);
+                        if (!preview) return null;
+                        return <span style={{fontSize:11, color:BRAND.textMuted, whiteSpace:'nowrap'}}>{chatDayLabel(preview.at, t)}</span>;
+                      })()}
+                      <span style={{color:BRAND.textMuted}}>›</span>
+                    </div>
                   </div>
                 ))
               )
@@ -9652,6 +9755,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     // reply five minutes later even when a night sits between.
                     const prevMsg = i > 0 ? chatMessages[i - 1] : null;
                     const showDay = !prevMsg || chatDayKey(prevMsg.created_at) !== chatDayKey(msg.created_at);
+                    // First message this user had not seen when they opened the
+                    // room, and not one of their own -- your own message is
+                    // never "new" to you.
+                    const isFirstUnseen = !isMe
+                      && chatUnreadFrom !== null
+                      && new Date(msg.created_at) > new Date(chatUnreadFrom)
+                      && !(prevMsg && prevMsg.sender_id !== user?.id && new Date(prevMsg.created_at) > new Date(chatUnreadFrom));
                     return (
                       <Fragment key={msg.id}>
                       {showDay && (
@@ -9660,6 +9770,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                             fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted,
                             background: BRAND.grayLight, borderRadius: 99, padding: "3px 10px",
                           }}>{chatDayLabel(msg.created_at, t)}</span>
+                        </div>
+                      )}
+                      {isFirstUnseen && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0 4px" }}>
+                          <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 700, color: BRAND.onRedLight,
+                            background: BRAND.redLight, borderRadius: 99, padding: "3px 10px", whiteSpace: "nowrap",
+                          }}>{t("chat.newMessagesDivider")}</span>
+                          <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
                         </div>
                       )}
                       <div style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
@@ -10693,8 +10813,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
-  const { unreadRooms, refreshUnreadChat } = useUnreadChatRooms(user);
+  const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   const [chatMessages, setChatMessages] = useState([]);
+  // Where the "new messages" divider goes: the read-marker as it stood the
+  // instant this room was opened, captured BEFORE the mark-seen effect below
+  // moves it forward. Read once per room rather than derived from state, so
+  // the line stays put while the room is open instead of sliding down as each
+  // arriving message marks itself read.
+  //
+  // Reopening a room with nothing new gives a marker at or past the newest
+  // message, so no divider is drawn -- which is the behaviour asked for: it
+  // must not reappear once the messages have been read.
+  const [chatUnreadFrom, setChatUnreadFrom] = useState(null);
+  useEffect(() => {
+    if (!user?.id || !activeChatShift?.shiftId) { setChatUnreadFrom(null); return; }
+    setChatUnreadFrom(readChatSeen(user.id)[activeChatShift.shiftId] || null);
+  }, [user?.id, activeChatShift?.shiftId]);
+
   // Opening a room marks it seen, up to its newest message. Runs on
   // chatMessages so a message that arrives while the room is on screen counts
   // as read too -- otherwise the badge would light up for a conversation the
@@ -13250,11 +13385,43 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
                     style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-                    <div>
-                      <div style={{fontWeight:600, color:BRAND.text}}>{conv.title}</div>
+                    <div style={{minWidth:0, flex:1}}>
+                      <div style={{fontWeight: unreadRoomIds.has(conv.shiftId) ? 800 : 600, color:BRAND.text, display:'flex', alignItems:'center', gap:6}}>
+                        {/* A dot as well as the weight: bold alone is easy to
+                            miss, and is invisible to anyone who cannot compare
+                            two rows side by side. */}
+                        {unreadRoomIds.has(conv.shiftId) && (
+                          <span aria-hidden="true" style={{width:8, height:8, borderRadius:99, background:BRAND.red, flexShrink:0}} />
+                        )}
+                        {conv.title}
+                      </div>
                       <div style={{fontSize:12, color:BRAND.textMuted}}>{conv.date} · {conv.otherUserLabel}</div>
+                      {/* Who spoke last and what they said, so the list is
+                          readable without opening every room. */}
+                      {(() => {
+                        const preview = chatPreviewLine(roomPreviews.get(conv.shiftId), user, previewSenderNames, t);
+                        if (!preview) return null;
+                        return (
+                          <div style={{
+                            fontSize:12.5, marginTop:4,
+                            color: unreadRoomIds.has(conv.shiftId) ? BRAND.text : BRAND.textMuted,
+                            fontWeight: unreadRoomIds.has(conv.shiftId) ? 600 : 400,
+                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                          }}>
+                            <span style={{fontWeight:700, color:BRAND.text}}>{preview.name}:</span>{' '}
+                            {displayProtectedText(preview.text)}
+                          </div>
+                        );
+                      })()}
                     </div>
-                    <span style={{color:BRAND.textMuted}}>›</span>
+                    <div style={{display:'flex', alignItems:'center', gap:8, flexShrink:0, marginLeft:10}}>
+                      {(() => {
+                        const preview = chatPreviewLine(roomPreviews.get(conv.shiftId), user, previewSenderNames, t);
+                        if (!preview) return null;
+                        return <span style={{fontSize:11, color:BRAND.textMuted, whiteSpace:'nowrap'}}>{chatDayLabel(preview.at, t)}</span>;
+                      })()}
+                      <span style={{color:BRAND.textMuted}}>›</span>
+                    </div>
                   </div>
                 ))
               )
@@ -13277,6 +13444,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     // reply five minutes later even when a night sits between.
                     const prevMsg = i > 0 ? chatMessages[i - 1] : null;
                     const showDay = !prevMsg || chatDayKey(prevMsg.created_at) !== chatDayKey(msg.created_at);
+                    // First message this user had not seen when they opened the
+                    // room, and not one of their own -- your own message is
+                    // never "new" to you.
+                    const isFirstUnseen = !isMe
+                      && chatUnreadFrom !== null
+                      && new Date(msg.created_at) > new Date(chatUnreadFrom)
+                      && !(prevMsg && prevMsg.sender_id !== user?.id && new Date(prevMsg.created_at) > new Date(chatUnreadFrom));
                     return (
                       <Fragment key={msg.id}>
                       {showDay && (
@@ -13285,6 +13459,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                             fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted,
                             background: BRAND.grayLight, borderRadius: 99, padding: "3px 10px",
                           }}>{chatDayLabel(msg.created_at, t)}</span>
+                        </div>
+                      )}
+                      {isFirstUnseen && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0 4px" }}>
+                          <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 700, color: BRAND.onRedLight,
+                            background: BRAND.redLight, borderRadius: 99, padding: "3px 10px", whiteSpace: "nowrap",
+                          }}>{t("chat.newMessagesDivider")}</span>
+                          <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
                         </div>
                       )}
                       <div style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
