@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext, memo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, useContext, createContext, memo, Fragment } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "./src/lib/supabase.js";
 import { runInternalPayoutScheduling } from "./src/lib/payouts/scheduler.js";
@@ -515,6 +515,9 @@ const TRANSLATIONS = {
     "chat.emptyHintEmployer": "Chats appear here once you accept a worker's bid.",
     "chat.employerSubtitle": "Chat with workers on accepted shifts",
     "chat.loading": "Loading...",
+    "chat.dayToday": "Today",
+    "chat.dayYesterday": "Yesterday",
+    "chat.unreadA11y": "{n} conversation(s) with new messages",
     "chat.inputPlaceholder": "Type a message…",
     "chat.send": "Send",
     "common.back": "Back",
@@ -1661,6 +1664,9 @@ const TRANSLATIONS = {
     "chat.emptyHintEmployer": "Sembang akan muncul di sini setelah anda terima tawaran pekerja.",
     "chat.employerSubtitle": "Berbual dengan pekerja untuk syif yang diterima",
     "chat.loading": "Memuatkan...",
+    "chat.dayToday": "Hari ini",
+    "chat.dayYesterday": "Semalam",
+    "chat.unreadA11y": "{n} perbualan dengan mesej baharu",
     "chat.inputPlaceholder": "Taip mesej…",
     "chat.send": "Hantar",
     "common.back": "Kembali",
@@ -2799,6 +2805,9 @@ const TRANSLATIONS = {
     "chat.emptyHintEmployer": "您接受员工的出价后，聊天记录将显示在这里。",
     "chat.employerSubtitle": "与已接受班次的员工聊天",
     "chat.loading": "加载中...",
+    "chat.dayToday": "今天",
+    "chat.dayYesterday": "昨天",
+    "chat.unreadA11y": "{n} 个对话有新消息",
     "chat.inputPlaceholder": "输入消息…",
     "chat.send": "发送",
     "common.back": "返回",
@@ -5092,6 +5101,131 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
   );
 };
 
+// ─── Chat: unread badge + day-aware timestamps ──────────────────────────────
+//
+// Chat in this app is a per-shift ROOM, not a 1:1 thread: every message is
+// written with recipient_id = null and read back the same way (see 20260719d).
+// That means the messages table's `read_at` column cannot carry unread state --
+// it is one column shared by everyone in the room, so "read" has no single
+// meaning. Per-user read state would need its own table.
+//
+// So the badge is tracked client-side: the timestamp of the newest message the
+// user has actually looked at, per room, in localStorage. Keyed by user id as
+// well as shift id, because two accounts on one device (worker + employer, or a
+// QA pair) must not inherit each other's read state.
+//
+// The tradeoff, stated plainly: this is per-device. Reading a message on a
+// phone does not clear the badge on a laptop. That is the normal behaviour for
+// an unsynced badge and is fine for a nudge; if it ever needs to be exact
+// across devices, the fix is a `chat_room_reads (user_id, shift_id,
+// last_read_at)` table, not more localStorage.
+const CHAT_SEEN_KEY = "carigaji_chat_seen";
+
+const readChatSeen = (userId) => {
+  if (typeof window === "undefined" || !userId) return {};
+  try {
+    const all = JSON.parse(window.localStorage.getItem(CHAT_SEEN_KEY) || "{}");
+    return all[userId] || {};
+  } catch { return {}; }
+};
+
+const writeChatSeen = (userId, shiftId, iso) => {
+  if (typeof window === "undefined" || !userId || !shiftId) return;
+  try {
+    const all = JSON.parse(window.localStorage.getItem(CHAT_SEEN_KEY) || "{}");
+    const mine = all[userId] || {};
+    // Never move the marker backwards: an older message opened later must not
+    // un-read newer ones.
+    if (!mine[shiftId] || new Date(iso) > new Date(mine[shiftId])) {
+      all[userId] = { ...mine, [shiftId]: iso };
+      window.localStorage.setItem(CHAT_SEEN_KEY, JSON.stringify(all));
+    }
+  } catch { /* storage unavailable — the badge degrades, nothing breaks */ }
+};
+
+// Rooms with a message newer than what this user has seen, ignoring their own
+// messages. Returns the room COUNT rather than a message count: "3" meaning
+// three conversations need attention is more useful than three messages in one.
+const useUnreadChatRooms = (user) => {
+  const [unreadRooms, setUnreadRooms] = useState(0);
+
+  const recompute = useCallback((rows) => {
+    if (!user?.id) { setUnreadRooms(0); return; }
+    const seen = readChatSeen(user.id);
+    const newestByRoom = new Map();
+    for (const m of rows || []) {
+      if (m.sender_id === user.id) continue;          // my own messages are read by definition
+      const prev = newestByRoom.get(m.shift_id);
+      if (!prev || new Date(m.created_at) > new Date(prev)) newestByRoom.set(m.shift_id, m.created_at);
+    }
+    let n = 0;
+    for (const [shiftId, newest] of newestByRoom) {
+      const mark = seen[shiftId];
+      if (!mark || new Date(newest) > new Date(mark)) n += 1;
+    }
+    setUnreadRooms(n);
+  }, [user?.id]);
+
+  const refresh = useCallback(async () => {
+    if (!user?.id) { setUnreadRooms(0); return; }
+    // RLS already limits this to rooms the user belongs to, so no room filter is
+    // needed here -- and adding one would mean first fetching the room list.
+    const { data, error } = await supabase
+      .from('messages')
+      .select('shift_id, sender_id, created_at')
+      .is('recipient_id', null)
+      .order('created_at', { ascending: false })
+      .limit(300);
+    if (error) { setUnreadRooms(0); return; }
+    recompute(data || []);
+  }, [user?.id, recompute]);
+
+  useEffect(() => {
+    refresh();
+    if (!user?.id) return undefined;
+    const channel = supabase
+      .channel(`chat-unread-${user.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+        // Cheaper to re-derive than to reason about whether this row belongs to
+        // a room the user is in -- RLS decides that, and only on a read.
+        refresh();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, refresh]);
+
+  return { unreadRooms, refreshUnreadChat: refresh };
+};
+
+// A bare time is ambiguous across days: a reply sent at 08:05 the next morning
+// reads as five minutes after an 08:00 message from yesterday. Messages are
+// therefore grouped under a day heading, and the full date and time is on the
+// bubble's title attribute for anyone who needs to be precise.
+const chatDayKey = (iso) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-CA", { timeZone: MY_TIMEZONE });
+};
+
+const chatDayLabel = (iso, t) => {
+  const key = chatDayKey(iso);
+  if (!key) return "";
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: MY_TIMEZONE });
+  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString("en-CA", { timeZone: MY_TIMEZONE });
+  if (key === today) return t("chat.dayToday");
+  if (key === yesterday) return t("chat.dayYesterday");
+  const d = new Date(iso);
+  const sameYear = d.toLocaleDateString("en-CA", { timeZone: MY_TIMEZONE }).slice(0, 4) === today.slice(0, 4);
+  return d.toLocaleDateString("en-MY", sameYear
+    ? { day: "numeric", month: "short", timeZone: MY_TIMEZONE }
+    : { day: "numeric", month: "short", year: "numeric", timeZone: MY_TIMEZONE });
+};
+
+const chatFullTimestamp = (iso) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.toLocaleDateString("en-MY", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: MY_TIMEZONE })}, ${formatShiftTime(iso)}`;
+};
+
 const NotificationBell = ({ user, onNavigate = () => {} }) => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
@@ -7096,7 +7230,24 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [filterTimeEnd, setFilterTimeEnd] = useState('');
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
+  const { unreadRooms, refreshUnreadChat } = useUnreadChatRooms(user);
   const [chatMessages, setChatMessages] = useState([]);
+  // Opening a room marks it seen, up to its newest message. Runs on
+  // chatMessages so a message that arrives while the room is on screen counts
+  // as read too -- otherwise the badge would light up for a conversation the
+  // user is actively looking at.
+  useEffect(() => {
+    // `activeChatShift` alone is not "the user is looking at this room":
+    // navigating to another tab leaves it set, and its realtime subscription
+    // keeps running. Without the visible-tab check, a message arriving while
+    // the user is on Discover was marked seen and never raised the badge.
+    if (tab !== "chat") return;
+    if (!user?.id || !activeChatShift?.shiftId || !chatMessages.length) return;
+    const newest = chatMessages[chatMessages.length - 1]?.created_at;
+    if (!newest) return;
+    writeChatSeen(user.id, activeChatShift.shiftId, newest);
+    refreshUnreadChat();
+  }, [tab, user?.id, activeChatShift?.shiftId, chatMessages, refreshUnreadChat]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   // sender_id -> full_name for group-chat bubbles (ref mirrors state so the
@@ -8095,7 +8246,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const navItems = [
     { id: "discover", label: t("nav.discover"), icon: <Icons.Search size={20} /> },
     { id: "applications", label: t("nav.myBids"), icon: <Icons.List size={20} /> },
-    { id: "chat", label: t("nav.chat"), icon: <Icons.Chat size={20} /> },
+    { id: "chat", label: t("nav.chat"), icon: <Icons.Chat size={20} />, badge: unreadRooms },
     { id: "earnings", label: t("nav.earnings"), icon: <Icons.Money size={20} /> },
     { id: "profile", label: t("nav.profile"), icon: <Icons.User size={20} /> },
     { id: "settings", label: t("nav.settings"), icon: <Icons.Settings size={20} /> },
@@ -8235,7 +8386,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
+              {n.icon}
+              {n.badge > 0 && (
+                <span aria-hidden="true" style={{
+                  position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
+                  borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                }}>{n.badge > 9 ? "9+" : n.badge}</span>
+              )}
+            </span>
             <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
@@ -8693,7 +8853,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
+              {n.icon}
+              {n.badge > 0 && (
+                <span aria-hidden="true" style={{
+                  position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
+                  borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                }}>{n.badge > 9 ? "9+" : n.badge}</span>
+              )}
+            </span>
             <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
@@ -9352,21 +9521,39 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
                   {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
-                  {chatMessages.map(msg => {
+                  {chatMessages.map((msg, i) => {
                     const isMe = msg.sender_id === user.id;
+                    // A day heading whenever the calendar day changes. Without
+                    // it a bare "08:05" following a bare "08:00" reads as a
+                    // reply five minutes later even when a night sits between.
+                    const prevMsg = i > 0 ? chatMessages[i - 1] : null;
+                    const showDay = !prevMsg || chatDayKey(prevMsg.created_at) !== chatDayKey(msg.created_at);
                     return (
-                      <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
+                      <Fragment key={msg.id}>
+                      {showDay && (
+                        <div style={{ display: "flex", justifyContent: "center", margin: "6px 0 2px" }}>
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted,
+                            background: BRAND.grayLight, borderRadius: 99, padding: "3px 10px",
+                          }}>{chatDayLabel(msg.created_at, t)}</span>
+                        </div>
+                      )}
+                      <div style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
                         <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
                           {isMe ? 'You' : (chatSenderNames[msg.sender_id] || 'Member')}
                         </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                           background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
                           <div>{msg.content}</div>
-                          <div style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
-                            {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                          {/* Hovering gives the unabbreviated date and time, so
+                              anyone reconciling a conversation against a shift
+                              need not count day headings. */}
+                          <div title={chatFullTimestamp(msg.created_at)} style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
+                            {formatShiftTime(msg.created_at)}
                           </div>
                         </div>
                       </div>
+                      </Fragment>
                     );
                   })}
                   <div ref={chatEndRef} />
@@ -9901,7 +10088,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
             fontFamily: "inherit",
           }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1 }}>{n.icon}</span>
+            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
+              {n.icon}
+              {n.badge > 0 && (
+                <span aria-hidden="true" style={{
+                  position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
+                  borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+                }}>{n.badge > 9 ? "9+" : n.badge}</span>
+              )}
+            </span>
             <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
           </button>
         ))}
@@ -10343,7 +10539,24 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
+  const { unreadRooms, refreshUnreadChat } = useUnreadChatRooms(user);
   const [chatMessages, setChatMessages] = useState([]);
+  // Opening a room marks it seen, up to its newest message. Runs on
+  // chatMessages so a message that arrives while the room is on screen counts
+  // as read too -- otherwise the badge would light up for a conversation the
+  // user is actively looking at.
+  useEffect(() => {
+    // `activeChatShift` alone is not "the user is looking at this room":
+    // navigating to another view leaves it set, and its realtime subscription
+    // keeps running. Without the visible-tab check, a message arriving while
+    // the user is on Discover was marked seen and never raised the badge.
+    if (view !== "chat") return;
+    if (!user?.id || !activeChatShift?.shiftId || !chatMessages.length) return;
+    const newest = chatMessages[chatMessages.length - 1]?.created_at;
+    if (!newest) return;
+    writeChatSeen(user.id, activeChatShift.shiftId, newest);
+    refreshUnreadChat();
+  }, [view, user?.id, activeChatShift?.shiftId, chatMessages, refreshUnreadChat]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   // sender_id -> full_name for group-chat bubbles (ref mirrors state so the
@@ -11460,7 +11673,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     { id: "shifts", label: t("employerNav.shifts") },
     { id: "postshift", label: t("employerNav.postShift") },
     { id: "bulkupload", label: t("employerNav.bulkUpload") },
-    { id: "chat", label: t("employerNav.chat") },
+    { id: "chat", label: t("employerNav.chat"), badge: unreadRooms },
     { id: "billing", label: t("employerNav.billing") },
     { id: "account", label: t("employerNav.account") },
   ];
@@ -11576,7 +11789,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
             borderLeft: view === n.id ? `3px solid ${BRAND.primary}` : "3px solid transparent",
             transition: "all 0.1s",
-          }}>{n.label}</button>
+          }}>
+          {n.label}
+          {n.badge > 0 && (
+            <span style={{
+              marginLeft: 8, minWidth: 16, height: 16, padding: "0 4px", borderRadius: 99,
+              background: BRAND.red, color: "#fff", fontSize: 10, fontWeight: 700,
+              display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+            }}>{n.badge > 9 ? "9+" : n.badge}</span>
+          )}
+        </button>
       ))}
       <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
         <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
@@ -12894,21 +13116,39 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
                   {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
-                  {chatMessages.map(msg => {
+                  {chatMessages.map((msg, i) => {
                     const isMe = msg.sender_id === user?.id;
+                    // A day heading whenever the calendar day changes. Without
+                    // it a bare "08:05" following a bare "08:00" reads as a
+                    // reply five minutes later even when a night sits between.
+                    const prevMsg = i > 0 ? chatMessages[i - 1] : null;
+                    const showDay = !prevMsg || chatDayKey(prevMsg.created_at) !== chatDayKey(msg.created_at);
                     return (
-                      <div key={msg.id} style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
+                      <Fragment key={msg.id}>
+                      {showDay && (
+                        <div style={{ display: "flex", justifyContent: "center", margin: "6px 0 2px" }}>
+                          <span style={{
+                            fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted,
+                            background: BRAND.grayLight, borderRadius: 99, padding: "3px 10px",
+                          }}>{chatDayLabel(msg.created_at, t)}</span>
+                        </div>
+                      )}
+                      <div style={{display:'flex', flexDirection:'column', alignItems: isMe ? 'flex-end' : 'flex-start'}}>
                         <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
                           {isMe ? 'You' : (chatSenderNames[msg.sender_id] || 'Member')}
                         </div>
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                           background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
                           <div>{msg.content}</div>
-                          <div style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
-                            {new Date(msg.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                          {/* Hovering gives the unabbreviated date and time, so
+                              anyone reconciling a conversation against a shift
+                              need not count day headings. */}
+                          <div title={chatFullTimestamp(msg.created_at)} style={{fontSize:10, opacity:0.6, marginTop:2, textAlign:'right'}}>
+                            {formatShiftTime(msg.created_at)}
                           </div>
                         </div>
                       </div>
+                      </Fragment>
                     );
                   })}
                   <div ref={chatEndRef} />
