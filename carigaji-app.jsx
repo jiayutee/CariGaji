@@ -1263,7 +1263,7 @@ const TRANSLATIONS = {
     "employer.tagline": "Employer Console",
     "employer.openMenu": "Open menu",
     "employer.paidToWorkers": "Paid to Workers",
-    "employer.topUpSoon": "Top Up (soon)",
+    "employer.topUpBtn": "Add funds",
     "employer.returnToWorkerApp": "Return to Worker App",
     "employer.manageShiftsSubtitle": "Manage all your posted shifts",
     "employer.loadingShifts": "Loading shifts…",
@@ -1453,8 +1453,8 @@ const TRANSLATIONS = {
     "employer.pendingPayoutTooltip": "Funds committed for shifts that are queued, ready, or held — not yet released to workers.",
     "employer.totalPaidOut": "Total paid out",
     "employer.totalPaidOutTooltip": "Funds already released to workers for completed, confirmed shifts.",
-    "employer.escrowUnavailableNote": "Adding funds isn't available yet — this is a preview until a real payment gateway (FPX/DuitNow) is integrated.",
-    "employer.addFundsSoon": "+ Add Funds (soon)",
+    "employer.escrowUnavailableNote": "There's no online payment yet — FPX/DuitNow is still to come. During the pilot we set deposits up directly: get in touch and we'll arrange the transfer and credit it to your balance.",
+    "employer.addFundsBtn": "+ Add funds",
     "employer.payoutLedgerTitle": "Payout Ledger",
     "employer.colDateShort": "Date",
     "employer.colAmount": "Amount",
@@ -2418,7 +2418,7 @@ const TRANSLATIONS = {
     "employer.tagline": "Konsol Majikan",
     "employer.openMenu": "Buka menu",
     "employer.paidToWorkers": "Dibayar kepada Pekerja",
-    "employer.topUpSoon": "Tambah Nilai (akan datang)",
+    "employer.topUpBtn": "Tambah dana",
     "employer.returnToWorkerApp": "Kembali ke Aplikasi Pekerja",
     "employer.manageShiftsSubtitle": "Urus semua syif yang anda siarkan",
     "employer.loadingShifts": "Memuatkan syif…",
@@ -2608,8 +2608,8 @@ const TRANSLATIONS = {
     "employer.pendingPayoutTooltip": "Dana yang diperuntukkan untuk syif yang sedang dalam giliran, sedia, atau ditahan — belum dilepaskan kepada pekerja.",
     "employer.totalPaidOut": "Jumlah dibayar",
     "employer.totalPaidOutTooltip": "Dana yang telah dilepaskan kepada pekerja untuk syif yang selesai dan disahkan.",
-    "employer.escrowUnavailableNote": "Menambah dana belum tersedia lagi — ini adalah pratonton sehingga get pembayaran sebenar (FPX/DuitNow) disepadukan.",
-    "employer.addFundsSoon": "+ Tambah Dana (akan datang)",
+    "employer.escrowUnavailableNote": "Belum ada pembayaran dalam talian — FPX/DuitNow masih akan datang. Semasa perintis ini kami menguruskan deposit secara terus: hubungi kami dan kami akan menguruskan pemindahan serta mengkreditkannya ke baki anda.",
+    "employer.addFundsBtn": "+ Tambah dana",
     "employer.payoutLedgerTitle": "Lejar Bayaran",
     "employer.colDateShort": "Tarikh",
     "employer.colAmount": "Jumlah",
@@ -3572,7 +3572,7 @@ const TRANSLATIONS = {
     "employer.tagline": "雇主控制台",
     "employer.openMenu": "打开菜单",
     "employer.paidToWorkers": "已支付给员工",
-    "employer.topUpSoon": "充值（即将推出）",
+    "employer.topUpBtn": "添加资金",
     "employer.returnToWorkerApp": "返回员工应用",
     "employer.manageShiftsSubtitle": "管理您发布的所有班次",
     "employer.loadingShifts": "正在加载班次…",
@@ -3762,8 +3762,8 @@ const TRANSLATIONS = {
     "employer.pendingPayoutTooltip": "已为排队中、待发放或暂缓发放的班次预留的资金 — 尚未发放给员工。",
     "employer.totalPaidOut": "已发放总额",
     "employer.totalPaidOutTooltip": "已为完成并确认的班次发放给员工的资金。",
-    "employer.escrowUnavailableNote": "暂时无法充值 — 此为预览功能，待正式的支付网关（FPX/DuitNow）整合后才会开放。",
-    "employer.addFundsSoon": "+ 充值（即将推出）",
+    "employer.escrowUnavailableNote": "尚未开放在线支付——FPX/DuitNow 仍在筹备中。试运行期间由我们直接安排保证金：请联系我们，我们会安排转账并计入您的余额。",
+    "employer.addFundsBtn": "+ 添加资金",
     "employer.payoutLedgerTitle": "发放明细",
     "employer.colDateShort": "日期",
     "employer.colAmount": "金额",
@@ -10698,7 +10698,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 };
 
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
-const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null, onUserUpdated = () => {} }) => {
+const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null, onUserUpdated = () => {}, onOpenSupportChat = openMailtoSupport }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [view, setView] = useState("dashboard");
@@ -12146,7 +12146,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
         <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
         <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
-        <Btn size="xs" variant="ghost" onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpSoon")}</Btn>
+        <Btn size="xs" variant="ghost" onClick={onOpenSupportChat} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpBtn")}</Btn>
         <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
       </div>
     </>
@@ -13204,7 +13204,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
               {t("employer.escrowUnavailableNote")}
             </div>
-            <Btn onClick={() => toast(t('toast.escrowTopupUnavailable'), 'info')} style={{ marginBottom: 24 }}>{t("employer.addFundsSoon")}</Btn>
+            <Btn onClick={onOpenSupportChat} style={{ marginBottom: 24 }}>{t("employer.addFundsBtn")}</Btn>
             <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.payoutLedgerTitle")}</div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
