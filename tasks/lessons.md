@@ -135,3 +135,9 @@ Patterns learned from user corrections, kept up to date per CLAUDE.md's Self-Imp
 - Rule: before editing a git hook, run `git config core.hooksPath`. If it is set, `.git/hooks/` is not what executes. A hook under version control (as here) is the better place anyway — it ships with the repo instead of living only on one machine.
 - Rule: test a guard by trying to do the thing it forbids, and check the OUTCOME (did the commit exist afterwards?), not just the output. I have now written three checks this week that could not fail; this is the first that failed silently while appearing to be installed.
 - Rule: never use real secret material in a negative test. Read the value from .env into a temp file if the test genuinely needs the real string, and be ready for the test itself to become the leak — because if the guard is broken, the test IS the leak.
+
+## 2026-08-23 — A DELETE returned 204 and deleted nothing, and I nearly reported it clean
+- Mistake: cleaned up a QA application row with a REST DELETE, saw 204, and moved on. `applications` has no DELETE policy, so the request matched zero rows and reported success anyway. The row was still there; I only noticed because the same command printed the row back immediately afterwards.
+- Rule: PostgREST returns 204 for a DELETE that affects no rows. 204 means "the request was valid", never "something was deleted". Always read the row back afterwards, or send `Prefer: return=representation` and check the returned array is non-empty.
+- Rule: before writing test data into a REAL row's neighbourhood (an application against the owner's own live shift), work out how it will be removed FIRST. Here the answer was "only from the SQL editor", which I should have known before creating it, not after.
+- Rule: leftover QA rows are not always cosmetic. This one permanently blocked that worker from ever bidding on that shift again -- via the exact unique constraint whose bug I was fixing.
