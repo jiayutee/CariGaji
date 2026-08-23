@@ -16,6 +16,10 @@ jobs:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+      # Public half of the VAPID pair. Safe in the bundle by design -- the
+      # private key stays in Supabase secrets. If unset, pushSupported() is
+      # false and the app falls back to email with no error.
+      VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v4
       

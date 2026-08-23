@@ -468,6 +468,13 @@ const TRANSLATIONS = {
     "settings.languageChinese": "Chinese",
     "settings.notifications": "Notifications",
     "settings.notificationsValue": "Enabled",
+    "settings.pushTitle": "Phone notifications",
+    "settings.pushOn": "On — you'll get shift updates even when the app is closed.",
+    "settings.pushOff": "Off — turn on to hear about offers without opening the app.",
+    "settings.pushDenied": "Blocked in your browser settings. Allow notifications for this site, then come back.",
+    "settings.pushUnsupported": "Not available in this browser. On iPhone, add CariGaji to your Home Screen first. You'll still get emails either way.",
+    "settings.pushEnableBtn": "Turn on",
+    "settings.pushDisableBtn": "Turn off",
     "settings.privacy": "Privacy",
     "settings.privacyValue": "Standard",
     "common.signIn": "Sign in",
@@ -1198,6 +1205,10 @@ const TRANSLATIONS = {
     "toast.cancelBidFailed": "Failed to cancel bid: ",
     "toast.bidCancelled": "Bid cancelled.",
     "toast.disputeFiled": "Dispute filed. Our team will review it shortly.",
+    "toast.pushEnabled": "Phone notifications are on.",
+    "toast.pushDisabled": "Phone notifications are off for this device.",
+    "toast.pushDenied": "Notifications are blocked for this site — allow them in your browser settings to turn this on.",
+    "toast.pushFailed": "Couldn't turn on notifications. Try again in a moment.",
     "toast.disputeFiledFailed": "Failed to file dispute: ",
     "employer.fieldShiftTitle": "Shift title",
     "employer.shiftTitlePlaceholder": "e.g. F&B Server – Corporate Dinner",
@@ -1617,6 +1628,13 @@ const TRANSLATIONS = {
     "settings.languageChinese": "Bahasa Cina",
     "settings.notifications": "Pemberitahuan",
     "settings.notificationsValue": "Diaktifkan",
+    "settings.pushTitle": "Pemberitahuan telefon",
+    "settings.pushOn": "Aktif — anda akan menerima kemas kini syif walaupun aplikasi ditutup.",
+    "settings.pushOff": "Tidak aktif — hidupkan untuk tahu tentang tawaran tanpa membuka aplikasi.",
+    "settings.pushDenied": "Disekat dalam tetapan pelayar anda. Benarkan pemberitahuan untuk laman ini, kemudian kembali ke sini.",
+    "settings.pushUnsupported": "Tidak tersedia dalam pelayar ini. Pada iPhone, tambah CariGaji ke Skrin Utama dahulu. Anda tetap menerima e-mel.",
+    "settings.pushEnableBtn": "Hidupkan",
+    "settings.pushDisableBtn": "Matikan",
     "settings.privacy": "Privasi",
     "settings.privacyValue": "Standard",
     "common.signIn": "Log Masuk",
@@ -2339,6 +2357,10 @@ const TRANSLATIONS = {
     "toast.cancelBidFailed": "Gagal batalkan tawaran: ",
     "toast.bidCancelled": "Tawaran dibatalkan.",
     "toast.disputeFiled": "Pertikaian difailkan. Pasukan kami akan menyemaknya tidak lama lagi.",
+    "toast.pushEnabled": "Pemberitahuan telefon dihidupkan.",
+    "toast.pushDisabled": "Pemberitahuan telefon dimatikan untuk peranti ini.",
+    "toast.pushDenied": "Pemberitahuan disekat untuk laman ini — benarkan dalam tetapan pelayar untuk menghidupkannya.",
+    "toast.pushFailed": "Tidak dapat menghidupkan pemberitahuan. Cuba lagi sebentar.",
     "toast.disputeFiledFailed": "Gagal memfailkan pertikaian: ",
     "employer.fieldShiftTitle": "Tajuk syif",
     "employer.shiftTitlePlaceholder": "cth. Pelayan F&B – Makan Malam Korporat",
@@ -2758,6 +2780,13 @@ const TRANSLATIONS = {
     "settings.languageChinese": "中文",
     "settings.notifications": "通知",
     "settings.notificationsValue": "已启用",
+    "settings.pushTitle": "手机通知",
+    "settings.pushOn": "已开启——即使应用未打开，您也会收到班次更新。",
+    "settings.pushOff": "已关闭——开启后无需打开应用即可获知邀约。",
+    "settings.pushDenied": "已在浏览器设置中被阻止。请为本站允许通知后再回来。",
+    "settings.pushUnsupported": "此浏览器不支持。iPhone 用户请先将 CariGaji 添加到主屏幕。无论如何您仍会收到电子邮件。",
+    "settings.pushEnableBtn": "开启",
+    "settings.pushDisableBtn": "关闭",
     "settings.privacy": "隐私",
     "settings.privacyValue": "标准",
     "common.signIn": "登入",
@@ -3479,6 +3508,10 @@ const TRANSLATIONS = {
     "toast.cancelBidFailed": "取消出价失败：",
     "toast.bidCancelled": "出价已取消。",
     "toast.disputeFiled": "申诉已提交，我们的团队将尽快审核。",
+    "toast.pushEnabled": "手机通知已开启。",
+    "toast.pushDisabled": "此设备的手机通知已关闭。",
+    "toast.pushDenied": "本站的通知已被阻止——请在浏览器设置中允许后再开启。",
+    "toast.pushFailed": "无法开启通知，请稍后再试。",
     "toast.disputeFiledFailed": "提交申诉失败：",
     "employer.fieldShiftTitle": "班次标题",
     "employer.shiftTitlePlaceholder": "例如：餐饮服务员 – 企业晚宴",
@@ -5099,6 +5132,93 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
       </div>
     </div>
   );
+};
+
+// ─── Web Push ───────────────────────────────────────────────────────────────
+// Delivers a notification to the phone's tray even when the app is closed.
+//
+// SCOPE, deliberately: Android and desktop. iOS supports Web Push only for a
+// site the user has added to the Home Screen -- in a Safari tab there is no
+// push and no way to ask -- so iPhone users keep getting the existing email
+// (send-notification-email) and nothing here breaks for them. `pushSupported()`
+// is what decides, so an iPhone never sees a toggle it cannot honour.
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || "";
+
+const pushSupported = () => (
+  typeof window !== "undefined"
+  && "serviceWorker" in navigator
+  && "PushManager" in window
+  && "Notification" in window
+  && Boolean(VAPID_PUBLIC_KEY)
+);
+
+// The VAPID key travels as base64url but applicationServerKey wants bytes.
+const urlBase64ToUint8Array = (base64String) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = window.atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
+  return out;
+};
+
+// Asks the browser, subscribes, and stores the endpoint. Returns a string
+// reason rather than throwing, because every outcome here is a normal thing a
+// user can do -- including saying no.
+const enablePushNotifications = async (user) => {
+  if (!pushSupported()) return "unsupported";
+  if (!user?.id) return "signed-out";
+  if (Notification.permission === "denied") return "denied";
+
+  const permission = Notification.permission === "granted"
+    ? "granted"
+    : await Notification.requestPermission();
+  if (permission !== "granted") return "denied";
+
+  const registration = await navigator.serviceWorker.ready;
+  // Reuse an existing subscription if the browser already has one for this
+  // device; re-subscribing would hand back the same endpoint anyway.
+  const existing = await registration.pushManager.getSubscription();
+  const subscription = existing || await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+  });
+
+  const json = subscription.toJSON();
+  if (!json?.endpoint || !json.keys?.p256dh || !json.keys?.auth) return "failed";
+
+  // Upsert on endpoint: the same device re-subscribing must update its row,
+  // not accumulate duplicates that would each get their own copy of every push.
+  const { error } = await supabase.from("push_subscriptions").upsert({
+    user_id: user.id,
+    endpoint: json.endpoint,
+    p256dh: json.keys.p256dh,
+    auth: json.keys.auth,
+    user_agent: navigator.userAgent.slice(0, 300),
+    last_seen_at: new Date().toISOString(),
+  }, { onConflict: "endpoint" });
+
+  return error ? "failed" : "enabled";
+};
+
+// Signing out must stop this device receiving the next person's notifications.
+// Both halves matter: dropping the row stops the server sending, and
+// unsubscribing stops the browser holding a live endpoint for us.
+const disablePushNotifications = async () => {
+  if (!pushSupported()) return;
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (!subscription) return;
+    const endpoint = subscription.toJSON()?.endpoint;
+    if (endpoint) await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+    await subscription.unsubscribe();
+  } catch { /* best effort -- never block sign-out on this */ }
+};
+
+const pushPermissionState = () => {
+  if (!pushSupported()) return "unsupported";
+  return Notification.permission;   // "default" | "granted" | "denied"
 };
 
 // ─── Chat: unread badge + day-aware timestamps ──────────────────────────────
@@ -7139,6 +7259,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [settingsOpenFaq, setSettingsOpenFaq] = useState(null);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
+  // "unsupported" | "default" | "granted" | "denied" -- read from the browser
+  // rather than stored, because the user can change it in site settings at any
+  // time and a remembered value would go stale silently.
+  const [pushState, setPushState] = useState(() => pushPermissionState());
   const [showTnC, setShowTnC] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -9826,6 +9950,36 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.notifications")}</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{t("settings.notificationsValue")}</span>
+              </div>
+              {/* Phone-tray notifications. Only offered where the browser can
+                  actually deliver them -- an iPhone in a Safari tab cannot, so
+                  it is told why rather than shown a switch that does nothing. */}
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 6, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                <div style={{ minWidth: 0, flex: "1 1 180px" }}>
+                  <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.pushTitle")}</div>
+                  <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.45 }}>
+                    {pushState === "unsupported" ? t("settings.pushUnsupported")
+                      : pushState === "denied" ? t("settings.pushDenied")
+                      : pushState === "granted" ? t("settings.pushOn")
+                      : t("settings.pushOff")}
+                  </div>
+                </div>
+                {pushState === "default" && (
+                  <Btn size="xs" onClick={async () => {
+                    const result = await enablePushNotifications(user);
+                    setPushState(pushPermissionState());
+                    toast(t(result === "enabled" ? "toast.pushEnabled"
+                          : result === "denied" ? "toast.pushDenied"
+                          : "toast.pushFailed"), result === "enabled" ? "success" : "info");
+                  }}>{t("settings.pushEnableBtn")}</Btn>
+                )}
+                {pushState === "granted" && (
+                  <Btn size="xs" variant="secondary" onClick={async () => {
+                    await disablePushNotifications();
+                    setPushState(pushPermissionState());
+                    toast(t("toast.pushDisabled"), "info");
+                  }}>{t("settings.pushDisableBtn")}</Btn>
+                )}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                 <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.privacy")}</span>
@@ -15630,6 +15784,21 @@ export default function CariGaji() {
   // always increments so the target portal's effect re-fires even on a
   // repeat click of the same link.
   const [notifDeepLink, setNotifDeepLink] = useState(null);
+  // A tapped push focuses an existing tab rather than opening a new one, and
+  // the service worker posts the link through so the SPA can route to it --
+  // a full navigation would reload the app and lose whatever the user was
+  // part-way through.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return undefined;
+    const onMessage = (event) => {
+      if (event.data?.type === "notification-click" && event.data.link) {
+        handleNotificationNavigate(event.data.link);
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  });
+
   const handleNotificationNavigate = (link) => {
     const match = /^\/(worker|employer)\/(shifts|applications)\/([^/]+)$/.exec(link || "");
     if (!match) return;
@@ -16066,7 +16235,7 @@ export default function CariGaji() {
             {user ? (
               <ProfileMenu
                 user={user}
-                onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+                onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
                 onOpenIssueReport={() => setIssueReportOpen(true)}
                 onOpenSupportChat={() => setSupportChatOpen(true)}
                 isMobile={isMobile}
@@ -16119,7 +16288,7 @@ export default function CariGaji() {
         open={Boolean(user) && tncAcceptedAt === null}
         accepting={tncAccepting}
         onAccept={acceptTnC}
-        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+        onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
                 onOpenIssueReport={() => setIssueReportOpen(true)}
       />
       {/* Progressive-signup sequence: T&C gate above, then required details,
@@ -16130,7 +16299,7 @@ export default function CariGaji() {
         user={user}
         role={userRole}
         onCompleted={ts => setDetailsCompletedAt(ts)}
-        onSignOut={async () => { await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+        onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
                 onOpenIssueReport={() => setIssueReportOpen(true)}
       />
       <DetailsGateModal

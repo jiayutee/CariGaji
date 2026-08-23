@@ -46,3 +46,62 @@ self.addEventListener("fetch", (event) => {
       )
   );
 });
+
+// ─── Web Push ───────────────────────────────────────────────────────────────
+// Shows a notification in the OS tray when the server pushes one, and focuses
+// (or opens) the app at the right place when it is tapped.
+//
+// The payload carries the notification's stored English title/body, not a
+// translated string. The service worker has no access to the app's TRANSLATIONS
+// table -- it runs outside the page -- and duplicating the dictionary here
+// would give two copies to keep in sync. Tapping through lands on the in-app
+// notification, which IS translated, so the reader sees their own language one
+// tap later. Translating the push itself means rendering it server-side from
+// `params` plus the user's stored language preference, which is worth doing
+// once a language column exists on profiles.
+
+self.addEventListener("push", (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    // A push with a non-JSON body is not worth dropping silently: show
+    // something rather than nothing, so the user still knows to look.
+    payload = { title: "CariGaji", body: event.data ? event.data.text() : "" };
+  }
+
+  const title = payload.title || "CariGaji";
+  const options = {
+    body: payload.body || "",
+    icon: "/CariGaji/icon-192.png",
+    badge: "/CariGaji/icon-192.png",
+    // Collapse repeats of the same thing: a second push about one application
+    // replaces the first in the tray instead of stacking.
+    tag: payload.tag || payload.link || "carigaji",
+    renotify: true,
+    data: { link: payload.link || "/CariGaji/" },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const link = (event.notification.data && event.notification.data.link) || "/CariGaji/";
+  const target = new URL(link, self.registration.scope).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      // Reuse an open tab rather than piling up new ones. Matching on scope
+      // rather than the exact URL, because the app is a SPA -- the tab showing
+      // /CariGaji/ can navigate itself to the deep link.
+      for (const client of clients) {
+        if (client.url.startsWith(self.registration.scope) && "focus" in client) {
+          client.postMessage({ type: "notification-click", link });
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(target);
+    })
+  );
+});
