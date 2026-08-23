@@ -126,7 +126,88 @@ begin
 end;
 $$;
 
--- ── 3. prove it, with the negative controls that matter ──────────────────────
+-- ── 3. a reopened bid may carry a new rate ──────────────────────────────────
+-- guard_cancellation_choice_columns pins wage_ask against ALL updates, which is
+-- right for a live application and wrong for a reopened one -- without this, the
+-- status flips to pending but the new bid amount is silently discarded and the
+-- worker re-bids at their old rate without being told. Found by testing the
+-- reopen through the API rather than by reading the policy.
+--
+-- Patched from 20260717f's definition verbatim, not retyped.
+
+create or replace function public.guard_cancellation_choice_columns()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  is_admin boolean := coalesce((auth.jwt() -> 'app_metadata' ->> 'role'), '') = 'admin';
+  is_trusted_write boolean := coalesce(current_setting('app.cancellation_trusted_write', true), '') = 'true';
+begin
+  if is_admin then
+    return new;
+  end if;
+
+  if new.cancellation_choice is distinct from old.cancellation_choice then
+    if not (
+      ( auth.uid() = old.worker_id
+        and old.cancellation_choice_deadline is not null
+        and old.cancellation_choice is null
+        and new.cancellation_choice in ('contract_50', 'show_up_100') )
+      or
+      ( old.cancellation_choice_deadline is not null
+        and old.cancellation_choice_deadline < now()
+        and old.cancellation_choice is null
+        and new.cancellation_choice = 'contract_50'
+        and ( auth.uid() = old.worker_id
+              or exists (select 1 from public.shifts s where s.id = old.shift_id and s.employer_id = auth.uid()) ) )
+    ) then
+      new.cancellation_choice := old.cancellation_choice;
+    end if;
+  end if;
+
+  if new.cancellation_proof_path is distinct from old.cancellation_proof_path then
+    if not (
+      auth.uid() = old.worker_id
+      and old.cancellation_choice = 'show_up_100'
+      and old.cancellation_proof_path is null
+      and new.cancellation_proof_path is not null
+    ) then
+      new.cancellation_proof_path := old.cancellation_proof_path;
+    end if;
+  end if;
+
+  -- wage_ask is pinned because cancellation compensation and the completed-shift
+  -- payout are both computed from it: a worker who could raise it after being
+  -- accepted would be rewriting the price of work already agreed.
+  --
+  -- The one exception is reopening a lapsed application (20260823b). At that
+  -- moment there is no agreed rate to protect -- the bid was withdrawn or the
+  -- offer expired, nothing references it, and no payout can be derived from it.
+  -- Re-bidding at the old rate would be the strange behaviour, since the whole
+  -- point is to place a new bid.
+  if new.wage_ask is distinct from old.wage_ask
+     and not (old.status in ('withdrawn', 'expired') and new.status = 'pending') then
+    new.wage_ask := old.wage_ask;
+  end if;
+
+  -- The REVOKE in 20260717e does not actually protect these two columns
+  -- (see file header) — this trust-flag check is the real enforcement.
+  if not is_trusted_write then
+    if new.cancellation_choice_deadline is distinct from old.cancellation_choice_deadline then
+      new.cancellation_choice_deadline := old.cancellation_choice_deadline;
+    end if;
+    if new.cancellation_choice_made_at is distinct from old.cancellation_choice_made_at then
+      new.cancellation_choice_made_at := old.cancellation_choice_made_at;
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+-- ── 4. prove it, with the negative controls that matter ──────────────────────
 -- Rolled back at the end: this runs against real applications, and a test row
 -- left behind would block that worker from ever bidding on that shift.
 do $selftest$
@@ -175,6 +256,10 @@ begin
 
     if (select count(*) from public.applications where shift_id = v_shift and worker_id = v_worker) <> 1 then
       raise exception 'ASSERT: reopening produced more than one row -- the unique constraint was meant to prevent exactly this';
+    end if;
+
+    if (select wage_ask from public.applications where id = v_app) is distinct from 17 then
+      raise exception 'ASSERT: the reopened bid kept its old rate -- wage_ask is still pinned';
     end if;
 
     raise exception using message = '__result__:passed';
