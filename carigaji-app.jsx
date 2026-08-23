@@ -1029,6 +1029,8 @@ const TRANSLATIONS = {
     // Launch-phase issue reporting
     "discover.applicationsClosed": "Applications for this shift have closed.",
     "discover.alreadyApplied": "You have already bid on this shift — see it under My Bids. Each shift takes one bid per worker.",
+    "discover.reapplyRefused": "That bid couldn't be reopened. If the employer already turned it down, the shift isn't open to you again.",
+    "discover.reapplyNote": "You bid on this shift before and it lapsed. Bidding again replaces your old bid.",
     "employer.reportNoShowBtn": "Report no-show",
     "employer.noShowReported": "Reported as no-show",
     "employer.noShowTitle": "Report a no-show?",
@@ -2187,6 +2189,8 @@ const TRANSLATIONS = {
     "notif.change.requirements": "keperluan",
     "discover.applicationsClosed": "Permohonan untuk syif ini telah ditutup.",
     "discover.alreadyApplied": "Anda sudah membida syif ini — lihat di Bidaan Saya. Setiap syif menerima satu bidaan bagi setiap pekerja.",
+    "discover.reapplyRefused": "Bidaan itu tidak dapat dibuka semula. Jika majikan telah menolaknya, syif ini tidak terbuka untuk anda lagi.",
+    "discover.reapplyNote": "Anda pernah membida syif ini dan ia telah luput. Membida semula akan menggantikan bidaan lama anda.",
     "employer.reportNoShowBtn": "Laporkan tidak hadir",
     "employer.noShowReported": "Dilaporkan tidak hadir",
     "employer.noShowTitle": "Laporkan tidak hadir?",
@@ -3343,6 +3347,8 @@ const TRANSLATIONS = {
     "notif.change.requirements": "要求条件",
     "discover.applicationsClosed": "此班次的申请已截止。",
     "discover.alreadyApplied": "您已对此班次出价——请在「我的出价」中查看。每个班次每位员工只能出价一次。",
+    "discover.reapplyRefused": "该出价无法重新开启。若雇主已拒绝，此班次不会再向您开放。",
+    "discover.reapplyNote": "您此前对此班次出过价但已失效。再次出价将替换您之前的出价。",
     "employer.reportNoShowBtn": "报告缺席",
     "employer.noShowReported": "已报告缺席",
     "employer.noShowTitle": "报告缺席？",
@@ -8401,26 +8407,34 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       };
     });
   }, [liveShifts, anonEmployerTrust]);
-  // Any shift the worker has EVER applied to is hidden from Discover, not just
-  // one with a live bid.
+  // Shifts hidden from Discover: the ones with a live bid, plus the ones the
+  // employer has already said no to.
   //
-  // This used to filter on the active statuses only, letting a shift reappear
-  // once the bid was rejected, withdrawn or expired -- on the assumption the
-  // worker could try again. They cannot: applications carries
-  // `unique (shift_id, worker_id)`, so the second insert dies on a duplicate
-  // key. The list was inviting an action the database refuses, and the worker
-  // got raw Postgres text for their trouble.
+  // A withdrawn or expired application is NOT hidden -- 20260823b lets the
+  // worker reopen it, so the shift is genuinely available to them again. A
+  // rejected one stays hidden permanently, because that decision was the
+  // employer's and re-bidding would override it by persistence.
   //
-  // Hiding it is the honest reading of the constraint. If re-bidding after a
-  // withdrawal should be allowed -- arguable, since that was the worker's own
-  // decision -- that is a schema change, not a filter change, and the filter
-  // must not pretend otherwise in the meantime.
-  const appliedShiftIds = useMemo(
-    () => new Set((liveApplications ?? []).map(a => a.shiftId)),
+  // Re-applying reuses the existing row rather than inserting a second one:
+  // `unique (shift_id, worker_id)` still holds, and payouts, chat participants
+  // and several maybeSingle() lookups all depend on it holding.
+  const hiddenShiftIds = useMemo(
+    () => new Set((liveApplications ?? [])
+      .filter(a => ['pending', 'shortlisted', 'offered', 'accepted', 'rejected'].includes(a.status))
+      .map(a => a.shiftId)),
+    [liveApplications]
+  );
+  // Shift id -> the lapsed application to reopen, for shifts the worker can bid
+  // on again. Drives the "you bid before" note and the update-instead-of-insert
+  // path in the bid modal.
+  const reopenableApplications = useMemo(
+    () => new Map((liveApplications ?? [])
+      .filter(a => ['withdrawn', 'expired'].includes(a.status))
+      .map(a => [a.shiftId, a])),
     [liveApplications]
   );
   const filtered = useMemo(() => {
-    let s = shiftsSource.filter(x => !appliedShiftIds.has(x.id));
+    let s = shiftsSource.filter(x => !hiddenShiftIds.has(x.id));
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
     if (filterCity) s = s.filter(x => resolveCity(x.location) === filterCity);
     if (filterArea) s = s.filter(x => x.location.toLowerCase().includes(filterArea.toLowerCase()));
@@ -8433,7 +8447,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (filterTimeStart) s = s.filter(x => x.startTime && x.startTime >= filterTimeStart);
     if (filterTimeEnd) s = s.filter(x => x.endTime && x.endTime <= filterTimeEnd);
     return s;
-  }, [shiftsSource, appliedShiftIds, filterCat, filterCity, filterArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
+  }, [shiftsSource, hiddenShiftIds, filterCat, filterCity, filterArea, filterDate, filterDuration, filterPayMin, filterPayMax, filterHighBooking, filterWeekend, filterTimeStart, filterTimeEnd]);
   const payoutsLoading = Boolean(user) && livePayouts === null;
   const payoutRows = useMemo(
     () => (livePayouts || []).map((p) => {
@@ -8958,7 +8972,26 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     wage_ask: Number(bidAmount),
                   };
 
-                  const { data, error } = await supabase.from('applications').insert(payload).select();
+                  // A worker who withdrew, or let an offer lapse, may bid again
+                  // -- but by REOPENING their existing row, not inserting a
+                  // second one. `unique (shift_id, worker_id)` still holds, and
+                  // payouts, chat participants and several maybeSingle()
+                  // lookups all depend on one row per worker per shift.
+                  const reopen = reopenableApplications.get(selectedShift.id);
+                  const { data, error } = reopen
+                    ? await supabase.from('applications')
+                        .update({ status: 'pending', wage_ask: Number(bidAmount) })
+                        .eq('id', reopen.id).select()
+                    : await supabase.from('applications').insert(payload).select();
+
+                  // The transition guard REVERTS an illegitimate change instead
+                  // of raising, so a refused reopen comes back as success with
+                  // the old status still in place. Read it back rather than
+                  // trusting the absence of an error.
+                  if (!error && reopen && data?.[0]?.status !== 'pending') {
+                    toast(t("discover.reapplyRefused"), "error");
+                    return;
+                  }
                   if (error) {
                     // The button is hidden once applications close, but the
                     // shift can close between opening this modal and
