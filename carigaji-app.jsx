@@ -1268,7 +1268,7 @@ const TRANSLATIONS = {
     "employer.transportNotOffered": "Not offered",
     "employer.dressCodeNone": "None",
     "employer.estimatedReserveLabel": "Estimated amount to reserve",
-    "employer.estimatedReserveFormula": "wage_max × headcount × shift hours + 15% platform fee",
+    "employer.estimatedReserveFormula": "wage_max × headcount × shift hours + {feePct}% platform fee",
     "employer.tagline": "Employer Console",
     "employer.openMenu": "Open menu",
     "employer.paidToWorkers": "Paid to Workers",
@@ -2434,7 +2434,7 @@ const TRANSLATIONS = {
     "employer.transportNotOffered": "Tidak ditawarkan",
     "employer.dressCodeNone": "Tiada",
     "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
-    "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × jam syif + 15% yuran platform",
+    "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × jam syif + {feePct}% yuran platform",
     "employer.tagline": "Konsol Majikan",
     "employer.openMenu": "Buka menu",
     "employer.paidToWorkers": "Dibayar kepada Pekerja",
@@ -3599,7 +3599,7 @@ const TRANSLATIONS = {
     "employer.transportNotOffered": "未提供",
     "employer.dressCodeNone": "无",
     "employer.estimatedReserveLabel": "预估需预留金额",
-    "employer.estimatedReserveFormula": "最高薪资 × 所需人数 × 班次时数 + 15% 平台服务费",
+    "employer.estimatedReserveFormula": "最高薪资 × 所需人数 × 班次时数 + {feePct}% 平台服务费",
     "employer.tagline": "雇主控制台",
     "employer.openMenu": "打开菜单",
     "employer.paidToWorkers": "已支付给员工",
@@ -13125,7 +13125,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
                         <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{reserve.toFixed(0)}</div>
-                        <div style={{ fontSize: 11, color: BRAND.amber }}>{t("employer.estimatedReserveFormula")}</div>
+                        <div style={{ fontSize: 11, color: BRAND.amber }}>{t("employer.estimatedReserveFormula").replace("{feePct}", PLATFORM_FEE_PCT * 100)}</div>
                       </div>
                     );
                   })()}
