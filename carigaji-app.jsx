@@ -12680,11 +12680,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 {t('employer.applicationDeadlineActiveLabel')} <b style={{ color: BRAND.text }}>{new Date(selectedShift.applicationsCloseAt).toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })}</b>
               </div>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
-              <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
-              <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
+            {/* Two rows on a phone, not four columns. At 375px the four tiles
+                measured 481px wide and simply overflowed into a sideways
+                scroller, which left Avg bid ~106px off-screen with no cue that
+                it was there. Money leads: Est. budget takes the first slot --
+                top-left on mobile, leftmost on desktop -- which is the strongest
+                position in both layouts, rather than the far edge. */}
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
               <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={t("employer.statEstBudgetTooltip").replace("{feePct}", PLATFORM_FEE_PCT * 100)} color={BRAND.primary} />
               <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} tooltip={t("employer.statAvgBidTooltip")} color={BRAND.accent} />
+              <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
+              <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
             </div>
             {selectedShift.status === "cancelled" && confirmedSignedApplicants.length > 0 && (
               <Card style={{ marginBottom: 20 }}>
