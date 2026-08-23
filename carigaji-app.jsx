@@ -4520,16 +4520,40 @@ const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src = null 
   );
 });
 
-const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip }) => (
-  <div title={tooltip} style={{ background: BRAND.grayLight, borderRadius: 14, padding: "16px 20px", cursor: tooltip ? "help" : "default" }}>
-    <div style={{ fontSize: 12, color: BRAND.textMuted, fontWeight: 500, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
-      {label}
-      {tooltip && <span aria-hidden="true" style={{ color: BRAND.textMuted, opacity: 0.7, fontSize: 11, border: `1px solid ${BRAND.textMuted}`, borderRadius: "50%", width: 13, height: 13, display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>?</span>}
+// The "?" used to be aria-hidden decoration next to a native `title`, which
+// only ever appears on hover -- i.e. never on a phone, where most of this app
+// is used. It looked tappable and did nothing. Now it IS a button: tap toggles
+// the explanation, and the native title stays for desktop hover.
+const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div title={tooltip} style={{ position: "relative", background: BRAND.grayLight, borderRadius: 14, padding: "16px 20px", cursor: tooltip ? "help" : "default" }}>
+      <div style={{ fontSize: 12, color: BRAND.textMuted, fontWeight: 500, marginBottom: 4, display: "flex", alignItems: "center", gap: 4 }}>
+        {label}
+        {tooltip && (
+          <button
+            type="button"
+            onClick={() => setOpen(o => !o)}
+            aria-expanded={open}
+            aria-label={tooltip}
+            style={{ color: BRAND.textMuted, opacity: 0.7, fontSize: 11, background: "none", border: `1px solid ${BRAND.textMuted}`, borderRadius: "50%", width: 15, height: 15, display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1, padding: 0, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+          >?</button>
+        )}
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>{sub}</div>}
+      {open && tooltip && (
+        // Sits above the tile rather than inside it: these tiles are in a
+        // 4-across grid and an inline expansion would resize its neighbours.
+        <div
+          role="note"
+          onClick={() => setOpen(false)}
+          style={{ position: "absolute", zIndex: 20, top: "100%", left: 0, right: 0, marginTop: 6, background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 10, padding: "10px 12px", fontSize: 11.5, lineHeight: 1.5, color: BRAND.text, boxShadow: "0 6px 20px rgba(0,0,0,0.16)", minWidth: 190, cursor: "pointer" }}
+        >{tooltip}</div>
+      )}
     </div>
-    <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
-    {sub && <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>{sub}</div>}
-  </div>
-));
+  );
+});
 
 const Input = ({ label, placeholder, value, onChange, type = "text", style = {}, error = false, ...rest }) => (
   <div style={{ marginBottom: 16, ...style }}>
