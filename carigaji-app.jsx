@@ -1120,8 +1120,14 @@ const TRANSLATIONS = {
     "landing.microFree": "Free to browse",
     "landing.microKyc": "ID-verified workers",
     "landing.microSsm": "SSM-verified employers",
-    "landing.trustEyebrow": "Trust & safety",
-    "landing.trustHeading": "Four checks stand between you and a bad shift",
+    "landing.sectionPayTitle": "How do I know I'll get paid?",
+    "landing.sectionPaySubtitle": "Where the money sits, from posting to payout",
+    "landing.sectionTrustTitle": "Who am I working for?",
+    "landing.sectionTrustSubtitle": "ID checks, registered employers, signed terms",
+    "landing.sectionWorkerTitle": "How it works for workers",
+    "landing.sectionWorkerSubtitle": "Find a shift, bid your rate, get paid",
+    "landing.sectionEmployerTitle": "Hiring instead?",
+    "landing.sectionEmployerSubtitle": "How posting a shift works for employers",
     "landing.trustIdTitle": "Workers are ID-verified",
     "landing.trustIdBody": "MyKad or passport checked against a selfie before higher-paying shifts unlock.",
     "landing.trustSsmTitle": "Employers are business-verified",
@@ -1130,9 +1136,6 @@ const TRANSLATIONS = {
     "landing.trustEscrowBody": "You and the employer both sign a contract at the agreed rate before the shift. Your hours are confirmed in-app, and payouts are tracked against that contract.",
     "landing.trustDisputeTitle": "Disputes get a human",
     "landing.trustDisputeBody": "Disagree on hours or conditions? File a dispute in-app and our team reviews it — pay isn't just forfeited.",
-    "landing.moneyEyebrow": "How payment works",
-    "landing.moneyHeading": "Where your money actually goes",
-    "landing.moneySubhead": "Most gig apps ask you to trust that payment will \"sort itself out.\" Here's the exact sequence, so it doesn't have to be trust — it's just how the system works.",
     "landing.moneyStep1Title": "Employer commits funds",
     "landing.moneyStep1Body": "Before your bid is even accepted, the employer's estimated wage cost is reserved for this shift.",
     "landing.moneyStep1Status": "Committed",
@@ -1145,10 +1148,6 @@ const TRANSLATIONS = {
     "landing.moneyStep4Title": "Paid out",
     "landing.moneyStep4Body": "Released to your verified bank account with your other CariGaji earnings for the month.",
     "landing.moneyStep4Status": "Released",
-    "landing.howWorkerEyebrow": "For workers",
-    "landing.howWorkerHeading": "Find shift work in four steps",
-    "landing.howEmployerEyebrow": "For employers",
-    "landing.howEmployerHeading": "Hire vetted workers in four steps",
     "landing.sampleRateLabel": "Rate",
     "landing.sampleRateUnit": " / hr",
     "landing.sampleLengthLabel": "Shift length",
@@ -1515,10 +1514,12 @@ const TRANSLATIONS = {
     "intro.workerStep2": "Place a bid with your hourly rate on shifts you want.",
     "intro.workerStep3": "If the employer selects you, confirm the offer and sign the digital contract.",
     "intro.workerStep4": "Show up, work the shift, and track your earnings in the Earnings tab.",
+    "intro.workerStep5": "About getting paid: the employer's funds are committed before the shift starts, and your pay is released as soon as your hours are confirmed. If hours are ever disputed, it goes to our team rather than nowhere.",
     "intro.employerStep1": "Post a shift with the role, schedule, and wage range.",
     "intro.employerStep2": "Review the applicant pool as workers bid — see their ratings and reliability.",
     "intro.employerStep3": "Select your workers; they confirm and sign the digital contract.",
     "intro.employerStep4": "Chat with confirmed workers and manage everything from your dashboard.",
+    "intro.employerStep5": "About paying: wages are committed up front and released once you confirm the hours worked, so workers can see their pay is real before they turn up.",
     "intro.helpHint": "You can find this again anytime under Help in the account menu.",
     "intro.getStartedBtn": "Get started",
     "toast.backAgainToExit": "Swipe again to exit",
@@ -2285,8 +2286,14 @@ const TRANSLATIONS = {
     "landing.microFree": "Percuma untuk melayari",
     "landing.microKyc": "Pekerja disahkan identiti",
     "landing.microSsm": "Majikan disahkan SSM",
-    "landing.trustEyebrow": "Kepercayaan & keselamatan",
-    "landing.trustHeading": "Empat semakan berdiri antara anda dan syif yang buruk",
+    "landing.sectionPayTitle": "Bagaimana saya tahu saya akan dibayar?",
+    "landing.sectionPaySubtitle": "Di mana wang berada, dari siaran hingga pembayaran",
+    "landing.sectionTrustTitle": "Saya bekerja untuk siapa?",
+    "landing.sectionTrustSubtitle": "Semakan ID, majikan berdaftar, terma bertandatangan",
+    "landing.sectionWorkerTitle": "Cara ia berfungsi untuk pekerja",
+    "landing.sectionWorkerSubtitle": "Cari syif, tawar kadar anda, dapatkan bayaran",
+    "landing.sectionEmployerTitle": "Mengupah pula?",
+    "landing.sectionEmployerSubtitle": "Cara menyiarkan syif untuk majikan",
     "landing.trustIdTitle": "Pekerja disahkan identiti",
     "landing.trustIdBody": "MyKad atau pasport disemak dengan swafoto sebelum syif berbayar tinggi dibuka.",
     "landing.trustSsmTitle": "Majikan disahkan perniagaan",
@@ -2295,9 +2302,6 @@ const TRANSLATIONS = {
     "landing.trustEscrowBody": "Anda dan majikan menandatangani kontrak pada kadar yang dipersetujui sebelum syif. Jam kerja anda disahkan dalam aplikasi, dan bayaran dijejaki mengikut kontrak itu.",
     "landing.trustDisputeTitle": "Pertikaian dilayan oleh manusia",
     "landing.trustDisputeBody": "Tidak bersetuju tentang jam atau keadaan kerja? Failkan pertikaian dalam aplikasi dan pasukan kami akan menyemaknya — bayaran tidak terus hilang begitu sahaja.",
-    "landing.moneyEyebrow": "Cara bayaran berfungsi",
-    "landing.moneyHeading": "Ke mana sebenarnya wang anda pergi",
-    "landing.moneySubhead": "Kebanyakan aplikasi gig meminta anda percaya bahawa bayaran akan \"selesai dengan sendirinya.\" Ini urutan sebenarnya, jadi ia bukan sekadar kepercayaan — ia memang cara sistem ini berfungsi.",
     "landing.moneyStep1Title": "Majikan menyerahkan dana",
     "landing.moneyStep1Body": "Sebelum bidaan anda diterima pun, anggaran kos gaji majikan telah diperuntukkan untuk syif ini.",
     "landing.moneyStep1Status": "Diserahkan",
@@ -2310,10 +2314,6 @@ const TRANSLATIONS = {
     "landing.moneyStep4Title": "Dibayar",
     "landing.moneyStep4Body": "Dilepaskan ke akaun bank anda yang disahkan bersama pendapatan CariGaji lain anda untuk bulan itu.",
     "landing.moneyStep4Status": "Dilepaskan",
-    "landing.howWorkerEyebrow": "Untuk pekerja",
-    "landing.howWorkerHeading": "Cari kerja syif dalam empat langkah",
-    "landing.howEmployerEyebrow": "Untuk majikan",
-    "landing.howEmployerHeading": "Upah pekerja yang disahkan dalam empat langkah",
     "landing.sampleRateLabel": "Kadar",
     "landing.sampleRateUnit": " / jam",
     "landing.sampleLengthLabel": "Tempoh syif",
@@ -2680,10 +2680,12 @@ const TRANSLATIONS = {
     "intro.workerStep2": "Buat bidaan dengan kadar sejam anda pada syif yang anda mahu.",
     "intro.workerStep3": "Jika majikan memilih anda, sahkan tawaran dan tandatangani kontrak digital.",
     "intro.workerStep4": "Hadir, bekerja syif itu, dan jejak pendapatan anda di tab Pendapatan.",
+    "intro.workerStep5": "Tentang bayaran: dana majikan dikomitkan sebelum syif bermula, dan gaji anda dilepaskan sebaik sahaja jam kerja anda disahkan. Jika jam kerja dipertikaikan, ia dirujuk kepada pasukan kami.",
     "intro.employerStep1": "Siarkan syif dengan peranan, jadual, dan julat gaji.",
     "intro.employerStep2": "Semak kumpulan pemohon semasa pekerja membida — lihat penilaian dan kebolehpercayaan mereka.",
     "intro.employerStep3": "Pilih pekerja anda; mereka mengesahkan dan menandatangani kontrak digital.",
     "intro.employerStep4": "Berbual dengan pekerja yang disahkan dan urus semuanya dari papan pemuka anda.",
+    "intro.employerStep5": "Tentang pembayaran: gaji dikomitkan lebih awal dan dilepaskan setelah anda mengesahkan jam kerja, supaya pekerja nampak bayaran mereka nyata sebelum hadir.",
     "intro.helpHint": "Anda boleh menemui ini semula pada bila-bila masa di bawah Bantuan dalam menu akaun.",
     "intro.getStartedBtn": "Mula sekarang",
     "toast.backAgainToExit": "Leret sekali lagi untuk keluar",
@@ -3449,8 +3451,14 @@ const TRANSLATIONS = {
     "landing.microFree": "免费浏览",
     "landing.microKyc": "身份已验证的员工",
     "landing.microSsm": "SSM 认证的雇主",
-    "landing.trustEyebrow": "信任与安全",
-    "landing.trustHeading": "四重保障，守护您远离糟糕的班次",
+    "landing.sectionPayTitle": "我怎么知道自己会拿到工资？",
+    "landing.sectionPaySubtitle": "从发布到发放，资金存放在哪里",
+    "landing.sectionTrustTitle": "我在为谁工作？",
+    "landing.sectionTrustSubtitle": "身份核验、注册雇主、已签署条款",
+    "landing.sectionWorkerTitle": "员工使用方式",
+    "landing.sectionWorkerSubtitle": "寻找班次、出价、领取工资",
+    "landing.sectionEmployerTitle": "想要招聘？",
+    "landing.sectionEmployerSubtitle": "雇主发布班次的方式",
     "landing.trustIdTitle": "员工均经过身份验证",
     "landing.trustIdBody": "在解锁薪资更高的班次前，系统会将 MyKad 或护照与自拍照进行核对。",
     "landing.trustSsmTitle": "雇主均经过企业认证",
@@ -3459,9 +3467,6 @@ const TRANSLATIONS = {
     "landing.trustEscrowBody": "您与雇主在班次开始前按约定时薪签署合同。工时在应用内确认，款项依合同追踪发放。",
     "landing.trustDisputeTitle": "申诉有真人处理",
     "landing.trustDisputeBody": "对工时或工作条件有异议？在应用内提交申诉，我们的团队会进行审核 — 薪资不会就此不了了之。",
-    "landing.moneyEyebrow": "薪资运作方式",
-    "landing.moneyHeading": "您的钱究竟流向何处",
-    "landing.moneySubhead": "大多数零工应用只要求您「相信」款项最终会自行妥善解决。以下是确切的流程，让这一切不必只靠信任 — 而是系统本身的运作方式。",
     "landing.moneyStep1Title": "雇主存入资金",
     "landing.moneyStep1Body": "在您的出价被接受之前，雇主预估的薪资成本就已为此班次预留。",
     "landing.moneyStep1Status": "已存入",
@@ -3474,10 +3479,6 @@ const TRANSLATIONS = {
     "landing.moneyStep4Title": "已发放",
     "landing.moneyStep4Body": "连同您当月其他的 CariGaji 收入一起发放至您已验证的银行账户。",
     "landing.moneyStep4Status": "已发放",
-    "landing.howWorkerEyebrow": "员工专区",
-    "landing.howWorkerHeading": "四个步骤找到班次工作",
-    "landing.howEmployerEyebrow": "雇主专区",
-    "landing.howEmployerHeading": "四个步骤聘请经审核的员工",
     "landing.sampleRateLabel": "时薪",
     "landing.sampleRateUnit": "/小时",
     "landing.sampleLengthLabel": "班次时长",
@@ -3844,10 +3845,12 @@ const TRANSLATIONS = {
     "intro.workerStep2": "对您想要的班次出价，填写您的时薪。",
     "intro.workerStep3": "若雇主选中您，请确认邀约并签署电子合同。",
     "intro.workerStep4": "出席工作、完成班次，并在「收入」标签追踪您的收入。",
+    "intro.workerStep5": "关于收款：雇主的资金在班次开始前就已预留，工时一经确认，您的薪资即会发放。若工时出现争议，会交由我们的团队处理，而不是不了了之。",
     "intro.employerStep1": "发布班次，填写职位、排班及薪资范围。",
     "intro.employerStep2": "随着员工出价，审核申请人名单 — 查看他们的评分及可靠度。",
     "intro.employerStep3": "选择您的员工；他们确认邀约并签署电子合同。",
     "intro.employerStep4": "与已确认的员工聊天，并在仪表板中管理一切事务。",
+    "intro.employerStep5": "关于付款：薪资会提前预留，并在您确认工时后发放，让员工在到岗前就能看到这笔钱是真实的。",
     "intro.helpHint": "您可随时在账户菜单的「帮助」中再次查看此内容。",
     "intro.getStartedBtn": "开始使用",
     "toast.backAgainToExit": "再滑动一次以退出",
@@ -7126,13 +7129,44 @@ const MonthlyEarningsBarChart = ({ months, truncated, isMobile, t }) => {
 // sequence and existing verification tiers (KYC, SSM) rather than
 // fabricated stats or testimonials, since those are real, checkable claims
 // this early rather than unverifiable social proof.
+// One collapsible section on the landing page. The trust and payment content
+// is the trust proposition and is not deleted -- a worker who has been stiffed
+// before WILL open it -- but showing all of it to someone still deciding
+// whether to look is what made this page 638 words before the first tap.
+const LandingSection = ({ id, title, subtitle, openId, onToggle, children }) => {
+  const open = openId === id;
+  return (
+    <div style={{ borderTop: `1px solid ${BRAND.border}` }}>
+      <button
+        onClick={() => onToggle(open ? null : id)}
+        aria-expanded={open}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          gap: 12, padding: "16px 0", background: "none", border: "none", cursor: "pointer",
+          fontFamily: "inherit", textAlign: "left",
+        }}
+      >
+        <span style={{ minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 14.5, fontWeight: 700, color: BRAND.text }}>{title}</span>
+          {subtitle && <span style={{ display: "block", fontSize: 12.5, color: BRAND.textMuted, marginTop: 2 }}>{subtitle}</span>}
+        </span>
+        <span aria-hidden="true" style={{ fontSize: 13, color: BRAND.textMuted, flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div style={{ paddingBottom: 20 }}>{children}</div>}
+    </div>
+  );
+};
+
 const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   const sectionPad = isMobile ? "20px 16px" : "48px 32px";
+  // One section open at a time: this sits directly above the real shift list,
+  // and several expanded blocks would push the shifts -- the most persuasive
+  // thing on the page -- off the screen again.
+  const [openSection, setOpenSection] = useState(null);
   // primaryOnSurface, not primary: every landing eyebrow is 11px primary text
   // sitting on the page, which measures 3.43:1 in dark mode. 11px/800 is not
   // WCAG large text, so 4.5 applies.
   const eyebrowStyle = { fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: BRAND.primaryOnSurface, marginBottom: 10 };
-  const headingStyle = { fontSize: isMobile ? 22 : 28, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.01em", margin: "0 0 10px" };
 
   const trustItems = [
     { icon: "🪪", color: BRAND.primary, title: t("landing.trustIdTitle"), body: t("landing.trustIdBody") },
@@ -7199,31 +7233,18 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
         </div>
       </div>
 
-      {/* Trust stamps */}
-      <div style={{ padding: sectionPad, paddingTop: 0 }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ ...eyebrowStyle, textAlign: "center" }}>{t("landing.trustEyebrow")}</div>
-          <div style={{ ...headingStyle, textAlign: "center" }}>{t("landing.trustHeading")}</div>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12 }}>
-          {trustItems.map(item => (
-            <div key={item.title} style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "16px 12px", textAlign: "center" }}>
-              <div style={{ width: 42, height: 42, margin: "0 auto 10px", borderRadius: "50%", border: `2px solid ${item.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{item.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: 12.5, color: BRAND.text, marginBottom: 4 }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5 }}>{item.body}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Where the money goes */}
-      <div style={{ padding: sectionPad, background: BRAND.grayLight }}>
-        <div style={{ maxWidth: 560, marginBottom: 24 }}>
-          <div style={eyebrowStyle}>{t("landing.moneyEyebrow")}</div>
-          <div style={headingStyle}>{t("landing.moneyHeading")}</div>
-          <p style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: 1.6, margin: 0 }}>{t("landing.moneySubhead")}</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)", gap: 16 }}>
+      {/* Everything below the fold is collapsed by default. The page's job is
+          to get someone to the shifts; the detail is here for whoever wants it,
+          one tap away, rather than in front of everyone who does not. */}
+      <div style={{ padding: isMobile ? "0 16px 8px" : "0 32px 16px" }}>
+        <LandingSection
+          id="pay"
+          title={t("landing.sectionPayTitle")}
+          subtitle={t("landing.sectionPaySubtitle")}
+          openId={openSection}
+          onToggle={setOpenSection}
+        >
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)", gap: 16 }}>
           {moneySteps.map((step, i) => (
             <div key={step.title}>
               <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: BRAND.text, marginBottom: 10 }}>{i + 1}</div>
@@ -7233,27 +7254,64 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
             </div>
           ))}
         </div>
-      </div>
+        </LandingSection>
 
-      {/* How it works, for workers / for employers */}
-      <div style={{ padding: sectionPad }}>
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 28 : 36 }}>
-          {[
-            { eyebrow: t("landing.howWorkerEyebrow"), heading: t("landing.howWorkerHeading"), steps: howSteps("worker") },
-            { eyebrow: t("landing.howEmployerEyebrow"), heading: t("landing.howEmployerHeading"), steps: howSteps("employer") },
-          ].map(col => (
-            <div key={col.heading}>
-              <div style={eyebrowStyle}>{col.eyebrow}</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 800, color: BRAND.text, marginBottom: 12 }}>{col.heading}</div>
-              {col.steps.map((step, i) => (
+        <LandingSection
+          id="trust"
+          title={t("landing.sectionTrustTitle")}
+          subtitle={t("landing.sectionTrustSubtitle")}
+          openId={openSection}
+          onToggle={setOpenSection}
+        >
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12 }}>
+          {trustItems.map(item => (
+            <div key={item.title} style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "16px 12px", textAlign: "center" }}>
+              <div style={{ width: 42, height: 42, margin: "0 auto 10px", borderRadius: "50%", border: `2px solid ${item.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{item.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 12.5, color: BRAND.text, marginBottom: 4 }}>{item.title}</div>
+              <div style={{ fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5 }}>{item.body}</div>
+            </div>
+          ))}
+        </div>
+        </LandingSection>
+
+        <LandingSection
+          id="worker"
+          title={t("landing.sectionWorkerTitle")}
+          subtitle={t("landing.sectionWorkerSubtitle")}
+          openId={openSection}
+          onToggle={setOpenSection}
+        >
+          <div>
+              {howSteps("worker").map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i > 0 ? `1px solid ${BRAND.border}` : "none" }}>
                   <span style={{ fontWeight: 800, fontSize: 12.5, color: BRAND.textMuted, flexShrink: 0, width: 18 }}>{i + 1}</span>
                   <span style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.55 }}>{step}</span>
                 </div>
               ))}
             </div>
-          ))}
-        </div>
+        </LandingSection>
+
+        {/* Employer content moved out of the default view entirely: 187 words
+            addressed to a different reader than the one this page is for. */}
+        <LandingSection
+          id="employer"
+          title={t("landing.sectionEmployerTitle")}
+          subtitle={t("landing.sectionEmployerSubtitle")}
+          openId={openSection}
+          onToggle={setOpenSection}
+        >
+          <div>
+              {howSteps("employer").map((step, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i > 0 ? `1px solid ${BRAND.border}` : "none" }}>
+                  <span style={{ fontWeight: 800, fontSize: 12.5, color: BRAND.textMuted, flexShrink: 0, width: 18 }}>{i + 1}</span>
+                  <span style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.55 }}>{step}</span>
+                </div>
+              ))}
+            </div>
+          <Btn variant="secondary" onClick={() => onRequireAuth("register", "employer")} style={{ marginTop: 14 }}>
+            {t("landing.ctaPostShift")}
+          </Btn>
+        </LandingSection>
       </div>
     </div>
   );
@@ -7478,20 +7536,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Set by the "View shift" shortcut in a chat room; cleared once the detail
   // view is open so the same shift can be reopened later.
   const [openShiftId, setOpenShiftId] = useState(null);
-  // Who is in the room. Loaded from shift_chat_members (20260823c), not derived
-  // client-side: a worker can only see their OWN application row, so co-workers
-  // are invisible to them by design -- applications carries wage_ask, which
-  // competing bidders must not be able to read.
-  const [chatMembers, setChatMembers] = useState(null);
-  const [chatMembersOpen, setChatMembersOpen] = useState(false);
-  useEffect(() => {
-    if (!activeChatShift?.shiftId) { setChatMembers(null); setChatMembersOpen(false); return undefined; }
-    let active = true;
-    setChatMembers(null);
-    supabase.rpc('shift_chat_members', { p_shift: activeChatShift.shiftId })
-      .then(({ data, error }) => { if (active) setChatMembers(error ? [] : (data || [])); });
-    return () => { active = false; };
-  }, [activeChatShift?.shiftId]);
   const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
   const [filterCity, setFilterCity] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -7506,6 +7550,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [filterTimeEnd, setFilterTimeEnd] = useState('');
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
+  // Who is in the room. Loaded from shift_chat_members (20260823c), not derived
+  // client-side: a worker can only see their OWN application row, so co-workers
+  // are invisible to them by design -- applications carries wage_ask, which
+  // competing bidders must not be able to read.
+  const [chatMembers, setChatMembers] = useState(null);
+  const [chatMembersOpen, setChatMembersOpen] = useState(false);
+  useEffect(() => {
+    if (!activeChatShift?.shiftId) { setChatMembers(null); setChatMembersOpen(false); return undefined; }
+    let active = true;
+    setChatMembers(null);
+    supabase.rpc('shift_chat_members', { p_shift: activeChatShift.shiftId })
+      .then(({ data, error }) => { if (active) setChatMembers(error ? [] : (data || [])); });
+    return () => { active = false; };
+  }, [activeChatShift?.shiftId]);
   const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   const [chatMessages, setChatMessages] = useState([]);
   // Where the "new messages" divider goes: the read-marker as it stood the
@@ -11007,8 +11065,6 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
-  // Set by the chat room's "View shift" shortcut; see the deep-link loader.
-  const [openShiftId, setOpenShiftId] = useState(null);
   // Who is in the room. Loaded from shift_chat_members (20260823c), not derived
   // client-side: a worker can only see their OWN application row, so co-workers
   // are invisible to them by design -- applications carries wage_ask, which
@@ -11023,6 +11079,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       .then(({ data, error }) => { if (active) setChatMembers(error ? [] : (data || [])); });
     return () => { active = false; };
   }, [activeChatShift?.shiftId]);
+  // Set by the chat room's "View shift" shortcut; see the deep-link loader.
+  const [openShiftId, setOpenShiftId] = useState(null);
   const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   // Same control as the worker console. An employer waiting on a bid or a
   // cancellation needs the phone to buzz just as much as a worker does, and
@@ -16031,9 +16089,12 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
 const WelcomeIntroModal = ({ open, role, saving, onDone }) => {
   const { t } = useLanguage();
   if (!open) return null;
+  // Step 5 carries the payment-safety point that used to be a 129-word block on
+  // the landing page. It belongs here: it is the thing a new worker most needs
+  // and is least able to take in before they have seen a single shift.
   const steps = role === "employer"
-    ? [t("intro.employerStep1"), t("intro.employerStep2"), t("intro.employerStep3"), t("intro.employerStep4")]
-    : [t("intro.workerStep1"), t("intro.workerStep2"), t("intro.workerStep3"), t("intro.workerStep4")];
+    ? [t("intro.employerStep1"), t("intro.employerStep2"), t("intro.employerStep3"), t("intro.employerStep4"), t("intro.employerStep5")]
+    : [t("intro.workerStep1"), t("intro.workerStep2"), t("intro.workerStep3"), t("intro.workerStep4"), t("intro.workerStep5")];
   return createPortal(
     <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxSizing: "border-box" }}>
