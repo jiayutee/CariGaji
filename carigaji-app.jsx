@@ -172,7 +172,12 @@ const SHIFT_LANGUAGES = ["Bahasa Melayu", "English", "Mandarin", "Tamil", "Other
 // Employer-side commission: worker take-home is always wage_min/wage_max as
 // bid, the employer pays that wage plus this % on top. Owner-decided fee
 // model (2026-08-03) — worker payout math must never subtract this.
-const PLATFORM_FEE_PCT = 0.15;
+// Fallback only. The rate that actually bills lives in Postgres
+// (platform_fee_pct(), 20260824b) and is snapshotted onto every shift at post
+// time, so raising it prices new shifts without touching agreed ones. This
+// constant is what we draw with until that value arrives, and must match the
+// migration's launch rate: zero, to get employers posting.
+const PLATFORM_FEE_PCT = 0;
 
 // Worker Sedcard qualifications — reuses the same real-world labels already
 // defined for the employer's (currently unwired) "required documents"
@@ -1269,6 +1274,7 @@ const TRANSLATIONS = {
     "employer.dressCodeNone": "None",
     "employer.estimatedReserveLabel": "Estimated amount to reserve",
     "employer.estimatedReserveFormula": "wage_max × headcount × shift hours + {feePct}% platform fee",
+    "employer.estimatedReserveFormulaNoFee": "wage_max × headcount × shift hours — no platform fee during launch",
     "employer.tagline": "Employer Console",
     "employer.openMenu": "Open menu",
     "employer.paidToWorkers": "Paid to Workers",
@@ -1301,6 +1307,7 @@ const TRANSLATIONS = {
     "employer.statSlotsFilled": "Slots filled",
     "employer.statEstBudget": "Est. budget (max)",
     "employer.statEstBudgetTooltip": "Max hourly wage × total shift hours × headcount, plus {feePct}% platform fee. Your actual cost may be lower if accepted bids are below max wage.",
+    "employer.statEstBudgetTooltipNoFee": "Max hourly wage × total shift hours × headcount. No platform fee on this shift. Your actual cost may be lower if accepted bids are below max wage.",
     "employer.listCardEstBudget": "RM{amount} est. budget",
     "employer.statAvgBid": "Avg bid",
     "employer.statAvgBidTooltip": "Average of all bids submitted by workers for this shift so far.",
@@ -1448,6 +1455,7 @@ const TRANSLATIONS = {
     "employer.walletKind.release": "Returned",
     "employer.walletKind.capture": "Paid to worker",
     "employer.walletKind.refund": "Refunded",
+    "employer.walletKind.fee": "Platform fee",
     "employer.verificationLabel": "Verification",
     "employer.outgoingObligationsTitle": "Outgoing Salary Obligations",
     "employer.noPayoutObligations": "No payout obligations yet for this employer account.",
@@ -2435,6 +2443,7 @@ const TRANSLATIONS = {
     "employer.dressCodeNone": "Tiada",
     "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
     "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × jam syif + {feePct}% yuran platform",
+    "employer.estimatedReserveFormulaNoFee": "gaji_maks × bilangan pekerja × jam syif — tiada yuran platform semasa pelancaran",
     "employer.tagline": "Konsol Majikan",
     "employer.openMenu": "Buka menu",
     "employer.paidToWorkers": "Dibayar kepada Pekerja",
@@ -2467,6 +2476,7 @@ const TRANSLATIONS = {
     "employer.statSlotsFilled": "Slot diisi",
     "employer.statEstBudget": "Anggaran bajet (maks)",
     "employer.statEstBudgetTooltip": "Gaji sejam maksimum × jumlah jam syif × bilangan slot, ditambah yuran platform {feePct}%. Kos sebenar mungkin lebih rendah jika tawaran diterima di bawah gaji maksimum.",
+    "employer.statEstBudgetTooltipNoFee": "Gaji sejam maksimum × jumlah jam syif × bilangan slot. Tiada yuran platform untuk syif ini. Kos sebenar mungkin lebih rendah jika tawaran diterima di bawah gaji maksimum.",
     "employer.listCardEstBudget": "RM{amount} anggaran bajet",
     "employer.statAvgBid": "Purata tawaran",
     "employer.statAvgBidTooltip": "Purata semua tawaran yang dihantar oleh pekerja untuk syif ini setakat ini.",
@@ -2614,6 +2624,7 @@ const TRANSLATIONS = {
     "employer.walletKind.release": "Dikembalikan",
     "employer.walletKind.capture": "Dibayar kepada pekerja",
     "employer.walletKind.refund": "Bayaran balik",
+    "employer.walletKind.fee": "Yuran platform",
     "employer.verificationLabel": "Pengesahan",
     "employer.outgoingObligationsTitle": "Tanggungan Gaji Keluar",
     "employer.noPayoutObligations": "Belum ada tanggungan bayaran untuk akaun majikan ini.",
@@ -3600,6 +3611,7 @@ const TRANSLATIONS = {
     "employer.dressCodeNone": "无",
     "employer.estimatedReserveLabel": "预估需预留金额",
     "employer.estimatedReserveFormula": "最高薪资 × 所需人数 × 班次时数 + {feePct}% 平台服务费",
+    "employer.estimatedReserveFormulaNoFee": "最高薪资 × 所需人数 × 班次时数 — 开跑期间免收平台服务费",
     "employer.tagline": "雇主控制台",
     "employer.openMenu": "打开菜单",
     "employer.paidToWorkers": "已支付给员工",
@@ -3632,6 +3644,7 @@ const TRANSLATIONS = {
     "employer.statSlotsFilled": "已填补名额",
     "employer.statEstBudget": "预估预算（最高）",
     "employer.statEstBudgetTooltip": "最高时薪 × 总班次时数 × 所需人数，另加 {feePct}% 平台服务费。若已接受的出价低于最高薪资，您的实际成本可能更低。",
+    "employer.statEstBudgetTooltipNoFee": "最高时薪 × 总班次时数 × 所需人数。此班次不收平台服务费。若已接受的出价低于最高薪资，您的实际成本可能更低。",
     "employer.listCardEstBudget": "预估预算 RM{amount}",
     "employer.statAvgBid": "平均出价",
     "employer.statAvgBidTooltip": "此班次目前所有员工出价的平均值。",
@@ -3779,6 +3792,7 @@ const TRANSLATIONS = {
     "employer.walletKind.release": "已退回",
     "employer.walletKind.capture": "已支付给员工",
     "employer.walletKind.refund": "已退款",
+    "employer.walletKind.fee": "平台服务费",
     "employer.verificationLabel": "验证状态",
     "employer.outgoingObligationsTitle": "待支付薪资义务",
     "employer.noPayoutObligations": "此雇主账户目前尚无待发放的薪资义务。",
@@ -4151,6 +4165,7 @@ const walletKindColor = (kind) => (
   kind === 'topup' || kind === 'refund' || kind === 'release' ? 'green'
     : kind === 'hold' ? 'amber'
     : kind === 'capture' ? 'blue'
+    : kind === 'fee' ? 'primary'
     : 'gray'
 );
 
@@ -11296,6 +11311,20 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // hamburger button; desktop (compact=false) is unaffected.
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // The rate a NEW shift would be posted at, read from the database rather
+  // than from the constant above, so ending the launch promotion is one SQL
+  // change with no deploy. Shifts already posted are priced from their own
+  // snapshot (`feePct`), never from this.
+  const [platformFeePct, setPlatformFeePct] = useState(PLATFORM_FEE_PCT);
+  useEffect(() => {
+    let active = true;
+    supabase.rpc('platform_fee_pct').then(({ data, error }) => {
+      if (!active || error || data == null) return;
+      setPlatformFeePct(Number(data));
+    });
+    return () => { active = false; };
+  }, []);
+
   // Exposed via useCallback (not just an effect-local function) so the
   // post/edit-shift handler can trigger a refetch after a successful publish
   // — previously the list only loaded on [user] change, so a freshly
@@ -11304,7 +11333,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!user) return setLiveEmployerShifts(null);
     const { data, error } = await supabase
       .from('shifts')
-      .select('id, title, category, location, dress_code, transport_allowance, description, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at')
+      .select('id, title, category, location, dress_code, transport_allowance, description, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at, platform_fee_pct')
       .eq('employer_id', user.id)
       .order('start_at', { ascending: false });
     // Same fix as the worker My Bids loader: empty (not null) on error so
@@ -11327,7 +11356,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       // across every occurrence day, plus the platform commission the
       // employer pays on top (escrow/prepayment isn't built yet, so this is
       // an estimate, not money actually held).
-      estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + PLATFORM_FEE_PCT)),
+      estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + Number(s.platform_fee_pct ?? PLATFORM_FEE_PCT))),
+      feePct: Number(s.platform_fee_pct ?? PLATFORM_FEE_PCT),
       category: s.category,
       languageRequirements: s.language_requirements || [],
       location: displayProtectedText(s.location || ''),
@@ -11348,7 +11378,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at')
+      .select('id, title, category, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at, platform_fee_pct')
       .eq('id', wantedShiftId)
       .eq('employer_id', user.id)
       .maybeSingle()
@@ -11366,7 +11396,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           filled: s.filled_count ?? 0,
           applicants: 0,
           status: s.status,
-          estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + PLATFORM_FEE_PCT)),
+          estBudget: Math.round(Number(s.wage_max ?? 0) * totalOccurrenceHours(s.occurrences ?? []) * (s.headcount ?? 1) * (1 + Number(s.platform_fee_pct ?? PLATFORM_FEE_PCT))),
+      feePct: Number(s.platform_fee_pct ?? PLATFORM_FEE_PCT),
           category: s.category,
           languageRequirements: s.language_requirements || [],
           applicationsCloseAt: s.applications_close_at,
@@ -12687,7 +12718,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 top-left on mobile, leftmost on desktop -- which is the strongest
                 position in both layouts, rather than the far edge. */}
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
-              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={t("employer.statEstBudgetTooltip").replace("{feePct}", PLATFORM_FEE_PCT * 100)} color={BRAND.primary} />
+              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={(selectedShift.feePct ?? platformFeePct) > 0 ? t("employer.statEstBudgetTooltip").replace("{feePct}", +((selectedShift.feePct ?? platformFeePct) * 100).toFixed(2)) : t("employer.statEstBudgetTooltipNoFee")} color={BRAND.primary} />
               <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} tooltip={t("employer.statAvgBidTooltip")} color={BRAND.accent} />
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
@@ -13120,12 +13151,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     // commitment. Each occurrence's own overnight handling
                     // (end time past midnight) is done inside occurrenceHours.
                     const totalHours = totalOccurrenceHours(form.occurrences);
-                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours * (1 + PLATFORM_FEE_PCT);
+                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours * (1 + platformFeePct);
                     return (
                       <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
                         <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{reserve.toFixed(0)}</div>
-                        <div style={{ fontSize: 11, color: BRAND.amber }}>{t("employer.estimatedReserveFormula").replace("{feePct}", PLATFORM_FEE_PCT * 100)}</div>
+                        <div style={{ fontSize: 11, color: BRAND.amber }}>{platformFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(platformFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
                       </div>
                     );
                   })()}
