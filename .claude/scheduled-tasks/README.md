@@ -41,7 +41,21 @@ reminders from re-sending, so they must stay writable by the task itself.
 This repository is public. These files reference credentials only by variable
 name (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, read from `.env` at run time) —
 no token, chat id, password or key appears in them, and it must stay that way.
-They do contain Notion page and data-source identifiers. Those are not
-credentials — opening them still requires access to the workspace — but they do
-reveal the internal structure of the planning workspace. Keep that in mind
-before pasting anything new into a runbook.
+Notion page and data-source ids were removed on 2026-08-23 and now live in
+`.env` as `NOTION_DAILY_LOG_PAGE`, `NOTION_DAILY_LOG_DS`, `NOTION_BACKLOG_PAGE`,
+`NOTION_BACKLOG_DS` and `NOTION_ROADMAP_PAGE`. `.env.example` lists the names
+with empty values and explains where to find each id. The runbooks name the
+variable and never the value, exactly as they already did for the Telegram
+credentials.
+
+**The git history still contains them.** Removing them from HEAD does not remove
+them from the commits before this one; purging that needs a history rewrite and
+a force-push, which has not been done. They are not credentials, so the
+practical exposure is that someone can see the planning workspace has a Daily
+Log, a Feature Backlog and a Launch Roadmap — but if that matters, the rewrite
+is the only thing that fixes it.
+
+One identifier deliberately stays literal: the `38adf627-…` inside the Notion
+MCP tool names. That is a local connector id, not a workspace pointer — it has
+to stay literal for a tool call to resolve, and it reveals nothing about the
+workspace.

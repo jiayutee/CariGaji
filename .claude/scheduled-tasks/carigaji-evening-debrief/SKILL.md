@@ -17,11 +17,26 @@ and use those values below (shown as $TELEGRAM_BOT_TOKEN / $TELEGRAM_CHAT_ID)
 — this is the single source of truth, do not hardcode the literal token here.
 
 ## NOTION RESOURCES
+These are ids, not credentials -- opening any of them still requires access to
+the workspace -- but they describe the planning workspace's structure, and this
+runbook lives in a PUBLIC repository. So they follow the same rule as the
+Telegram values above: the runbook names the variable, never the value. Read
+them at the start of the cycle with:
+
+  grep -E '^NOTION_(DAILY_LOG|BACKLOG|ROADMAP)_' /Users/jiayutee/Dev/Projects/CariGaji/.env
+
+and substitute below. If any is missing, STOP and tell the owner which one --
+do not guess an id, and do not paste a literal id back into this file.
+
+(The `38adf627-...` inside the Notion tool names is a different thing: a local
+MCP connector id, not a workspace pointer. It has to stay literal for the tool
+call to resolve, and it reveals nothing about the workspace.)
+
+Feature Backlog DB: https://app.notion.com/p/$NOTION_BACKLOG_PAGE
+Feature Backlog data source: collection://$NOTION_BACKLOG_DS
 Daily Log DB: https://app.notion.com/p/$NOTION_DAILY_LOG_PAGE
 Daily Log data source: collection://$NOTION_DAILY_LOG_DS
-Feature Backlog: https://app.notion.com/p/$NOTION_BACKLOG_PAGE
 Launch Roadmap: https://app.notion.com/p/$NOTION_ROADMAP_PAGE
-
 ---
 
 ## STEP 1 — Read today's Daily Log entry

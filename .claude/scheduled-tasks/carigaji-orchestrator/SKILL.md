@@ -27,7 +27,21 @@ tools at all (this can still happen in some headless contexts):
   Auth header: "Authorization: Bearer $NOTION_TOKEN" (loaded from .env by the runner)
   If $NOTION_TOKEN is also empty, STOP and Telegram the owner — do not fabricate.
 
-Database IDs:
+Database IDs. These are ids, not credentials -- opening any of them still
+requires access to the workspace -- but they describe the planning workspace's
+structure, and this runbook lives in a PUBLIC repository. Same rule as
+$NOTION_TOKEN above: the runbook names the variable, never the value. Read them
+with:
+
+  grep -E '^NOTION_(DAILY_LOG|BACKLOG|ROADMAP)_' /Users/jiayutee/Dev/Projects/CariGaji/.env
+
+If any is missing, STOP and tell the owner which one. Do not guess an id, and
+do not paste a literal id back into this file.
+
+(The `38adf627-...` inside the Notion tool names is a different thing: a local
+MCP connector id, not a workspace pointer. It stays literal so the tool call
+resolves, and it reveals nothing about the workspace.)
+
 - Daily Log DB:     $NOTION_DAILY_LOG_PAGE (data source collection://$NOTION_DAILY_LOG_DS)
 - Feature Backlog:  $NOTION_BACKLOG_PAGE (data source collection://$NOTION_BACKLOG_DS)
 - Launch Roadmap:   $NOTION_ROADMAP_PAGE
