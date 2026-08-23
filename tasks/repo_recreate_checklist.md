@@ -1,3 +1,10 @@
+> **DECISION, 2026-08-23: not doing this.** The owner chose to leave the old
+> objects in place. They are workspace pointers, not credentials; nothing needs
+> rotating; the old SHAs are referenced nowhere public and there are no forks.
+> A pre-commit guard now blocks any future commit that would reintroduce one,
+> so the exposure is frozen rather than growing. Kept for reference in case
+> that judgement changes.
+
 # Removing the old objects without contacting GitHub Support
 
 A force-push moves the branch; it does not delete the objects behind it.
