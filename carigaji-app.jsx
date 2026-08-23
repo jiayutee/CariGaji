@@ -11746,7 +11746,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -11759,6 +11759,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           verified: a.worker?.kyc_level === 'Standard' || a.worker?.kyc_level === 'Advanced',
           reliability: a.worker?.reliability_score ?? 0,
           rating: a.worker?.rating ?? 0,
+          avatarUrl: a.worker?.avatar_url ?? null,
           bio: a.worker?.bio ?? "",
           languagesSpoken: a.worker?.languages_spoken ?? [],
           qualifications: a.worker?.qualifications ?? [],
@@ -12744,7 +12745,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       )}
                       <td style={{ padding: "12px 14px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => setWorkerProfileModal(a)} title={t("employer.viewWorkerProfileHint")}>
-                          <Avatar name={a.name} size={28} color={BRAND.blue} />
+                          <Avatar name={a.name} size={28} color={BRAND.blue} src={getAvatarUrl(a.avatarUrl)} />
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                               <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primary, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
@@ -14086,7 +14087,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setWorkerProfileModal(null)}>
           <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-              <Avatar name={workerProfileModal.name} size={48} color={BRAND.blue} />
+              <Avatar name={workerProfileModal.name} size={48} color={BRAND.blue} src={getAvatarUrl(workerProfileModal.avatarUrl)} />
               <div>
                 <div style={{ fontSize:17, fontWeight:800, color: BRAND.text }}>{workerProfileModal.name}</div>
                 <Badge color={workerProfileModal.kyc === "Advanced" ? "teal" : workerProfileModal.kyc === "Standard" ? "blue" : "gray"} size="xs">KYC: {workerProfileModal.kyc}</Badge>
@@ -16574,7 +16575,7 @@ export default function CariGaji() {
   useEffect(() => {
     if (!user) { setUserRole(null); setTncAcceptedAt(undefined); setDetailsCompletedAt(undefined); setIntroSeenAt(undefined); setProfileKycLevel(null); return; }
     let active = true;
-    supabase.from('profiles').select('role, tnc_accepted_at, full_name, details_completed_at, intro_seen_at, kyc_level').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('role, tnc_accepted_at, full_name, details_completed_at, intro_seen_at, kyc_level, avatar_url').eq('id', user.id).maybeSingle()
       .then(({ data }) => {
         if (!active) return;
         // Email-confirmation signups have no profiles row until the details
@@ -16616,6 +16617,21 @@ export default function CariGaji() {
           const metaName = user.user_metadata?.full_name || user.user_metadata?.name;
           if (metaName) {
             supabase.from('profiles').upsert({ id: user.id, full_name: metaName }, { onConflict: 'id' });
+          }
+        }
+
+        // Same story for the photo, and the same blast radius: Google and
+        // Facebook hand us a picture URL at sign-in, but it lands only in
+        // auth metadata, which no other user can read. `profiles.avatar_url`
+        // is the ONLY avatar source anyone else sees, so an OAuth account
+        // shows its photo to itself and initials to everybody else until
+        // this mirrors it across. (Google puts it in avatar_url, Facebook in
+        // picture; both are absolute https URLs, which getAvatarUrl passes
+        // through untouched rather than treating as a storage path.)
+        if (!data?.avatar_url) {
+          const metaAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+          if (metaAvatar) {
+            supabase.from('profiles').upsert({ id: user.id, avatar_url: metaAvatar }, { onConflict: 'id' });
           }
         }
       });
