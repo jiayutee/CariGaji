@@ -37,22 +37,40 @@ notifications that appear to come from CariGaji. It never goes in the repo.
 > If you ever regenerate the pair, **every existing subscription stops working**
 > and every user has to turn notifications on again. Generate once, keep it.
 
+### The third value is not generated — you write it
+
+`npx web-push generate-vapid-keys` prints two keys and nothing else.
+`VAPID_SUBJECT` is a contact address for you, which the VAPID spec requires so
+the push services (Google, Mozilla) can reach the sender if the notifications
+cause a problem — abuse reports, rate limiting. Nobody contacts you in normal
+operation; it is an accountability field, not a feature.
+
+It must be a `mailto:` or `https:` URI:
+
+    VAPID_SUBJECT=mailto:you@example.com
+
+Once the domain exists, prefer a role address (`mailto:support@carigaji.my`)
+over a personal one — it survives the project changing hands. Unlike the keys,
+changing the subject later is harmless: it does not invalidate subscriptions.
+
 ---
 
 ## 2. Give the private key to Supabase
 
 ```bash
-supabase secrets set VAPID_PUBLIC_KEY=BEl62iUYgUivxIkv...
-supabase secrets set VAPID_PRIVATE_KEY=UUxI4O8-FbRouAevSmBQ...
-supabase secrets set VAPID_SUBJECT=mailto:your-email@example.com
+supabase secrets set VAPID_PUBLIC_KEY=BEl62iUYgUivxIkv...      # from the command
+supabase secrets set VAPID_PRIVATE_KEY=UUxI4O8-FbRouAevSmBQ... # from the command
+supabase secrets set VAPID_SUBJECT=mailto:you@example.com      # your choice
 supabase functions deploy send-push
 ```
 
-`VAPID_SUBJECT` is a contact address the push services use if something goes
-wrong with your sending. Any mailto: or https: URL you actually read.
+**Deploy before creating the webhook.** The webhook form can only select a
+function that already exists on Supabase, and `send-push` lives only in this
+repo until the deploy command runs. `supabase functions list` shows what is
+actually deployed.
 
-No Supabase CLI? Dashboard → Edge Functions → `send-push` → Secrets does the
-same thing, and the function can be deployed by pasting
+No Supabase CLI? Dashboard → Edge Functions → Secrets does the same thing, and
+a function can be created there by pasting
 `supabase/functions/send-push/index.ts`.
 
 ---
