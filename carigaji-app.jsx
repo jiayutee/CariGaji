@@ -526,6 +526,12 @@ const TRANSLATIONS = {
     "chat.previewYou": "You",
     "chat.newMessagesDivider": "New messages",
     "chat.viewShiftBtn": "View shift",
+    "chat.membersCount": "{n} in this chat",
+    "chat.membersTitle": "In this chat",
+    "chat.membersEmpty": "Nobody else here yet.",
+    "chat.membersYou": "(you)",
+    "chat.roleEmployer": "Employer",
+    "chat.roleWorker": "Worker",
     "chat.previewSomeone": "Someone",
     "chat.dayYesterday": "Yesterday",
     "chat.unreadA11y": "{n} conversation(s) with new messages",
@@ -1693,6 +1699,12 @@ const TRANSLATIONS = {
     "chat.previewYou": "Anda",
     "chat.newMessagesDivider": "Mesej baharu",
     "chat.viewShiftBtn": "Lihat syif",
+    "chat.membersCount": "{n} dalam sembang ini",
+    "chat.membersTitle": "Dalam sembang ini",
+    "chat.membersEmpty": "Belum ada orang lain di sini.",
+    "chat.membersYou": "(anda)",
+    "chat.roleEmployer": "Majikan",
+    "chat.roleWorker": "Pekerja",
     "chat.previewSomeone": "Seseorang",
     "chat.dayYesterday": "Semalam",
     "chat.unreadA11y": "{n} perbualan dengan mesej baharu",
@@ -2852,6 +2864,12 @@ const TRANSLATIONS = {
     "chat.previewYou": "你",
     "chat.newMessagesDivider": "新消息",
     "chat.viewShiftBtn": "查看班次",
+    "chat.membersCount": "{n} 人在此聊天中",
+    "chat.membersTitle": "聊天成员",
+    "chat.membersEmpty": "目前还没有其他人。",
+    "chat.membersYou": "（你）",
+    "chat.roleEmployer": "雇主",
+    "chat.roleWorker": "员工",
     "chat.previewSomeone": "某人",
     "chat.dayYesterday": "昨天",
     "chat.unreadA11y": "{n} 个对话有新消息",
@@ -7460,6 +7478,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Set by the "View shift" shortcut in a chat room; cleared once the detail
   // view is open so the same shift can be reopened later.
   const [openShiftId, setOpenShiftId] = useState(null);
+  // Who is in the room. Loaded from shift_chat_members (20260823c), not derived
+  // client-side: a worker can only see their OWN application row, so co-workers
+  // are invisible to them by design -- applications carries wage_ask, which
+  // competing bidders must not be able to read.
+  const [chatMembers, setChatMembers] = useState(null);
+  const [chatMembersOpen, setChatMembersOpen] = useState(false);
+  useEffect(() => {
+    if (!activeChatShift?.shiftId) { setChatMembers(null); setChatMembersOpen(false); return undefined; }
+    let active = true;
+    setChatMembers(null);
+    supabase.rpc('shift_chat_members', { p_shift: activeChatShift.shiftId })
+      .then(({ data, error }) => { if (active) setChatMembers(error ? [] : (data || [])); });
+    return () => { active = false; };
+  }, [activeChatShift?.shiftId]);
   const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
   const [filterCity, setFilterCity] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -9861,7 +9893,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
                   <div style={{minWidth:0, flex:1}}>
                     <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
-                    <div style={{fontSize:12, color:BRAND.textMuted}}>{activeChatShift.otherUserLabel}</div>
+                    {/* The names are the affordance -- tapping them says who is
+                        actually in the room. A shift room can hold several
+                        workers, and the header only ever showed a truncated
+                        join of their names. */}
+                    <button
+                      onClick={() => setChatMembersOpen(o => !o)}
+                      aria-expanded={chatMembersOpen}
+                      style={{
+                        border:'none', background:'none', padding:0, cursor:'pointer', fontFamily:'inherit',
+                        fontSize:12, color:BRAND.primaryOnSurface, textAlign:'left', maxWidth:'100%',
+                        overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                      }}
+                    >
+                      {chatMembers === null
+                        ? activeChatShift.otherUserLabel
+                        : t("chat.membersCount", { n: chatMembers.length })} ▾
+                    </button>
                   </div>
                   {/* The conversation is about a specific shift, and half of
                       what gets asked in it ("what time again?", "where?") is
@@ -9871,6 +9919,31 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     {t("chat.viewShiftBtn")}
                   </Btn>
                 </div>
+                {chatMembersOpen && (
+                  <div style={{
+                    border:`1px solid ${BRAND.border}`, borderRadius:10, background:BRAND.surface,
+                    padding:'8px 4px', marginBottom:12, boxShadow:`0 6px 20px ${BRAND.shadow}`,
+                  }}>
+                    <div style={{fontSize:11, fontWeight:700, color:BRAND.textMuted, padding:'2px 12px 6px'}}>
+                      {t("chat.membersTitle")}
+                    </div>
+                    {chatMembers === null ? (
+                      <div style={{fontSize:12.5, color:BRAND.textMuted, padding:'4px 12px'}}>{t("chat.loading")}</div>
+                    ) : chatMembers.length === 0 ? (
+                      <div style={{fontSize:12.5, color:BRAND.textMuted, padding:'4px 12px'}}>{t("chat.membersEmpty")}</div>
+                    ) : chatMembers.map(m => (
+                      <div key={m.user_id} style={{display:'flex', alignItems:'center', gap:10, padding:'6px 12px'}}>
+                        <Avatar name={m.full_name} size={26} color={m.role === 'employer' ? BRAND.primary : BRAND.accent} src={getAvatarUrl(m.avatar_url)} />
+                        <div style={{minWidth:0, flex:1}}>
+                          <div style={{fontSize:13, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                            {m.full_name}{m.user_id === user?.id && ` ${t("chat.membersYou")}`}
+                          </div>
+                        </div>
+                        <Pill label={t(m.role === 'employer' ? "chat.roleEmployer" : "chat.roleWorker")} color={m.role === 'employer' ? 'blue' : 'green'} />
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
                   {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
                   {chatMessages.map((msg, i) => {
@@ -10936,6 +11009,20 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [activeChatShift, setActiveChatShift] = useState(null);
   // Set by the chat room's "View shift" shortcut; see the deep-link loader.
   const [openShiftId, setOpenShiftId] = useState(null);
+  // Who is in the room. Loaded from shift_chat_members (20260823c), not derived
+  // client-side: a worker can only see their OWN application row, so co-workers
+  // are invisible to them by design -- applications carries wage_ask, which
+  // competing bidders must not be able to read.
+  const [chatMembers, setChatMembers] = useState(null);
+  const [chatMembersOpen, setChatMembersOpen] = useState(false);
+  useEffect(() => {
+    if (!activeChatShift?.shiftId) { setChatMembers(null); setChatMembersOpen(false); return undefined; }
+    let active = true;
+    setChatMembers(null);
+    supabase.rpc('shift_chat_members', { p_shift: activeChatShift.shiftId })
+      .then(({ data, error }) => { if (active) setChatMembers(error ? [] : (data || [])); });
+    return () => { active = false; };
+  }, [activeChatShift?.shiftId]);
   const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   // Same control as the worker console. An employer waiting on a bid or a
   // cancellation needs the phone to buzz just as much as a worker does, and
@@ -13595,7 +13682,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
                   <div style={{minWidth:0, flex:1}}>
                     <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
-                    <div style={{fontSize:12, color:BRAND.textMuted}}>{activeChatShift.otherUserLabel}</div>
+                    {/* The names are the affordance -- tapping them says who is
+                        actually in the room. A shift room can hold several
+                        workers, and the header only ever showed a truncated
+                        join of their names. */}
+                    <button
+                      onClick={() => setChatMembersOpen(o => !o)}
+                      aria-expanded={chatMembersOpen}
+                      style={{
+                        border:'none', background:'none', padding:0, cursor:'pointer', fontFamily:'inherit',
+                        fontSize:12, color:BRAND.primaryOnSurface, textAlign:'left', maxWidth:'100%',
+                        overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
+                      }}
+                    >
+                      {chatMembers === null
+                        ? activeChatShift.otherUserLabel
+                        : t("chat.membersCount", { n: chatMembers.length })} ▾
+                    </button>
                   </div>
                   {/* The conversation is about a specific shift, and half of
                       what gets asked in it ("what time again?", "where?") is
@@ -13605,6 +13708,31 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     {t("chat.viewShiftBtn")}
                   </Btn>
                 </div>
+                {chatMembersOpen && (
+                  <div style={{
+                    border:`1px solid ${BRAND.border}`, borderRadius:10, background:BRAND.surface,
+                    padding:'8px 4px', marginBottom:12, boxShadow:`0 6px 20px ${BRAND.shadow}`,
+                  }}>
+                    <div style={{fontSize:11, fontWeight:700, color:BRAND.textMuted, padding:'2px 12px 6px'}}>
+                      {t("chat.membersTitle")}
+                    </div>
+                    {chatMembers === null ? (
+                      <div style={{fontSize:12.5, color:BRAND.textMuted, padding:'4px 12px'}}>{t("chat.loading")}</div>
+                    ) : chatMembers.length === 0 ? (
+                      <div style={{fontSize:12.5, color:BRAND.textMuted, padding:'4px 12px'}}>{t("chat.membersEmpty")}</div>
+                    ) : chatMembers.map(m => (
+                      <div key={m.user_id} style={{display:'flex', alignItems:'center', gap:10, padding:'6px 12px'}}>
+                        <Avatar name={m.full_name} size={26} color={m.role === 'employer' ? BRAND.primary : BRAND.accent} src={getAvatarUrl(m.avatar_url)} />
+                        <div style={{minWidth:0, flex:1}}>
+                          <div style={{fontSize:13, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                            {m.full_name}{m.user_id === user?.id && ` ${t("chat.membersYou")}`}
+                          </div>
+                        </div>
+                        <Pill label={t(m.role === 'employer' ? "chat.roleEmployer" : "chat.roleWorker")} color={m.role === 'employer' ? 'blue' : 'green'} />
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div style={{flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:8, paddingBottom:8}}>
                   {chatLoading && <div style={{textAlign:'center', color:BRAND.textMuted, padding:16}}>{t("chat.loading")}</div>}
                   {chatMessages.map((msg, i) => {
