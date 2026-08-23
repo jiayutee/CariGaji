@@ -1028,6 +1028,7 @@ const TRANSLATIONS = {
     // Withdrawing from a booking already accepted
     // Launch-phase issue reporting
     "discover.applicationsClosed": "Applications for this shift have closed.",
+    "discover.alreadyApplied": "You have already bid on this shift — see it under My Bids. Each shift takes one bid per worker.",
     "employer.reportNoShowBtn": "Report no-show",
     "employer.noShowReported": "Reported as no-show",
     "employer.noShowTitle": "Report a no-show?",
@@ -2185,6 +2186,7 @@ const TRANSLATIONS = {
     "notif.change.dress_code": "kod pakaian",
     "notif.change.requirements": "keperluan",
     "discover.applicationsClosed": "Permohonan untuk syif ini telah ditutup.",
+    "discover.alreadyApplied": "Anda sudah membida syif ini — lihat di Bidaan Saya. Setiap syif menerima satu bidaan bagi setiap pekerja.",
     "employer.reportNoShowBtn": "Laporkan tidak hadir",
     "employer.noShowReported": "Dilaporkan tidak hadir",
     "employer.noShowTitle": "Laporkan tidak hadir?",
@@ -3340,6 +3342,7 @@ const TRANSLATIONS = {
     "notif.change.dress_code": "着装要求",
     "notif.change.requirements": "要求条件",
     "discover.applicationsClosed": "此班次的申请已截止。",
+    "discover.alreadyApplied": "您已对此班次出价——请在「我的出价」中查看。每个班次每位员工只能出价一次。",
     "employer.reportNoShowBtn": "报告缺席",
     "employer.noShowReported": "已报告缺席",
     "employer.noShowTitle": "报告缺席？",
@@ -8398,11 +8401,22 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       };
     });
   }, [liveShifts, anonEmployerTrust]);
-  // Shifts the worker has an active (still-pending-decision) bid on should not
-  // reappear in Discover — they can only place one bid per shift, and the
-  // shift already lives in My Bids.
+  // Any shift the worker has EVER applied to is hidden from Discover, not just
+  // one with a live bid.
+  //
+  // This used to filter on the active statuses only, letting a shift reappear
+  // once the bid was rejected, withdrawn or expired -- on the assumption the
+  // worker could try again. They cannot: applications carries
+  // `unique (shift_id, worker_id)`, so the second insert dies on a duplicate
+  // key. The list was inviting an action the database refuses, and the worker
+  // got raw Postgres text for their trouble.
+  //
+  // Hiding it is the honest reading of the constraint. If re-bidding after a
+  // withdrawal should be allowed -- arguable, since that was the worker's own
+  // decision -- that is a schema change, not a filter change, and the filter
+  // must not pretend otherwise in the meantime.
   const appliedShiftIds = useMemo(
-    () => new Set((liveApplications ?? []).filter(a => ['pending', 'shortlisted', 'offered', 'accepted'].includes(a.status)).map(a => a.shiftId)),
+    () => new Set((liveApplications ?? []).map(a => a.shiftId)),
     [liveApplications]
   );
   const filtered = useMemo(() => {
@@ -8953,7 +8967,18 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     // which means nothing to a worker. Unique/FK errors still
                     // surface verbatim; only the RLS refusal is translated.
                     const closed = /row.?level security/i.test(error.message || "");
-                    toast(closed ? t("discover.applicationsClosed") : t("toast.applicationFailed") + error.message, "error");
+                    // A duplicate key here means this worker has bid on this
+                    // shift before. It should be unreachable now that Discover
+                    // hides those, but a stale tab or an open modal can still
+                    // get here -- and "duplicate key value violates unique
+                    // constraint" tells a worker nothing about what to do.
+                    const duplicate = error.code === "23505" || /duplicate key/i.test(error.message || "");
+                    toast(
+                      closed ? t("discover.applicationsClosed")
+                        : duplicate ? t("discover.alreadyApplied")
+                        : t("toast.applicationFailed") + error.message,
+                      "error",
+                    );
                     return;
                   }
                   logAnalyticsEvent('bid_placed', { shift_id: selectedShift.id }, user.id);
