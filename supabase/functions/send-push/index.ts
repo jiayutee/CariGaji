@@ -10,8 +10,9 @@
 // Required secrets (`supabase secrets set NAME=value`):
 //   VAPID_PUBLIC_KEY   the same key the client ships as VITE_VAPID_PUBLIC_KEY
 //   VAPID_PRIVATE_KEY  its pair -- server only, never in the bundle
-//   VAPID_SUBJECT      a contact URL or mailto: for your service, e.g.
-//                      "mailto:support@carigaji.example"
+//   VAPID_SUBJECT      OPTIONAL. Contact URL or mailto: for your service.
+//                      Falls back to the GitHub Pages URL -- valid and real --
+//                      so push works without a domain or support inbox.
 // Auto-provided by the platform:
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
@@ -20,7 +21,17 @@ import webpush from "https://esm.sh/web-push@3.6.7";
 
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:support@carigaji.app";
+// Required by the VAPID spec so a push service can reach the sender if the
+// notifications cause a problem. NOT produced by `web-push generate-vapid-keys`
+// -- it is chosen -- and unlike the keys it can be changed later without
+// invalidating a single subscription.
+//
+// The default is this project's own GitHub Pages URL rather than a mailto: at a
+// domain nobody has registered. An https: subject is equally valid, and
+// pointing at a page we control is honest; naming carigaji.app would claim a
+// domain belonging to someone else. Replace with mailto:support@<real domain>
+// once that exists.
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "https://jiayutee.github.io/CariGaji/";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
