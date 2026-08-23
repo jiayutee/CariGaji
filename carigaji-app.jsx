@@ -1093,7 +1093,9 @@ const TRANSLATIONS = {
     "landing.howEmployerEyebrow": "For employers",
     "landing.howEmployerHeading": "Hire vetted workers in four steps",
     "landing.sampleRateLabel": "Rate",
+    "landing.sampleRateUnit": " / hr",
     "landing.sampleLengthLabel": "Shift length",
+    "landing.sampleLengthUnit": " hrs",
     "landing.samplePayLabel": "Estimated pay",
     "landing.sampleEscrowNote": "RM 96.00 agreed in the contract, paid out once your hours are confirmed.",
     "landing.sampleSealLine1": "SSM",
@@ -2195,7 +2197,9 @@ const TRANSLATIONS = {
     "landing.howEmployerEyebrow": "Untuk majikan",
     "landing.howEmployerHeading": "Upah pekerja yang disahkan dalam empat langkah",
     "landing.sampleRateLabel": "Kadar",
+    "landing.sampleRateUnit": " / jam",
     "landing.sampleLengthLabel": "Tempoh syif",
+    "landing.sampleLengthUnit": " jam",
     "landing.samplePayLabel": "Anggaran gaji",
     "landing.sampleEscrowNote": "RM 96.00 dipersetujui dalam kontrak, dibayar setelah jam kerja anda disahkan.",
     "landing.sampleSealLine1": "SSM",
@@ -3296,7 +3300,9 @@ const TRANSLATIONS = {
     "landing.howEmployerEyebrow": "雇主专区",
     "landing.howEmployerHeading": "四个步骤聘请经审核的员工",
     "landing.sampleRateLabel": "时薪",
+    "landing.sampleRateUnit": "/小时",
     "landing.sampleLengthLabel": "班次时长",
+    "landing.sampleLengthUnit": "小时",
     "landing.samplePayLabel": "预估薪资",
     "landing.sampleEscrowNote": "合同约定 RM 96.00，工时确认后发放。",
     "landing.sampleSealLine1": "SSM",
@@ -6574,7 +6580,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
                 </div>
                 <span style={{ background: BRAND.greenLight, color: BRAND.onGreenLight, fontSize: 10.5, fontWeight: 800, padding: "3px 8px", borderRadius: 99, whiteSpace: "nowrap" }}>{t("landing.sampleFundedBadge")}</span>
               </div>
-              {[[t("landing.sampleRateLabel"), "RM 16.00 / hr"], [t("landing.sampleLengthLabel"), "6 hrs"], [t("landing.samplePayLabel"), "RM 96.00"]].map(([k, v]) => (
+              {[[t("landing.sampleRateLabel"), `RM 16.00${t("landing.sampleRateUnit")}`], [t("landing.sampleLengthLabel"), `6${t("landing.sampleLengthUnit")}`], [t("landing.samplePayLabel"), "RM 96.00"]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: BRAND.textMuted, padding: "5px 0" }}>
                   <span>{k}</span><b style={{ color: BRAND.text, fontWeight: 700 }}>{v}</b>
                 </div>
