@@ -103,6 +103,13 @@ Required specialist outputs:
 Notion database: `collection://$NOTION_BACKLOG_DS`
 Parent page: https://app.notion.com/p/$NOTION_PARENT_PAGE
 
+These are ids, not credentials, but they describe the planning workspace and
+this repository is public. Read them from .env at the start of a cycle:
+
+    grep -E '^NOTION_(BACKLOG|PARENT|DAILY_LOG|ROADMAP)_' .env
+
+Never paste a literal id back into this file.
+
 ### Before starting each work cycle:
 1. Fetch the task database and sort by `Priority (1-5)` descending.
 2. Pick the highest-priority row where `Solution` is empty or null.
