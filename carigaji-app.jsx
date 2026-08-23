@@ -1043,6 +1043,12 @@ const TRANSLATIONS = {
     "employer.awaitingReconfirm": "Awaiting re-confirmation",
     "employer.awaitingReconfirmHint": "You changed this shift's terms after this worker signed. Their booking is on hold until they confirm.",
     "notification.markAllRead": "Mark all as read",
+    "notification.clearRead": "Clear read",
+    "notification.viewInbox": "Inbox",
+    "notification.viewArchived": "Archived",
+    "notification.emptyArchived": "Nothing archived yet.",
+    "notification.archive": "Archive",
+    "notification.restore": "Move back to inbox",
     "notification.empty": "No notifications yet",
     "notification.justNow": "Just now",
     "notification.minAgo": "{n}m ago",
@@ -2147,6 +2153,12 @@ const TRANSLATIONS = {
     "employer.awaitingReconfirm": "Menunggu pengesahan semula",
     "employer.awaitingReconfirmHint": "Anda menukar terma syif ini selepas pekerja menandatangani. Tempahan mereka ditangguhkan sehingga mereka mengesahkan.",
     "notification.markAllRead": "Tanda semua sudah dibaca",
+    "notification.clearRead": "Kosongkan yang dibaca",
+    "notification.viewInbox": "Peti masuk",
+    "notification.viewArchived": "Arkib",
+    "notification.emptyArchived": "Tiada apa-apa dalam arkib.",
+    "notification.archive": "Arkibkan",
+    "notification.restore": "Kembalikan ke peti masuk",
     "notification.empty": "Belum ada notifikasi",
     "notification.justNow": "Baru sahaja",
     "notification.minAgo": "{n}m lalu",
@@ -3250,6 +3262,12 @@ const TRANSLATIONS = {
     "employer.awaitingReconfirm": "等待重新确认",
     "employer.awaitingReconfirmHint": "此员工签署合同后，您更改了此班次的条款。在对方确认之前，其预订将暂时保留。",
     "notification.markAllRead": "全部标记为已读",
+    "notification.clearRead": "清理已读",
+    "notification.viewInbox": "收件箱",
+    "notification.viewArchived": "已归档",
+    "notification.emptyArchived": "暂无已归档的通知。",
+    "notification.archive": "归档",
+    "notification.restore": "移回收件箱",
     "notification.empty": "暂无通知",
     "notification.justNow": "刚刚",
     "notification.minAgo": "{n} 分钟前",
@@ -4997,6 +5015,11 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
   // exist -- those rows render as a tombstone instead of a dead link.
   const [deadLinkIds, setDeadLinkIds] = useState(() => new Set());
   const [open, setOpen] = useState(false);
+  // "inbox" hides archived rows; "archived" shows only those. Archiving never
+  // deletes -- see 20260822e. The archive lives in this same panel rather than
+  // a settings screen, because people look for what they just cleared where
+  // they cleared it.
+  const [notifView, setNotifView] = useState("inbox");
   const [panelPos, setPanelPos] = useState(null); // { top, left } in viewport coords
   const [notifHasMore, setNotifHasMore] = useState(false);
   const [notifLoadingMore, setNotifLoadingMore] = useState(false);
@@ -5038,13 +5061,22 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
     return () => window.removeEventListener("resize", computePosition);
   }, [open]);
 
+  // Archived rows are excluded by the query, not filtered client-side: the list
+  // is paginated, so filtering a page after the fact would return short pages
+  // and eventually an empty one while rows still existed further back.
+  const applyViewFilter = useCallback((q) => (
+    notifView === "archived" ? q.not('dismissed_at', 'is', null) : q.is('dismissed_at', null)
+  ), [notifView]);
+
   useEffect(() => {
     if (!user?.id) return undefined;
     let active = true;
-    supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
+    applyViewFilter(
+      supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+    )
       .order('created_at', { ascending: false })
       .range(0, NOTIFICATION_PAGE_SIZE - 1)
       .then(async ({ data }) => {
@@ -5054,11 +5086,14 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
         const dead = await resolveDeadNotificationLinks(data ?? []);
         if (active) setDeadLinkIds(dead);
       });
+    // Unread counts the INBOX only. Archiving something unread should quiet the
+    // badge -- otherwise the badge points at a list the user cannot see.
     supabase
       .from('notifications')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('read', false)
+      .is('dismissed_at', null)
       .then(({ count }) => {
         if (active) setUnreadTotal(count ?? 0);
       });
@@ -5071,7 +5106,10 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
         filter: `user_id=eq.${user.id}`,
       }, payload => {
         if (!active) return;
-        setNotifications(prev => [payload.new, ...prev]);
+        // A brand-new row is never archived, so it belongs in the inbox. While
+        // the archived view is open, prepending it would show the user a row
+        // that contradicts the filter they are looking at.
+        if (notifView === "inbox") setNotifications(prev => [payload.new, ...prev]);
         setUnreadTotal(prev => prev + 1);
       })
       .subscribe();
@@ -5079,16 +5117,18 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user?.id, applyViewFilter]);
 
   const loadMoreNotifications = async () => {
     if (!user?.id || notifLoadingMore) return;
     setNotifLoadingMore(true);
     const offset = notifications.length;
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
+    const { data } = await applyViewFilter(
+      supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+    )
       .order('created_at', { ascending: false })
       .range(offset, offset + NOTIFICATION_PAGE_SIZE - 1);
     setNotifications(prev => [...prev, ...(data ?? [])]);
@@ -5106,6 +5146,8 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
     if (target && !target.read) setUnreadTotal(prev => Math.max(0, prev - 1));
     await supabase.from('notifications').update({ read: true }).eq('id', id);
   };
+
+  const archivableCount = notifications.filter(n => n.read).length;
 
   const handleNotificationClick = (n) => {
     markRead(n.id);
@@ -5126,7 +5168,47 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
     if (unreadTotal === 0) return;
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setUnreadTotal(0);
-    await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false);
+    await supabase.from('notifications').update({ read: true })
+      .eq('user_id', user.id).eq('read', false).is('dismissed_at', null);
+  };
+
+  // The "clear my clutter" gesture. Archives every READ inbox row server-side,
+  // not just the loaded page -- same reasoning as markAllRead: the panel never
+  // paginates back far enough on its own, so a page-scoped clear would leave
+  // older rows stranded with no way to reach them.
+  //
+  // Read-only on purpose. Sweeping away something unread is how a worker loses
+  // "choose your payout, reply before Thursday" without ever having seen it.
+  const clearRead = async () => {
+    if (notifView !== "inbox" || archivableCount === 0) return;
+    setNotifications(prev => prev.filter(n => !n.read));
+    setNotifHasMore(false);
+    await supabase.from('notifications')
+      .update({ dismissed_at: new Date().toISOString() })
+      .eq('user_id', user.id).eq('read', true).is('dismissed_at', null);
+  };
+
+  const restoreNotification = async (id) => {
+    const target = notifications.find(n => n.id === id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    const { error } = await supabase.from('notifications')
+      .update({ dismissed_at: null }).eq('id', id);
+    // Put the row back if the write failed, rather than leaving the user
+    // believing they restored something they did not. Re-inserted in place by
+    // created_at, since the list is ordered newest-first.
+    if (error && target) {
+      setNotifications(prev => [...prev, target].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      ));
+    }
+  };
+
+  const archiveNotification = async (id) => {
+    const target = notifications.find(n => n.id === id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    if (target && !target.read) setUnreadTotal(prev => Math.max(0, prev - 1));
+    await supabase.from('notifications')
+      .update({ dismissed_at: new Date().toISOString() }).eq('id', id);
   };
 
   return (
@@ -5165,62 +5247,119 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
             padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}`,
           }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{t("notification.title")}</div>
-            {unreadTotal > 0 && (
+            <div style={{ display: "flex", gap: 10 }}>
+              {notifView === "inbox" && unreadTotal > 0 && (
+                <button
+                  onClick={markAllRead}
+                  style={{
+                    border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 11, fontWeight: 600, color: BRAND.primaryOnSurface, padding: 0,
+                  }}
+                >
+                  {t("notification.markAllRead")}
+                </button>
+              )}
+              {notifView === "inbox" && archivableCount > 0 && (
+                <button
+                  onClick={clearRead}
+                  style={{
+                    border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 11, fontWeight: 600, color: BRAND.primaryOnSurface, padding: 0,
+                  }}
+                >
+                  {t("notification.clearRead")}
+                </button>
+              )}
+            </div>
+          </div>
+          {/* Inbox / Archived. Nothing is ever deleted, so the archive has to be
+              reachable -- and it is reachable from the same panel the clearing
+              happened in, which is where people look for it. */}
+          <div style={{ display: "flex", borderBottom: `1px solid ${BRAND.border}` }}>
+            {[["inbox", "notification.viewInbox"], ["archived", "notification.viewArchived"]].map(([view, key]) => (
               <button
-                onClick={markAllRead}
+                key={view}
+                onClick={() => { if (notifView !== view) { setNotifView(view); setNotifications([]); setNotifHasMore(false); } }}
+                aria-pressed={notifView === view}
                 style={{
-                  border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit",
-                  fontSize: 11, fontWeight: 600, color: BRAND.primary, padding: 0,
+                  flex: 1, padding: "8px 0", border: "none", cursor: "pointer", fontFamily: "inherit",
+                  fontSize: 11.5, fontWeight: 700,
+                  background: notifView === view ? BRAND.grayLight : "transparent",
+                  color: notifView === view ? BRAND.primaryOnSurface : BRAND.textMuted,
+                  borderBottom: `2px solid ${notifView === view ? BRAND.primaryOnSurface : "transparent"}`,
                 }}
               >
-                {t("notification.markAllRead")}
+                {t(key)}
               </button>
-            )}
+            ))}
           </div>
           <div style={{ maxHeight: 360, overflowY: "auto" }}>
             {notifications.length === 0 ? (
               <div style={{ padding: "24px 14px", textAlign: "center", fontSize: 12, color: BRAND.textMuted }}>
-                {t("notification.empty")}
+                {t(notifView === "archived" ? "notification.emptyArchived" : "notification.empty")}
               </div>
             ) : (
               notifications.map((n) => {
                 const { title: notifTitle, body: notifBody } = notificationText(n, t);
                 const notifDead = isNotificationDead(n, deadLinkIds);
+                const archived = notifView === "archived";
                 return (
-                <button
+                // A row is a container, not a button: it holds the navigating
+                // area AND an archive/restore control, and a button inside a
+                // button is invalid markup that browsers resolve unpredictably.
+                <div
                   key={n.id}
-                  role="menuitem"
-                  onClick={() => handleNotificationClick(n)}
                   style={{
-                    width: "100%", display: "flex", alignItems: "flex-start", gap: 8,
-                    padding: "10px 14px", border: "none", borderBottom: `1px solid ${BRAND.border}`,
+                    display: "flex", alignItems: "flex-start", gap: 6,
+                    padding: "10px 14px", borderBottom: `1px solid ${BRAND.border}`,
                     background: n.read ? "transparent" : BRAND.grayLight,
-                    cursor: notifDead ? "default" : "pointer", fontFamily: "inherit", textAlign: "left",
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = BRAND.grayLight; }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = n.read ? "transparent" : BRAND.grayLight; }}
                 >
-                  {!n.read && (
-                    <span aria-hidden="true" style={{
-                      width: 7, height: 7, borderRadius: 99, background: BRAND.primary,
-                      marginTop: 5, flexShrink: 0,
-                    }} />
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: notifDead ? BRAND.textMuted : BRAND.text }}>{notifTitle}</div>
-                    {notifBody && (
-                      <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(notifBody)}</div>
+                  <button
+                    role="menuitem"
+                    onClick={() => handleNotificationClick(n)}
+                    style={{
+                      flex: 1, minWidth: 0, display: "flex", alignItems: "flex-start", gap: 8,
+                      padding: 0, border: "none", background: "transparent",
+                      cursor: notifDead ? "default" : "pointer", fontFamily: "inherit", textAlign: "left",
+                    }}
+                  >
+                    {!n.read && (
+                      <span aria-hidden="true" style={{
+                        width: 7, height: 7, borderRadius: 99, background: BRAND.primaryOnSurface,
+                        marginTop: 5, flexShrink: 0,
+                      }} />
                     )}
-                    {/* The record stays -- it really happened -- but says so
-                        plainly instead of being a link that goes nowhere. */}
-                    {notifDead && (
-                      <div style={{ fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted, marginTop: 3, fontStyle: "italic" }}>
-                        {t("notification.targetGone")}
-                      </div>
-                    )}
-                    <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at, t)}</div>
-                  </div>
-                </button>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: notifDead ? BRAND.textMuted : BRAND.text }}>{notifTitle}</div>
+                      {notifBody && (
+                        <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(notifBody)}</div>
+                      )}
+                      {/* The record stays -- it really happened -- but says so
+                          plainly instead of being a link that goes nowhere. */}
+                      {notifDead && (
+                        <div style={{ fontSize: 10.5, fontWeight: 700, color: BRAND.textMuted, marginTop: 3, fontStyle: "italic" }}>
+                          {t("notification.targetGone")}
+                        </div>
+                      )}
+                      <div style={{ fontSize: 10.5, color: BRAND.textMuted, marginTop: 4 }}>{notificationTimeAgo(n.created_at, t)}</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => (archived ? restoreNotification(n.id) : archiveNotification(n.id))}
+                    title={t(archived ? "notification.restore" : "notification.archive")}
+                    aria-label={t(archived ? "notification.restore" : "notification.archive")}
+                    style={{
+                      flexShrink: 0, border: "none", background: "transparent", cursor: "pointer",
+                      fontFamily: "inherit", fontSize: 13, lineHeight: 1, padding: "2px 4px",
+                      color: BRAND.textMuted,
+                    }}
+                  >
+                    {archived ? "\u21A9" : "\u00D7"}
+                  </button>
+                </div>
                 );
               })
             )}
