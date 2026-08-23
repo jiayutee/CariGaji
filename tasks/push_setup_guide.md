@@ -57,6 +57,18 @@ same thing, and the function can be deployed by pasting
 
 ---
 
+## Where each key goes — the part that trips people up
+
+| what | where | why |
+|---|---|---|
+| Private key | Supabase Edge Function secrets | signs each push; must never reach a browser |
+| Public key | Supabase secrets **and** GitHub secret | the browser hands it to Chrome when subscribing, so it must be in the bundle |
+| Neither | the webhook form | the webhook only names a table and a function |
+
+Put the private key in the GitHub secret by mistake and it ends up in published
+JavaScript. If that happens: regenerate the pair, and everyone who had enabled
+notifications must turn them on again.
+
 ## 3. Give the public key to the app
 
 **Local development** — add to `.env.local`:
@@ -80,14 +92,42 @@ to `main` rebuilds with the key baked in.
 
 ## 4. Point the webhook at the function
 
-Supabase Dashboard → Database → Webhooks → **Create a new hook**
+Supabase **moved this out of Database into Integrations**. Direct link:
+
+    https://supabase.com/dashboard/project/eqxpskyymohghxgtykfr/integrations/webhooks/overview
+
+Or: sidebar → Integrations → Database Webhooks → *Enable webhooks* (first time
+only) → **Create a new hook**. If it has moved again, the dashboard's search box
+finds it faster than the sidebar does.
 
 | field | value |
 |---|---|
-| Table | `notifications` |
-| Events | Insert |
-| Type | Supabase Edge Functions |
-| Function | `send-push` |
+| Name | `send_push_on_notification` |
+| Schema / Table | `public` / `notifications` |
+| Events | Insert only |
+| Type of webhook | Supabase Edge Functions |
+| Edge Function | `send-push` |
+| Method | POST |
+| Timeout | 5000 ms |
+| HTTP Headers | leave as-is — the dashboard fills in the auth header |
+
+**No VAPID key goes in this form.** The webhook only says "call this function
+when a row is inserted". The keys live in step 2 (Supabase secrets) and step 3
+(the GitHub secret). Nothing in the webhook needs to know about them.
+
+Worth checking while you are here: whether a hook for `send-notification-email`
+exists at all. That function has been in the repo a while but the hook has never
+been confirmed. Webhooks are ordinary triggers, so this lists what is really
+wired up:
+
+```sql
+select tgname, pg_get_triggerdef(oid)
+from pg_trigger
+where tgrelid = 'public.notifications'::regclass and not tgisinternal;
+```
+
+If `send-notification-email` is not in that list, emails are not being sent
+either -- worth knowing regardless of push.
 
 **Leave the existing `send-notification-email` hook alone.** Both fire on the
 same insert, independently: email reaches iPhone users in a Safari tab where

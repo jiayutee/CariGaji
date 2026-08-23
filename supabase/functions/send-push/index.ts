@@ -123,7 +123,8 @@ Deno.serve(async (req) => {
  *    so the deployed bundle has it. Without it, pushSupported() returns false
  *    and the app quietly falls back to email -- no errors, no broken toggle.
  *
- * 4. Supabase Dashboard -> Database -> Webhooks -> Create a new hook
+ * 4. Supabase Dashboard -> Integrations -> Database Webhooks -> Create a new
+ *    hook. (Not under Database any more -- Supabase moved it.)
  *      Table: notifications | Events: Insert
  *      Type: Supabase Edge Functions | Function: send-push
  *    (Leave the existing send-notification-email hook in place; both fire.)

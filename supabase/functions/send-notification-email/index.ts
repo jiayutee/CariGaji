@@ -93,7 +93,8 @@ Deno.serve(async (req) => {
  *    (no --no-verify-jwt this time — the Dashboard webhook signs its own
  *    requests with a valid service-role JWT, so the platform's default
  *    JWT check is exactly what we want.)
- * 4. Supabase Dashboard -> Database -> Webhooks -> Create a new hook
+ * 4. Supabase Dashboard -> Integrations -> Database Webhooks -> Create a new
+ *    hook. (This used to live under Database; Supabase moved it.)
  *      Table: notifications | Events: Insert
  *      Type: Supabase Edge Functions | Function: send-notification-email
  * 5. (Optional but recommended) verify your own sending domain in Resend
