@@ -10859,6 +10859,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatShift, setActiveChatShift] = useState(null);
   const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
+  // Same control as the worker console. An employer waiting on a bid or a
+  // cancellation needs the phone to buzz just as much as a worker does, and
+  // the two consoles are separate components -- shared helpers, separate state.
+  const [pushState, setPushState] = useState("unsupported");
+  useEffect(() => {
+    let active = true;
+    readPushStatus().then(status => { if (active) setPushState(status); });
+    return () => { active = false; };
+  }, [user?.id]);
   const [chatMessages, setChatMessages] = useState([]);
   // Where the "new messages" divider goes: the read-marker as it stood the
   // instant this room was opened, captured BEFORE the mark-seen effect below
@@ -13252,6 +13261,35 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   </label>
                 </div>
                 <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>{t("employer.profilePhotoHint")}</div>
+              </div>
+            </Card>
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, gap: 12 }}>
+                <div style={{ minWidth: 0, flex: "1 1 220px" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.pushTitle")}</div>
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>
+                    {pushState === "unsupported" ? t("settings.pushUnsupported")
+                      : pushState === "denied" ? t("settings.pushDenied")
+                      : pushState === "on" ? t("settings.pushOn")
+                      : t("settings.pushOff")}
+                  </div>
+                </div>
+                {pushState === "off" && (
+                  <Btn size="xs" onClick={async () => {
+                    const result = await enablePushNotifications(user);
+                    setPushState(await readPushStatus());
+                    toast(t(result === "enabled" ? "toast.pushEnabled"
+                          : result === "denied" ? "toast.pushDenied"
+                          : "toast.pushFailed"), result === "enabled" ? "success" : "info");
+                  }}>{t("settings.pushEnableBtn")}</Btn>
+                )}
+                {pushState === "on" && (
+                  <Btn size="xs" variant="secondary" onClick={async () => {
+                    await disablePushNotifications();
+                    setPushState(await readPushStatus());
+                    toast(t("toast.pushDisabled"), "info");
+                  }}>{t("settings.pushDisableBtn")}</Btn>
+                )}
               </div>
             </Card>
             {/* Personal (contact-person) details — same user_private record
