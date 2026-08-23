@@ -5366,6 +5366,30 @@ const useUnreadChatRooms = (user) => {
 // of every row, clipped only visually.
 const CHAT_PREVIEW_MAX = 70;
 
+// Most recently active room first, which is the only order that stays useful as
+// a list grows: the conversation you need is almost always the one that just
+// moved. Sorted at render time from roomPreviews rather than in the loader, so
+// a message arriving re-orders the list immediately instead of at the next
+// fetch.
+//
+// Rooms with no messages yet sink below the active ones, keeping their original
+// relative order. They are real rooms the user can open, so they are not
+// hidden -- but an empty room has nothing to be recent about, and floating it
+// above a live conversation on the strength of its shift date would be noise.
+const sortConversationsByRecent = (conversations, previews) => {
+  const at = (conv) => {
+    const msg = previews?.get(conv.shiftId);
+    return msg?.created_at ? new Date(msg.created_at).getTime() : null;
+  };
+  return [...(conversations || [])].sort((a, b) => {
+    const ta = at(a), tb = at(b);
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return tb - ta;
+  });
+};
+
 const chatPreviewLine = (msg, user, senderNames, t) => {
   if (!msg) return null;
   const isMe = msg.sender_id === user?.id;
@@ -9692,7 +9716,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{fontSize:12, marginTop:4}}>{t("chat.emptyHintWorker")}</div>
                 </div>
               ) : (
-                chatConversations.map(conv => (
+                sortConversationsByRecent(chatConversations, roomPreviews).map(conv => (
                   <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
                     style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
@@ -13377,7 +13401,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{fontSize:12, marginTop:4}}>{t("chat.emptyHintEmployer")}</div>
                 </div>
               ) : (
-                chatConversations.map(conv => (
+                sortConversationsByRecent(chatConversations, roomPreviews).map(conv => (
                   <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
                     style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
                       marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
