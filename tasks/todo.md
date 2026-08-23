@@ -285,7 +285,37 @@ text. The populated and error states were forced through a temporary local
 fixture and a deliberately invalid column, both reverted — no rows were written,
 because the ledger is append-only and a QA top-up could never be removed.
 
+### Admin top-up UI — done 2026-08-23
+
+Admin → Deposits. Pick an employer, enter the amount and the bank reference,
+review, confirm. Calls admin_record_topup, then shows the resulting available
+and held balance.
+
+Shaped around the fact that the ledger is append-only: a mistyped amount can
+never be edited, only offset by another entry someone has to explain later. So
+the screen confirms BEFORE writing rather than offering an undo afterwards, and
+says plainly in an amber panel why. The bank reference is required by the RPC
+and is the idempotency key, so re-entering the same reference is refused --
+the UI names that case specifically instead of surfacing a unique-violation.
+Recent top-ups are listed underneath, so a duplicate transfer is visible before
+it is entered rather than after it bounces.
+
+Verified live in the admin console (admin route guard stubbed locally, then
+reverted -- confirmed reverted by checking /CariGaji/admin no longer reaches
+the screen): the employer list loads, Review stays disabled until both fields
+are filled, the confirm line reads back the exact amount, employer and
+reference, and submitting as a NON-admin is refused server-side with "Not
+authorized" and creates no ledger row. That last one is the useful result --
+even with the client-side guard defeated, admin_record_topup still says no.
+
+EN/BM/CH all render. Dark mode measured: append-only warning 6.37, selected
+employer row 7.91.
+
+NOT yet verified: the success path. It needs a real admin JWT and no QA account
+has app_metadata.role = 'admin'. See "Still open" below.
+
 ### Still open on the deposit
-- Admin UI for recording a top-up (RPC exists, SQL-only)
+- Verify the top-up SUCCESS path with an admin account (the failure path is
+  verified; the write itself is not)
 - Flip enforcement on once real top-ups exist
 - Phase 2: FPX/DuitNow, then restore the stronger landing claim

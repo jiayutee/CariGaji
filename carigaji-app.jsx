@@ -642,6 +642,34 @@ const TRANSLATIONS = {
     "rating.aspect.wellPlanned": "Well planned",
     "rating.aspect.clearInstructions": "Clear instructions",
     "admin.disputesEmptyState": "No disputes filed yet.",
+    "admin.depositsTitle": "Employer deposits",
+    "admin.depositsIntro": "Record a bank transfer an employer has already made. This is the only way funds enter the deposit ledger until an FPX/DuitNow gateway exists — so only enter an amount you can see on a bank statement.",
+    "admin.depositsAppendOnlyWarning": "The ledger is append-only. A recorded top-up cannot be edited or deleted — a mistake can only be offset by another entry, which someone will have to explain later. Check the amount before confirming.",
+    "admin.depositEmployerLabel": "Which employer?",
+    "admin.depositSearchPlaceholder": "Search by name…",
+    "admin.depositLoading": "Loading…",
+    "admin.depositNoEmployers": "No employer accounts found.",
+    "admin.depositUnnamed": "Unnamed employer",
+    "admin.depositUnverifiedNote": "· not SSM-verified",
+    "admin.depositFormTitle": "Record a transfer for {name}",
+    "admin.depositAmountLabel": "Amount received (RM)",
+    "admin.depositReferenceLabel": "Bank reference",
+    "admin.depositReferencePlaceholder": "e.g. FT26082312345",
+    "admin.depositReferenceHint": "The reference ties this row to a real transfer, and it is what stops the same transfer being credited twice — entering it again will be refused.",
+    "admin.depositReviewBtn": "Review",
+    "admin.depositConfirmBody": "Credit RM{amount} to {name}, against bank reference {reference}. This cannot be undone.",
+    "admin.depositConfirmBtn": "Yes, record it",
+    "admin.depositCancelBtn": "Go back",
+    "admin.depositRecording": "Recording…",
+    "admin.depositRecorded": "Recorded RM{amount} for {name}.",
+    "admin.depositAmountInvalid": "Enter an amount greater than zero.",
+    "admin.depositReferenceRequired": "A bank reference is required.",
+    "admin.depositFailed": "Could not record the top-up: ",
+    "admin.depositDuplicate": "Reference {reference} has already been credited. If this is a second, genuine transfer, use its own reference.",
+    "admin.depositDoneTitle": "Top-up recorded",
+    "admin.depositDoneBody": "RM{amount} credited to {name}. Their balance is now RM{available} available, RM{held} held.",
+    "admin.depositRecentTitle": "Recent top-ups",
+    "admin.depositRecentEmpty": "No top-ups recorded yet.",
     "admin.disputeResolve": "Resolve",
     "admin.disputeDismiss": "Dismiss",
     "admin.disputeResolved": "Dispute resolved.",
@@ -1760,6 +1788,34 @@ const TRANSLATIONS = {
     "rating.aspect.wellPlanned": "Perancangan yang baik",
     "rating.aspect.clearInstructions": "Arahan yang jelas",
     "admin.disputesEmptyState": "Tiada pertikaian difailkan lagi.",
+    "admin.depositsTitle": "Deposit majikan",
+    "admin.depositsIntro": "Rekod pemindahan bank yang telah dibuat oleh majikan. Inilah satu-satunya cara dana masuk ke lejar deposit sehingga gerbang FPX/DuitNow wujud — jadi masukkan jumlah yang benar-benar kelihatan pada penyata bank sahaja.",
+    "admin.depositsAppendOnlyWarning": "Lejar ini hanya boleh ditambah. Top-up yang direkodkan tidak boleh disunting atau dipadam — kesilapan hanya boleh diimbangi dengan entri baharu, yang perlu dijelaskan oleh seseorang kemudian. Semak jumlahnya sebelum mengesahkan.",
+    "admin.depositEmployerLabel": "Majikan yang mana?",
+    "admin.depositSearchPlaceholder": "Cari mengikut nama…",
+    "admin.depositLoading": "Memuatkan…",
+    "admin.depositNoEmployers": "Tiada akaun majikan dijumpai.",
+    "admin.depositUnnamed": "Majikan tanpa nama",
+    "admin.depositUnverifiedNote": "· belum disahkan SSM",
+    "admin.depositFormTitle": "Rekod pemindahan untuk {name}",
+    "admin.depositAmountLabel": "Jumlah diterima (RM)",
+    "admin.depositReferenceLabel": "Rujukan bank",
+    "admin.depositReferencePlaceholder": "cth. FT26082312345",
+    "admin.depositReferenceHint": "Rujukan ini mengaitkan baris ini dengan pemindahan sebenar, dan ia menghalang pemindahan yang sama dikreditkan dua kali — memasukkannya semula akan ditolak.",
+    "admin.depositReviewBtn": "Semak",
+    "admin.depositConfirmBody": "Kreditkan RM{amount} kepada {name}, terhadap rujukan bank {reference}. Ini tidak boleh dibatalkan.",
+    "admin.depositConfirmBtn": "Ya, rekodkan",
+    "admin.depositCancelBtn": "Kembali",
+    "admin.depositRecording": "Merekod…",
+    "admin.depositRecorded": "RM{amount} direkodkan untuk {name}.",
+    "admin.depositAmountInvalid": "Masukkan jumlah lebih daripada sifar.",
+    "admin.depositReferenceRequired": "Rujukan bank diperlukan.",
+    "admin.depositFailed": "Tidak dapat merekod top-up: ",
+    "admin.depositDuplicate": "Rujukan {reference} telah pun dikreditkan. Jika ini pemindahan kedua yang sah, gunakan rujukannya sendiri.",
+    "admin.depositDoneTitle": "Top-up direkodkan",
+    "admin.depositDoneBody": "RM{amount} dikreditkan kepada {name}. Baki mereka kini RM{available} tersedia, RM{held} ditahan.",
+    "admin.depositRecentTitle": "Top-up terkini",
+    "admin.depositRecentEmpty": "Belum ada top-up direkodkan.",
     "admin.disputeResolve": "Selesaikan",
     "admin.disputeDismiss": "Tolak",
     "admin.disputeResolved": "Pertikaian diselesaikan.",
@@ -2870,6 +2926,34 @@ const TRANSLATIONS = {
     "rating.aspect.wellPlanned": "规划周全",
     "rating.aspect.clearInstructions": "指示清晰",
     "admin.disputesEmptyState": "暂无提交的申诉。",
+    "admin.depositsTitle": "雇主保证金",
+    "admin.depositsIntro": "记录雇主已经完成的银行转账。在 FPX/DuitNow 支付网关上线之前，这是资金进入保证金台账的唯一途径——因此只能录入银行对账单上确实存在的金额。",
+    "admin.depositsAppendOnlyWarning": "台账只可追加。已记录的充值无法修改或删除——错误只能通过另一笔条目来冲抵，而这需要有人在日后作出解释。确认前请核对金额。",
+    "admin.depositEmployerLabel": "选择雇主",
+    "admin.depositSearchPlaceholder": "按名称搜索…",
+    "admin.depositLoading": "加载中…",
+    "admin.depositNoEmployers": "未找到雇主账户。",
+    "admin.depositUnnamed": "未命名雇主",
+    "admin.depositUnverifiedNote": "· 未经 SSM 验证",
+    "admin.depositFormTitle": "为 {name} 记录一笔转账",
+    "admin.depositAmountLabel": "收到金额（RM）",
+    "admin.depositReferenceLabel": "银行参考号",
+    "admin.depositReferencePlaceholder": "例如 FT26082312345",
+    "admin.depositReferenceHint": "参考号把这条记录与真实转账对应起来，也是防止同一笔转账被重复入账的依据——重复录入将被拒绝。",
+    "admin.depositReviewBtn": "核对",
+    "admin.depositConfirmBody": "将 RM{amount} 计入 {name}，对应银行参考号 {reference}。此操作无法撤销。",
+    "admin.depositConfirmBtn": "确认记录",
+    "admin.depositCancelBtn": "返回",
+    "admin.depositRecording": "记录中…",
+    "admin.depositRecorded": "已为 {name} 记录 RM{amount}。",
+    "admin.depositAmountInvalid": "请输入大于零的金额。",
+    "admin.depositReferenceRequired": "必须填写银行参考号。",
+    "admin.depositFailed": "无法记录充值：",
+    "admin.depositDuplicate": "参考号 {reference} 已经入账。若这是另一笔真实转账，请使用其自身的参考号。",
+    "admin.depositDoneTitle": "充值已记录",
+    "admin.depositDoneBody": "已将 RM{amount} 计入 {name}。其余额现为可用 RM{available}，冻结 RM{held}。",
+    "admin.depositRecentTitle": "最近的充值",
+    "admin.depositRecentEmpty": "尚无充值记录。",
     "admin.disputeResolve": "处理",
     "admin.disputeDismiss": "驳回",
     "admin.disputeResolved": "申诉已处理。",
@@ -13254,12 +13338,25 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [kycSignedUrls, setKycSignedUrls] = useState({});
   const [overviewStats, setOverviewStats] = useState(null);
   const [disputesQueue, setDisputesQueue] = useState(null);
+  // Deposits: recording a bank transfer an employer has actually made. The
+  // ledger is append-only, so a mistyped amount can never be edited -- only
+  // offset by another entry someone has to reason about later. That is why
+  // this screen confirms before writing rather than after.
+  const [depositEmployers, setDepositEmployers] = useState(null);
+  const [depositSearch, setDepositSearch] = useState("");
+  const [depositTarget, setDepositTarget] = useState(null);   // { id, full_name }
+  const [depositAmount, setDepositAmount] = useState("");
+  const [depositReference, setDepositReference] = useState("");
+  const [depositConfirming, setDepositConfirming] = useState(false);
+  const [depositSubmitting, setDepositSubmitting] = useState(false);
+  const [depositResult, setDepositResult] = useState(null);   // last successful RPC payload
+  const [depositRecent, setDepositRecent] = useState(null);
   // Basic analytics: event_type -> count, last 7 days (see
   // supabase/migrations/20260720_analytics_events.sql). null = loading,
   // [] = loaded but empty/unavailable (RLS denial or table missing pre-migration).
   const [analyticsCounts, setAnalyticsCounts] = useState(null);
 
-  const navItems = ["Overview", "KYC Queue", "Employer Queue", "Disputes", "Flags", "Payouts", "Config"];
+  const navItems = ["Overview", "KYC Queue", "Employer Queue", "Disputes", "Flags", "Payouts", "Deposits", "Config"];
 
   const FLAGS = [
     { id: 1, user: "Wei Jian Lim", type: "GPS mismatch", riskScore: 87, shift: "Warehouse Packer – Shah Alam", time: "3 hours ago", status: "open" },
@@ -13307,6 +13404,29 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         .order("created_at", { ascending: true });
       if (error) { setKycQueue([]); return; }
       setKycQueue(pending || []);
+    })();
+  }, [view]);
+
+  useEffect(() => {
+    if (!supabase || view !== "deposits") return;
+    (async () => {
+      setDepositEmployers(null);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, employer_verification_status")
+        .eq("role", "employer")
+        .order("full_name", { ascending: true });
+      setDepositEmployers(error ? [] : (data || []));
+      // Context for whoever is recording: what was last credited, so a
+      // duplicate transfer is visible before it is entered rather than after
+      // the unique idempotency key rejects it.
+      const { data: recent, error: recentError } = await supabase
+        .from("employer_wallet_entry")
+        .select("id, employer_id, amount, note, created_at")
+        .eq("kind", "topup")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      setDepositRecent(recentError ? [] : (recent || []));
     })();
   }, [view]);
 
@@ -13494,6 +13614,46 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (error) { toast(`${t("admin.disputeResolveFailed")}${error.message}`, "error"); return; }
     setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt } : d));
     toast(t("admin.disputeResolved"), "success");
+  };
+
+  const submitDeposit = async () => {
+    if (!depositTarget || depositSubmitting) return;
+    const amount = Number(depositAmount);
+    const reference = depositReference.trim();
+    // The RPC enforces all of this too. Checking here as well is not
+    // duplication for its own sake: it keeps the confirm dialog from promising
+    // a write that the database is going to refuse.
+    if (!Number.isFinite(amount) || amount <= 0) { toast(t("admin.depositAmountInvalid"), "error"); return; }
+    if (!reference) { toast(t("admin.depositReferenceRequired"), "error"); return; }
+
+    setDepositSubmitting(true);
+    const { data, error } = await supabase.rpc("admin_record_topup", {
+      p_employer_id: depositTarget.id,
+      p_amount: amount,
+      p_reference: reference,
+    });
+    setDepositSubmitting(false);
+    setDepositConfirming(false);
+
+    if (error) {
+      // A repeated reference is the expected mistake, not an edge case: the
+      // ledger keys idempotency on 'topup:<reference>' precisely so the same
+      // bank transfer cannot be credited twice. Say that, rather than showing
+      // a raw unique-violation.
+      const duplicate = /duplicate key|idempotency/i.test(error.message || "");
+      toast(duplicate ? t("admin.depositDuplicate", { reference }) : `${t("admin.depositFailed")}${error.message}`, "error");
+      return;
+    }
+
+    const payload = Array.isArray(data) ? data[0] : data;
+    setDepositResult({ ...payload, employer_name: depositTarget.full_name });
+    setDepositAmount("");
+    setDepositReference("");
+    setDepositRecent(prev => ([
+      { id: `local-${reference}`, employer_id: depositTarget.id, amount, note: `Bank transfer ${reference}`, created_at: new Date().toISOString() },
+      ...(prev || []),
+    ]));
+    toast(t("admin.depositRecorded", { amount: amount.toFixed(2), name: depositTarget.full_name }), "success");
   };
 
   const dismissDispute = async (disputeId) => {
@@ -13800,6 +13960,157 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </Card>
               );
             })}
+          </div>
+        )}
+
+        {view === "deposits" && (
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 6 }}>{t("admin.depositsTitle")}</div>
+            <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20, maxWidth: 640, lineHeight: 1.55 }}>
+              {t("admin.depositsIntro")}
+            </div>
+
+            {/* Said once, prominently, because it is the thing that cannot be
+                undone: the ledger is append-only by design. */}
+            <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "10px 14px", marginBottom: 20, fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, maxWidth: 640 }}>
+              {t("admin.depositsAppendOnlyWarning")}
+            </div>
+
+            <Card style={{ marginBottom: 20, maxWidth: 640 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 10 }}>{t("admin.depositEmployerLabel")}</div>
+              {depositEmployers === null ? (
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.depositLoading")}</div>
+              ) : depositEmployers.length === 0 ? (
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.depositNoEmployers")}</div>
+              ) : (
+                <>
+                  <input
+                    value={depositSearch}
+                    onChange={(e) => setDepositSearch(e.target.value)}
+                    placeholder={t("admin.depositSearchPlaceholder")}
+                    style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, fontSize: 13, boxSizing: "border-box", marginBottom: 10, fontFamily: "inherit" }}
+                  />
+                  <div style={{ maxHeight: 180, overflowY: "auto", border: `1px solid ${BRAND.border}`, borderRadius: 8 }}>
+                    {depositEmployers
+                      .filter(e => !depositSearch.trim() || (e.full_name || "").toLowerCase().includes(depositSearch.trim().toLowerCase()))
+                      .map(e => (
+                        <button
+                          key={e.id}
+                          onClick={() => { setDepositTarget(e); setDepositResult(null); }}
+                          style={{
+                            width: "100%", textAlign: "left", padding: "9px 12px", border: "none",
+                            borderBottom: `1px solid ${BRAND.border}`, cursor: "pointer", fontFamily: "inherit",
+                            background: depositTarget?.id === e.id ? BRAND.primaryLight : "transparent",
+                            color: depositTarget?.id === e.id ? BRAND.onPrimaryLight : BRAND.text,
+                            fontSize: 13, fontWeight: depositTarget?.id === e.id ? 700 : 500,
+                          }}
+                        >
+                          {e.full_name || t("admin.depositUnnamed")}
+                          {e.employer_verification_status !== "verified" && (
+                            <span style={{ fontSize: 11, color: BRAND.textMuted, marginLeft: 8 }}>
+                              {t("admin.depositUnverifiedNote")}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                  </div>
+                </>
+              )}
+            </Card>
+
+            {depositTarget && (
+              <Card style={{ marginBottom: 20, maxWidth: 640 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>
+                  {t("admin.depositFormTitle", { name: depositTarget.full_name || t("admin.depositUnnamed") })}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 4 }}>{t("admin.depositAmountLabel")}</div>
+                    <input
+                      type="number" min="0" step="0.01" inputMode="decimal"
+                      value={depositAmount}
+                      onChange={(e) => setDepositAmount(e.target.value)}
+                      placeholder="0.00"
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, fontSize: 13, boxSizing: "border-box", fontFamily: "inherit" }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 4 }}>{t("admin.depositReferenceLabel")}</div>
+                    <input
+                      value={depositReference}
+                      onChange={(e) => setDepositReference(e.target.value)}
+                      placeholder={t("admin.depositReferencePlaceholder")}
+                      style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, fontSize: 13, boxSizing: "border-box", fontFamily: "inherit" }}
+                    />
+                  </div>
+                </div>
+                <div style={{ fontSize: 11.5, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 12 }}>
+                  {t("admin.depositReferenceHint")}
+                </div>
+                {!depositConfirming ? (
+                  <Btn
+                    onClick={() => setDepositConfirming(true)}
+                    disabled={!depositAmount || !depositReference.trim()}
+                  >
+                    {t("admin.depositReviewBtn")}
+                  </Btn>
+                ) : (
+                  <div style={{ border: `1px solid ${BRAND.amber}`, borderRadius: 10, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6, marginBottom: 12 }}>
+                      {t("admin.depositConfirmBody", {
+                        amount: Number(depositAmount || 0).toFixed(2),
+                        name: depositTarget.full_name || t("admin.depositUnnamed"),
+                        reference: depositReference.trim(),
+                      })}
+                    </div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <Btn onClick={submitDeposit} disabled={depositSubmitting}>
+                        {depositSubmitting ? t("admin.depositRecording") : t("admin.depositConfirmBtn")}
+                      </Btn>
+                      <Btn variant="secondary" onClick={() => setDepositConfirming(false)} disabled={depositSubmitting}>
+                        {t("admin.depositCancelBtn")}
+                      </Btn>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {depositResult && (
+              <Card style={{ marginBottom: 20, maxWidth: 640, borderLeft: `3px solid ${BRAND.green}` }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("admin.depositDoneTitle")}</div>
+                <div style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.6 }}>
+                  {t("admin.depositDoneBody", {
+                    amount: Number(depositResult.amount ?? 0).toFixed(2),
+                    name: depositResult.employer_name || "",
+                    available: Number(depositResult.available ?? 0).toFixed(2),
+                    held: Number(depositResult.held ?? 0).toFixed(2),
+                  })}
+                </div>
+              </Card>
+            )}
+
+            <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>{t("admin.depositRecentTitle")}</div>
+            <Card style={{ maxWidth: 640 }}>
+              {depositRecent === null ? (
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.depositLoading")}</div>
+              ) : depositRecent.length === 0 ? (
+                <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.depositRecentEmpty")}</div>
+              ) : (
+                depositRecent.map(r => {
+                  const who = (depositEmployers || []).find(e => e.id === r.employer_id);
+                  return (
+                    <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, color: BRAND.text, fontWeight: 600 }}>{who?.full_name || r.employer_id?.slice(0, 8) || "—"}</div>
+                        <div style={{ fontSize: 11, color: BRAND.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.note}</div>
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, flexShrink: 0 }}>RM{Number(r.amount ?? 0).toFixed(2)}</div>
+                    </div>
+                  );
+                })
+              )}
+            </Card>
           </div>
         )}
 
