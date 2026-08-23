@@ -319,3 +319,31 @@ has app_metadata.role = 'admin'. See "Still open" below.
   verified; the write itself is not)
 - Flip enforcement on once real top-ups exist
 - Phase 2: FPX/DuitNow, then restore the stronger landing claim
+
+## Signed-out landing page: 638 words → 357 (2026-08-23)
+
+The page put three long sections between a first-time visitor and the first
+real shift card, one of them (187 words) addressed to employers. Owner's call:
+keep the shift cards, move the employer content, don't delete the trust
+material — it IS the trust proposition.
+
+- [x] Four collapsed `LandingSection` accordions: pay / trust / how it works
+      for workers / hiring instead. One open at a time, so an expanded block
+      can't push the shift list back off the screen.
+- [x] Employer content out of the default view, behind "Hiring instead?", with
+      the "Post a shift as an employer" CTA inside it.
+- [x] Payment-safety point relocated to a 5th step in `WelcomeIntroModal` —
+      worker and employer wording, EN/BM/CH.
+- [x] 9 now-unrendered landing headings removed from the translation table
+      (27 entries); parity holds at 1163 keys per language.
+
+Verified signed out at 375×812: 357 words, all four collapsed, scrollHeight
+equals the viewport, expand→collapse returns to exactly 357. Intro modal
+verified live for BOTH roles by clearing `intro_seen_at` through each QA
+account's own session and re-stamping it via Get started (both accounts left
+stamped, no residue). Console clean — the `activeChatShift` TDZ errors still
+in the buffer were proven stale by ordering a marker after them.
+
+Shipped as 495a476, Pages deploy green, and the live chunk
+`carigaji-app-CPWP38H4.js` confirmed to contain `intro.workerStep5` and
+`landing.sectionPayTitle` and none of the removed keys.
