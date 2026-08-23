@@ -5225,9 +5225,28 @@ const disablePushNotifications = async () => {
   } catch { /* best effort -- never block sign-out on this */ }
 };
 
-const pushPermissionState = () => {
+// The state the SETTINGS ROW needs, which is not the same as the browser
+// permission. Permission stays "granted" after you unsubscribe, so keying the
+// UI on it alone left the row stuck on "Turn off" with no way back once the
+// user had switched notifications off -- reported from a real phone.
+//
+// What matters is whether a subscription exists right now:
+//   "unsupported"  no service worker / no PushManager / no VAPID key
+//   "denied"       the browser blocked it; only site settings can undo that
+//   "on"           permission granted AND a live subscription
+//   "off"          everything else -- never asked, or asked and then turned off
+// "off" covers granted-but-unsubscribed, where enabling again subscribes
+// silently without a second prompt.
+const readPushStatus = async () => {
   if (!pushSupported()) return "unsupported";
-  return Notification.permission;   // "default" | "granted" | "denied"
+  if (Notification.permission === "denied") return "denied";
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    return subscription ? "on" : "off";
+  } catch {
+    return "off";
+  }
 };
 
 // ─── Chat: unread badge + day-aware timestamps ──────────────────────────────
@@ -7339,10 +7358,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [settingsOpenFaq, setSettingsOpenFaq] = useState(null);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
-  // "unsupported" | "default" | "granted" | "denied" -- read from the browser
-  // rather than stored, because the user can change it in site settings at any
-  // time and a remembered value would go stale silently.
-  const [pushState, setPushState] = useState(() => pushPermissionState());
+  // "unsupported" | "denied" | "on" | "off". Read from the browser rather than
+  // stored: the user can revoke permission in site settings at any time, and a
+  // remembered value would go stale without anything noticing. Resolved in an
+  // effect because checking for a live subscription is async.
+  const [pushState, setPushState] = useState("unsupported");
+  useEffect(() => {
+    let active = true;
+    readPushStatus().then(status => { if (active) setPushState(status); });
+    return () => { active = false; };
+  }, [user?.id]);
   const [showTnC, setShowTnC] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
   const [showBidModal, setShowBidModal] = useState(false);
@@ -10100,23 +10125,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.45 }}>
                     {pushState === "unsupported" ? t("settings.pushUnsupported")
                       : pushState === "denied" ? t("settings.pushDenied")
-                      : pushState === "granted" ? t("settings.pushOn")
+                      : pushState === "on" ? t("settings.pushOn")
                       : t("settings.pushOff")}
                   </div>
                 </div>
-                {pushState === "default" && (
+                {pushState === "off" && (
                   <Btn size="xs" onClick={async () => {
                     const result = await enablePushNotifications(user);
-                    setPushState(pushPermissionState());
+                    setPushState(await readPushStatus());
                     toast(t(result === "enabled" ? "toast.pushEnabled"
                           : result === "denied" ? "toast.pushDenied"
                           : "toast.pushFailed"), result === "enabled" ? "success" : "info");
                   }}>{t("settings.pushEnableBtn")}</Btn>
                 )}
-                {pushState === "granted" && (
+                {pushState === "on" && (
                   <Btn size="xs" variant="secondary" onClick={async () => {
                     await disablePushNotifications();
-                    setPushState(pushPermissionState());
+                    setPushState(await readPushStatus());
                     toast(t("toast.pushDisabled"), "info");
                   }}>{t("settings.pushDisableBtn")}</Btn>
                 )}
