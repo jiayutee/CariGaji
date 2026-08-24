@@ -43,6 +43,21 @@ The app is now **base-agnostic** — the same commit builds for either host:
 | GH Pages workflow | implicit | sets `BASE_PATH=/CariGaji/` explicitly |
 | `wrangler.jsonc` | — | new: `dist` + SPA fallback, for the Workers flow |
 
+There is deliberately **no `_redirects` file**. The obvious SPA rule —
+`/*  /index.html  200` — is *rejected* by Workers static assets:
+
+```
+Invalid _redirects configuration:
+Line 11: Infinite loop detected in this rule. This would cause a redirect to
+strip `.html` or `/index` and end up triggering this rule again. [code: 100324]
+```
+
+Workers already strips `.html` and `/index` when serving assets, so that rule
+would re-enter itself. On Workers the SPA fallback is declared once, in
+`wrangler.jsonc`, via `not_found_handling: "single-page-application"` — and
+that is the only mechanism needed. (Cloudflare *Pages* and Netlify do want the
+`_redirects` rule; Workers does not.)
+
 The service worker accepts **both** link shapes, old and new, because a push
 subscription carries no record of which origin it belongs to and both origins
 will be live during the cutover.
