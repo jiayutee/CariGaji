@@ -605,6 +605,7 @@ const TRANSLATIONS = {
     "worker.previewModeBanner": "Preview only — this is how the app looks to workers. You can browse, but not apply or take worker actions.",
     "worker.previewModeExitBtn": "Exit preview",
     "worker.previewModeBlocked": "Preview only — switch to a worker account to actually do this.",
+    "worker.roleLoading": "One moment — still loading your account.",
     "worker.previewModeBidBtn": "Preview — can't submit",
     "myBids.signContractBtn": "✍️ Sign Contract",
     "myBids.contractSignedBadge": "✅ Contract signed",
@@ -1782,6 +1783,7 @@ const TRANSLATIONS = {
     "worker.previewModeBanner": "Pratonton sahaja — beginilah rupa aplikasi kepada pekerja. Anda boleh melayari, tetapi tidak boleh memohon atau mengambil tindakan pekerja.",
     "worker.previewModeExitBtn": "Keluar pratonton",
     "worker.previewModeBlocked": "Pratonton sahaja — tukar kepada akaun pekerja untuk benar-benar melakukan ini.",
+    "worker.roleLoading": "Sekejap — akaun anda masih dimuatkan.",
     "worker.previewModeBidBtn": "Pratonton — tidak boleh hantar",
     "myBids.signContractBtn": "✍️ Tandatangan Kontrak",
     "myBids.contractSignedBadge": "✅ Kontrak ditandatangani",
@@ -2951,6 +2953,7 @@ const TRANSLATIONS = {
     "worker.previewModeBanner": "仅供预览 — 这是员工看到的应用界面。您可以浏览，但无法申请或执行员工操作。",
     "worker.previewModeExitBtn": "退出预览",
     "worker.previewModeBlocked": "仅供预览 — 请切换至员工账户才能实际执行此操作。",
+    "worker.roleLoading": "请稍候 — 您的账户仍在加载中。",
     "worker.previewModeBidBtn": "预览 — 无法提交",
     "myBids.signContractBtn": "✍️ 签署合同",
     "myBids.contractSignedBadge": "✅ 合同已签署",
@@ -7371,11 +7374,27 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Preview mode: browsing/viewing stays fully live (that's the point —
   // see the real Discover feed, a real shift's detail, etc.), but every
   // write path below is gated through guardPreview() first.
-  const previewMode = Boolean(user) && userRole !== "worker";
+  // `userRole` is null from mount until the profiles round-trip returns, and
+  // the session is restored from localStorage instantly -- so for the first
+  // few hundred milliseconds a signed-in WORKER looked exactly like a
+  // non-worker. That flashed the amber "Preview only" banner on every cold
+  // load, and worse, guardPreview() refused real writes during the gap: tap
+  // the avatar or a bid fast enough and you were told to "switch to a worker
+  // account" while already signed in as one.
+  //
+  // So the two questions are now separated. The BANNER asks "do we know this
+  // person is not a worker?" -- unknown is not a claim, and we do not make it.
+  // The GATE asks "do we know this person IS a worker?" -- and fails closed
+  // while unknown, because the whole point of the gate is that an employer
+  // must never write as themselves through the worker UI, and a loading
+  // window is not a reason to hand that back.
+  const roleResolved = userRole !== null;
+  const previewMode = Boolean(user) && roleResolved && userRole !== "worker";
   const guardPreview = () => {
-    if (!previewMode) return false;
-    toast(t("worker.previewModeBlocked"), "info");
-    return true;
+    if (!user) return false;              // signed out: the auth prompt handles it
+    if (previewMode) { toast(t("worker.previewModeBlocked"), "info"); return true; }
+    if (!roleResolved) { toast(t("worker.roleLoading"), "info"); return true; }
+    return false;
   };
 
   // Shared element rather than inline JSX: WorkerPortal has several
