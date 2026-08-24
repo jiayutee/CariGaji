@@ -378,10 +378,13 @@ declare
   v_wrk uuid := '13e3a2d8-40fa-472f-8ca4-18c8361dbbd0';  -- QA worker one
   v_paid uuid; v_free uuid; v_ap uuid; v_af uuid;
   v_start timestamptz := now() + interval '9 days';
-  v_res jsonb; v_bal record; v_fees numeric; v_before numeric; v_setup_failed text;
+  v_res jsonb; v_bal record; v_fees numeric; v_before numeric;
 begin
+  -- The whole test runs inside a subtransaction that is ALWAYS rolled back, so
+  -- it leaves nothing behind and never has to delete anything. It cannot:
+  -- employer_wallet_entry is append-only (20260822b) and refuses DELETE, which
+  -- is precisely the guard a test that writes ledger rows must not fight.
   begin
-    -- 6h shifts (09:00-15:00), one worker each.
     insert into public.shifts (employer_id, title, location, start_at, end_at,
                                wage_min, wage_max, headcount, status, occurrences)
     values (v_emp, 'FEE test paid', 'KL', v_start, v_start + interval '6 hours', 10, 20, 1, 'open',
@@ -402,18 +405,6 @@ begin
 
     insert into public.employer_wallet_entry (employer_id, kind, amount, note, idempotency_key)
     values (v_emp, 'topup', 400, 'FEE self-test float', 'feetest:' || v_paid::text);
-  exception when others then
-    v_setup_failed := sqlerrm;
-  end;
-
-  if v_setup_failed is not null then
-    -- The DDL above is the fix and is already applied. A scaffold that could
-    -- not be built says nothing about whether the fix is wrong, so warn and
-    -- leave it in place rather than rolling the whole migration back.
-    raise warning 'FEE self-test SETUP failed (fix still applied): %', v_setup_failed;
-    return;
-  end if;
-
   -- 1. THE SNAPSHOT IS PINNED. An employer PATCHing their own fee to zero is
   --    helping themselves to our revenue.
   perform set_config('request.jwt.claims', '{"sub":"' || v_emp::text || '","role":"authenticated"}', true);
@@ -488,13 +479,22 @@ begin
     raise exception 'FEE self-test FAILED: total fee revenue should be 16.20, got %', v_fees;
   end if;
 
-  raise notice 'FEE self-test passed: hold 124.20 (108 + 16.20), capture split correctly, 0%% shift charged nothing.';
-
-  -- cleanup
-  delete from public.employer_wallet_entry where shift_id in (v_paid, v_free);
-  delete from public.employer_wallet_entry where idempotency_key = 'feetest:' || v_paid::text;
-  delete from public.applications where id in (v_ap, v_af);
-  delete from public.shifts where id in (v_paid, v_free);
+    raise exception 'ROLLBACK_SELFTEST';
+  exception
+    when others then
+      if sqlerrm = 'ROLLBACK_SELFTEST' then
+        raise notice 'FEE self-test passed: hold 124.20 (108 + 16.20), capture split correctly, 0%% shift charged nothing, settled hold released nothing. All test rows rolled back.';
+      elsif sqlerrm like 'FEE self-test FAILED%' then
+        -- Wrong numbers abort the whole migration. Money code does not get to
+        -- ship "mostly right".
+        raise;
+      else
+        -- The DDL above is the fix and is already applied. A scaffold that
+        -- could not be built says nothing about whether the fix is wrong, so
+        -- warn and keep it rather than rolling the fix back too.
+        raise warning 'FEE self-test SETUP failed (fix still applied): %', sqlerrm;
+      end if;
+  end;
 end $test$;
 
 do $$

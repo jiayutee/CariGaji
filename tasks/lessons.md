@@ -141,3 +141,33 @@ Patterns learned from user corrections, kept up to date per CLAUDE.md's Self-Imp
 - Rule: PostgREST returns 204 for a DELETE that affects no rows. 204 means "the request was valid", never "something was deleted". Always read the row back afterwards, or send `Prefer: return=representation` and check the returned array is non-empty.
 - Rule: before writing test data into a REAL row's neighbourhood (an application against the owner's own live shift), work out how it will be removed FIRST. Here the answer was "only from the SQL editor", which I should have known before creating it, not after.
 - Rule: leftover QA rows are not always cosmetic. This one permanently blocked that worker from ever bidding on that shift again -- via the exact unique constraint whose bug I was fixing.
+
+## A test scaffold missing one live trigger sent a broken migration to the owner (2026-08-24)
+
+The fee migration's self-test cleaned up with `delete from employer_wallet_entry`.
+It passed locally and failed the moment the owner ran it:
+
+    employer_wallet_entry is append-only: correct with a new entry, never by
+    editing or deleting one   -- guard_wallet_entry_immutable, 20260822b
+
+My throwaway Postgres had the ledger TABLE but not its two TRIGGERS, so the
+delete succeeded locally and could never succeed live. Same root cause as the
+`shifts_occurrences_nonempty` miss earlier this session, one layer deeper:
+last time I rebuilt the table from CREATE TABLE and missed later constraints;
+this time I remembered the constraints and missed the triggers.
+
+RULE: a scaffold for testing a migration must be reconstructed from the
+accumulated migration history INCLUDING triggers, not just tables and
+constraints. Grep `create trigger` across supabase/migrations for every table
+the test writes to, and port each one.
+
+BETTER RULE, which removes the need for the first: a self-test that writes
+rows should run inside a subtransaction that is ALWAYS rolled back, rather than
+deleting what it made. `begin ... raise exception 'ROLLBACK_SELFTEST'; exception
+when others then <re-raise real failures, swallow the sentinel> end`. It leaves
+zero residue, it cannot fight an append-only guard, and it cannot leave debris
+behind when an assertion fails halfway through.
+
+Related: when restructuring a self-test's control flow, RE-RUN the deliberate
+regressions. An exception handler added for cleanup can silently swallow the
+very failures the test exists to raise.
