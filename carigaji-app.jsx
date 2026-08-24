@@ -433,6 +433,8 @@ const BRAND = {
   onRedLight: "#991B1B",
   onGreenLight: "#065F46",
   onPrimaryLight: "#1E40AF",
+  onAccentLight: "#155E75",
+  onBlueLight: "#075985",
   red: "#DC2626",
   redLight: "#FEE2E2",
   gray: "var(--cg-text-muted)",
@@ -4513,6 +4515,18 @@ const Btn = memo(({ children, variant = "primary", onClick, size = "md", style =
   );
 });
 
+// Fallback-initials colours for Avatar, keyed by the brand hue callers pass
+// in. color+"22" text-on-its-own-13%-tint measured 3.04:1 in dark mode and
+// 4.28:1 in light -- both under AA, because alpha blending means the
+// rendered tint depends on whatever sits behind it. Reuse the fixed-light
+// surface + onXLight text pairing Badge already uses for amber/red/green/
+// primary instead: opaque, so it holds >4.5:1 in both themes by design.
+const AVATAR_FALLBACK_COLORS = {
+  [BRAND.primary]: { background: BRAND.primaryLight, color: BRAND.onPrimaryLight },
+  [BRAND.accent]: { background: BRAND.accentLight, color: BRAND.onAccentLight },
+  [BRAND.blue]: { background: BRAND.blueLight, color: BRAND.onBlueLight },
+};
+
 const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src = null }) => {
   const initials = name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
   if (src) {
@@ -4528,10 +4542,11 @@ const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src = null 
       />
     );
   }
+  const fallback = AVATAR_FALLBACK_COLORS[color] || { background: color + "22", color };
   return (
     <div style={{
       width: size, height: size, borderRadius: "50%",
-      background: color + "22", color: color,
+      background: fallback.background, color: fallback.color,
       display: "flex", alignItems: "center", justifyContent: "center",
       fontSize: size * 0.35, fontWeight: 700, flexShrink: 0,
     }}>{initials}</div>
