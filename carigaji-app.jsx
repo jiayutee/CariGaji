@@ -4856,7 +4856,7 @@ const AuthGate = memo(({ onRequireAuth, title, hint, icon = "🔒" }) => {
   }}>
     <div style={{
       width: 64, height: 64, borderRadius: "50%",
-      background: BRAND.primaryLight, display: "flex",
+      background: BRAND.primaryLight, color: BRAND.onPrimaryLight, display: "flex",
       alignItems: "center", justifyContent: "center", fontSize: 28,
     }} aria-hidden="true">{icon}</div>
     <div>
@@ -12870,11 +12870,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </div>
             {bulkSelectMode && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BRAND.primaryLight, borderRadius: 10, marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: BRAND.primaryLight, color: BRAND.onPrimaryLight, borderRadius: 10, marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: BRAND.primary, fontWeight: 600 }}>{t("employer.selectedOfTotal").replace("{selected}", selectedApplicantIds.length).replace("{total}", openSlotsRemaining())}</div>
+                  <div style={{ fontSize: 12, color: BRAND.onPrimaryLight, fontWeight: 600 }}>{t("employer.selectedOfTotal").replace("{selected}", selectedApplicantIds.length).replace("{total}", openSlotsRemaining())}</div>
                   {selectedApplicantIds.length > 0 && (
-                    <div style={{ fontSize: 12, color: BRAND.primary, marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: BRAND.onPrimaryLight, marginTop: 2 }}>
                       {t("employer.selectedTotalLabel")} <b>RM{selectedApplicantsTotal.toFixed(2)}</b>
                     </div>
                   )}
@@ -13150,7 +13150,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <Input placeholder={t("employer.wageMaxPlaceholder")} type="number" value={form.wageMax} onChange={e => setForm(f => ({ ...f, wageMax: e.target.value }))} />
                     </div>
                     {form.wageMin && form.wageMax && (
-                      <div style={{ background: BRAND.primaryLight, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: BRAND.primary }}>
+                      <div style={{ background: BRAND.primaryLight, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: BRAND.onPrimaryLight }}>
                         {t("employer.bidCapHint").replace("{amount}", (parseFloat(form.wageMax || 0) * 1.5).toFixed(0))}
                       </div>
                     )}
@@ -13490,7 +13490,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     {t("employer.bulkRowsSummary").replace("{ready}", readyCount).replace("{total}", bulkUploadRows.length).replace("{needsFix}", needsFixCount)}
                   </div>
                   {bulkUploadPublishing && (
-                    <div style={{ background: BRAND.primaryLight, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600, color: BRAND.primary }}>
+                    <div style={{ background: BRAND.primaryLight, borderRadius: 10, padding: "10px 16px", marginBottom: 16, fontSize: 13, fontWeight: 600, color: BRAND.onPrimaryLight }}>
                       {t("employer.bulkPublishing").replace("{done}", bulkUploadProgress.done).replace("{total}", bulkUploadProgress.total)}
                     </div>
                   )}

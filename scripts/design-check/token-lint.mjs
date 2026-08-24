@@ -27,7 +27,26 @@ const FIXED_LIGHT = {
   amberLight: 'onAmberLight',
   redLight: 'onRedLight',
   greenLight: 'onGreenLight',
+  // Added 2026-08-24: the auth modal's header gradient ran from primaryLight
+  // (#EFF4FF, near-white in BOTH themes) and put BRAND.text on it -- 1.12:1 in
+  // dark mode. primaryLight had an onPrimaryLight partner all along and was
+  // simply missing from this table.
+  primaryLight: 'onPrimaryLight',
 };
+
+// Is a literal light enough that theme-aware text will disappear on it in dark
+// mode? Relative luminance, same formula the contrast sweep uses.
+const luminance = (hex) => {
+  const h = hex.replace('#', '');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h.slice(0, 6);
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(full.slice(i, i + 2), 16) / 255)
+    .map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const IS_LIGHT = (hex) => /^#[0-9a-fA-F]{3,8}$/.test(hex) && luminance(hex) > 0.6;
+// Colours that flip with the theme. Text in these is unreadable on anything
+// that does not flip with them.
+const THEME_AWARE_TEXT = /color:\s*BRAND\.(text|textMuted)\b/;
 // Colours that must never sit on a fixed-light surface: either they flip with
 // the theme, or they are a brand colour chosen against white.
 const UNSAFE_ON_FIXED_LIGHT = /BRAND\.(text|textMuted|gray|amber|red|green|blue|primary|accent)\b/;
@@ -89,6 +108,49 @@ for (const obj of styleObjects) {
       rule: 'hardcoded-colour', line,
       detail: `${lit} — use a BRAND token so it follows the theme`,
     });
+  }
+
+  // 3. a LITERAL light background under theme-aware text.
+  //
+  // This is the shape that put "Invalid login credentials" at 1.12:1 in dark
+  // mode: background: "#EFF6FF" with color: BRAND.text. Rule 1 does flag the
+  // hex on its own, but as a generic hardcoded-colour finding it was accepted
+  // into the baseline years-of-commits ago and stopped being visible. Reported
+  // separately because the PAIRING is a contrast failure, not a style nit.
+  const litBg = obj.text.match(/background(?:Color)?:\s*["'](#[0-9a-fA-F]{3,8})["']/);
+  if (litBg && IS_LIGHT(litBg[1]) && THEME_AWARE_TEXT.test(obj.text)) {
+    findings.push({
+      rule: 'light-bg-themed-text', line,
+      detail: `${litBg[1]} background under theme-aware text — near-white in dark mode; use a chipTone() pair`,
+    });
+  }
+
+  // 4. a gradient with a fixed-light stop.
+  //
+  // Gradients live in backgroundImage and were invisible to every check above,
+  // including my own first measurement of the auth header, which read
+  // backgroundColor, got transparent, and reported a pass. A fixed-light stop
+  // is a light island in dark mode whether the text sits in THIS object or in
+  // a child -- and in the auth modal it was in a child, so no same-object rule
+  // could ever have caught the pairing. Flag the gradient itself instead.
+  const grad = obj.text.match(/linear-gradient\([^`]*/);
+  if (grad) {
+    // NOT grayLight: it is var(--cg-surface-muted), which flips with the theme.
+    // Listing it here produced a false positive on the skeleton loader before
+    // this comment existed -- the whole point of the rule is FIXED stops.
+    const lightToken = grad[0].match(/BRAND\.(amberLight|redLight|greenLight|primaryLight)\b/);
+    const lightHex = (grad[0].match(/#[0-9a-fA-F]{3,8}\b/g) || []).find(IS_LIGHT);
+    if (lightToken) {
+      findings.push({
+        rule: 'fixed-light-gradient', line,
+        detail: `gradient stop BRAND.${lightToken[1]} is fixed-light — stays near-white in dark mode; use a theme token or an alpha tint like \${BRAND.primary}14`,
+      });
+    } else if (lightHex) {
+      findings.push({
+        rule: 'fixed-light-gradient', line,
+        detail: `gradient stop ${lightHex} is fixed-light — stays near-white in dark mode; use a theme token or an alpha tint`,
+      });
+    }
   }
 
   // 2. fixed-light surface with a colour that does not belong on it
