@@ -752,7 +752,6 @@ const TRANSLATIONS = {
     "toast.personalDetailsSaveFailed": "Could not save details: ",
     "profile.noRatingsTitle": "No ratings yet",
     "profile.noRatingsHint": "Ratings from employers will appear here after you complete shifts.",
-    "auth.signinSubtitle": "Use your email and password to access CariGaji.",
     "auth.registerTitle": "Register",
     "auth.registerSubtitle": "Create your account and complete your profile and KYC details.",
     "auth.resetTitle": "Reset password",
@@ -1932,7 +1931,6 @@ const TRANSLATIONS = {
     "toast.personalDetailsSaveFailed": "Tidak dapat menyimpan butiran: ",
     "profile.noRatingsTitle": "Belum ada penilaian",
     "profile.noRatingsHint": "Penilaian daripada majikan akan dipaparkan di sini selepas anda menyelesaikan syif.",
-    "auth.signinSubtitle": "Gunakan e-mel dan kata laluan anda untuk mengakses CariGaji.",
     "auth.registerTitle": "Daftar",
     "auth.registerSubtitle": "Cipta akaun anda dan lengkapkan profil serta butiran KYC anda.",
     "auth.resetTitle": "Tetapkan semula kata laluan",
@@ -3104,7 +3102,6 @@ const TRANSLATIONS = {
     "toast.personalDetailsSaveFailed": "无法保存详细资料：",
     "profile.noRatingsTitle": "暂无评价",
     "profile.noRatingsHint": "完成班次后，雇主的评价将显示在这里。",
-    "auth.signinSubtitle": "使用您的电邮和密码登入 CariGaji。",
     "auth.registerTitle": "注册",
     "auth.registerSubtitle": "创建您的账户并完成个人资料及 KYC 信息。",
     "auth.resetTitle": "重置密码",
@@ -6985,7 +6982,7 @@ const AuthModal = ({
   const copy = {
     signin: {
       title: translate("common.signIn"),
-      subtitle: translate("auth.signinSubtitle"),
+      subtitle: null,
       action: translate("common.signIn"),
     },
     register: {
@@ -7006,10 +7003,21 @@ const AuthModal = ({
         style={{ width: "100%", maxWidth: view === "register" ? 640 : 440, maxHeight: "90vh", background: BRAND.surface, borderRadius: 20, boxShadow: `0 24px 70px ${BRAND.shadow}`, overflow: "hidden", display: "flex", flexDirection: "column" }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ padding: "18px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `linear-gradient(135deg, ${BRAND.primaryLight}, ${BRAND.surface})`, flexShrink: 0 }}>
+        <div style={{ padding: "18px 20px", borderBottom: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, background: `linear-gradient(135deg, ${BRAND.primary}14, ${BRAND.surface})`, flexShrink: 0 }}>
+          {/* The header gradient used to run from BRAND.primaryLight -- a FIXED
+              near-white, #EFF4FF -- into the theme-aware surface. In dark mode
+              that put near-white TITLE text on a near-white left edge, which is
+              what "not so visible" was. Both stops are theme-aware now, so the
+              gradient stays a subtle lift in either theme.
+              The subtitle is dropped on the sign-in view: two labelled fields
+              reading "Email address" and "Password" already say everything
+              "Use your email and password to access CariGaji" said. Register
+              and reset keep theirs, because those genuinely tell you something
+              you cannot see -- that a profile and KYC step follows, and that an
+              email is about to be sent. */}
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{copy.title}</div>
-            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>
+            {copy.subtitle && <div style={{ fontSize: 12.5, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>}
           </div>
           <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }} aria-label={translate("common.close")}>{Icons.Close({ size: 20 })}</button>
         </div>
