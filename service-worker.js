@@ -1,5 +1,19 @@
 const CACHE_NAME = "carigaji-cache-v2";
 
+// Every in-app URL this worker builds is resolved against ITS OWN scope rather
+// than a hardcoded prefix, because the same worker has to run on a host that
+// serves the app from "/" and on one that serves it from "/CariGaji/" -- and a
+// push payload cannot know which of the two a given subscription belongs to.
+// Both link shapes are accepted: the bare form ("employer") that send-push now
+// emits, and the legacy absolute form ("/CariGaji/employer") that may still be
+// in flight from an older deployment.
+const appUrl = (link) => {
+  const rel = String(link || "")
+    .replace(/^\/+/, "")
+    .replace(/^CariGaji\//, "");
+  return new URL(rel, self.registration.scope).href;
+};
+
 self.addEventListener("install", () => {
   self.skipWaiting();
 });
@@ -32,7 +46,7 @@ self.addEventListener("fetch", (event) => {
       .catch(() =>
         caches.match(request).then((cached) => {
           if (cached) return cached;
-          // Portal deep links (/CariGaji/employer, /CariGaji/admin) are SPA
+          // Portal deep links (<base>/employer, <base>/admin) are SPA
           // routes, not real files -- offline there is a cache miss on a URL
           // that was never fetched as itself. Any navigation can be served by
           // the one app shell, which then routes on location.pathname.
@@ -73,13 +87,13 @@ self.addEventListener("push", (event) => {
   const title = payload.title || "CariGaji";
   const options = {
     body: payload.body || "",
-    icon: "/CariGaji/icon-192.png",
-    badge: "/CariGaji/icon-192.png",
+    icon: appUrl("icon-192.png"),
+    badge: appUrl("icon-192.png"),
     // Collapse repeats of the same thing: a second push about one application
     // replaces the first in the tray instead of stacking.
     tag: payload.tag || payload.link || "carigaji",
     renotify: true,
-    data: { link: payload.link || "/CariGaji/" },
+    data: { link: payload.link || "" },
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -87,14 +101,14 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const link = (event.notification.data && event.notification.data.link) || "/CariGaji/";
-  const target = new URL(link, self.registration.scope).href;
+  const link = (event.notification.data && event.notification.data.link) || "";
+  const target = appUrl(link);
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
       // Reuse an open tab rather than piling up new ones. Matching on scope
       // rather than the exact URL, because the app is a SPA -- the tab showing
-      // /CariGaji/ can navigate itself to the deep link.
+      // the app root can navigate itself to the deep link.
       for (const client of clients) {
         if (client.url.startsWith(self.registration.scope) && "focus" in client) {
           client.postMessage({ type: "notification-click", link });
