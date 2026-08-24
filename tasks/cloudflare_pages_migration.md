@@ -41,6 +41,7 @@ The app is now **base-agnostic** — the same commit builds for either host:
 | `public/service-worker.js` | icons/links hardcoded | resolved against `self.registration.scope` |
 | `send-push` | emits `/CariGaji/employer` | emits `employer` — base-relative |
 | GH Pages workflow | implicit | sets `BASE_PATH=/CariGaji/` explicitly |
+| `wrangler.jsonc` | — | new: `dist` + SPA fallback, for the Workers flow |
 
 The service worker accepts **both** link shapes, old and new, because a push
 subscription carries no record of which origin it belongs to and both origins
@@ -54,14 +55,27 @@ the `_redirects` rule returns **200** for `/`, `/employer`, `/admin` and
 
 Creating accounts and signing in is not something I can do for you.
 
-### 1. Create the Pages project
-- Sign in at dash.cloudflare.com → **Workers & Pages** → **Create** → **Pages**
-  → **Connect to Git** → pick `jiayutee/CariGaji`.
-- Build settings:
-  - Framework preset: **Vite**
+### 1. Create the project — two flows, and they look different
+
+Cloudflare is folding Pages into Workers, so which form you get depends on the
+account. Tell them apart by the fields:
+
+**PAGES flow** — asks for *Framework preset* and *Build output directory*.
+  Workers & Pages → Create → **Pages** tab → Connect to Git → `jiayutee/CariGaji`
+  - Framework preset: **Vite** (or None — the preset only prefills the two
+    fields below, it does nothing else)
   - Build command: `npm run build`
   - Build output directory: `dist`
-  - **Do not set `BASE_PATH`.** Its absence is what selects the root base.
+
+**WORKERS flow** — asks for *Root directory* and a deploy command, and has no
+output-directory field at all. That is what `wrangler.jsonc` in the repo root
+is for; it declares `dist` and the SPA fallback, so there is nothing to fill in.
+  - Root directory: leave as `/`
+  - Build command: `npm run build`
+  - Deploy command: `npx wrangler deploy`
+
+Either way: **do not set `BASE_PATH`.** Its absence is what selects the root
+base.
 
 ### 2. Add the four build variables
 Same values as the GitHub Actions secrets — without them the build produces an

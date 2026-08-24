@@ -1,0 +1,19 @@
+// Cloudflare deploy config.
+//
+// Only needed if the project is created through the WORKERS import flow (the
+// one that asks for a "Root directory" and a deploy command). The classic
+// PAGES flow asks for a "Build output directory" instead and needs no file at
+// all. Harmless either way, and harmless to GitHub Pages, which ignores it.
+//
+// `not_found_handling: "single-page-application"` is the whole point: any path
+// with no file behind it — /employer, /admin, /shift/<id> — is served
+// index.html with a real HTTP 200. That is what GitHub Pages could not do, and
+// what Googlebot needs before it will index a shift URL.
+{
+  "name": "carigaji",
+  "compatibility_date": "2026-08-24",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
