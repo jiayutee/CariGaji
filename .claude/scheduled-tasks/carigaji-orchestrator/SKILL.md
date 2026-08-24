@@ -294,6 +294,26 @@ Telegram the owner and treat fixing it as the next cycle's Priority 5 task.
 - New bugs found → create a page in the Feature Backlog
 - Bump Launch Readiness if a milestone landed
 
+STATUS AND DATE MOVE TOGETHER (owner instruction, 2026-08-24). Setting a
+Feature Backlog row to Status = "Done" WITHOUT also setting Date of Completion
+is not a valid write. As of that date 45 of 118 Done rows had an empty
+completion date — 38% — because this step never said to set it and Notion does
+not enforce it: Status and the date are independent properties.
+
+Both in the SAME notion-update-page call:
+
+    properties: {
+      "Status": "Done",
+      "date:Date of Completion:start": "YYYY-MM-DD",       // the day it shipped
+      "date:Date of Completion:is_datetime": 0
+    }
+
+Use the date the work actually landed (the commit date), not "today", when
+closing something finished in an earlier cycle. And apply the same verify-the-
+write rule as below: re-fetch the row and confirm BOTH fields took. A row whose
+status says Done and whose date says nothing is exactly the kind of half-written
+record that later cycles have repeatedly mistaken for pending work.
+
 VERIFY THE WRITE (mandatory — this step has silently no-op'd 4 times as of
 2026-08-03, see project memory [[project_missed_cycle_20260722]]): immediately
 after the notion-update-page call, re-fetch today's Daily Log page and confirm
