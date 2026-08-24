@@ -12537,7 +12537,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
               </Card>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open" || s.status === "closed").length} color={BRAND.primary} />
               <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
               <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
@@ -14352,6 +14352,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 };
 
 // ─── ADMIN PORTAL ─────────────────────────────────────────────────────────────
+// The admin sidebar is always dark -- BRAND.dark in light mode and dark mode
+// alike -- so its type is fixed white at three weights rather than theme-aware.
+// Named here so the intent is legible and the values cannot drift apart.
+const ADMIN_SIDEBAR_TEXT  = "rgba(255,255,255,0.8)";
+const ADMIN_SIDEBAR_MUTED = "rgba(255,255,255,0.55)";
+const ADMIN_SIDEBAR_DIM   = "rgba(255,255,255,0.4)";
+const ADMIN_SIDEBAR_RULE  = "rgba(255,255,255,0.2)";
+const ADMIN_SIDEBAR_ON_DARK = "#fff";
+const ADMIN_SIDEBAR_ACTIVE_BG = "rgba(232,56,13,0.15)";  // brand tint, on dark only
+
 const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
@@ -14387,6 +14397,14 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [analyticsCounts, setAnalyticsCounts] = useState(null);
 
   const navItems = ["Overview", "KYC Queue", "Employer Queue", "Disputes", "Flags", "Payouts", "Deposits", "Config"];
+  // Who is actually signed in. Only accounts carrying app_metadata.role='admin'
+  // reach this screen, so the identity line shows the real name and the email
+  // -- useful precisely because an operator may hold more than one account.
+  const adminName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || "Admin";
+  const adminEmail = user?.email || "";
+  // Mobile: eight stacked full-width nav buttons filled the whole first screen
+  // before any content appeared. Same drawer the employer console uses.
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const FLAGS = [
     { id: 1, user: "Wei Jian Lim", type: "GPS mismatch", riskScore: 87, shift: "Warehouse Packer – Shah Alam", time: "3 hours ago", status: "open" },
@@ -14696,33 +14714,68 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     toast(t("admin.disputeDismissed"), "info");
   };
 
+  const sidebarContent = (
+    <>
+      <div style={{ padding: "0 20px 28px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ fontWeight: 900, fontSize: 20, color: BRAND.primary }}>CariGaji</div>
+          <div style={{ fontSize: 11, color: ADMIN_SIDEBAR_DIM, fontWeight: 500 }}>Admin Dashboard</div>
+        </div>
+        {compact && (
+          <button onClick={() => setSidebarOpen(false)} aria-label="Close admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_MUTED, lineHeight: 1, padding: 4 }}>×</button>
+        )}
+      </div>
+      {navItems.map(n => {
+        const key = n.toLowerCase().replace(" ", "");
+        return (
+          <button key={n} onClick={() => { setView(key); if (compact) setSidebarOpen(false); }} style={{
+            display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
+            background: view === key ? ADMIN_SIDEBAR_ACTIVE_BG : "none",
+            color: view === key ? BRAND.primary : ADMIN_SIDEBAR_MUTED,
+            border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
+            borderLeft: view === key ? `3px solid ${BRAND.primary}` : "3px solid transparent",
+          }}>{n}</button>
+        );
+      })}
+      <div style={{ padding: "24px 20px 0", marginTop: 16, borderTop: `1px solid ${ADMIN_SIDEBAR_RULE}` }}>
+        <div style={{ fontSize: 11, color: ADMIN_SIDEBAR_DIM, marginBottom: 8 }}>Logged in as</div>
+        {/* Was hardcoded "Rafiq Ismail / Superadmin" -- design-mock filler that
+            survived onto a screen only real admins can open, telling the
+            operator they were somebody else. There is no "Superadmin" tier
+            either: app_metadata.role is 'admin' or it is absent. */}
+        <div style={{ fontSize: 13, color: ADMIN_SIDEBAR_TEXT, fontWeight: 600 }}>{adminName}</div>
+        <div style={{ fontSize: 11, color: ADMIN_SIDEBAR_DIM, overflowWrap: "anywhere" }}>{adminEmail}</div>
+        <Btn size="xs" variant="ghost" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 10, width: "100%", justifyContent: "center", borderColor: ADMIN_SIDEBAR_RULE, color: ADMIN_SIDEBAR_ON_DARK }}>Return to Worker App</Btn>
+      </div>
+    </>
+  );
+
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%" }}>
-      {/* Sidebar */}
-      <div style={{ width: compact ? "100%" : 190, borderRight: compact ? "none" : `1px solid ${BRAND.border}`, borderBottom: compact ? `1px solid ${BRAND.border}` : "none", padding: "24px 0", background: BRAND.dark, flexShrink: 0, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "0 20px 28px" }}>
-          <div style={{ fontWeight: 900, fontSize: 20, color: BRAND.primary }}>CariGaji</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>Admin Dashboard</div>
+      {compact ? (
+        <>
+          {/* Mobile: a top bar naming the current section, with the nav behind a
+              hamburger. Eight stacked full-width buttons otherwise pushed every
+              actual metric below the fold. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: BRAND.dark, flexShrink: 0 }}>
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_ON_DARK, padding: 4, lineHeight: 1 }}>☰</button>
+            <div style={{ fontWeight: 800, fontSize: 15, color: ADMIN_SIDEBAR_ON_DARK }}>{navItems.find(n => n.toLowerCase().replace(" ", "") === view) || "Admin"}</div>
+          </div>
+          {sidebarOpen && createPortal(
+            <div style={{ position: "fixed", inset: 0, zIndex: 1250, display: "flex" }}>
+              <div onClick={() => setSidebarOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
+              <div style={{ position: "relative", width: "78%", maxWidth: 280, height: "100%", background: BRAND.dark, boxShadow: `4px 0 24px ${BRAND.shadow}`, display: "flex", flexDirection: "column", padding: "24px 0", overflowY: "auto" }}>
+                {sidebarContent}
+              </div>
+            </div>,
+            document.body
+          )}
+        </>
+      ) : (
+        <div style={{ width: 190, borderRight: `1px solid ${BRAND.border}`, padding: "24px 0", background: BRAND.dark, flexShrink: 0, display: "flex", flexDirection: "column" }}>
+          {sidebarContent}
         </div>
-        {navItems.map(n => {
-          const key = n.toLowerCase().replace(" ", "");
-          return (
-            <button key={n} onClick={() => setView(key)} style={{
-              display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
-              background: view === key ? "rgba(232,56,13,0.15)" : "none",
-              color: view === key ? BRAND.primary : "rgba(255,255,255,0.55)",
-              border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
-              borderLeft: view === key ? `3px solid ${BRAND.primary}` : "3px solid transparent",
-            }}>{n}</button>
-          );
-        })}
-        <div style={{ padding: "24px 20px 0", marginTop: 16, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>Logged in as</div>
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>Rafiq Ismail</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Superadmin</div>
-          <Btn size="xs" variant="ghost" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 10, width: "100%", justifyContent: "center", borderColor: "rgba(255,255,255,0.2)", color: "#fff" }}>Return to Worker App</Btn>
-        </div>
-      </div>
+      )}
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: compact ? 16 : 28, background: BRAND.grayLight }}>
@@ -14731,19 +14784,19 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Platform Overview</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Klang Valley — Live metrics</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
               <Stat label="Pending KYC" value={kycQueue?.length ?? "—"} color={BRAND.amber} />
               <Stat label="Open disputes" value={disputesQueue?.filter(d => d.status === "open" || d.status === "under_review").length ?? "—"} color={BRAND.red} />
               <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Registered workers" value={overviewStats?.activeWorkers ?? "—"} color={BRAND.primary} />
               <Stat label="Registered employers" value={overviewStats?.registeredEmployers ?? "—"} color={BRAND.primary} />
               <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primary} />
               <Stat label="Payout queue" value="Coming soon" sub="Escrow/payout not built yet" color={BRAND.textMuted} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 16 }}>
               <Card>
                 <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 12 }}>KYC Queue</div>
                 {kycQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
@@ -15147,7 +15200,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         {view === "payouts" && (
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Payout Overrides</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Pending payouts" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "ready" || p.status === "scheduled").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.amber} />
               <Stat label="Disputed (held)" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "held").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.red} />
               <Stat label="Processed internal" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "processed_internal").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.green} />
@@ -15159,7 +15212,11 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             {payoutMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{payoutMessage}</div>}
             <Card>
               <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 16 }}>Payout Queue</div>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              {/* Six columns will never fit a phone. Scroll the TABLE, not the
+                  page -- a body that scrolls sideways drags the whole layout
+                  with it. */}
+              <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 620 }}>
                 <thead>
                   <tr style={{ background: BRAND.grayLight }}>
                     {["Worker", "Shift", "Amount", "Scheduled", "Status", "Action"].map(h => (
@@ -15200,6 +15257,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   ))}
                 </tbody>
               </table>
+              </div>
             </Card>
           </div>
         )}
