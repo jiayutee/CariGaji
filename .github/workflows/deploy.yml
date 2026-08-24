@@ -39,6 +39,12 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # GitHub Pages serves from /<repo>/, unlike Cloudflare Pages and any
+          # real domain, which serve from the root. vite.config.js defaults to
+          # "/" so the common case needs no thought; this workflow is the
+          # exception and says so explicitly.
+          BASE_PATH: /CariGaji/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

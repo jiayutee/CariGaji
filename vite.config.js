@@ -25,8 +25,16 @@ const spaFallback404 = () => ({
   },
 });
 
+// Where the app is mounted. Cloudflare Pages (and any real domain) serves from
+// the ROOT, so "/" is the default. GitHub Pages serves from /<repo>/, so its
+// workflow sets BASE_PATH=/CariGaji/ explicitly. Everything downstream --
+// index.html, the manifest, the service worker, the SPA router -- derives its
+// paths from this one value rather than repeating the literal, so the same
+// commit builds correctly for either host during the cutover.
+const BASE_PATH = process.env.BASE_PATH || "/";
+
 export default defineConfig({
-  base: "/CariGaji/",
+  base: BASE_PATH,
   plugins: [react(), spaFallback404()],
   server: {
     port: Number(process.env.PORT) || 5173,

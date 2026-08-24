@@ -31,7 +31,7 @@ const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
 // pointing at a page we control is honest; naming carigaji.app would claim a
 // domain belonging to someone else. Replace with mailto:support@<real domain>
 // once that exists.
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "https://jiayutee.github.io/CariGaji/";
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "https://jiayutee.github.io/CariGaji/";  // set this once a real domain exists
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -66,7 +66,11 @@ Deno.serve(async (req) => {
     let recipients: string[] = [];
     let title = "";
     let body = "";
-    let link = "/CariGaji/";
+    // Base-RELATIVE, always. The service worker resolves this against its own
+    // registration scope, because a push subscription carries no record of which
+    // origin it belongs to -- and during the host migration the same function
+    // serves subscribers on both. "" means the app root.
+    let link = "";
 
     if (isMessage) {
       // Group room: recipient_id is null and everyone in the room should hear
@@ -85,7 +89,7 @@ Deno.serve(async (req) => {
           .from("applications").select("worker_id").eq("shift_id", record.shift_id).eq("status", "accepted");
         recipients = [shift?.employer_id, ...(apps || []).map((a: { worker_id: string }) => a.worker_id)]
           .filter((id): id is string => Boolean(id) && id !== record.sender_id);
-        link = "/CariGaji/";
+        link = "";
         title = shift?.title ? `New message · ${shift.title}` : "New message";
       }
 
@@ -102,7 +106,7 @@ Deno.serve(async (req) => {
       recipients = [record.user_id];
       title = record.title || "CariGaji";
       body = record.body;
-      link = record.link ? `/CariGaji${record.link}` : "/CariGaji/";
+      link = record.link ? String(record.link).replace(/^\/+/, "") : "";
     }
 
     // Deduplicate: the same person can be both employer and an accepted worker

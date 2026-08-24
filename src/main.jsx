@@ -12,7 +12,10 @@ applyThemeToDocument(resolvedTheme);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/CariGaji/service-worker.js", { scope: "/CariGaji/" }).catch((error) => {
+    // Base-derived, not hardcoded: the same source has to register correctly
+    // whether it was built for a host that serves from / or from /CariGaji/.
+    const swBase = import.meta.env.BASE_URL || "/";
+    navigator.serviceWorker.register(`${swBase}service-worker.js`, { scope: swBase }).catch((error) => {
       console.error("Service worker registration failed", error);
     });
   });
