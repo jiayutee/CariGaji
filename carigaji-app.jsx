@@ -7015,13 +7015,20 @@ const AuthModal = ({
         </div>
 
         <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column" }}>
+          {/* chipTone, not a raw hex with BRAND.text on top. This banner is
+              where "Invalid login credentials" lands, and it paired a hardcoded
+              LIGHT background with theme-aware text: in dark mode that rendered
+              pale grey on near-white, which the owner reported as unreadable.
+              The tone pairs a fixed-light background with the dark ink meant to
+              sit on it, so it reads in both themes. */}
           {message && (
-            <div style={{ position: "sticky", top: -20, zIndex: 10, margin: "-20px -4px 16px -4px", padding: "14px 16px", borderRadius: 12, background: "#EFF6FF", border: `1.5px solid ${BRAND.primary}`, color: BRAND.text, fontSize: 13.5, fontWeight: 600, lineHeight: 1.5, boxShadow: "0 4px 14px rgba(37,99,235,0.15)" }}>
+            <div style={{ position: "sticky", top: -20, zIndex: 10, margin: "-20px -4px 16px -4px", padding: "14px 16px", borderRadius: 12, ...chipTone("primary"), border: `1.5px solid ${BRAND.primary}`, fontSize: 13.5, fontWeight: 600, lineHeight: 1.5, boxShadow: "0 4px 14px rgba(37,99,235,0.15)" }}>
               {message}
             </div>
           )}
+          {/* Same defect, same fix: the register-errors banner. */}
           {showErrors && hasRegisterErrors && view === "register" && (
-            <div style={{ position: "sticky", top: message ? 52 : -20, zIndex: 9, margin: "0 -4px 16px -4px", padding: "12px 16px", borderRadius: 12, background: "#FEF2F2", border: `1.5px solid ${BRAND.red}`, color: BRAND.red, fontSize: 13, lineHeight: 1.6 }}>
+            <div style={{ position: "sticky", top: message ? 52 : -20, zIndex: 9, margin: "0 -4px 16px -4px", padding: "12px 16px", borderRadius: 12, ...chipTone("red"), border: `1.5px solid ${BRAND.red}`, fontSize: 13, lineHeight: 1.6 }}>
               <strong>{translate("auth.pleaseCompleteFields")}</strong> {missingLabels.join(", ")}
             </div>
           )}
