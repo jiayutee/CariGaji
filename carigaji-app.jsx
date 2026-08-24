@@ -424,6 +424,7 @@ const BRAND = {
   blueLight: "#E0F2FE",
   amber: "#D97706",
   amberLight: "#FEF3C7",
+  tealLight: "#CCFBF1",
   // Text colours for the fixed-light surfaces above. amberLight/redLight/
   // greenLight/blueLight are literal hex and do NOT flip with the theme,
   // while BRAND.text does -- so `background: amberLight, color: BRAND.text`
@@ -435,6 +436,7 @@ const BRAND = {
   onPrimaryLight: "#1E40AF",
   onAccentLight: "#155E75",
   onBlueLight: "#075985",
+  onTealLight: "#0F766E",
   red: "#DC2626",
   redLight: "#FEE2E2",
   gray: "var(--cg-text-muted)",
@@ -4464,12 +4466,12 @@ const ToastProvider = ({ children }) => {
 const Badge = memo(({ color = "gray", children, size = "sm" }) => {
   const map = {
     gray: { bg: BRAND.grayLight, text: BRAND.textMuted },
-    green: { bg: BRAND.greenLight, text: "#065F46" },
-    red: { bg: BRAND.redLight, text: "#991B1B" },
-    amber: { bg: BRAND.amberLight, text: "#92400E" },
-    blue: { bg: BRAND.blueLight, text: "#1E40AF" },
-    orange: { bg: BRAND.accentLight, text: "#155E75" },
-    teal: { bg: "#CCFBF1", text: "#0F766E" },
+    green: { bg: BRAND.greenLight, text: BRAND.onGreenLight },
+    red: { bg: BRAND.redLight, text: BRAND.onRedLight },
+    amber: { bg: BRAND.amberLight, text: BRAND.onAmberLight },
+    blue: { bg: BRAND.blueLight, text: BRAND.onPrimaryLight },
+    orange: { bg: BRAND.accentLight, text: BRAND.onAccentLight },
+    teal: { bg: BRAND.tealLight, text: BRAND.onTealLight },
   };
   const c = map[color] || map.gray;
   return (
@@ -4826,7 +4828,7 @@ const Pill = memo(({ label, color }) => (
     display: "inline-block", padding: "3px 10px", borderRadius: 99,
     fontSize: 12, fontWeight: 600,
     background: color === "green" ? BRAND.greenLight : color === "red" ? BRAND.redLight : color === "amber" ? BRAND.amberLight : color === "blue" ? BRAND.blueLight : BRAND.grayLight,
-    color: color === "green" ? "#065F46" : color === "red" ? "#991B1B" : color === "amber" ? "#92400E" : color === "blue" ? "#1E40AF" : BRAND.textMuted,
+    color: color === "green" ? BRAND.onGreenLight : color === "red" ? BRAND.onRedLight : color === "amber" ? BRAND.onAmberLight : color === "blue" ? BRAND.onPrimaryLight : BRAND.textMuted,
   }}>{label}</span>
 ));
 
