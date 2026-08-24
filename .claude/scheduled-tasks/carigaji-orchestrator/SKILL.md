@@ -309,7 +309,14 @@ Both in the SAME notion-update-page call:
     }
 
 Use the date the work actually landed (the commit date), not "today", when
-closing something finished in an earlier cycle. And apply the same verify-the-
+closing something finished in an earlier cycle.
+
+DO NOT BACKFILL THE HISTORICAL GAP. The 45 pre-2026-08-24 Done rows with an
+empty completion date stay empty — owner's explicit decision that day. Their
+real dates are not recoverable, and a plausible-looking wrong date is worse
+than a blank one: blank reads as "unknown", a date reads as fact. If a future
+cycle notices those empty fields, that is expected state, not a defect to
+repair. The rule above applies to rows closed FROM 2026-08-24 onwards. And apply the same verify-the-
 write rule as below: re-fetch the row and confirm BOTH fields took. A row whose
 status says Done and whose date says nothing is exactly the kind of half-written
 record that later cycles have repeatedly mistaken for pending work.
