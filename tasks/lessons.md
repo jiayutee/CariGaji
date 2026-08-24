@@ -171,3 +171,28 @@ behind when an assertion fails halfway through.
 Related: when restructuring a self-test's control flow, RE-RUN the deliberate
 regressions. An exception handler added for cleanup can silently swallow the
 very failures the test exists to raise.
+
+## Anchor inserted hooks BELOW the state they read (4th TDZ crash, 2026-08-24)
+
+Fourth time this session that a block inserted into a 16k-line component
+referenced state declared further down, and the whole app went white with
+
+    ReferenceError: Cannot access 'selectedShift' before initialization
+
+The trap is that this is not a syntax error. `esbuild --bundle=false` parses it
+happily, the pre-commit hook passes, and nothing surfaces until the component
+actually renders. The pattern each time: I picked a textual anchor that read
+well ("just above previewBanner") without checking where the referenced
+`useState` actually sits.
+
+RULE: before inserting any hook or handler into WorkerPortal / EmployerPortal /
+AdminPortal, grep for the declaration of every piece of state it touches and
+anchor BELOW the last one:
+
+    grep -n 'const \[selectedShift, setSelectedShift\]' carigaji-app.jsx
+
+RULE: after any structural insert, load the app and call
+read_console_messages. A blank page with a clean build is this bug until
+proven otherwise. Use the MARKER trick to tell stale buffer entries from live
+ones: console.error("MARKER-x"), reload, and anything printed ABOVE the marker
+is from a previous build.

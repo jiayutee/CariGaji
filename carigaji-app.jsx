@@ -559,6 +559,7 @@ const TRANSLATIONS = {
     "shiftDetail.applied": "Applied",
     "shiftDetail.wageRange": "Wage Range",
     "shiftDetail.perHour": "per hour",
+    "shiftDetail.shareBtn": "Share",
     "shiftDetail.shiftDuration": "Shift Duration",
     "shiftDetail.daysCount": "{count} days",
     "shiftDetail.estimatedGross": "Estimated Gross",
@@ -972,6 +973,7 @@ const TRANSLATIONS = {
     "account.signOut": "Sign out",
     "account.referShareText": "Find or post flexible shift work in Malaysia with CariGaji:",
     "toast.inviteLinkCopied": "Invite link copied! Share it with friends.",
+    "toast.shiftLinkCopied": "Shift link copied — paste it to share this shift.",
     "help.title": "Help Centre",
     "help.faqWorkQ": "How does CariGaji work?",
     "help.faqWorkA": "Employers post short shifts with a wage range. Workers browse open shifts and place a bid within the allowed range. If the employer accepts your bid, you both sign a contract in-app and the shift is confirmed.",
@@ -1737,6 +1739,7 @@ const TRANSLATIONS = {
     "shiftDetail.applied": "Memohon",
     "shiftDetail.wageRange": "Julat Gaji",
     "shiftDetail.perHour": "sejam",
+    "shiftDetail.shareBtn": "Kongsi",
     "shiftDetail.shiftDuration": "Tempoh Syif",
     "shiftDetail.daysCount": "{count} hari",
     "shiftDetail.estimatedGross": "Anggaran Kasar",
@@ -2150,6 +2153,7 @@ const TRANSLATIONS = {
     "account.signOut": "Log keluar",
     "account.referShareText": "Cari atau siarkan kerja syif fleksibel di Malaysia dengan CariGaji:",
     "toast.inviteLinkCopied": "Pautan jemputan disalin! Kongsi dengan rakan-rakan.",
+    "toast.shiftLinkCopied": "Pautan syif disalin — tampal untuk berkongsi syif ini.",
     "help.title": "Pusat Bantuan",
     "help.faqWorkQ": "Bagaimana CariGaji berfungsi?",
     "help.faqWorkA": "Majikan menyiarkan syif pendek dengan julat gaji. Pekerja menyemak imbas syif terbuka dan membuat tawaran dalam julat yang dibenarkan. Jika majikan menerima tawaran anda, kedua-dua pihak menandatangani kontrak dalam aplikasi dan syif itu disahkan.",
@@ -2907,6 +2911,7 @@ const TRANSLATIONS = {
     "shiftDetail.applied": "已申请",
     "shiftDetail.wageRange": "薪资范围",
     "shiftDetail.perHour": "每小时",
+    "shiftDetail.shareBtn": "分享",
     "shiftDetail.shiftDuration": "班次时长",
     "shiftDetail.daysCount": "{count} 天",
     "shiftDetail.estimatedGross": "预估总薪资",
@@ -3320,6 +3325,7 @@ const TRANSLATIONS = {
     "account.signOut": "登出",
     "account.referShareText": "在 CariGaji 寻找或发布马来西亚的弹性班次工作：",
     "toast.inviteLinkCopied": "邀请链接已复制！分享给您的朋友吧。",
+    "toast.shiftLinkCopied": "班次链接已复制 — 可粘贴分享此班次。",
     "help.title": "帮助中心",
     "help.faqWorkQ": "CariGaji 如何运作？",
     "help.faqWorkA": "雇主发布带有薪资范围的短期班次。员工浏览开放中的班次，并在允许范围内出价。若雇主接受您的出价，双方将在应用内签署合同，班次即告确认。",
@@ -4166,6 +4172,12 @@ const CHIP_TONES = {
 };
 const chipTone = (tone) => CHIP_TONES[tone] || CHIP_TONES.primary;
 
+// The shift-detail header is a primary-colour gradient in both themes, so the
+// controls sitting on it are fixed white rather than theme-aware -- named, so
+// the intent is legible and the values cannot drift apart.
+const ON_GRADIENT_TEXT = "#fff";
+const ON_GRADIENT_CHIP_BG = "rgba(255,255,255,0.2)";
+
 const walletKindColor = (kind) => (
   kind === 'topup' || kind === 'refund' || kind === 'release' ? 'green'
     : kind === 'hold' ? 'amber'
@@ -4904,7 +4916,11 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
   const avatarUrl = getAvatarUrl(user.user_metadata?.avatar_url);
 
   const shareReferralLink = async () => {
-    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "https://jiayutee.github.io/CariGaji/";
+    // The app's front door, never window.location.pathname: now that opening a
+    // shift rewrites the address bar, reading the live path would turn a
+    // "join CariGaji" referral into a link to whatever shift happened to be
+    // open, with the referral wording still attached.
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${APP_BASE}/` : "https://jiayutee.github.io/CariGaji/";
     const shareText = t("account.referShareText");
     if (navigator.share) {
       try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
@@ -7375,7 +7391,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
 };
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, linkShiftId = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -7440,7 +7456,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // — duplicated locally rather than lifted, since ProfileMenu's copy is a
   // small self-contained closure and this is the only other call site.
   const shareWorkerReferralLink = async () => {
-    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${window.location.pathname}` : "https://jiayutee.github.io/CariGaji/";
+    // The app's front door, never window.location.pathname: now that opening a
+    // shift rewrites the address bar, reading the live path would turn a
+    // "join CariGaji" referral into a link to whatever shift happened to be
+    // open, with the referral wording still attached.
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${APP_BASE}/` : "https://jiayutee.github.io/CariGaji/";
     const shareText = t("account.referShareText");
     if (navigator.share) {
       try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
@@ -7531,6 +7551,40 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [user?.id]);
   const [showTnC, setShowTnC] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
+
+  // Mirror the open shift into the address bar so it can be copied, bookmarked
+  // and shared. replaceState, never pushState: on mobile BackGestureManager
+  // owns the history stack, and pushing entries here would fight its sentinels
+  // for control of the back swipe.
+  //
+  // `armed` exists for one case: arriving ON a shift URL. The first run happens
+  // before the shift has loaded, when selectedShift is still null -- rewriting
+  // to the base path there would erase the very link the visitor followed.
+  const urlSyncArmed = useRef(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (selectedShift?.id) urlSyncArmed.current = true;
+    if (!urlSyncArmed.current) return;
+    const target = selectedShift?.id ? shiftToPath(selectedShift.id) : `${APP_BASE}/`;
+    if (!samePath(target, window.location.pathname)) {
+      window.history.replaceState(window.history.state, "", target);
+    }
+  }, [selectedShift?.id]);
+
+  const shareShift = async () => {
+    if (!selectedShift?.id || typeof window === "undefined") return;
+    const url = `${window.location.origin}${shiftToPath(selectedShift.id)}`;
+    const wage = `RM${selectedShift.wageMin}\u2013${selectedShift.wageMax}/${t("discover.perHour").replace("/", "")}`;
+    const text = `${selectedShift.title} \u00b7 ${wage} \u00b7 ${selectedShift.location}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: selectedShift.title, text, url }); return; } catch { /* share sheet dismissed */ }
+    }
+    if (navigator.clipboard) {
+      try { await navigator.clipboard.writeText(`${text} ${url}`); toast(t("toast.shiftLinkCopied"), "success"); return; } catch { /* clipboard refused */ }
+    }
+    toast(url, "info", 8000);
+  };
+
   const [showBidModal, setShowBidModal] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [bidSuccess, setBidSuccess] = useState(false);
@@ -8332,8 +8386,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     // room. Both need the same thing -- an id turned into the detail view --
     // so they share one loader rather than each carrying its own copy of this
     // query and its 30-line row mapping.
-    const wantedShiftId = deepLinkShift?.shiftId || openShiftId;
+    const wantedShiftId = deepLinkShift?.shiftId || openShiftId || linkShiftId;
     if (!wantedShiftId) return undefined;
+    // Where the user lands when they CLOSE the detail. A tapped notification or
+    // a chat shortcut is about a shift they already bid on, so My Bids is
+    // right. A shared link is usually a stranger -- possibly signed out, for
+    // whom My Bids is an empty room -- so send them to Discover instead.
+    const closeTab = (deepLinkShift?.shiftId || openShiftId) ? 'applications' : 'discover';
     let active = true;
     supabase
       .from('shifts')
@@ -8373,10 +8432,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           endTime: shiftHHMM(s.end_at),
           date: formatShiftDate(s.start_at),
         });
-        setTab('applications');
+        setTab(closeTab);
       });
     return () => { active = false; };
-  }, [deepLinkShift, openShiftId]);
+  }, [deepLinkShift, openShiftId, linkShiftId]);
 
   useEffect(() => {
     let active = true;
@@ -9202,6 +9261,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: navPadding, display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : "20px 20px 0 0", flexShrink: 0 }}>
           <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, fontFamily: "inherit" }} aria-label={t("common.back")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
+          {/* Share the SHIFT, not the app. Until this existed the only share
+              button handed out the current pathname, which meant a friend
+              landed on the Discover feed and had to find the shift again. */}
+          <button onClick={shareShift} style={{ background: ON_GRADIENT_CHIP_BG, border: "none", color: ON_GRADIENT_TEXT, borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, marginBottom: 12, marginLeft: 8, fontFamily: "inherit" }} aria-label={t("shiftDetail.shareBtn")}>{t("shiftDetail.shareBtn")}</button>
           <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
             <Badge color="amber">{shiftCategoryLabel(selectedShift.category, t)}</Badge>
             <Badge color="green">{t("shiftDetail.positions")} {selectedShift.headcount}</Badge>
@@ -16387,6 +16450,20 @@ const portalToPath = (portal) => {
   return `${APP_BASE}/${seg}`.replace(/\/{2,}/g, "/");
 };
 
+// One shift, one address: /CariGaji/shift/<id>. Deliberately a SEPARATE
+// concept from the portal paths above rather than a fourth portal -- a shift
+// URL is an entry point into the worker app, not a place the app lives, and
+// conflating them would put shift ids through portalToPath's round trip.
+const SHIFT_PATH_SEG = "shift";
+const shiftToPath = (id) => `${APP_BASE}/${SHIFT_PATH_SEG}/${encodeURIComponent(id)}`.replace(/\/{2,}/g, "/");
+const shiftIdFromPath = (pathname = "") => {
+  let rest = pathname;
+  if (APP_BASE && rest.startsWith(APP_BASE)) rest = rest.slice(APP_BASE.length);
+  const parts = rest.replace(/^\/+/, "").split("/");
+  if (parts[0] !== SHIFT_PATH_SEG || !parts[1]) return null;
+  try { return decodeURIComponent(parts[1]); } catch { return parts[1]; }
+};
+
 const portalFromPath = (pathname = "") => {
   // Strip the base prefix, then take the first segment. Unknown segments fall
   // back to the worker app rather than rendering nothing.
@@ -16395,6 +16472,8 @@ const portalFromPath = (pathname = "") => {
   const seg = rest.replace(/^\/+/, "").split("/")[0];
   if (seg === "employer") return "employer";
   if (seg === "admin") return "admin";
+  // A shared shift link opens inside the worker app.
+  if (seg === SHIFT_PATH_SEG) return "worker";
   return "worker";
 };
 
@@ -16450,6 +16529,14 @@ export default function CariGaji() {
 
   // Which account the role-based landing redirect has already run for — see
   // its use in the profile-load effect below.
+  // Captured once, at mount: the shift id a shared link arrived with. Not kept
+  // in sync with the address bar afterwards -- WorkerPortal owns the URL from
+  // that point, and re-deriving this on every navigation would reopen the
+  // detail every time the user closed it.
+  const [linkShiftId] = useState(() =>
+    typeof window === "undefined" ? null : shiftIdFromPath(window.location.pathname)
+  );
+
   const lastRoutedUserIdRef = useRef(null);
 
   useEffect(() => {
@@ -16958,7 +17045,7 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} linkShiftId={portal === "worker" ? linkShiftId : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
           {portal === "admin" && (
             isAdmin
