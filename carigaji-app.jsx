@@ -13098,7 +13098,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: postStep >= s ? BRAND.primary : BRAND.border, color: postStep >= s ? "#fff" : BRAND.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: postStep >= s ? BRAND.primary : BRAND.border, color: postStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
                   <span style={{ fontSize: 12, color: postStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: postStep === s ? 700 : 400 }}>{[t("employer.stepShiftDetails"), t("employer.stepRequirements"), t("employer.stepReview")][s - 1]}</span>
                   {s < 3 && <span style={{ color: BRAND.border, fontSize: 18 }}>→</span>}
                 </div>
@@ -13121,7 +13121,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <Select label={t("employer.labelCategory")} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: shiftCategoryLabel(v, t) }))} />
                   <LocationAutocomplete label={t("employer.labelLocation")} value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
                   <div style={{marginTop:8, marginBottom:16}}>
-                    <div style={{fontSize:12, color:'#64748b', marginBottom:4}}>{t("employer.addressVisibilityLabel")}</div>
+                    <div style={{fontSize:12, color: BRAND.textMuted, marginBottom:4}}>{t("employer.addressVisibilityLabel")}</div>
                     <div style={{display:'flex', gap:12}}>
                       <label style={{display:'flex', alignItems:'center', gap:5, fontSize:13, cursor:'pointer'}}>
                         <input type="radio" name="addrVisibility" value="public"
