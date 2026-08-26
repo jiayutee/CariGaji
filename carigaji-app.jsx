@@ -419,6 +419,7 @@ const BRAND = {
   accent: "#0891B2",
   accentLight: "#E0F7FB",
   green: "#1A9E5C",
+  greenDark: "#15803D",
   greenLight: "#E8F7EF",
   blue: "#0284C7",
   blueLight: "#E0F2FE",
@@ -4515,7 +4516,7 @@ const Btn = memo(({ children, variant = "primary", onClick, size = "md", style =
     secondary: { background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}` },
     ghost: { background: "transparent", color: BRAND.primary, border: `1px solid ${BRAND.primary}` },
     danger: { background: BRAND.red, color: "#fff" },
-    success: { background: BRAND.green, color: "#fff" },
+    success: { background: BRAND.greenDark, color: "#fff" },
   };
   return (
     <button type={type} onClick={disabled ? undefined : onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}
@@ -9770,7 +9771,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                           ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                         }); }}
-                        style={{padding:'4px 10px', borderRadius:6, background:'none', color: BRAND.primary, border:`1px solid ${BRAND.primary}`, cursor:'pointer', fontSize:11, fontWeight:600}}>
+                        style={{padding:'4px 10px', borderRadius:6, background:'none', color: BRAND.primaryOnSurface, border:`1px solid ${BRAND.primaryOnSurface}`, cursor:'pointer', fontSize:11, fontWeight:600}}>
                         {t("contract.viewContractBtn")}
                       </button>
                     </div>
