@@ -4514,7 +4514,7 @@ const Btn = memo(({ children, variant = "primary", onClick, size = "md", style =
   const variants = {
     primary: { background: BRAND.primary, color: "#fff" },
     secondary: { background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}` },
-    ghost: { background: "transparent", color: BRAND.primary, border: `1px solid ${BRAND.primary}` },
+    ghost: { background: "transparent", color: BRAND.primaryOnSurface, border: `1px solid ${BRAND.primaryOnSurface}` },
     danger: { background: BRAND.red, color: "#fff" },
     success: { background: BRAND.greenDark, color: "#fff" },
   };
