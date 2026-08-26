@@ -648,6 +648,10 @@ const TRANSLATIONS = {
     "disputes.myDisputesEmpty": "No disputes yet.",
     "disputes.filedByYou": "Filed by you",
     "disputes.filedAgainstYou": "Filed against you",
+    "disputes.statusOpen": "Open",
+    "disputes.statusUnderReview": "Under review",
+    "disputes.statusResolved": "Resolved",
+    "disputes.statusDismissed": "Dismissed",
     "disputes.resolvedLabel": "Resolved:",
     "rating.rateBtn": "Rate",
     "employer.ratePromptTitle": "You have {count} worker(s) to rate",
@@ -1397,6 +1401,10 @@ const TRANSLATIONS = {
     "employer.profileHistoryTitle": "History with your company",
     "employer.profileNoHistory": "No previous applications to your shifts.",
     "employer.historyCompleted": "completed",
+    "employer.shiftStatusOpen": "Open",
+    "employer.shiftStatusClosed": "Closed",
+    "employer.shiftStatusCompleted": "Completed",
+    "employer.shiftStatusCancelled": "Cancelled",
     "employer.profileHistoryScopeNote": "For privacy, this only shows the worker's history with your own shifts, verified KYC level, and platform-wide reliability/rating scores.",
     "employer.verifiedBadge": "Verified",
     "employer.verifiedBadgeTitle": "SSM verification approved — you can post shifts.",
@@ -1827,6 +1835,10 @@ const TRANSLATIONS = {
     "disputes.myDisputesEmpty": "Belum ada pertikaian.",
     "disputes.filedByYou": "Difailkan oleh anda",
     "disputes.filedAgainstYou": "Difailkan terhadap anda",
+    "disputes.statusOpen": "Dibuka",
+    "disputes.statusUnderReview": "Dalam semakan",
+    "disputes.statusResolved": "Diselesaikan",
+    "disputes.statusDismissed": "Ditolak",
     "disputes.resolvedLabel": "Diselesaikan:",
     "rating.rateBtn": "Nilai",
     "employer.ratePromptTitle": "Anda ada {count} pekerja untuk dinilai",
@@ -2568,6 +2580,10 @@ const TRANSLATIONS = {
     "employer.profileHistoryTitle": "Sejarah dengan syarikat anda",
     "employer.profileNoHistory": "Tiada permohonan terdahulu untuk syif anda.",
     "employer.historyCompleted": "selesai",
+    "employer.shiftStatusOpen": "Dibuka",
+    "employer.shiftStatusClosed": "Ditutup",
+    "employer.shiftStatusCompleted": "Selesai",
+    "employer.shiftStatusCancelled": "Dibatalkan",
     "employer.profileHistoryScopeNote": "Demi privasi, ini hanya menunjukkan sejarah pekerja dengan syif anda sendiri, tahap KYC yang disahkan, dan skor kebolehpercayaan/penilaian seluruh platform.",
     "employer.verifiedBadge": "Disahkan",
     "employer.verifiedBadgeTitle": "Pengesahan SSM diluluskan — anda boleh menyiarkan syif.",
@@ -2998,6 +3014,10 @@ const TRANSLATIONS = {
     "disputes.myDisputesEmpty": "暂无申诉。",
     "disputes.filedByYou": "由您提交",
     "disputes.filedAgainstYou": "针对您提交",
+    "disputes.statusOpen": "待处理",
+    "disputes.statusUnderReview": "审核中",
+    "disputes.statusResolved": "已解决",
+    "disputes.statusDismissed": "已驳回",
     "disputes.resolvedLabel": "已处理：",
     "rating.rateBtn": "评分",
     "employer.ratePromptTitle": "您有 {count} 位员工待评价",
@@ -3738,6 +3758,10 @@ const TRANSLATIONS = {
     "employer.profileHistoryTitle": "与您公司的合作记录",
     "employer.profileNoHistory": "尚无申请您班次的记录。",
     "employer.historyCompleted": "已完成",
+    "employer.shiftStatusOpen": "招募中",
+    "employer.shiftStatusClosed": "已截止",
+    "employer.shiftStatusCompleted": "已完成",
+    "employer.shiftStatusCancelled": "已取消",
     "employer.profileHistoryScopeNote": "出于隐私考虑，此处仅显示该员工与您公司班次的合作记录、已验证的 KYC 等级，以及平台整体的可靠度/评分数据。",
     "employer.verifiedBadge": "已认证",
     "employer.verifiedBadgeTitle": "SSM 认证已通过 — 您可以发布班次。",
@@ -7148,6 +7172,29 @@ const DISPUTE_CATEGORIES = [
   { value: "payment_issue", labelKey: "dispute.categoryPaymentIssue" },
   { value: "other", labelKey: "dispute.categoryOther" },
 ];
+
+// Raw DB status values (dispute.status, shift.status) rendered as Badge/Pill
+// labels across worker/employer/admin views. Translate through these maps
+// instead of printing the raw value — see translation blocks above for the
+// per-language copy (disputes.status*, employer.shiftStatus*).
+const DISPUTE_STATUS_LABEL_KEYS = {
+  open: "disputes.statusOpen",
+  under_review: "disputes.statusUnderReview",
+  resolved: "disputes.statusResolved",
+  dismissed: "disputes.statusDismissed",
+};
+const SHIFT_STATUS_LABEL_KEYS = {
+  open: "employer.shiftStatusOpen",
+  closed: "employer.shiftStatusClosed",
+  completed: "employer.shiftStatusCompleted",
+  cancelled: "employer.shiftStatusCancelled",
+};
+// Generic lookup-map translator: falls back to the raw status if it's ever
+// missing from the map, so an unexpected/future DB value degrades to the
+// raw string instead of throwing or rendering blank.
+const statusLabel = (status, labelKeys, t) => t(labelKeys[status] ?? status);
+const disputeStatusLabel = (status, t) => statusLabel(status, DISPUTE_STATUS_LABEL_KEYS, t);
+const shiftStatusLabel = (status, t) => statusLabel(status, SHIFT_STATUS_LABEL_KEYS, t);
 
 // Single-series (one worker, one measure: RM earned) bar chart for the
 // Earnings tab. Deliberately plain divs, not SVG or a charting library —
@@ -10650,7 +10697,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 700, fontSize: 13, color: BRAND.text }}>{categoryLabel}</span>
-                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
+                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                       <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
@@ -12641,12 +12688,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 4 }}>{s.title}</div>
                         <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.isMultiDay ? formatOccurrencesSummary(s.occurrences) : `${s.date} · ${s.time}`}</div>
                       </div>
-                      <Pill label={s.status} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
+                      <Pill label={shiftStatusLabel(s.status, t)} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
                     </div>
                     <div style={{ marginTop: 12 }}>
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
-                        <Badge color="green" size="xs">Positions {s.headcount}</Badge>
-                        <Badge color="blue" size="xs">Applied {s.applicants}</Badge>
+                        <Badge color="green" size="xs">{t("employer.listCardPositionsBadge", { count: s.headcount })}</Badge>
+                        <Badge color="blue" size="xs">{t("employer.listCardAppliedBadge", { count: s.applicants })}</Badge>
                       </div>
                       <Progress value={s.filled} max={s.headcount} color={BRAND.green} />
                     </div>
@@ -12699,7 +12746,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
                       <span style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>{s.title}</span>
-                      <Pill label={s.status} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
+                      <Pill label={shiftStatusLabel(s.status, t)} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
                   </div>
@@ -12795,7 +12842,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <Pill label={selectedShift.status} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "closed" ? "amber" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
+              <Pill label={shiftStatusLabel(selectedShift.status, t)} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "closed" ? "amber" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift.date}</span>
             </div>
             {(() => {
@@ -13800,7 +13847,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 700, fontSize: 13, color: BRAND.text }}>{categoryLabel}</span>
-                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
+                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                       <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
@@ -14911,7 +14958,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 {disputesQueue?.slice(0, 3).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ fontSize: 13, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "Shift")} – {t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther")}</div>
-                    <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{d.status}</Badge>
+                    <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                   </div>
                 ))}
                 <Btn size="xs" variant="secondary" onClick={() => setView("disputes")} style={{ marginTop: 10 }}>View all →</Btn>
@@ -15059,7 +15106,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                         <span style={{ fontWeight: 800, fontSize: 14, color: BRAND.text }}>{categoryLabel}</span>
-                        <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"}>{d.status}</Badge>
+                        <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"}>{disputeStatusLabel(d.status, t)}</Badge>
                       </div>
                       <div style={{ fontSize: 13, color: BRAND.textMuted }}>Opened {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     </div>
