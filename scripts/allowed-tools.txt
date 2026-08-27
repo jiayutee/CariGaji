@@ -11,5 +11,6 @@ Read
 Edit
 Write
 Agent
+Workflow
 WebFetch
 WebSearch
