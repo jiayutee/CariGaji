@@ -113,6 +113,23 @@ def parse(path, tail_bytes=4_000_000):
                         "model": inp.get("model"),
                         "started": ts, "done": None, "ok": None,
                     }
+                elif name == "Workflow":
+                    # A Workflow run's own subagents live in a separate
+                    # run/journal, not this transcript -- but the CALL and its
+                    # final result are a normal tool_use/tool_result pair right
+                    # here, same as Task/Agent. So it gets a lane the same way,
+                    # rather than going dark until orchestrator-watch learns to
+                    # follow a second, undocumented file format.
+                    wf_args = inp.get("args") or {}
+                    wf_task = wf_args.get("task") if isinstance(wf_args, dict) else None
+                    label = (wf_task.get("name") if isinstance(wf_task, dict) else None) \
+                        or inp.get("scriptPath", "workflow").rsplit("/", 1)[-1]
+                    agents[c.get("id")] = {
+                        "type": "workflow",
+                        "desc": str(label)[:34],
+                        "model": None,
+                        "started": ts, "done": None, "ok": None,
+                    }
                 else:
                     events.append((ts, name, brief(name, inp)))
             elif c.get("type") == "tool_result":
@@ -130,6 +147,21 @@ def parse(path, tail_bytes=4_000_000):
                     # is how half-finished work gets mistaken for done.
                     a["partial"] = "turn limit" in body[:200]
                     a["out"] = " ".join(body.split())
+                    if a.get("type") == "workflow":
+                        # A pipeline run can return a clean tool_result (no
+                        # is_error) while still reporting landed=False -- that
+                        # is not the same thing as succeeding, and treating it
+                        # as a plain checkmark is the exact mistake this
+                        # dashboard exists to catch. Surface it explicitly.
+                        try:
+                            parsed = json.loads(body)
+                        except ValueError:
+                            parsed = None
+                        if isinstance(parsed, dict):
+                            a["wf_landed"] = parsed.get("landed")
+                            if parsed.get("landed") is False:
+                                a["out"] = (f"NOT LANDED at {parsed.get('stage', '?')}: "
+                                            f"{parsed.get('reason', '')}")[:200]
     return agents, events, usage
 
 
@@ -173,6 +205,8 @@ def pane(a, w, usage):
         dot, state = f"{GREEN}●{RESET}", f"running {int(age)}s" if age is not None else "running"
     elif a.get("partial"):
         dot, state = f"{AMBER}⚠{RESET}", f"PARTIAL — hit turn limit  {hhmm(a['done'])}"
+    elif a.get("type") == "workflow" and a.get("wf_landed") is False:
+        dot, state = f"{AMBER}⚠{RESET}", f"NOT LANDED  {hhmm(a['done'])}"
     elif a["ok"]:
         dot, state = f"{GREY}✓{RESET}", f"done {hhmm(a['done'])}"
     else:
