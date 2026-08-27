@@ -12805,7 +12805,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
         {view === "shifts" && selectedShift && (
           <div>
-            <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("employer.backToShifts")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("employer.backToShifts")}</span></button>
+            <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primaryOnSurface, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("employer.backToShifts")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("employer.backToShifts")}</span></button>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
@@ -12898,7 +12898,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 top-left on mobile, leftmost on desktop -- which is the strongest
                 position in both layouts, rather than the far edge. */}
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
-              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={(selectedShift.feePct ?? platformFeePct) > 0 ? t("employer.statEstBudgetTooltip").replace("{feePct}", +((selectedShift.feePct ?? platformFeePct) * 100).toFixed(2)) : t("employer.statEstBudgetTooltipNoFee")} color={BRAND.primary} />
+              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={(selectedShift.feePct ?? platformFeePct) > 0 ? t("employer.statEstBudgetTooltip").replace("{feePct}", +((selectedShift.feePct ?? platformFeePct) * 100).toFixed(2)) : t("employer.statEstBudgetTooltipNoFee")} color={BRAND.primaryOnSurface} />
               <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} tooltip={t("employer.statAvgBidTooltip")} color={BRAND.accent} />
               <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
               <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
@@ -12989,7 +12989,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           <Avatar name={a.name} size={28} color={BRAND.blue} src={getAvatarUrl(a.avatarUrl)} />
                           <div>
                             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primary, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primaryOnSurface, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
                               {a.verified && (
                                 <span title={t("employer.applicantVerifiedTitle")} role="img" aria-label={t("employer.applicantVerifiedTitle")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: "#fff", fontSize: 9, lineHeight: 1, flexShrink: 0 }}>✓</span>
                               )}
@@ -13019,7 +13019,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         </div>
                       </td>
                       <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
-                      <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primary, fontSize: 14 }}>RM{a.wageBid}</td>
+                      <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primaryOnSurface, fontSize: 14 }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>
                         <Pill
                           label={
@@ -14347,7 +14347,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <div onClick={() => openRatingDetails(workerProfileModal.workerId, 'employer_to_worker', workerProfileModal.name)} style={{ cursor: 'pointer' }}>
                 <Stat label={t("employer.colRating")} value={workerProfileModal.rating ? workerProfileModal.rating.toFixed(1) : '—'} color={BRAND.accent} />
               </div>
-              <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primary} />
+              <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primaryOnSurface} />
             </div>
             <div style={{ background: BRAND.grayLight, borderRadius: 10, padding: 14, marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.bioLabel")}</div>
