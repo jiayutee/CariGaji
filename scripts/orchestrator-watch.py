@@ -120,6 +120,16 @@ def parse(path, tail_bytes=4_000_000):
                 if a and not a["done"]:
                     a["done"] = ts
                     a["ok"] = not c.get("is_error")
+                    body = c.get("content")
+                    if isinstance(body, list):
+                        body = " ".join(str(b.get("text", "")) for b in body
+                                        if isinstance(b, dict))
+                    body = str(body or "").strip()
+                    # An agent that hits its turn limit returns PARTIAL work and
+                    # says so in the first line. Silently showing that as a tick
+                    # is how half-finished work gets mistaken for done.
+                    a["partial"] = "turn limit" in body[:200]
+                    a["out"] = " ".join(body.split())
     return agents, events, usage
 
 
@@ -152,6 +162,51 @@ def read(p):
         return open(p).read().strip()
     except OSError:
         return ""
+
+
+def pane(a, w, usage):
+    """One agent, boxed. Fixed height so the grid never reflows mid-run."""
+    model = (a["model"].replace("claude-", "") if a.get("model")
+             else (usage.get("model") or "session").replace("claude-", ""))
+    if not a["done"]:
+        age = secs_since(a["started"])
+        dot, state = f"{GREEN}●{RESET}", f"running {int(age)}s" if age is not None else "running"
+    elif a.get("partial"):
+        dot, state = f"{AMBER}⚠{RESET}", f"PARTIAL — hit turn limit  {hhmm(a['done'])}"
+    elif a["ok"]:
+        dot, state = f"{GREY}✓{RESET}", f"done {hhmm(a['done'])}"
+    else:
+        dot, state = f"{RED}✗{RESET}", f"failed {hhmm(a['done'])}"
+
+    inner = w - 4
+    title = f"{a['type']} · {model}"[:inner]
+    lines = [f"{DIM}┌─ {RESET}{BOLD}{title}{RESET} {DIM}" + "─" * max(0, inner - len(title) - 1) + f"┐{RESET}"]
+    lines.append(f"{DIM}│{RESET} {a['desc'][:inner]:<{inner}} {DIM}│{RESET}")
+    lines.append(f"{DIM}│{RESET} {dot} {state[:inner-2]:<{inner-2}} {DIM}│{RESET}")
+    # Whatever the agent actually said, wrapped to the pane rather than spilling.
+    body = a.get("out") or ("" if a["done"] else "working…")
+    for i in range(2):
+        chunk = body[i * inner:(i + 1) * inner]
+        lines.append(f"{DIM}│{RESET} {GREY}{chunk:<{inner}}{RESET} {DIM}│{RESET}")
+    lines.append(f"{DIM}└" + "─" * (w - 2) + f"┘{RESET}")
+    return lines
+
+
+def grid(agents, cols_total, usage):
+    """Lay panes out side by side, newest activity first."""
+    ordered = ([a for a in agents if not a["done"]] +
+               list(reversed([a for a in agents if a["done"]])))[:6]
+    if not ordered:
+        return [f"   {DIM}no subagents in the visible tail — the cycle may be"
+                f" between steps, or it exited at STEP 0.5{RESET}"]
+    ncol = 2 if cols_total >= 96 else 1
+    w = (cols_total - 4) // ncol - 1
+    out = []
+    for i in range(0, len(ordered), ncol):
+        row = [pane(a, w, usage) for a in ordered[i:i + ncol]]
+        for r in range(len(row[0])):
+            out.append("  " + "  ".join(p[r] for p in row))
+    return out
 
 
 def frame(path, budget=0):
@@ -216,18 +271,7 @@ def frame(path, budget=0):
     if not running and not finished:
         out.append(f"   {DIM}no subagents in the visible tail — the cycle may be"
                    f" between steps, or exited at STEP 0.5{RESET}")
-    def model_of(a):
-        return (a["model"].replace("claude-", "") if a.get("model")
-                else "↳ " + (usage["model"] or "session").replace("claude-", ""))
-    for a in running:
-        age = secs_since(a["started"])
-        secs = f"{int(age)}s" if age is not None else ""
-        out.append(f"   {GREEN}●{RESET} {BOLD}{a['type']:<22}{RESET}"
-                   f" {BLUE}{model_of(a):<14}{RESET} {a['desc']:<36} {DIM}{secs}{RESET}")
-    for a in finished:
-        mark = f"{GREY}✓{RESET}" if a["ok"] else f"{RED}✗{RESET}"
-        out.append(f"   {mark} {GREY}{a['type']:<22} {model_of(a):<14} {a['desc']:<36}"
-                   f" {hhmm(a['done'])}{RESET}")
+    out.extend(grid(list(agents.values()), cols, usage))
     out.append("")
 
     # ── worktrees ────────────────────────────────────────────────────────────
