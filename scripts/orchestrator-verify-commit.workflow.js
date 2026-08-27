@@ -110,7 +110,12 @@ const BUILD_GATE_SCHEMA = {
 
 const LAND_SCHEMA = {
   type: 'object',
-  required: ['pushed'],
+  // commitHash is required, not optional. With `pushed` alone, an agent that
+  // reported success without a hash produced "commit undefined" in the Daily
+  // Log -- and the verify step then confirmed that the string "undefined" was
+  // present and called the write good. A check that certifies its own
+  // corruption is worse than no check.
+  required: ['pushed', 'commitHash'],
   properties: {
     pushed: { type: 'boolean' },
     commitHash: { type: 'string' },
@@ -230,7 +235,11 @@ while (attempt < MAX_ATTEMPTS && !succeeded) {
 
   phase('Build Gate')
   const gate = await agent(
-    `cd ${impl.worktreePath} && ${BUILD_GATE_CMD}. ` +
+    // No punctuation after the command, and the path quoted. A period landing
+    // on `> /dev/null.` turns the null device into a file path, which on macOS
+    // is a permission error in / -- the gate would then report a build failure
+    // that never happened and stall every cycle.
+    `Run exactly this, and nothing else:\n\n    cd "${impl.worktreePath}" && ${BUILD_GATE_CMD}\n\n` +
       `Report passed=true only if that command exits 0. On failure, capture the error text verbatim.`,
     { agentType: 'test-runner', schema: BUILD_GATE_SCHEMA, phase: 'Build Gate' }
   )
@@ -270,6 +279,18 @@ const land = await agent(
 if (!land || !land.pushed) {
   log(`Push failed: ${land ? land.error : 'no result'}`)
   return { landed: false, stage: 'land', reason: land ? land.error : 'no result', attempts: attempt, worktreePath: impl.worktreePath }
+}
+
+// Belt as well as braces: the schema now demands a hash, but a validator can
+// be bypassed by a retry path or a future edit, and everything downstream
+// writes this value into Notion. Refuse rather than record nonsense.
+if (!/^[0-9a-f]{7,40}$/i.test(String(land.commitHash || ''))) {
+  log(`Push reported success but returned no usable commit hash: ${land.commitHash}`)
+  return {
+    landed: false, stage: 'land',
+    reason: `pushed=true but commitHash was ${JSON.stringify(land.commitHash)}`,
+    attempts: attempt, worktreePath: impl.worktreePath,
+  }
 }
 
 log(`Pushed ${land.commitHash}`)
@@ -334,9 +355,18 @@ if (notionCfg.backlogRowId) {
 // ── Deploy check ───────────────────────────────────────────────────────────
 phase('Deploy')
 const deploy = await agent(
-  `Sleep 60 seconds, then run: gh api -X POST repos/jiayutee/CariGaji/pages/builds. ` +
-    `Then curl -s https://jiayutee.github.io/CariGaji/ and confirm it reflects this change: ` +
-    `${impl.summary}. Report live=true only if you can actually confirm the live site changed.`,
+  // Two fixes here. The command no longer ends in a period for the same reason
+  // as the build gate. And it checks CLOUDFLARE, not just Pages: as of
+  // 2026-08-27 carigaji.jiayutee.workers.dev is the host that serves deep
+  // links with a real 200 and is the one search engines see. Confirming only
+  // github.io would have reported a healthy deploy while the primary host was
+  // stale.
+  `Sleep 60 seconds, then run exactly:\n\n    gh api -X POST repos/jiayutee/CariGaji/pages/builds\n\n` +
+    `Then fetch BOTH live hosts and confirm each reflects this change: ${impl.summary}\n` +
+    `    curl -s https://carigaji.jiayutee.workers.dev/\n` +
+    `    curl -s https://jiayutee.github.io/CariGaji/\n` +
+    `Cloudflare is the primary host; report live=true only if IT confirms the change. ` +
+    `If Cloudflare is updated but GitHub Pages is not, still report live=true and say so in the note.`,
   { schema: DEPLOY_SCHEMA, phase: 'Deploy' }
 )
 
