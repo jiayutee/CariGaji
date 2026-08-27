@@ -9832,7 +9832,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                         ...a, applicationId: a.id, employerName: a.employer,
                       }); }}
-                      style={{marginTop:6, padding:'6px 14px', borderRadius:6, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
+                      style={{marginTop:6, padding:'6px 14px', borderRadius:6, background: BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
                       {t("myBids.signContractBtn")}
                     </button>
                   )}
