@@ -73,8 +73,29 @@ Use mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-update-page on today's ent
 - Status: "Done" if agenda was fully completed, "Blocked" if something critical is stuck, else "In Progress"
 
 ## STEP 6 — Send Telegram evening debrief
-Use WebFetch POST to (same HTTP method as the morning briefing, for consistency):
-https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage?chat_id=$TELEGRAM_CHAT_ID&text=[URL-encoded message]
+
+Send it with **Bash + curl**. Do NOT use WebFetch for this:
+
+    curl -s -G "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+      --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+      --data-urlencode "text=$MSG"
+
+WHY, because this has now cost two evenings. A debrief body is ~2,600
+characters of multi-line, emoji-heavy text. Pushed into a WebFetch URL it fails
+with a bare `Invalid URL` — no length hint, no encoding hint — and the obvious
+next move, bisecting the message to find the cap, burns tens of thousands of
+tokens and still does not send. On 2026-08-27 that produced a 50k-token cycle
+that updated Notion correctly and never sent the debrief at all.
+
+`--data-urlencode` puts the text in the request body, so length and newlines
+and emoji all stop mattering. It was confirmed working on 2026-07-24 and the
+project memory has said so since; this runbook simply never got the change,
+and the runbook is what actually gets followed.
+
+If a send fails, do NOT probe for the limit and do NOT send test messages to
+the owner's real chat to narrow it down — a stray "test123" in the middle of
+the evening is worse than a late debrief. Report the failure in one line and
+move on; Notion is the durable record and is already written by this point.
 
 Format the message as PLAIN TEXT — no *bold*/_italic_ markers (parse_mode is
 deliberately not set on this request, so literal asterisks would otherwise

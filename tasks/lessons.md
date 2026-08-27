@@ -196,3 +196,26 @@ read_console_messages. A blank page with a clean build is this bug until
 proven otherwise. Use the MARKER trick to tell stale buffer entries from live
 ones: console.error("MARKER-x"), reload, and anything printed ABOVE the marker
 is from a previous build.
+
+## A rule that lives only in memory does not bind the routine (2026-08-27)
+
+The evening debrief burned ~50k tokens and never sent its message. It pushed a
+~2,600-char emoji-heavy body into a WebFetch URL, got a bare `Invalid URL`,
+then started bisecting the message to find the length cap — and sent a stray
+"test123" to the owner's real chat while probing.
+
+The fix had been known since 2026-07-24 and was written down: project memory
+says use `curl -G --data-urlencode`, that WebFetch fails exactly this way, and
+"don't burn a step retrying WebFetch after that error." All three runbooks
+nonetheless still said "Use WebFetch to POST to:" — and the runbook is what the
+routine actually executes. Memory is context; the SKILL is the instruction.
+
+RULE: when a lesson is about HOW A ROUTINE SHOULD ACT, put it in that
+routine's SKILL.md. Memory alone is advisory and loses to an explicit
+instruction sitting in front of it. Memory is for facts and history; runbooks
+are for behaviour.
+
+RULE: a failed outbound send is a one-line report, not an investigation. Never
+probe a limit by sending to the owner's real chat — a stray test message at
+9pm is worse than a late debrief, and the durable record (Notion) is already
+written by that point.

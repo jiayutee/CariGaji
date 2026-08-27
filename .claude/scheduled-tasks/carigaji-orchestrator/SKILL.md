@@ -254,7 +254,7 @@ closes a specific Feature Backlog row, that row's id — STEP 4 needs both.
 STOP the loop and send Telegram pause notification if HIGH risk AND no user approval received.
 For "Employer: post a shift" with APPROVED_SHIFTS=true → proceed despite HIGH risk.
 
-Send pause via WebFetch:
+Send the pause alert with Bash + curl (NOT WebFetch — see below):
 https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage?chat_id=$TELEGRAM_CHAT_ID&text=⚠️+Paused%3A+[task]+%E2%80%94+[reason].+Reply+to+approve.
 
 ## STEP 4 — Execute the task
@@ -402,6 +402,24 @@ doesn't, retry the update once. If it still doesn't, do NOT silently continue
 [hash], needs manual check") so the gap surfaces same-cycle instead of being
 discovered by a later cycle's git-HEAD reconciliation.
 
-WebFetch: https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage?chat_id=$TELEGRAM_CHAT_ID&text=✅+Done%3A+[task]%0ACommit%3A+[hash]%0AMoving+to+next+task...
+Bash + curl — let --data-urlencode do the escaping, do not hand-encode %0A/%3A:
+
+    MSG="✅ Done: [task]
+    Commit: [hash]
+    Moving to next task..."
+    curl -s -G "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+      --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$MSG"
 
 Then immediately go back to STEP 2 and pick the next pending agenda item.
+
+## Sending Telegram messages
+
+Send it with **Bash + curl**, never WebFetch — a long, emoji-heavy body pushed
+into a WebFetch URL fails with a bare `Invalid URL`, and bisecting for the cap
+burns tens of thousands of tokens without sending anything (2026-08-27):
+
+    curl -s -G "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+      --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+      --data-urlencode "text=$MSG"
+
+Never send test messages to the owner's real chat to debug a send.

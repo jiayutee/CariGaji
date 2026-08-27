@@ -248,7 +248,17 @@ Use mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-create-pages:
     Agenda: the planned agenda as a bulleted list
 
 ## STEP 6 — Send Telegram morning briefing
-Use WebFetch to POST to:
+Send it with **Bash + curl**, never WebFetch — a long, emoji-heavy body pushed
+into a WebFetch URL fails with a bare `Invalid URL`, and bisecting for the cap
+burns tens of thousands of tokens without sending anything (2026-08-27):
+
+    curl -s -G "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+      --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+      --data-urlencode "text=$MSG"
+
+Never send test messages to the owner's real chat to debug a send.
+
+For reference, the endpoint is:
 https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage
 
 Pass as query params: chat_id=$TELEGRAM_CHAT_ID and text= (URL-encode the message):
