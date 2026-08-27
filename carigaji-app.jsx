@@ -1347,6 +1347,12 @@ const TRANSLATIONS = {
     "employer.confirmedStatus": "✓ Confirmed",
     "employer.notSelected": "✗ Not selected",
     "employer.offerExpiredStatus": "⏱ Offer expired",
+    "employer.pillPending": "Pending",
+    "employer.pillShortlisted": "Shortlisted",
+    "employer.pillAccepted": "Accepted",
+    "employer.pillNotSelected": "Not selected",
+    "employer.pillOfferExpired": "Offer expired",
+    "employer.pillWithdrawn": "Withdrawn",
     "toast.offerSentMultiple": "Offer sent to {count} workers.",
     "toast.offerSentSingle": "Offer sent — waiting for the worker to confirm.",
     "toast.tooManySelected": "Only {open} position{plural} still open — select {open} or fewer.",
@@ -2526,6 +2532,12 @@ const TRANSLATIONS = {
     "employer.confirmedStatus": "✓ Disahkan",
     "employer.notSelected": "✗ Tidak dipilih",
     "employer.offerExpiredStatus": "⏱ Tawaran tamat tempoh",
+    "employer.pillPending": "Tertunda",
+    "employer.pillShortlisted": "Disenarai pendek",
+    "employer.pillAccepted": "Diterima",
+    "employer.pillNotSelected": "Tidak dipilih",
+    "employer.pillOfferExpired": "Tawaran tamat tempoh",
+    "employer.pillWithdrawn": "Ditarik balik",
     "toast.offerSentMultiple": "Tawaran dihantar kepada {count} pekerja.",
     "toast.offerSentSingle": "Tawaran dihantar — menunggu pengesahan pekerja.",
     "toast.tooManySelected": "Hanya {open} kekosongan{plural} masih terbuka — pilih {open} atau kurang.",
@@ -3704,6 +3716,12 @@ const TRANSLATIONS = {
     "employer.confirmedStatus": "✓ 已确认",
     "employer.notSelected": "✗ 未获选",
     "employer.offerExpiredStatus": "⏱ 邀约已过期",
+    "employer.pillPending": "待处理",
+    "employer.pillShortlisted": "已入围",
+    "employer.pillAccepted": "已接受",
+    "employer.pillNotSelected": "未获选",
+    "employer.pillOfferExpired": "邀约已过期",
+    "employer.pillWithdrawn": "已撤回",
     "toast.offerSentMultiple": "邀约已发送给 {count} 名员工。",
     "toast.offerSentSingle": "邀约已发送 — 等待员工确认。",
     "toast.tooManySelected": "仅剩 {open} 个职位空缺 — 请选择 {open} 名或以下。",
@@ -13004,7 +13022,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primary, fontSize: 14 }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>
                         <Pill
-                          label={action === 'offered' ? t("employer.awaitingResponse") : action}
+                          label={
+                            action === 'offered' ? t("employer.awaitingResponse") :
+                            action === 'accepted' ? t("employer.pillAccepted") :
+                            action === 'shortlisted' ? t("employer.pillShortlisted") :
+                            action === 'rejected' ? t("employer.pillNotSelected") :
+                            action === 'expired' ? t("employer.pillOfferExpired") :
+                            action === 'withdrawn' ? t("employer.pillWithdrawn") :
+                            t("employer.pillPending")
+                          }
                           color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
                         />
                         {action === 'offered' && a.offerExpiresAt && (
