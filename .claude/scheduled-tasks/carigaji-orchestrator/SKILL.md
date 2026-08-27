@@ -232,7 +232,7 @@ If Status = "Done" → send Telegram "✅ All tasks done for today!" and stop.
 If no entry for today → fall back to the Feature Backlog: query highest-priority
 pending items (Status != Done, sorted by Priority desc).
 
-## WORK LOOP — Repeat Steps 2–7 for EVERY pending agenda item
+## WORK LOOP — Repeat Steps 2–6 for EVERY pending agenda item
 
 Work through ALL agenda items that are NOT yet in Done Today, one by one.
 Only stop the loop when:
@@ -244,6 +244,8 @@ Only stop the loop when:
 From Agenda, find the next item NOT in Done Today.
 If APPROVED_SHIFTS flag is set from Step 0, override and pick "Employer: post a shift".
 If no pending items remain → send Telegram summary of all completed work and exit.
+Note whether the item touches more than one file (`multiFile`) and, if it
+closes a specific Feature Backlog row, that row's id — STEP 4 needs both.
 
 ## STEP 3 — Classify
 - Intent: implement / debug / review / security / docs / explore
@@ -255,7 +257,17 @@ For "Employer: post a shift" with APPROVED_SHIFTS=true → proceed despite HIGH 
 Send pause via WebFetch:
 https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage?chat_id=$TELEGRAM_CHAT_ID&text=⚠️+Paused%3A+[task]+%E2%80%94+[reason].+Reply+to+approve.
 
-## STEP 4 — Execute with specialist agents
+## STEP 4 — Execute the task
+
+**Check first**: does
+`/Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/pipeline_enabled.txt`
+exist? This is a deliberate on/off switch — its absence means take the
+legacy path below unchanged; its presence means use the pipeline. Either
+way, the safety properties (build gate before commit, never commit if a
+reviewer blocks, verify every Notion write) are the same — only who
+enforces them differs.
+
+### Legacy path (flag file absent)
 Route:
 - implement (>1 file): Plan → Feature Developer → Code Reviewer → Security Reviewer (MEDIUM+)
 - implement (1 file): Feature Developer → Code Reviewer
@@ -266,7 +278,6 @@ Every agent prompt must include: Goal, Scope, Inputs, Expected output, Done cond
 NEVER run two write agents simultaneously.
 NEVER commit if reviewer blocks.
 
-## STEP 5 — Verify, commit and push
 BUILD GATE (mandatory before every commit that touches carigaji-app.jsx):
   npx esbuild carigaji-app.jsx --bundle=false --platform=browser > /dev/null
   → If this exits non-zero, the file has a syntax error. NEVER commit. Fix it first.
@@ -287,7 +298,68 @@ Then confirm the live site is fresh:
 (gh reads GH_TOKEN from .env, already loaded.) If the deploy or publish fails,
 Telegram the owner and treat fixing it as the next cycle's Priority 5 task.
 
-## STEP 6 — Update Daily Log + Backlog
+Then do the Daily Log + Backlog writes described under STEP 6 below, and the
+Telegram ping — same rules whichever path STEP 4 took. Skip STEP 5, it only
+applies to the pipeline path.
+
+### Pipeline path (flag file present)
+Call the Workflow tool:
+
+    Workflow({
+      scriptPath: "scripts/orchestrator-verify-commit.workflow.js",
+      args: {
+        task: { name, intent, riskLevel, description, multiFile },
+        maxAttempts: 2,
+        notion: {
+          dailyLogPageId: <today's Daily Log page id>,
+          backlogRowId: <Feature Backlog row id, if this closes one>,
+          completionDate: <YYYY-MM-DD, the date this actually lands — real
+                            "today", not a placeholder; only meaningful
+                            together with backlogRowId>,
+        },
+      },
+    })
+
+This mechanizes specialist routing (including a Planner pass for `multiFile`
+tasks), the build gate, commit + push, the Daily Log commit-hash write, and
+the Feature Backlog Status+Date write — each stage schema-validated and
+re-verified rather than left to be remembered. Wait for the result:
+`{ landed, commitHash?, attempts?, notionVerified?, backlogVerified?,
+deployLive?, stage?, reason?, findings?, worktreePath? }`, then go to STEP 5.
+
+## STEP 5 — Handle a pipeline-path result
+(Only applies if STEP 4 took the pipeline path.)
+
+- **`landed: true`** → go to STEP 6.
+- **`landed: false`** → hard failure for this cycle (the pipeline already
+  retried internally per `maxAttempts` — do not retry again here):
+  1. Append to today's Daily Log Blockers: `[item name] — [stage]: [reason]
+     (after [attempts] attempt(s))` — include `findings` verbatim if
+     `stage` was `"verify"`.
+  2. Telegram alert with the same detail.
+  3. Go back to STEP 2 for the next agenda item — one blocked item should
+     not stall the rest of the cycle.
+- If `landed: true` but `notionVerified: false`: alert exactly as the
+  Daily Log verify-write rule below.
+- If `landed: true` but `backlogVerified: false` (and a `backlogRowId` was
+  given): alert similarly — "⚠️ Backlog Status/Date write failed to persist
+  for [row], needs manual check."
+
+## STEP 6 — Update Daily Log + Backlog, ping, and loop back
+
+If STEP 4 took the pipeline path, the commit-hash write and the Backlog
+Status+Date write already happened and were verified inside it — this step
+is then only:
+- New bugs surfaced (from `result.findings` or otherwise) that aren't
+  already a Backlog row → file one.
+- Bump Launch Readiness if a milestone landed.
+- Telegram ping: "✅ Done: [task] / Commit: [hash] / Moving to next
+  task..." — append "⚠️ pushed but couldn't confirm the live site updated"
+  if `deployLive: false`.
+- Loop back to STEP 2.
+
+If STEP 4 took the legacy path, do the full bookkeeping below, then the same
+Telegram ping and loop-back:
 - Append completed task to Done Today
 - Append issues to Blockers
 - Add commit hash to Commits
@@ -330,7 +402,6 @@ doesn't, retry the update once. If it still doesn't, do NOT silently continue
 [hash], needs manual check") so the gap surfaces same-cycle instead of being
 discovered by a later cycle's git-HEAD reconciliation.
 
-## STEP 7 — Send Telegram ping and loop back to STEP 2
 WebFetch: https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage?chat_id=$TELEGRAM_CHAT_ID&text=✅+Done%3A+[task]%0ACommit%3A+[hash]%0AMoving+to+next+task...
 
 Then immediately go back to STEP 2 and pick the next pending agenda item.

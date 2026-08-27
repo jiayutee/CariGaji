@@ -1,46 +1,36 @@
 // Workflow script — the "verify/commit slice" of the orchestrator loop.
 //
-// NOT wired into scripts/orchestrator-runner.sh yet, and not on by default
-// even if it were — see the flag-gate note in SKILL.trimmed-draft.md's
-// STEP 4. This is a draft: it replaces STEP 4-7 of SKILL.md (execute ->
-// build gate -> commit/push -> Notion update -> deploy) with deterministic
-// control flow and schema-validated agent output, for the class of bug
-// that keeps recurring when those steps are prose instructions an LLM has
-// to remember to follow every 2-hour cycle: a silent no-op Notion write, a
-// turn-limit truncation misread as a clean review, a build gate skipped
-// under turn pressure.
+// Called from SKILL.md's STEP 4, ONLY when
+// /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/pipeline_enabled.txt
+// exists — that flag file is the on/off switch for this path; its absence
+// runs SKILL.md's legacy path (specialist routing decided in prose) instead.
+// Delete the flag file at any time to fall straight back to legacy behavior.
+//
+// Replaces STEP 4-7's old shape (execute -> build gate -> commit/push ->
+// Notion update -> deploy) with deterministic control flow and
+// schema-validated agent output, for the class of bug that recurs when
+// those steps are prose an LLM has to remember to follow every 2-hour
+// cycle: a silent no-op Notion write, a turn-limit truncation misread as a
+// clean review, a build gate skipped under turn pressure.
 //
 // STEP 0-3 (Telegram intake, ambiguity handling, agenda pick, risk
 // classification) stay OUTSIDE this script on purpose -- those need an
 // LLM's judgment on unstructured input, not a fixed pipeline shape.
 //
-// Revised after a first pass flagged real gaps against the thing it
-// replaces — each is addressed below and tagged [ADDRESSED: n] against the
-// numbered disadvantage list this came from:
-//   1. Feature Backlog Status+Date coupling (the actual 38%-defect-rate
-//      rule) was left unmechanized. Now mechanized in the Notion phase.
-//   2. No Planner stage for multi-file work. Now conditional on
-//      args.task.multiFile.
-//   3. A single hardcoded retry replaced open-ended "fix it first". Now a
-//      bounded attempt loop (default 2, tunable) that carries the actual
-//      failure reason into the next attempt instead of a blind redo.
-//   4. Higher token cost per item than one inline session. Not solved —
-//      genuinely more expensive per landed task — but bounded: attempts
-//      are capped, not open-ended, and adoption is opt-in via the flag
-//      file (see disadvantage 7), so real quota impact is observable
-//      before this runs unattended by default.
-//   5. Dashboard blind spot. Fixed in scripts/orchestrator-watch.py, which
-//      now recognizes a "Workflow" tool_use/tool_result pair in the
-//      caller's own transcript the same way it already recognizes
-//      Task/Agent spawns — no need to parse a separate journal format.
-//   6. Harder to hot-patch under incident pressure. Partially addressed:
-//      the rules most likely to need a same-day fix (Notion write shapes,
-//      the build gate command) are pulled into the named constants right
-//      below, so patching one is "edit a string," not "edit control flow."
-//   7. Turning this on for an unattended cron job is a bigger decision than
-//      it looks. Addressed in SKILL.trimmed-draft.md, not here: STEP 4
-//      only takes this path if a flag file exists, and defaults to the
-//      legacy behavior otherwise.
+// Design notes carried from review (kept short; the full discussion is in
+// the PR/commit history if the reasoning behind any of these is unclear):
+//   - Feature Backlog Status+Date coupling is mechanized in the Notion
+//     phase (write both in one call, re-verify both) — this is the rule
+//     that produced a measured 38% defect rate when it lived only in prose.
+//   - A Planner pass runs first for args.task.multiFile, restoring the
+//     original >1-file routing.
+//   - Implement/Verify/Build-Gate is a bounded, context-carrying retry loop
+//     (default 2 attempts via args.maxAttempts), not a single blind redo.
+//   - Cost per landed item is genuinely higher than one inline session;
+//     that's real and unsolved here — the flag-gate above is what makes
+//     that observable before it runs unattended by default.
+//   - scripts/orchestrator-watch.py recognizes this tool's call/result pair
+//     directly, so these stages show up in the live dashboard.
 
 export const meta = {
   name: 'carigaji-verify-commit',
