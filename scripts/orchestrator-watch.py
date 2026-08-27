@@ -54,6 +54,8 @@ def parse(path, tail_bytes=4_000_000):
     thing on the machine.
     """
     agents, events = {}, []
+    usage = {"in": 0, "out": 0, "cache_read": 0, "cache_write": 0,
+             "first": None, "last": None, "model": None, "recent5h": 0}
     try:
         size = os.path.getsize(path)
         with open(path, "rb") as fh:
@@ -62,7 +64,7 @@ def parse(path, tail_bytes=4_000_000):
                 fh.readline()          # discard the partial line
             raw = fh.read().decode("utf-8", "replace")
     except OSError:
-        return agents, events
+        return agents, events, usage
 
     for line in raw.split("\n"):
         if not line.strip():
@@ -73,6 +75,25 @@ def parse(path, tail_bytes=4_000_000):
             continue
         ts = d.get("timestamp", "")
         msg = d.get("message") or {}
+
+        # Token accounting. Only assistant turns carry usage, and each one
+        # reports the whole request -- so these are sums over requests, not a
+        # running context size.
+        u = msg.get("usage")
+        if u:
+            usage["in"] += u.get("input_tokens", 0) or 0
+            usage["out"] += u.get("output_tokens", 0) or 0
+            usage["cache_read"] += u.get("cache_read_input_tokens", 0) or 0
+            usage["cache_write"] += u.get("cache_creation_input_tokens", 0) or 0
+            if msg.get("model"):
+                usage["model"] = msg["model"]
+            if ts:
+                usage["first"] = usage["first"] or ts
+                usage["last"] = ts
+                age = secs_since(ts)
+                if age is not None and age <= 5 * 3600:
+                    usage["recent5h"] += (u.get("output_tokens", 0) or 0)
+
         content = msg.get("content")
         if not isinstance(content, list):
             continue
@@ -85,7 +106,11 @@ def parse(path, tail_bytes=4_000_000):
                 if name in ("Task", "Agent"):
                     agents[c.get("id")] = {
                         "type": inp.get("subagent_type", "agent"),
-                        "desc": (inp.get("description") or "")[:44],
+                        "desc": (inp.get("description") or "")[:34],
+                        # A spawn may pin a model; none of this project's do,
+                        # so in practice they inherit the session's. Shown as
+                        # "↳" to make "inherited" visible rather than implied.
+                        "model": inp.get("model"),
                         "started": ts, "done": None, "ok": None,
                     }
                 else:
@@ -95,7 +120,7 @@ def parse(path, tail_bytes=4_000_000):
                 if a and not a["done"]:
                     a["done"] = ts
                     a["ok"] = not c.get("is_error")
-    return agents, events
+    return agents, events, usage
 
 
 def brief(name, inp):
@@ -129,9 +154,9 @@ def read(p):
         return ""
 
 
-def frame(path):
+def frame(path, budget=0):
     cols = shutil_cols()
-    agents, events = parse(path)
+    agents, events, usage = parse(path)
     running = [a for a in agents.values() if not a["done"]]
     finished = [a for a in agents.values() if a["done"]][-6:]
 
@@ -148,6 +173,35 @@ def frame(path):
                f"   {datetime.now().strftime('%H:%M:%S')}{RESET}")
     out.append(f"{DIM}└{bar}┘{RESET}")
 
+    # ── the numbers band ─────────────────────────────────────────────────────
+    # tok/s is OUTPUT tokens over the run's wall clock, which is the number that
+    # tracks how fast work is actually being produced. Input and cache-read
+    # dwarf it and would only flatter the figure.
+    span = None
+    if usage["first"] and usage["last"]:
+        a, b = secs_since(usage["last"]), secs_since(usage["first"])
+        if a is not None and b is not None:
+            span = max(b - a, 1)
+    toks = f"{usage['out']:,} out / {usage['in'] + usage['cache_read'] + usage['cache_write']:,} in"
+    rate = f"{usage['out'] / span:.1f} tok/s" if span else "— tok/s"
+    model = (usage["model"] or "unknown").replace("claude-", "")
+    online = f"{GREEN}{len(running)} online{RESET}" if running else f"{DIM}0 online{RESET}"
+    out.append(f" {BOLD}LIVE{RESET}   {online}   {BOLD}MODEL{RESET} {BLUE}{model}{RESET}"
+               f"   {BOLD}TOKENS{RESET} {toks}   {BOLD}RATE{RESET} {rate}")
+
+    # The 5-hour rate-limit allowance is NOT in any transcript -- Claude Code
+    # does not write it there -- so this is measured usage, not a quota read
+    # back from the service. Pass --budget to turn it into a remaining figure;
+    # without one, only what was actually spent is shown, which is honest.
+    win = f"{usage['recent5h']:,} output tokens in the last 5h"
+    if budget:
+        left = budget - usage["recent5h"]
+        colour = GREEN if left > budget * 0.3 else (AMBER if left > 0 else RED)
+        win += f"   {colour}{left:,} left of {budget:,}{RESET}"
+    else:
+        win += f"   {DIM}(pass --budget N to show remaining){RESET}"
+    out.append(f" {DIM}5H WINDOW{RESET} {win}")
+
     # ── state ────────────────────────────────────────────────────────────────
     tree = (f"{RED}dirty ({len(dirty.splitlines())} file(s)) — STEP 0.5 will stand down{RESET}"
             if dirty else f"{GREEN}clean{RESET}")
@@ -162,14 +216,17 @@ def frame(path):
     if not running and not finished:
         out.append(f"   {DIM}no subagents in the visible tail — the cycle may be"
                    f" between steps, or exited at STEP 0.5{RESET}")
+    def model_of(a):
+        return (a["model"].replace("claude-", "") if a.get("model")
+                else "↳ " + (usage["model"] or "session").replace("claude-", ""))
     for a in running:
         age = secs_since(a["started"])
-        out.append(f"   {GREEN}●{RESET} {BOLD}{a['type']:<22}{RESET} {a['desc']:<46}"
-                   f" {DIM}{int(age)}s{RESET}" if age else
-                   f"   {GREEN}●{RESET} {BOLD}{a['type']:<22}{RESET} {a['desc']}")
+        secs = f"{int(age)}s" if age is not None else ""
+        out.append(f"   {GREEN}●{RESET} {BOLD}{a['type']:<22}{RESET}"
+                   f" {BLUE}{model_of(a):<14}{RESET} {a['desc']:<36} {DIM}{secs}{RESET}")
     for a in finished:
         mark = f"{GREY}✓{RESET}" if a["ok"] else f"{RED}✗{RESET}"
-        out.append(f"   {mark} {GREY}{a['type']:<22} {a['desc']:<46}"
+        out.append(f"   {mark} {GREY}{a['type']:<22} {model_of(a):<14} {a['desc']:<36}"
                    f" {hhmm(a['done'])}{RESET}")
     out.append("")
 
@@ -231,6 +288,8 @@ def main():
     ap.add_argument("--file")
     ap.add_argument("--once", action="store_true")
     ap.add_argument("--interval", type=float, default=2.0)
+    ap.add_argument("--budget", type=int, default=0,
+                    help="output-token allowance for the 5h window, if you know it")
     args = ap.parse_args()
 
     path = args.file or newest_transcript()
@@ -238,14 +297,14 @@ def main():
         print("no transcript found", file=sys.stderr)
         return 1
     if args.once:
-        print(frame(path))
+        print(frame(path, args.budget))
         return 0
     try:
         while True:
             # Re-resolve each tick: a new cycle writes a NEW transcript, and the
             # dashboard should follow it rather than sit on a finished run.
             path = args.file or newest_transcript()
-            sys.stdout.write("\033[H\033[J" + frame(path) + "\n")
+            sys.stdout.write("\033[H\033[J" + frame(path, args.budget) + "\n")
             sys.stdout.flush()
             time.sleep(args.interval)
     except KeyboardInterrupt:
