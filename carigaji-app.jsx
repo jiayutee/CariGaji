@@ -456,6 +456,12 @@ const BRAND = {
   // card it measures 3.43:1. This token is the same blue in light mode and a
   // lighter one in dark, so the brand reads the same and the contrast holds.
   primaryOnSurface: "var(--cg-primary-on-surface)",
+  // Same idea as primaryOnSurface, for BRAND.red/BRAND.green used as TEXT
+  // (not a button fill). Each token only changes in the mode where the base
+  // color actually fails AA -- red on dark surfaces (3.7:1), green on light
+  // ones (3.45:1) -- and is a no-op in the other mode.
+  redOnSurface: "var(--cg-red-on-surface)",
+  greenOnSurface: "var(--cg-green-on-surface)",
   shadow: "var(--cg-shadow)",
   overlay: "var(--cg-overlay)",
 };
@@ -12606,7 +12612,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       ))}
       <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
         <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
-        <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.green }}>{toCurrency(committedPayoutTotal)}</div>
+        <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.greenOnSurface }}>{toCurrency(committedPayoutTotal)}</div>
         <Btn size="xs" variant="ghost" onClick={onOpenSupportChat} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpBtn")}</Btn>
         <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
       </div>
@@ -12852,7 +12858,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     variant="secondary"
                     disabled={cancellingShift}
                     onClick={handleCancelShiftClick}
-                    style={{ padding: "8px 14px", color: BRAND.red }}
+                    style={{ padding: "8px 14px", color: BRAND.redOnSurface }}
                   >
                     {cancellingShift ? t("employer.cancellingShift") : t("employer.cancelShift")}
                   </Btn>
@@ -13048,7 +13054,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>{t("employer.waitingOnWorker")}</span>}
                         {action === "accepted" && selectedShift.status !== "completed" && (
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                            <span style={{ fontSize: 12, color: BRAND.green }}>{t("employer.confirmedStatus")}</span>
+                            <span style={{ fontSize: 12, color: BRAND.greenOnSurface }}>{t("employer.confirmedStatus")}</span>
                             <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
                             {/* Only once the shift has actually started, and only
                                 for someone who never checked in -- the same

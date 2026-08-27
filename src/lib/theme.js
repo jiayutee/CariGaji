@@ -15,6 +15,15 @@ const THEME_PALETTES = {
     // dark, where #2563EB on the card reaches only 3.43:1 -- and the wage is
     // the number a worker actually reads the card for.
     primaryOnSurface: "#2563EB",
+    // BRAND.red as TEXT on a surface. Unchanged in light (#DC2626 already
+    // reaches 4.62:1 on a light card); lightened in dark, where the same red
+    // on a dark card/muted surface reaches only 3.7:1.
+    redOnSurface: "#DC2626",
+    // BRAND.green as TEXT on a surface. The opposite direction from the
+    // other two: #1A9E5C already reaches 5.15:1 on a dark card, but only
+    // 3.45:1 on a light one -- darkened here to greenDark's value (5.0:1 on
+    // white), unchanged in dark.
+    greenOnSurface: "#15803D",
     shadow: "rgba(15,23,42,0.08)",
     overlay: "rgba(17,24,39,0.58)",
   },
@@ -29,6 +38,8 @@ const THEME_PALETTES = {
     text: "#E5E7EB",
     textMuted: "#94A3B8",
     primaryOnSurface: "#5B8DEF",
+    redOnSurface: "#F87171",
+    greenOnSurface: "#1A9E5C",
     shadow: "rgba(0,0,0,0.35)",
     overlay: "rgba(2,6,23,0.72)",
   },
@@ -73,6 +84,8 @@ export const buildThemeVars = (resolvedTheme) => {
     "--cg-text": palette.text,
     "--cg-text-muted": palette.textMuted,
     "--cg-primary-on-surface": palette.primaryOnSurface,
+    "--cg-red-on-surface": palette.redOnSurface,
+    "--cg-green-on-surface": palette.greenOnSurface,
     "--cg-shadow": palette.shadow,
     "--cg-overlay": palette.overlay,
     colorScheme: resolvedTheme,
