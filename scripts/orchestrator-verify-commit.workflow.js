@@ -50,7 +50,16 @@ export const meta = {
 // The rules most likely to need a same-day fix after an incident, as named
 // constants instead of buried in prompt strings — editing one of these is
 // the same motion as editing a SKILL.md paragraph, just scoped to one line.
-const BUILD_GATE_CMD = 'npx esbuild carigaji-app.jsx --bundle=false --platform=browser > /dev/null'
+// Absolute path to the REPO's esbuild, never `npx`. An agent stage runs inside
+// a git worktree, and a worktree has no node_modules -- it is a fresh checkout
+// of tracked files only. `npx esbuild` there finds nothing locally and falls
+// back to fetching the package from the registry, which in an unattended run
+// stalls: on 2026-08-28 that hung the same stage six times over ~116 minutes
+// and the cycle only landed because the owner salvaged the diff by hand.
+// Resolving the binary explicitly makes the gate network-free and immune to
+// whatever the worktree does or does not contain.
+const ESBUILD_BIN = '/Users/jiayutee/Dev/Projects/CariGaji/node_modules/.bin/esbuild'
+const BUILD_GATE_CMD = `${ESBUILD_BIN} carigaji-app.jsx --bundle=false --platform=browser > /dev/null`
 const NOTION_WRITE_RULES =
   'Fetch and concatenate existing fields before writing — never overwrite a growing field. ' +
   'A rich_text field over ~2000 chars in one element will 400 — split across elements. ' +
@@ -240,7 +249,11 @@ while (attempt < MAX_ATTEMPTS && !succeeded) {
     // is a permission error in / -- the gate would then report a build failure
     // that never happened and stall every cycle.
     `Run exactly this, and nothing else:\n\n    cd "${impl.worktreePath}" && ${BUILD_GATE_CMD}\n\n` +
-      `Report passed=true only if that command exits 0. On failure, capture the error text verbatim.`,
+      `That binary path is absolute and correct — do NOT substitute npx, do NOT ` +
+      `search the worktree for another esbuild, and do NOT install anything. A ` +
+      `worktree has no node_modules; that is expected. If the binary is genuinely ` +
+      `missing, report passed=false with that as the error rather than hunting. ` +
+      `Report passed=true only if the command exits 0. On failure, capture the error text verbatim.`,
     { agentType: 'test-runner', schema: BUILD_GATE_SCHEMA, phase: 'Build Gate' }
   )
 
