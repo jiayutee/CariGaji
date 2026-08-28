@@ -412,6 +412,24 @@ Bash + curl — let --data-urlencode do the escaping, do not hand-encode %0A/%3A
 
 Then immediately go back to STEP 2 and pick the next pending agenda item.
 
+## Known false alarms — do not re-file these
+
+**Supabase realtime WebSocket "failed to connect".** Unattended dogfood runs in
+a sandboxed browser that cannot complete WebSocket upgrades, so every load
+logs a realtime connection failure regardless of production health. Checked
+2026-08-28 against the live endpoint with a real handshake:
+
+    HTTP/1.1 101 Switching Protocols
+    Upgrade: websocket
+
+`notifications` and `messages` are both in the supabase_realtime publication
+(20260710, 20260705f). The server is fine. This can only be judged from an
+ordinary browser — do not file it, and do not spend a cycle on it.
+
+**No node_modules inside a worktree.** That is what a worktree IS: tracked
+files only. Never install into one, never `npx` from one. The build gate calls
+esbuild by absolute path for this reason (see the workflow script).
+
 ## Sending Telegram messages
 
 Send it with **Bash + curl**, never WebFetch — a long, emoji-heavy body pushed
