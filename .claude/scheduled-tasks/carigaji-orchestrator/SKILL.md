@@ -414,17 +414,29 @@ Then immediately go back to STEP 2 and pick the next pending agenda item.
 
 ## Known false alarms — do not re-file these
 
-**Supabase realtime WebSocket "failed to connect".** Unattended dogfood runs in
-a sandboxed browser that cannot complete WebSocket upgrades, so every load
-logs a realtime connection failure regardless of production health. Checked
-2026-08-28 against the live endpoint with a real handshake:
+**Supabase realtime WebSocket "failed to connect".** Establish WHICH session
+was live before filing this. Checked 2026-08-28 on the live site:
 
-    HTTP/1.1 101 Switching Protocols
-    Upgrade: websocket
+- curl handshake against the endpoint → `HTTP/1.1 101 Switching Protocols`
+- raw `new WebSocket(...)` from the live origin in the automation browser →
+  `readyState: 1` (OPEN). So it is NOT a sandbox limitation.
+- production, signed out, real page load → **zero console errors**
 
-`notifications` and `messages` are both in the supabase_realtime publication
-(20260710, 20260705f). The server is fine. This can only be judged from an
-ordinary browser — do not file it, and do not spend a cycle on it.
+The reason signed-out is clean is that every realtime subscription is gated
+behind `if (!user?.id) return undefined;` — signed out, the app opens no
+channels at all. So "failed on every load, even pre-login" cannot be the app's
+own subscriptions and needs a different explanation.
+
+The one that fits: a signed-in session whose token is stale. A realtime socket
+opened with a rejected JWT is closed by the server and the client retries in a
+loop, which reads as endless "WebSocket connection failed". When it was seen on
+localhost the console also carried `refresh_token_already_used` — QA logins get
+reused across days and their refresh tokens rotate out.
+
+BEFORE FILING: check the same console for `refresh_token_already_used` or other
+auth errors. If they are there, it is a stale QA session, not a product bug —
+sign in fresh and re-check. Only file if realtime fails with a KNOWN-GOOD
+session.
 
 **No node_modules inside a worktree.** That is what a worktree IS: tracked
 files only. Never install into one, never `npx` from one. The build gate calls
