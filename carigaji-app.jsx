@@ -9838,7 +9838,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                   {a.status === 'accepted' && a.workerSignedAt && (
                     <div style={{display:'flex', alignItems:'center', gap:8, marginTop:4}}>
-                      <span style={{fontSize:11, color:'#16a34a'}}>{t("myBids.contractSignedBadge")}</span>
+                      <span style={{fontSize:11, color: BRAND.greenOnSurface}}>{t("myBids.contractSignedBadge")}</span>
                       <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                           ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                         }); }}
