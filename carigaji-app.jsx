@@ -4515,7 +4515,7 @@ const Badge = memo(({ color = "gray", children, size = "sm" }) => {
     green: { bg: BRAND.greenLight, text: BRAND.onGreenLight },
     red: { bg: BRAND.redLight, text: BRAND.onRedLight },
     amber: { bg: BRAND.amberLight, text: BRAND.onAmberLight },
-    blue: { bg: BRAND.blueLight, text: BRAND.onPrimaryLight },
+    blue: { bg: BRAND.blueLight, text: BRAND.onBlueLight },
     orange: { bg: BRAND.accentLight, text: BRAND.onAccentLight },
     teal: { bg: BRAND.tealLight, text: BRAND.onTealLight },
   };
@@ -4874,7 +4874,7 @@ const Pill = memo(({ label, color }) => (
     display: "inline-block", padding: "3px 10px", borderRadius: 99,
     fontSize: 12, fontWeight: 600,
     background: color === "green" ? BRAND.greenLight : color === "red" ? BRAND.redLight : color === "amber" ? BRAND.amberLight : color === "blue" ? BRAND.blueLight : BRAND.grayLight,
-    color: color === "green" ? BRAND.onGreenLight : color === "red" ? BRAND.onRedLight : color === "amber" ? BRAND.onAmberLight : color === "blue" ? BRAND.onPrimaryLight : BRAND.textMuted,
+    color: color === "green" ? BRAND.onGreenLight : color === "red" ? BRAND.onRedLight : color === "amber" ? BRAND.onAmberLight : color === "blue" ? BRAND.onBlueLight : BRAND.textMuted,
   }}>{label}</span>
 ));
 
