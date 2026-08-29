@@ -10321,7 +10321,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label={t("earnings.statRecords")} value={String((workerPayoutSummary || []).length)} color={BRAND.primary} />
+              <Stat label={t("earnings.statRecords")} value={String((workerPayoutSummary || []).length)} color={BRAND.primaryOnSurface} />
               <Stat label={t("earnings.statReady")} value={String((workerPayoutSummary || []).filter(p => p.status === "ready").length)} color={BRAND.green} />
               <Stat label={t("earnings.statHeld")} value={String((workerPayoutSummary || []).filter(p => p.status === "held").length)} color={BRAND.red} />
               <Stat label={t("earnings.statBanking")} value={bankVerificationLabel(workerBanking?.verification_status, t)} sub="SecureSign" color={BRAND.blue} />
@@ -10448,7 +10448,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label={t("profile.shiftsDone")} value={workerShiftsDone ?? "—"} color={BRAND.primary} />
+              <Stat label={t("profile.shiftsDone")} value={workerShiftsDone ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
               <Stat label={t("profile.strikes")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
               <Stat label={t("profile.onTimeRate")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
@@ -12690,7 +12690,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </Card>
             )}
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open" || s.status === "closed").length} color={BRAND.primary} />
+              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open" || s.status === "closed").length} color={BRAND.primaryOnSurface} />
               <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
               <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
               <Stat label={t("employer.statReliability")} value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
@@ -13680,7 +13680,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             </Card>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
               <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} tooltip={t("employer.pendingPayoutTooltip")} color={BRAND.amber} />
-              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} tooltip={t("employer.totalPaidOutTooltip")} color={BRAND.primary} />
+              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} tooltip={t("employer.totalPaidOutTooltip")} color={BRAND.primaryOnSurface} />
             </div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>
               {t("employer.escrowUnavailableNote")}
@@ -14951,9 +14951,9 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Registered workers" value={overviewStats?.activeWorkers ?? "—"} color={BRAND.primary} />
-              <Stat label="Registered employers" value={overviewStats?.registeredEmployers ?? "—"} color={BRAND.primary} />
-              <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primary} />
+              <Stat label="Registered workers" value={overviewStats?.activeWorkers ?? "—"} color={BRAND.primaryOnSurface} />
+              <Stat label="Registered employers" value={overviewStats?.registeredEmployers ?? "—"} color={BRAND.primaryOnSurface} />
+              <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label="Payout queue" value="Coming soon" sub="Escrow/payout not built yet" color={BRAND.textMuted} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 16 }}>
