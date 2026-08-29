@@ -852,6 +852,11 @@ const TRANSLATIONS = {
     "employer.postNewShift": "+ Post New Shift",
     "employer.recentActivity": "Recent Activity",
     "employer.noActivity": "No activity yet — post a shift to start hiring.",
+    "employer.activityAccepted": "{who} was accepted for {shift}",
+    "employer.activityDeclined": "{who}'s bid for {shift} was declined",
+    "employer.activityBid": "{who} bid RM{amount}/h for {shift}",
+    "employer.activityUnknownWorker": "A worker",
+    "employer.activityAShift": "a shift",
     "employer.shiftsTitle": "Your Shifts",
     "employer.postShiftBtn": "+ Post Shift",
     "employer.listCardChatBtn": "Chat",
@@ -2045,6 +2050,11 @@ const TRANSLATIONS = {
     "employer.postNewShift": "+ Siar Syif Baharu",
     "employer.recentActivity": "Aktiviti Terkini",
     "employer.noActivity": "Belum ada aktiviti — siarkan syif untuk mula mengambil pekerja.",
+    "employer.activityAccepted": "{who} telah diterima untuk {shift}",
+    "employer.activityDeclined": "Bidaan {who} untuk {shift} telah ditolak",
+    "employer.activityBid": "{who} membida RM{amount}/j untuk {shift}",
+    "employer.activityUnknownWorker": "Seorang pekerja",
+    "employer.activityAShift": "satu syif",
     "employer.shiftsTitle": "Syif Anda",
     "employer.postShiftBtn": "+ Siar Syif",
     "employer.listCardChatBtn": "Sembang",
@@ -3230,6 +3240,11 @@ const TRANSLATIONS = {
     "employer.postNewShift": "+ 发布新班次",
     "employer.recentActivity": "近期活动",
     "employer.noActivity": "暂无活动 — 发布班次以开始招聘。",
+    "employer.activityAccepted": "{who} 已被录用参与 {shift}",
+    "employer.activityDeclined": "{who} 对 {shift} 的出价已被拒绝",
+    "employer.activityBid": "{who} 以 RM{amount}/时 出价申请 {shift}",
+    "employer.activityUnknownWorker": "一名员工",
+    "employer.activityAShift": "一个班次",
     "employer.shiftsTitle": "您的班次",
     "employer.postShiftBtn": "+ 发布班次",
     "employer.listCardChatBtn": "聊天",
@@ -11657,13 +11672,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           applicants: counts[s.id] || 0,
           avgBid: counts[s.id] ? bidSums[s.id] / counts[s.id] : 0,
         })));
-        setRecentActivity(rows.slice(0, 5).map(a => {
-          const shiftTitle = (liveEmployerShifts ?? []).find(s => s.id === a.shift_id)?.title || 'a shift';
-          const who = a.worker?.full_name || 'A worker';
-          if (a.status === 'accepted') return `${who} was accepted for ${shiftTitle}`;
-          if (a.status === 'rejected') return `${who}'s bid for ${shiftTitle} was declined`;
-          return `${who} bid RM${a.wage_ask}/h for ${shiftTitle}`;
-        }));
+        setRecentActivity(rows.slice(0, 5).map(a => ({
+          kind: a.status === 'accepted' ? 'accepted' : a.status === 'rejected' ? 'declined' : 'bid',
+          who: a.worker?.full_name || null,
+          shiftTitle: (liveEmployerShifts ?? []).find(s => s.id === a.shift_id)?.title || null,
+          wageAsk: a.wage_ask,
+        })));
       });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -12735,7 +12749,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <div style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0" }}>{t("employer.noActivity")}</div>
                     )}
                     {recentActivity.map((a, i) => (
-                      <div key={i} style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0", borderBottom: i < recentActivity.length - 1 ? `1px solid ${BRAND.border}` : "none" }}>{a}</div>
+                      <div key={i} style={{ fontSize: 12, color: BRAND.textMuted, padding: "4px 0", borderBottom: i < recentActivity.length - 1 ? `1px solid ${BRAND.border}` : "none" }}>
+                        {t(
+                          a.kind === 'accepted' ? 'employer.activityAccepted' : a.kind === 'declined' ? 'employer.activityDeclined' : 'employer.activityBid',
+                          { who: a.who ?? t('employer.activityUnknownWorker'), shift: a.shiftTitle ?? t('employer.activityAShift'), amount: a.wageAsk }
+                        )}
+                      </div>
                     ))}
                   </Card>
                 </div>
