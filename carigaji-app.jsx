@@ -479,6 +479,7 @@ const TRANSLATIONS = {
     "settings.subtitle": "Manage your account and access hidden consoles",
     "settings.account": "Account",
     "settings.language": "Language",
+    "settings.theme": "Appearance",
     "settings.languageEnglish": "English",
     "settings.languageBM": "Bahasa Melayu",
     "settings.languageChinese": "Chinese",
@@ -1680,6 +1681,7 @@ const TRANSLATIONS = {
     "settings.subtitle": "Urus akaun anda dan akses konsol tersembunyi",
     "settings.account": "Akaun",
     "settings.language": "Bahasa",
+    "settings.theme": "Penampilan",
     "settings.languageEnglish": "Bahasa Inggeris",
     "settings.languageBM": "Bahasa Melayu",
     "settings.languageChinese": "Bahasa Cina",
@@ -2873,6 +2875,7 @@ const TRANSLATIONS = {
     "settings.subtitle": "管理您的账户，并进入隐藏功能面板",
     "settings.account": "账户",
     "settings.language": "语言",
+    "settings.theme": "外观",
     "settings.languageEnglish": "英文",
     "settings.languageBM": "马来文",
     "settings.languageChinese": "中文",
@@ -7545,7 +7548,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
 };
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, linkShiftId = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, themePreference = "system", setThemePreference = () => {}, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, linkShiftId = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -10585,32 +10588,27 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("settings.account")}</div>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.language")}</span>
+                <span style={{ fontSize: 13, color: BRAND.textMuted }}>{t("settings.theme")}</span>
+                {/* Swapped with the language switcher (owner, 2026-08-29).
+                    Three explicit choices rather than the header's cycling
+                    button: in a settings list you want to SEE the options, not
+                    discover them by pressing repeatedly. */}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "flex-end" }}>
-                  <Btn
-                    size="xs"
-                    variant={language === "en" ? "primary" : "secondary"}
-                    onClick={() => setLanguage("en")}
-                    aria-pressed={language === "en"}
-                  >
-                    {t("settings.languageEnglish")}
-                  </Btn>
-                  <Btn
-                    size="xs"
-                    variant={language === "bm" ? "primary" : "secondary"}
-                    onClick={() => setLanguage("bm")}
-                    aria-pressed={language === "bm"}
-                  >
-                    {t("settings.languageBM")}
-                  </Btn>
-                  <Btn
-                    size="xs"
-                    variant={language === "ch" ? "primary" : "secondary"}
-                    onClick={() => setLanguage("ch")}
-                    aria-pressed={language === "ch"}
-                  >
-                    {t("settings.languageChinese")}
-                  </Btn>
+                  {[
+                    { mode: "system", label: t("theme.system"), icon: "🖥️" },
+                    { mode: "light", label: t("theme.light"), icon: "☀️" },
+                    { mode: "dark", label: t("theme.dark"), icon: "🌙" },
+                  ].map(opt => (
+                    <Btn
+                      key={opt.mode}
+                      size="xs"
+                      variant={themePreference === opt.mode ? "primary" : "secondary"}
+                      onClick={() => setThemePreference(opt.mode)}
+                      aria-pressed={themePreference === opt.mode}
+                    >
+                      <span aria-hidden="true">{opt.icon}</span> {opt.label}
+                    </Btn>
+                  ))}
                 </div>
               </div>
               {/* Phone-tray notifications. Only offered where the browser can
@@ -16056,6 +16054,90 @@ const AppBrandHeader = ({ onClick, isMobile }) => {
   );
 };
 
+// Each language is listed in ITS OWN script, not translated into the current
+// one. A picker that says "Chinese" to an English reader and "Bahasa Cina" to a
+// Malay one is useless to the Chinese speaker it is actually for -- endonyms
+// are the convention for exactly this reason, and they make the menu identical
+// in every language.
+const LANGUAGE_OPTIONS = [
+  { code: "en", short: "EN", label: "English" },
+  { code: "bm", short: "BM", label: "Bahasa Melayu" },
+  { code: "ch", short: "中文", label: "中文" },
+];
+
+// Header language control: shows only the CURRENT language's short form, and
+// opens the list on click. Sits where the theme toggle used to, because
+// language is the setting a first-time visitor is most likely to need before
+// they can read anything else -- burying it in Settings assumed they could
+// already read the path to get there.
+const LanguagePicker = ({ isMobile = false }) => {
+  // Context, not props: the root component renders the header but sits outside
+  // the LanguageProvider it creates, so it has no `language` to hand down.
+  // ThemeToggleButton solves the same problem the same way.
+  const { t, language, setLanguage } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const boxRef = useRef(null);
+  const current = LANGUAGE_OPTIONS.find(o => o.code === language) || LANGUAGE_OPTIONS[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDocClick = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    const onEsc = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onEsc);
+    return () => { document.removeEventListener("mousedown", onDocClick); document.removeEventListener("keydown", onEsc); };
+  }, [open]);
+
+  return (
+    <div ref={boxRef} style={{ position: "relative", flexShrink: 0 }}>
+      <Btn
+        size="sm"
+        variant="secondary"
+        onClick={() => setOpen(o => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("settings.language")}
+        title={t("settings.language")}
+        style={isMobile ? { minWidth: 40, height: 36, padding: "0 8px", gap: 0, flexShrink: 0 } : { minWidth: 58, justifyContent: "center", gap: 5 }}
+      >
+        <span aria-hidden="true">🌐</span>
+        <span style={{ fontWeight: 700 }}>{current.short}</span>
+      </Btn>
+      {open && (
+        <div
+          role="listbox"
+          style={{
+            position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 60,
+            background: BRAND.surface, border: `1px solid ${BRAND.border}`,
+            borderRadius: 10, boxShadow: `0 10px 30px ${BRAND.shadow}`,
+            padding: 4, minWidth: 170,
+          }}
+        >
+          {LANGUAGE_OPTIONS.map(opt => (
+            <button
+              key={opt.code}
+              role="option"
+              aria-selected={opt.code === language}
+              onClick={() => { setLanguage(opt.code); setOpen(false); }}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                width: "100%", padding: "9px 10px", borderRadius: 8, border: "none", cursor: "pointer",
+                fontFamily: "inherit", fontSize: 13, textAlign: "left",
+                background: opt.code === language ? BRAND.primaryLight : "transparent",
+                color: opt.code === language ? BRAND.onPrimaryLight : BRAND.text,
+                fontWeight: opt.code === language ? 700 : 500,
+              }}
+            >
+              <span>{opt.label}</span>
+              <span style={{ fontSize: 11, opacity: 0.75 }}>{opt.short}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ThemeToggleButton = ({ themePreference, onClick, isMobile = false }) => {
   const { t } = useLanguage();
   const label = themePreference === "system" ? t("theme.system") : themePreference === "light" ? t("theme.light") : t("theme.dark");
@@ -17217,7 +17299,11 @@ export default function CariGaji() {
                 {cfg.label}
               </Badge>
             )}
-            <ThemeToggleButton themePreference={themePreference} onClick={() => setThemePreference(current => cycleThemePreference(current))} isMobile={isMobile} />
+            {/* Swapped with the theme toggle (owner, 2026-08-29): language is the
+                control a first-time visitor needs BEFORE they can read their way to
+                Settings, so it belongs on the header. Theme is a preference you set
+                once, so it moved into Settings > Account. */}
+            <LanguagePicker isMobile={isMobile} />
             {user && <NotificationBell user={user} onNavigate={handleNotificationNavigate} />}
             {user ? (
               <ProfileMenu
@@ -17233,7 +17319,7 @@ export default function CariGaji() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} linkShiftId={portal === "worker" ? linkShiftId : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} themePreference={themePreference} setThemePreference={setThemePreference} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} linkShiftId={portal === "worker" ? linkShiftId : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
           {portal === "employer" && <EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
           {portal === "admin" && (
             isAdmin
