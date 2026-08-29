@@ -4381,7 +4381,16 @@ const LanguageContext = createContext({ language: "en", setLanguage: () => {}, t
 const useLanguage = () => useContext(LanguageContext);
 
 const LanguageProvider = ({ children }) => {
-  const [language, setLanguageState] = useState(() => readLanguagePreference());
+  // The URL wins over localStorage on first load. A /bm/... link is someone
+  // deliberately sharing the Malay page -- honouring a stored "en" instead
+  // would silently defeat the point of having per-language addresses at all.
+  const [language, setLanguageState] = useState(() => {
+    if (typeof window !== "undefined") {
+      const fromUrl = langFromPath(window.location.pathname);
+      if (fromUrl) return normalizeLanguage(fromUrl);
+    }
+    return readLanguagePreference();
+  });
 
   const setLanguage = useCallback((lang) => {
     const next = normalizeLanguage(lang);
@@ -4403,6 +4412,23 @@ const LanguageProvider = ({ children }) => {
     return raw.replace(/\{(\w+)\}/g, (match, name) =>
       (params[name] === undefined || params[name] === null ? match : String(params[name]))
     );
+  }, [language]);
+
+  // Two side effects of a language change that are easy to forget and both
+  // matter outside the React tree: the document's lang attribute (screen
+  // readers, and Google deciding what language this page is in), and the
+  // address bar, so the URL a user copies is the one they are looking at.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    document.documentElement.setAttribute("lang", language === "ch" ? "zh-Hans" : language === "bm" ? "ms" : "en");
+    const { lang: inUrl, rest } = splitLangPath(window.location.pathname);
+    if (inUrl === language) return;
+    const target = withLang(language, rest);
+    if (!samePath(target, window.location.pathname)) {
+      // replaceState, not push: changing language is not a navigation, and an
+      // extra history entry would make Back appear to do nothing.
+      window.history.replaceState(window.history.state, "", target + window.location.search);
+    }
   }, [language]);
 
   const value = useMemo(() => ({ language, setLanguage, t }), [language, setLanguage, t]);
@@ -4972,7 +4998,7 @@ const openMailtoSupport = () => {
 
 const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = () => {}, isMobile = false }) => {
   const toast = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
@@ -4995,7 +5021,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
     // shift rewrites the address bar, reading the live path would turn a
     // "join CariGaji" referral into a link to whatever shift happened to be
     // open, with the referral wording still attached.
-    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${APP_BASE}/` : "https://jiayutee.github.io/CariGaji/";
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${withLang(language, [])}` : "https://jiayutee.github.io/CariGaji/";
     const shareText = t("account.referShareText");
     if (navigator.share) {
       try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
@@ -7617,7 +7643,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     // shift rewrites the address bar, reading the live path would turn a
     // "join CariGaji" referral into a link to whatever shift happened to be
     // open, with the referral wording still attached.
-    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${APP_BASE}/` : "https://jiayutee.github.io/CariGaji/";
+    const shareUrl = typeof window !== "undefined" ? `${window.location.origin}${withLang(language, [])}` : "https://jiayutee.github.io/CariGaji/";
     const shareText = t("account.referShareText");
     if (navigator.share) {
       try { await navigator.share({ title: "CariGaji", text: shareText, url: shareUrl }); } catch {} // user cancelled share sheet
@@ -7722,7 +7748,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (typeof window === "undefined") return;
     if (selectedShift?.id) urlSyncArmed.current = true;
     if (!urlSyncArmed.current) return;
-    const target = selectedShift?.id ? shiftToPath(selectedShift.id) : `${APP_BASE}/`;
+    const target = selectedShift?.id ? shiftToPath(selectedShift.id, language) : withLang(language, []);
     if (!samePath(target, window.location.pathname)) {
       window.history.replaceState(window.history.state, "", target);
     }
@@ -7730,7 +7756,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
   const shareShift = async () => {
     if (!selectedShift?.id || typeof window === "undefined") return;
-    const url = `${window.location.origin}${shiftToPath(selectedShift.id)}`;
+    const url = `${window.location.origin}${shiftToPath(selectedShift.id, language)}`;
     const wage = `RM${selectedShift.wageMin}\u2013${selectedShift.wageMax}/${t("discover.perHour").replace("/", "")}`;
     const text = `${selectedShift.title} \u00b7 ${wage} \u00b7 ${selectedShift.location}`;
     if (navigator.share) {
@@ -16715,31 +16741,63 @@ const MOBILE_BREAKPOINT = 768;
 const APP_BASE = (import.meta.env.BASE_URL || "/").replace(/\/+$/, ""); // "/CariGaji"
 const PORTAL_PATHS = { worker: "", employer: "employer", admin: "admin" };
 
-const portalToPath = (portal) => {
-  const seg = PORTAL_PATHS[portal] ?? "";
-  return `${APP_BASE}/${seg}`.replace(/\/{2,}/g, "/");
-};
+// Every address carries its language: /CariGaji/en, /CariGaji/bm/employer,
+// /CariGaji/ch/shift/<id>. Owner's call, 2026-08-29.
+//
+// This is what lets each language be indexed separately -- one URL per
+// language is the precondition for hreflang and for Google treating the Malay
+// and Chinese versions as pages in their own right rather than as a
+// JavaScript state of the English one. It also makes a shared link carry the
+// sender's language, which matters when the whole point is sharing shifts into
+// Malay- and Chinese-speaking WhatsApp groups.
+//
+// The prefix is OPTIONAL on the way in and CANONICAL on the way out: a URL
+// without one still resolves (every link shared before today keeps working),
+// and the app then rewrites the address to include it.
+const LANG_CODES = ["en", "bm", "ch"];
+const DEFAULT_LANG = "en";
 
-// One shift, one address: /CariGaji/shift/<id>. Deliberately a SEPARATE
-// concept from the portal paths above rather than a fourth portal -- a shift
-// URL is an entry point into the worker app, not a place the app lives, and
-// conflating them would put shift ids through portalToPath's round trip.
-const SHIFT_PATH_SEG = "shift";
-const shiftToPath = (id) => `${APP_BASE}/${SHIFT_PATH_SEG}/${encodeURIComponent(id)}`.replace(/\/{2,}/g, "/");
-const shiftIdFromPath = (pathname = "") => {
+// Split a pathname into { lang, rest } where rest is the route with the base
+// and any language prefix removed. One parser, so the language segment cannot
+// be handled correctly in one place and forgotten in another.
+const splitLangPath = (pathname = "") => {
   let rest = pathname;
   if (APP_BASE && rest.startsWith(APP_BASE)) rest = rest.slice(APP_BASE.length);
   const parts = rest.replace(/^\/+/, "").split("/");
-  if (parts[0] !== SHIFT_PATH_SEG || !parts[1]) return null;
-  try { return decodeURIComponent(parts[1]); } catch { return parts[1]; }
+  if (LANG_CODES.includes(parts[0])) {
+    return { lang: parts[0], rest: parts.slice(1) };
+  }
+  return { lang: null, rest: parts };
+};
+
+const langFromPath = (pathname = "") => splitLangPath(pathname).lang;
+
+const withLang = (lang, segments) => {
+  const path = [lang || DEFAULT_LANG, ...segments.filter(Boolean)].join("/");
+  return `${APP_BASE}/${path}`.replace(/\/{2,}/g, "/");
+};
+
+const portalToPath = (portal, lang) =>
+  withLang(lang, [PORTAL_PATHS[portal] ?? ""]);
+
+// One shift, one address. Deliberately a SEPARATE concept from the portal
+// paths above rather than a fourth portal -- a shift URL is an entry point
+// into the worker app, not a place the app lives, and conflating them would
+// put shift ids through portalToPath's round trip.
+const SHIFT_PATH_SEG = "shift";
+const shiftToPath = (id, lang) =>
+  withLang(lang, [SHIFT_PATH_SEG, encodeURIComponent(id)]);
+
+const shiftIdFromPath = (pathname = "") => {
+  const { rest } = splitLangPath(pathname);
+  if (rest[0] !== SHIFT_PATH_SEG || !rest[1]) return null;
+  try { return decodeURIComponent(rest[1]); } catch { return rest[1]; }
 };
 
 const portalFromPath = (pathname = "") => {
-  // Strip the base prefix, then take the first segment. Unknown segments fall
-  // back to the worker app rather than rendering nothing.
-  let rest = pathname;
-  if (APP_BASE && rest.startsWith(APP_BASE)) rest = rest.slice(APP_BASE.length);
-  const seg = rest.replace(/^\/+/, "").split("/")[0];
+  // Unknown segments fall back to the worker app rather than rendering nothing.
+  const { rest } = splitLangPath(pathname);
+  const seg = rest[0];
   if (seg === "employer") return "employer";
   if (seg === "admin") return "admin";
   // A shared shift link opens inside the worker app.
@@ -16786,7 +16844,9 @@ export default function CariGaji() {
   // user never chose to visit.
   const setPortal = useCallback((next, { replace = false } = {}) => {
     if (typeof window !== "undefined") {
-      const target = portalToPath(next);
+      // Outside the provider, so read the same two sources it does: the URL
+      // first, then the stored preference.
+      const target = portalToPath(next, langFromPath(window.location.pathname) || readLanguagePreference());
       if (!samePath(target, window.location.pathname)) {
         // state marker lets popstate tell OUR entries apart from the
         // BackGestureManager sentinels that share this history stack.
@@ -16818,7 +16878,7 @@ export default function CariGaji() {
         // when they were pushed, i.e. stale. Reading `portal` off them would
         // spuriously switch portals mid-gesture. Re-assert the URL from the
         // portal we're actually showing instead.
-        const target = portalToPath(portalRef.current);
+        const target = portalToPath(portalRef.current, langFromPath(window.location.pathname) || readLanguagePreference());
         if (!samePath(target, window.location.pathname)) {
           window.history.replaceState({ carigajiPortal: portalRef.current }, "", target);
         }
@@ -17110,9 +17170,16 @@ export default function CariGaji() {
         const isAdminAccount = user?.app_metadata?.role === 'admin';
         if (lastRoutedUserIdRef.current !== user.id) {
           lastRoutedUserIdRef.current = user.id;
+          // Do NOT clobber a deep link. Someone arriving on /bm/shift/<id> was
+          // sent that exact shift; rewriting them to the portal root loses it
+          // and they land on a feed wondering what they were shown. The portal
+          // is still selected below -- only the ADDRESS is left alone, and
+          // WorkerPortal re-asserts it once the shift loads.
+          const onShiftLink = Boolean(shiftIdFromPath(window.location.pathname));
           if (isAdminAccount) setPortal('admin', { replace: true });
           else if (role === 'employer') setPortal('employer', { replace: true });
-          else setPortal('worker', { replace: true });
+          else if (!onShiftLink) setPortal('worker', { replace: true });
+          else setPortalState('worker');
         }
 
         // Self-heal missing names: OAuth sign-up (Google/Apple/Facebook)
