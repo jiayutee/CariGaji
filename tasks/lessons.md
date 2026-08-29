@@ -219,3 +219,30 @@ RULE: a failed outbound send is a one-line report, not an investigation. Never
 probe a limit by sending to the owner's real chat — a stray test message at
 9pm is worse than a late debrief, and the durable record (Notion) is already
 written by that point.
+
+## The pause switch failed open (2026-08-29)
+
+The owner asked to pause the work loop. state.txt was set to `paused` at
+/Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/state.txt, and
+two later cycles ran anyway — one of them shipping three commits.
+
+Cause: STEP 0 said "Read state.txt" with no path. The cycle ran
+`cat state.txt` relative to the repo, got NOFILE, and the rule said
+"missing file ... means proceed normally". A path ambiguity became an ignored
+pause. Every OTHER state file in the runbook (dirty_tree_notified.txt,
+done_notified.txt, pause_notified.txt) was already written as an absolute
+path; state.txt was the one that was not.
+
+RULE: any file a routine reads for CONTROL — pause switches, gates, flags —
+is referenced by absolute path, every time, no exceptions. Relative paths are
+fine for repo content because the cwd is the repo; they are never fine for
+state that lives outside it.
+
+RULE: a safety switch must fail CLOSED or fail LOUD, never silently open. The
+runbook now recreates a missing state.txt and Telegrams the owner rather than
+treating absence as permission to run.
+
+RULE for me: after setting a control file, verify the ROUTINE honours it —
+don't just verify the file's contents. I checked `cat state.txt` returned
+`paused` and reported the loop paused. It wasn't. The check that mattered was
+whether the next cycle actually stopped.

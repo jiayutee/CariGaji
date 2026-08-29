@@ -87,9 +87,9 @@ Offset file: /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/tg_of
 
 **"skip"** → Mark the current highest-priority paused task as skipped for today (add "Skipped by user [date]" to its Note in Notion). Pick the next task instead. Notify: "⏭️ Skipped! Moving to next task."
 
-**"pause"** → Overwrite state.txt with EXACTLY the lowercase word `paused` (no trailing text, no other content in the file). Send "⏸️ Work loop paused. Send 'resume' to continue." Then EXIT — do no work this cycle.
+**"pause"** → Overwrite /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/state.txt (absolute path) with EXACTLY the lowercase word `paused` (no trailing text, no other content in the file). Send "⏸️ Work loop paused. Send 'resume' to continue." Then EXIT — do no work this cycle.
 
-**"resume"** → Overwrite state.txt with EXACTLY the lowercase word `active`. Send "▶️ Resumed! Picking up from where I left off." Continue with normal work loop.
+**"resume"** → Overwrite /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/state.txt (absolute path) with EXACTLY the lowercase word `active`. Send "▶️ Resumed! Picking up from where I left off." Continue with normal work loop.
 
 **"status"** → Read today's Daily Log from Notion. Send a Telegram status message:
 "📊 Status update:
@@ -147,7 +147,22 @@ c) If the message is too ambiguous to turn into a concrete agenda item (no
    act on — could you say more specifically what you'd like done?") and EXIT
    without doing speculative work this cycle.
 
-5. Read state.txt and trim whitespace. If its content is exactly `paused` (and no "resume" command was received in step 4 above), EXIT immediately. Any other content (including `active`, empty, or missing file) means proceed normally.
+5. Read the pause switch — **by absolute path, always**:
+
+       cat /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/state.txt
+
+   Trim whitespace. If the content is exactly `paused` (and no "resume" command
+   was received in step 4 above), EXIT immediately. `active` means proceed.
+
+   IF THAT FILE IS MISSING, DO NOT SILENTLY PROCEED. On 2026-08-28 the owner
+   paused the loop and two cycles ran anyway: they read `state.txt` as a
+   RELATIVE path from the repo, got "NOFILE", and the old wording here —
+   "missing file means proceed normally" — turned a path mistake into an
+   ignored pause. A safety switch that fails open is not a safety switch.
+   So: if the absolute path above does not exist, recreate it containing
+   `active`, Telegram the owner "⚠️ state.txt was missing at the expected path
+   — recreated as active; if you had paused the loop, re-issue it", and only
+   then proceed.
 
 ## STEP 0.4 — Anything the owner is asked to run must exist in the repo first
 
@@ -238,7 +253,7 @@ Work through ALL agenda items that are NOT yet in Done Today, one by one.
 Only stop the loop when:
 - All agenda items are done (send final summary and exit)
 - A HIGH-risk task requires approval (pause and wait)
-- state.txt contains exactly `paused`
+- /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/state.txt contains exactly `paused`
 
 ## STEP 2 — Pick next agenda item
 From Agenda, find the next item NOT in Done Today.
