@@ -765,6 +765,7 @@ const TRANSLATIONS = {
     "profile.noRatingsHint": "Ratings from employers will appear here after you complete shifts.",
     "auth.registerTitle": "Register",
     "auth.registerSubtitle": "Create your account and complete your profile and KYC details.",
+    "auth.employerFreeTrial": "🎁 Your first 2 months are free — the platform fee only starts 2 months after you post your first shift.",
     "auth.resetTitle": "Reset password",
     "auth.resetSubtitle": "We will send a password reset email to your inbox.",
     "auth.sendResetEmail": "Send reset email",
@@ -1155,6 +1156,7 @@ const TRANSLATIONS = {
     "landing.sectionWorkerSubtitle": "Find a shift, bid your rate, get paid",
     "landing.sectionEmployerTitle": "Hiring instead?",
     "landing.sectionEmployerSubtitle": "How posting a shift works for employers",
+    "landing.employerFreeTrial": "🎁 First 2 months free. The clock starts when you post your first shift, not when you sign up — and any shift posted while it is running stays free, even if it pays out later.",
     "landing.trustIdTitle": "Workers are ID-verified",
     "landing.trustIdBody": "MyKad or passport checked against a selfie before higher-paying shifts unlock.",
     "landing.trustSsmTitle": "Employers are business-verified",
@@ -1297,6 +1299,7 @@ const TRANSLATIONS = {
     "employer.estimatedReserveLabel": "Estimated amount to reserve",
     "employer.estimatedReserveFormula": "wage_max × headcount × shift hours + {feePct}% platform fee",
     "employer.estimatedReserveFormulaNoFee": "wage_max × headcount × shift hours — no platform fee during launch",
+    "employer.feeTrialActive": "Free until {date} — no platform fee on shifts you post before then, even when they pay out later.",
     "employer.tagline": "Employer Console",
     "employer.openMenu": "Open menu",
     "employer.paidToWorkers": "Paid to Workers",
@@ -1963,6 +1966,7 @@ const TRANSLATIONS = {
     "profile.noRatingsHint": "Penilaian daripada majikan akan dipaparkan di sini selepas anda menyelesaikan syif.",
     "auth.registerTitle": "Daftar",
     "auth.registerSubtitle": "Cipta akaun anda dan lengkapkan profil serta butiran KYC anda.",
+    "auth.employerFreeTrial": "🎁 Dua bulan pertama anda percuma — yuran platform hanya bermula 2 bulan selepas anda siarkan syif pertama.",
     "auth.resetTitle": "Tetapkan semula kata laluan",
     "auth.resetSubtitle": "Kami akan menghantar e-mel tetapan semula kata laluan ke peti masuk anda.",
     "auth.sendResetEmail": "Hantar e-mel tetapan semula",
@@ -2345,6 +2349,7 @@ const TRANSLATIONS = {
     "landing.sectionWorkerSubtitle": "Cari syif, tawar kadar anda, dapatkan bayaran",
     "landing.sectionEmployerTitle": "Mengupah pula?",
     "landing.sectionEmployerSubtitle": "Cara menyiarkan syif untuk majikan",
+    "landing.employerFreeTrial": "🎁 Dua bulan pertama percuma. Kiraan bermula apabila anda siarkan syif pertama, bukan semasa mendaftar — dan mana-mana syif yang disiarkan dalam tempoh itu kekal percuma walaupun dibayar kemudian.",
     "landing.trustIdTitle": "Pekerja disahkan identiti",
     "landing.trustIdBody": "MyKad atau pasport disemak dengan swafoto sebelum syif berbayar tinggi dibuka.",
     "landing.trustSsmTitle": "Majikan disahkan perniagaan",
@@ -2487,6 +2492,7 @@ const TRANSLATIONS = {
     "employer.estimatedReserveLabel": "Anggaran jumlah untuk direzab",
     "employer.estimatedReserveFormula": "gaji_maks × bilangan pekerja × jam syif + {feePct}% yuran platform",
     "employer.estimatedReserveFormulaNoFee": "gaji_maks × bilangan pekerja × jam syif — tiada yuran platform semasa pelancaran",
+    "employer.feeTrialActive": "Percuma sehingga {date} — tiada yuran platform untuk syif yang anda siarkan sebelum itu, walaupun dibayar kemudian.",
     "employer.tagline": "Konsol Majikan",
     "employer.openMenu": "Buka menu",
     "employer.paidToWorkers": "Dibayar kepada Pekerja",
@@ -3153,6 +3159,7 @@ const TRANSLATIONS = {
     "profile.noRatingsHint": "完成班次后，雇主的评价将显示在这里。",
     "auth.registerTitle": "注册",
     "auth.registerSubtitle": "创建您的账户并完成个人资料及 KYC 信息。",
+    "auth.employerFreeTrial": "🎁 前两个月免费 — 平台服务费自您发布第一个班次起两个月后才开始收取。",
     "auth.resetTitle": "重置密码",
     "auth.resetSubtitle": "我们将发送一封密码重置邮件到您的邮箱。",
     "auth.sendResetEmail": "发送重置邮件",
@@ -3534,6 +3541,7 @@ const TRANSLATIONS = {
     "landing.sectionWorkerSubtitle": "寻找班次、出价、领取工资",
     "landing.sectionEmployerTitle": "想要招聘？",
     "landing.sectionEmployerSubtitle": "雇主发布班次的方式",
+    "landing.employerFreeTrial": "🎁 前两个月免费。计时从您发布第一个班次开始，而非注册当天 — 在此期间发布的班次即使稍后才发放薪资，也一律免费。",
     "landing.trustIdTitle": "员工均经过身份验证",
     "landing.trustIdBody": "在解锁薪资更高的班次前，系统会将 MyKad 或护照与自拍照进行核对。",
     "landing.trustSsmTitle": "雇主均经过企业认证",
@@ -3676,6 +3684,7 @@ const TRANSLATIONS = {
     "employer.estimatedReserveLabel": "预估需预留金额",
     "employer.estimatedReserveFormula": "最高薪资 × 所需人数 × 班次时数 + {feePct}% 平台服务费",
     "employer.estimatedReserveFormulaNoFee": "最高薪资 × 所需人数 × 班次时数 — 开跑期间免收平台服务费",
+    "employer.feeTrialActive": "免费至 {date} — 在此之前发布的班次不收平台服务费，即使稍后才发放薪资。",
     "employer.tagline": "雇主控制台",
     "employer.openMenu": "打开菜单",
     "employer.paidToWorkers": "已支付给员工",
@@ -6989,6 +6998,18 @@ const AuthModal = ({
 }) => {
   const { t: translate } = useLanguage();
   const [showErrors, setShowErrors] = useState(false);
+  // The modal has no fee value of its own, and the promo must not render while
+  // the global rate is 0. One read, same pattern as the landing hero and the
+  // employer console.
+  const [authFeePct, setAuthFeePct] = useState(PLATFORM_FEE_PCT);
+  useEffect(() => {
+    let active = true;
+    supabase.rpc('platform_fee_pct').then(({ data, error }) => {
+      if (!active || error || data == null) return;
+      setAuthFeePct(Number(data));
+    });
+    return () => { active = false; };
+  }, []);
   const scrollRef = useRef(null);
   // Keep the status message visible without forcing the user to scroll up
   useEffect(() => {
@@ -7096,6 +7117,16 @@ const AuthModal = ({
           {message && (
             <div style={{ position: "sticky", top: -20, zIndex: 10, margin: "-20px -4px 16px -4px", padding: "14px 16px", borderRadius: 12, ...chipTone("primary"), border: `1.5px solid ${BRAND.primary}`, fontSize: 13.5, fontWeight: 600, lineHeight: 1.5, boxShadow: "0 4px 14px rgba(37,99,235,0.15)" }}>
               {message}
+            </div>
+          )}
+          {/* The offer, on the employer signup path only. A worker seeing
+              "two months free" would reasonably wonder what they are being
+              charged — nothing, and saying so here would raise the question
+              rather than answer it. Gated on a live fee for the same reason
+              as everywhere else. */}
+          {view === "register" && form.accountRole === "employer" && authFeePct > 0 && (
+            <div style={{ margin: "0 -4px 16px -4px", padding: "12px 14px", borderRadius: 12, ...chipTone("green"), fontSize: 13, fontWeight: 600, lineHeight: 1.5 }}>
+              {translate("auth.employerFreeTrial")}
             </div>
           )}
           {/* Same defect, same fix: the register-errors banner. */}
@@ -7340,6 +7371,17 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   // and several expanded blocks would push the shifts -- the most persuasive
   // thing on the page -- off the screen again.
   const [openSection, setOpenSection] = useState(null);
+  // Same read as the employer console. Anonymous visitors can call this: the
+  // rate is not a secret, and the promo must not render when it is zero.
+  const [landingFeePct, setLandingFeePct] = useState(PLATFORM_FEE_PCT);
+  useEffect(() => {
+    let active = true;
+    supabase.rpc('platform_fee_pct').then(({ data, error }) => {
+      if (!active || error || data == null) return;
+      setLandingFeePct(Number(data));
+    });
+    return () => { active = false; };
+  }, []);
   // primaryOnSurface, not primary: every landing eyebrow is 11px primary text
   // sitting on the page, which measures 3.43:1 in dark mode. 11px/800 is not
   // WCAG large text, so 4.5 applies.
@@ -7485,6 +7527,14 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
                 </div>
               ))}
             </div>
+          {/* Gated on a real fee existing. While platform_fee_pct() is 0 this
+              says nothing true that isn't already true for everyone, so it
+              stays hidden until the rate is switched on. */}
+          {landingFeePct > 0 && (
+            <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 10, ...chipTone("green"), fontSize: 12.5, fontWeight: 600 }}>
+              {t("landing.employerFreeTrial")}
+            </div>
+          )}
           <Btn variant="secondary" onClick={() => onRequireAuth("register", "employer")} style={{ marginTop: 14 }}>
             {t("landing.ctaPostShift")}
           </Btn>
@@ -11517,12 +11567,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // change with no deploy. Shifts already posted are priced from their own
   // snapshot (`feePct`), never from this.
   const [platformFeePct, setPlatformFeePct] = useState(PLATFORM_FEE_PCT);
+  // When this employer's free window ends. null = trial not started (they have
+  // posted nothing yet) or already over. Read from their own profile row, so
+  // it survives a rate change and needs no client-side date arithmetic.
+  const [feeFreeUntil, setFeeFreeUntil] = useState(null);
   useEffect(() => {
     let active = true;
     supabase.rpc('platform_fee_pct').then(({ data, error }) => {
       if (!active || error || data == null) return;
       setPlatformFeePct(Number(data));
     });
+    if (user?.id) {
+      supabase.from('profiles').select('fee_free_until').eq('id', user.id).maybeSingle()
+        .then(({ data, error }) => {
+          if (!active || error) return;
+          setFeeFreeUntil(data?.fee_free_until ?? null);
+        });
+    }
     return () => { active = false; };
   }, []);
 
@@ -13370,6 +13431,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
                         <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{reserve.toFixed(0)}</div>
                         <div style={{ fontSize: 11, color: BRAND.amber }}>{platformFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(platformFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
+                        {/* The trial line only appears when a fee actually
+                            exists. While the global rate is 0 everyone is free
+                            anyway, and announcing a "free trial" then would
+                            advertise a benefit indistinguishable from the
+                            status quo -- and burn employers' two months on a
+                            period that cost them nothing. */}
+                        {platformFeePct > 0 && feeFreeUntil && new Date(feeFreeUntil) > new Date() && (
+                          <div style={{ fontSize: 11, color: BRAND.onGreenLight, background: BRAND.greenLight, borderRadius: 6, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>
+                            {t("employer.feeTrialActive").replace("{date}", new Date(feeFreeUntil).toLocaleDateString())}
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
