@@ -427,6 +427,34 @@ Bash + curl — let --data-urlencode do the escaping, do not hand-encode %0A/%3A
 
 Then immediately go back to STEP 2 and pick the next pending agenda item.
 
+## STEP 3.7 — Marketing check (Mondays only)
+
+Once per week, on Mondays, spawn the `marketing` agent. Skip on other days.
+
+Its job, in this order:
+
+1. **Re-verify the launch-gate claims** in `tasks/go_to_market.md` §0 and §2
+   against the CODE AND DATABASE, not the pitch deck. Any claim that has
+   become true, or has quietly become false, is reported. This exists because
+   the deck describes an intended product and parts of it are not built --
+   escrow enforcement reads a `platform_settings` row that does not exist, KYC
+   is `secure_sign_sim`, and there is no payment rail.
+2. **Report the numbers that matter** from live data: open shifts, fill rate,
+   time-to-first-bid, repeat employers at 30 days. Not signups.
+3. **Draft the week's outreach list and copy** for the OWNER to send.
+4. **File any newly-found gap as a Feature Backlog row**, not a line in a
+   report that scrolls away.
+
+HARD LIMITS, and these are not negotiable:
+
+- The agent NEVER contacts a real employer or worker. It drafts; the owner
+  sends. An unattended cycle must not message a stranger on the owner's behalf.
+- It NEVER writes to carigaji-app.jsx. Product copy changes are described and
+  handed to feature-dev like any other task.
+- It NEVER publishes a claim the platform cannot keep. "Guaranteed pay",
+  "escrow", "funds held", and "MyKad verified" are all currently FALSE. If a
+  draft contains one, that is a bug in the draft.
+
 ## Known false alarms — do not re-file these
 
 **Supabase realtime WebSocket "failed to connect".** Establish WHICH session
