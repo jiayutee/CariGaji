@@ -22,8 +22,12 @@ Specifically, as of 2026-08-29 these are NOT true and must not be claimed:
 - "We pay you within 48–72 hours." There is no payment gateway. The only way
   money enters is an admin manually recording a bank transfer, and
   `payout_item` rows record an obligation, not a transfer.
-- "MyKad verified." KYC uses `secure_sign_sim`, a simulator. No vendor is
-  integrated.
+- "Bank-account verified." The worker-facing verify button sets
+  `verification_status = 'verified'` from the browser using `secure_sign_sim`,
+  with no guard trigger on the column. It verifies nothing.
+- "Biometrically MyKad verified." Identity KYC IS real but MANUAL: the worker
+  uploads MyKad/passport plus a selfie and an admin reviews them. Say "checked
+  by our team"; do not imply an automated or biometric match.
 
 What IS true and is the strongest honest pitch:
 

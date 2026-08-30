@@ -17,7 +17,8 @@ get people who show up." The second half is real today. The first half is not:
 | Employer funds are committed before the shift | **NOT TRUE** | `employer_wallet_enforced()` reads a `platform_settings` row that does not exist → returns false. Offers are never blocked on funding. Live check returns `[]`. |
 | Worker is paid within 48–72h | **NOT TRUE** | No payment gateway. Money enters only via an admin manually recording a bank transfer (`admin_record_topup`). |
 | A payout actually moves money | **NOT TRUE** | `payout_item` records an obligation. There is no disbursement rail. |
-| Workers are MyKad-verified | **NOT TRUE** | KYC provider is `secure_sign_sim`, a simulator. |
+| Workers are MyKad-verified | **PARTLY TRUE** | Workers upload MyKad/passport and a selfie, and an admin reviews them in the KYC queue. Human review is real; there is no automated vendor match. Say "checked by our team", not "biometrically verified". |
+| A worker's bank account is verified | **NOT TRUE** | The "Verify with SecureSign" button writes `verification_status = 'verified'` straight from the browser with provider `secure_sign_sim`. Unlike `employer_verification_status` and `kyc_level`, this column has no guard trigger, so a worker can self-verify. **Filed.** |
 
 Marketing "guaranteed pay" now would be the single most damaging thing we
 could do. One worker who was promised protection and did not get it, posting

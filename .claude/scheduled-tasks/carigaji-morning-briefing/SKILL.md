@@ -40,6 +40,30 @@ Daily Log data source: collection://$NOTION_DAILY_LOG_DS
 Launch Roadmap: https://app.notion.com/p/$NOTION_ROADMAP_PAGE
 ---
 
+## STEP 0 — Check the pause switch (ALWAYS run first, before any read or send)
+
+    cat /Users/jiayutee/.claude/scheduled-tasks/carigaji-orchestrator/state.txt
+
+Trim whitespace. If the content is exactly `paused`, EXIT IMMEDIATELY — send no
+Telegram message, create no Notion page, read nothing further. Do not announce
+the skip either; a pause that still pings is not a pause.
+
+`active` means proceed normally.
+
+IF THAT FILE IS MISSING, DO NOT SILENTLY PROCEED. Recreate it containing
+`active`, Telegram the owner "⚠️ state.txt was missing at the expected path —
+recreated as active; if you had paused, re-issue it", and only then proceed. A
+safety switch that fails open is not a safety switch.
+
+WHY THIS FILE, WHICH BELONGS TO A DIFFERENT TASK. On 2026-08-30 the owner
+paused the orchestrator on 08-28 and still got a briefing on 08-30. The pause
+had worked exactly as designed — the orchestrator shipped nothing — but this
+task is a SEPARATE scheduled task and had no gate at all, so it kept reporting.
+From the owner's side there is one system, and "pause" means all of it goes
+quiet. One switch therefore governs all three tasks (orchestrator, morning
+briefing, evening debrief). Do not introduce a second state file: two switches
+is how you get a half-paused system that nobody can reason about.
+
 ## STEP 1 — Read yesterday's Daily Log entry
 Use mcp__38adf627-cba2-44f5-a53b-2951f7d48071__notion-search:
   query: "Daily Log"
