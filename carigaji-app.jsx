@@ -6554,9 +6554,12 @@ const InfoNote = ({ children, style }) => (
 // the right-hand column is caller-supplied rather than assumed to be a location.
 const Timeline = ({ startLabel, endLabel, gutter, topRight, bottomRight }) => (
   <div style={{ display: "flex", gap: 12 }}>
-    {/* 62px, not 46: en-MY formats times as "09:00 am", which wrapped onto two
-        lines in a narrower column and broke the alignment with the dots. */}
-    <div style={{ width: 62, flexShrink: 0, textAlign: "left" }}>
+    {/* 76px, not the original 46: en-MY formats times as "09:00 am", which
+        measures ~70px at this size and wrapped onto two lines in a narrower
+        column, breaking alignment with the dots. nowrap as well as the width, so
+        a locale that formats times longer still cannot break the layout -- it
+        will overflow visibly instead, which is easier to notice and fix. */}
+    <div style={{ width: 76, flexShrink: 0, textAlign: "left", whiteSpace: "nowrap" }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{startLabel}</div>
       {gutter && <div style={{ fontSize: 11.5, color: BRAND.textMuted, margin: "6px 0" }}>{gutter}</div>}
       <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{endLabel}</div>

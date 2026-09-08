@@ -1,349 +1,54 @@
-# Plan — Employer deposit / escrow
+# BlaBlaCar-style restyle — worker app
 
-Owner decision (2026-08-12): the **employer funds compensation**. Nothing
-charges them today, so every ringgit figure the app now shows an employer is a
-promise the platform cannot collect on.
+Reference: eight BlaBlaCar screenshots supplied by the owner (2026-09-08).
+Plan: `~/.claude/plans/mutable-forging-riddle.md`.
 
-## 1. What exists today (verified)
+Decisions taken by the owner before implementation:
+- 5 bottom tabs, Settings folded into Profile as a sub-tab pair
+- Worker app only; employer and admin consoles untouched
+- Emoji replaced with line icons
 
-- `payout_cycle` / `payout_item` / `payout_audit` — records what a worker is
-  **owed**. No corresponding charge to the employer anywhere.
-- **No** escrow, wallet, balance or deposit table. Grepped the whole schema.
-- "Top Up" in the employer Billing tab is labelled *"(soon)"* and shows
-  *"Adding funds isn't available yet — this is a preview until a real payment
-  gateway (FPX/DuitNow) is integrated."*
-- The only funding signal is `employer.fundingReadyLabel`: **a checkbox the
-  employer ticks about themselves** — "Funding account has sufficient balance
-  for this cycle". Nothing verifies it.
+## Done
 
-## 2. The finding that should be dealt with first
-
-The landing page already tells workers, as a trust claim:
-
-> **"Funds are held, not promised"**
-> *"The wage is committed to CariGaji before the shift starts — it's not an
-> IOU from the employer."*
-
-**That is not true today.** No funds are held, because there is nowhere to
-hold them. This is different from the known-placeholder sample figures (see
-memory `project_landing_hero_illustrative_content`) — those are labelled
-illustrative. This is a general statement of how the platform works, on the
-screen whose entire job is earning a worker's trust before they sign up.
-
-Two honest options, and this is a decision, not a technical call:
-- **(a)** Soften the copy now to describe what the platform actually does
-  today, and restore the stronger claim when escrow ships.
-- **(b)** Leave it and treat escrow as urgent.
-
-Recommendation: (a). A worker who signs up on that promise, works a shift and
-then chases an employer for money has been misled by us specifically.
-
-## 3. The blocker on the deposit itself
-
-A deposit needs money to actually arrive. There is **no payment gateway** —
-FPX/DuitNow is not integrated, and that is a external integration (merchant
-account, settlement, reconciliation), not an afternoon's work.
-
-So the work splits:
-
-**Phase 1 — the ledger and the mechanics (buildable now, no gateway)**
-- `employer_wallet_entry`: an append-only ledger. Kinds: `topup`, `hold`,
-  `release`, `capture`, `refund`. Balances are DERIVED (`available`, `held`),
-  never stored as a mutable number — a stored balance is the classic place
-  money quietly goes wrong.
-- `hold` when the employer makes an OFFER (see D1), sized per D2.
-- `release` on cancellation-without-charge or when an offer lapses.
-- `capture` when a payout is settled, or when cancellation compensation is
-  owed — `capture` is what turns a hold into the worker's `payout_item`.
-- Enforcement: an offer is refused if `available` cannot cover the hold.
-- Admin-credited `topup` only, so a pilot can run on manually recorded bank
-  transfers before any gateway exists.
-
-**Phase 2 — real money in (needs the gateway)**
-- FPX/DuitNow top-up, webhook reconciliation, refunds out.
-- Out of scope here; Phase 1 is designed so the gateway becomes one new
-  `topup` source rather than a rewrite.
-
-## 4. Decisions needed before building Phase 1
-
-- **D1 — when is the hold taken?**
-  Posting / offering / acceptance. Offering is my recommendation: it is the
-  moment the amount becomes known AND the employer takes the action, so an
-  unfunded employer is stopped before any worker is involved. Holding at
-  acceptance means a worker accepts and the booking then bounces.
-- **D2 — how much is held?**
-  The full contracted wage (what the landing copy promises, and what makes
-  payout guaranteed) or only the maximum cancellation exposure (50%). Full
-  wage is a much larger ask of the employer and will slow adoption.
-- **D3 — what happens to an existing unfunded employer at cutover?**
-  Every current employer has a zero balance, so enforcement would block all
-  offers on day one. Needs a grace period, a pilot allowlist, or admin credit.
-
-## 5. Steps (once D1–D3 are answered)
-- [x] 1. Copy fix on the landing trust claim — shipped e1616b6, all 3 languages,
-        padlock icon replaced (it implied custody of money)
-- [x] 2. Ledger + derived balance — 20260820, verified
-- [x] 3. hold/release/capture RPCs — 20260820b, plus 20260820c which fixed two
-        of them having NO authorization check at all (a worker could call them)
-- [ ] 4. Wire `capture` into the existing payout + cancellation-compensation flows
-- [x] 5. Hold fires at the offer step; warn-only, so it reports a shortfall
-        rather than blocking. Verified live: RPC returns held=false /
-        shortfall=200 and the employer sees "your deposit balance is RM200.00
-        short... Nothing is blocked yet"
-- [x] 6. Billing tab shows real derived available/held. The self-declared
-        "funding account has sufficient balance" checkbox is gone.
-        Ledger history list still to do.
-- [ ] 7. Admin: record a manual top-up
-- [ ] 8. EN + BM + ZH strings
-- [ ] 9. End-to-end verification, including that held funds cannot be
-        double-spent across two concurrent offers
+- [x] `Icons` → `currentColor` (19 strokes) + password eye (5). Fixes the active
+      tab's glyph never changing colour, and 1.73:1 icons in dark mode.
+- [x] 15 new line icons
+- [x] Layout kit: `ScreenTitle`, `StatStrip`, `ListRow`, `Timeline`, `InfoNote`, `Money`
+- [x] `WorkerBottomNav` — three drifted copies collapsed to one; 6 tabs → 5;
+      profile tab shows the user's photo
+- [x] Profile | Settings sub-tabs; disputes loader re-gated
+- [x] Settings rows → `ListRow` + line icons
+- [x] Discover card strip → line icons
+- [x] Chat inbox: avatars (were absent entirely) + big title
+- [x] Chat thread: person-led header + shift context strip
+- [x] Payouts: title + `StatStrip` + note, replacing gradient hero + 2×2 grid
+- [x] Payout status labels — was rendering the raw DB enum in all 3 languages
+- [x] My Bids: `Timeline`
+- [x] Payout method chooser (their screenshot 2)
 
 ## Review
-(filled in once built)
 
-## Verified so far (2026-08-20)
+Three commits: `86d5254`, `784d831`, `9257534`.
 
-API side 10/10: balance starts at zero; enforcement confirmed off; an employer
-cannot INSERT a ledger row (403) nor call admin_record_topup; an unfunded offer
-reports a RM160 shortfall creating no entry; required == wage x contracted
-hours; a foreign employer is refused.
+Verified: esbuild clean; token-lint no new findings over the 71-item baseline;
+1200 translation keys each present exactly 3×; contrast sweep on all five screens
+in both themes (light clean; dark's only failure is the "Gaji" logotype at 3.45,
+the documented WCAG 1.4.3 exemption); SVG stroke sweep 24 icons, none below 3:1,
+worst 6.41; new strings render in en/bm/zh.
 
-In-database self-test (shipped inside 20260820c, raises rather than reports):
-topup, hold, idempotent re-hold, **double-spend refused** (RM200 balance, RM160
-held, a second RM160 offer must not be funded), capture with the unused
-remainder released, over-capture refused, ledger immutability.
+Three real bugs fixed in passing, none of them cosmetic:
+1. Nav icons invisible in dark mode (1.73:1).
+2. Tab bar duplicated 3×, one copy calling `setTab` directly, leaving QR /
+   bid-modal / selected-shift state behind on exit from the shift-detail screen.
+3. Payout status rendered as the raw enum ("processed internal").
 
-Browser: Billing shows real derived figures; offering fires
-employer_hold_for_offer then employer_wallet_balance; both the "Offer sent" and
-the RM200 shortfall toasts confirmed via a MutationObserver — they were firing
-all along, just expiring between polling round trips.
+## Not done — deliberately
 
-## Still to do
-- Ledger history list in Billing (entries exist, nothing lists them yet)
-- Wire `capture` into payout settlement and cancellation compensation, and
-  `release` into decline / expiry / withdrawal — the ledger records holds but
-  nothing yet converts or frees them automatically
-- Admin UI for recording a top-up (RPC exists, SQL-only today)
-- Flip enforcement on once real top-ups exist
-- Phase 2: FPX/DuitNow, and restoring the stronger landing claim
-
-## 2026-08-20 — the gap found while wiring capture
-
-**Completing a shift creates no payout at all.** Verified four ways:
-- every `insert into public.payout_item` in the schema is inside a
-  *cancellation* function;
-- `employer_confirm_checkout` stamps `employer_hours_confirmed_at` and
-  inserts nothing;
-- no trigger watches that column;
-- every JS touch of `payout_item` is a `.select()`, except one admin
-  `.update({status})` on rows that already exist;
-- the live table holds zero rows with any non-cancellation reason.
-
-So a worker who applies, is booked, works the shift, checks out and has their
-hours confirmed by the employer receives **nothing** — no payout row, so
-nothing in Earnings and nothing to pay out. The only way to get paid on this
-platform today is for the shift to be *cancelled*.
-
-This is larger than the deposit, the tier ladder and the quote work combined:
-the platform's core promise has no implementation. It is also why "capture on
-payout settlement" could not be wired — there is no settlement to hook into.
-
-Next: create the payout when hours are confirmed, and capture the hold against
-it. That single change makes the happy path pay, and completes the wallet's
-capture side at the same time.
-
-## 2026-08-20 — the happy path pays, verified
-
-7/7 through the real API, first time in this project that completing a shift
-produced money:
-
-- worker checked in with the genuine rotating code (not a stamped column)
-- checked out reporting 7.5h worked with a 30m break
-- employer confirmed -> **payout RM150.00 created**, `reason: shift_completed`
-- break correctly NOT deducted (20 x 7.5, not 20 x 7.0) — the judgement call
-  renders as intended
-- re-confirming produced no second payout
-
-Funded capture side is covered by tasks/funded_capture_test.sql, which asserts
-hold 160 -> worker paid 150 -> 10 released -> available 350, and raises on any
-wrong number.
-
-## 2026-08-20 — payout notification, verified
-
-8/8 through the API: hours confirmed -> payout RM108.00 (18 x 6, break not
-deducted) -> worker notified, params carry shift_title / amount / hours, link
-points at the application, and re-confirming produced neither a second payout
-nor a second notification.
-
-Browser, all three languages, rendered from `params` through TRANSLATIONS
-rather than the stored English prose:
-- EN  "Your hours for "PN payout notice" were confirmed. RM108.00 is on its way."
-- BM  "Jam kerja anda untuk "PN payout notice" telah disahkan. RM108.00 ..."
-- ZH  "您在「PN payout notice」的工时已确认，RM108.00 正在发放中。"
-
-The BM pass caught a real defect: jsonb stores 108.00 as the number 108, so
-`RM{amount}` rendered **RM108** — less precise than the English prose the row
-already carries, i.e. translating made the copy worse. notificationText now
-formats `amount` / `*_amount` to two decimals, the same way it already
-normalises `*_at` timestamps into the reader's locale.
-
-### CONFIRMED: a hold makes its shift, and its employer's account, undeletable
-
-Reproduced on PostgreSQL 17.4 in a throwaway local cluster --
-`tasks/wallet_cascade_repro.sql` re-runs it. Not run against production: only
-the DDL's shape is needed, and the ledger is append-only, so a probe row in the
-real table could never be removed.
-
-`employer_wallet_entry`'s FKs are `on delete set null` / `on delete cascade`,
-while the table carries an unconditional `before update or delete` trigger with
-no trusted-write escape. A referential action is an ordinary UPDATE/DELETE, so
-it fires that trigger. Postgres names the statement in the error CONTEXT, which
-is the proof outright:
-
-    UPDATE ONLY "public"."employer_wallet_entry" SET "shift_id" = NULL ...
-    ERROR: employer_wallet_entry is append-only
-
-Four operations abort once a single ledger row exists:
-1. deleting the application -- which is the FIRST thing admin_purge_shift does
-2. deleting the shift
-3. deleting the employer's auth user (cascade DELETE, trigger depth 2)
-4. deleting the admin who recorded a top-up (`created_by` SET NULL)
-
-(3) is the serious one and was not in the original suspicion: **an employer who
-has ever had a ledger entry can never have their account deleted**, which is an
-erasure-request problem, not just a QA-cleanup one.
-
-Still latent today -- no employer is funded and an unfunded offer writes no
-entry -- and it stops being latent the moment enforcement is switched on,
-because from then on every offer writes a hold.
-
-**Fix for (1), (2) and (4), tested in the same repro:** let the guard accept an
-UPDATE whose only change is a back-reference going to NULL, and refuse
-everything else. Verified to still block editing amount, kind or employer_id,
-repointing shift_id at a different shift, and any direct delete; the movement
-survives with its money intact. Deliberately not keyed on `pg_trigger_depth()`
--- depth asserts "another trigger did this", which is a weaker claim than
-"nothing about this movement changed", and would hand a bypass to any trigger
-added later.
-
-**(3) was an owner decision, answered 2026-08-20: keep the ledger, drop the
-link.** A financial record outlives the account it belongs to, so `employer_id`
-becomes nullable with `on delete set null` — the account can be deleted and the
-movements survive, anonymised.
-
-**A third defect surfaced while building the fix.** Unblocking the purge would
-have left the hold pointing at a deleted application, and `employer_release_hold`
-finds a hold BY application_id — so the money would have become unreachable, and
-`held` derives as (holds − releases − captures), meaning an orphaned hold cuts
-available balance forever. The pre-fix refusal was loud and safe; the fix alone
-would have traded it for silently frozen funds. `admin_purge_shift` therefore
-releases open holds before deleting anything, and reports `holds_released`.
-
-All of it shipped as `20260822b_wallet_entry_cascade_and_retention.sql`, whose
-in-database self-test raises rather than reports, and rolls its own rows back —
-a test row in an append-only table would be a permanent phantom hold.
-
-**Live, verified 2026-08-20** against the real database: the guard carries its
-`tg_op` branch (md5 bbf01db05c2cf45de3cfae35c8e6d92b), `employer_id` is
-nullable, its FK is SET NULL, the require-employer insert trigger is attached,
-and `admin_purge_shift` releases holds. The insert guard was also confirmed
-through the live API — posting a ledger row with no employer returns
-`employer_wallet_entry.employer_id is required on insert`.
-
-Two rounds were lost to my own tooling on the way: a self-test that inserted a
-shift without `occurrences` (a constraint added long after the CREATE TABLE I
-scaffolded from), and a verifier whose LIKE pattern could never match the
-function's aligned source, which reported a failure that did not exist. Both
-lessons are in tasks/lessons.md.
-
-### Ledger history in Billing — done 2026-08-20
-
-The Billing tab now lists the movements behind the balance, under the two
-figures they explain. Display only: `available` and `held` still come from
-`employer_wallet_balance`, which sums the whole ledger server-side. Nothing in
-the list is added up — a `.limit()` feeding a total has silently undercounted
-three times in this project, and a deposit balance is the worst place for a
-fourth.
-
-Two judgement calls worth recording:
-- **Movements are not signed.** A line's effect on `available` is not its own
-  amount: capturing RM150 against a RM160 hold RAISES available, because the
-  RM10 remainder is released and the whole RM160 stops being reserved. A +/-
-  per line would state arithmetic that does not hold, so the kind label carries
-  the meaning instead ("Added", "Set aside", "Returned", "Paid to worker",
-  "Refunded").
-- **A failed load says so.** It first rendered identically to "no deposit
-  activity yet" — telling an employer their money has no history because a
-  request timed out. Transient network failures appeared while building it, so
-  that was not hypothetical.
-
-Verified live in the employer console: empty state, populated state (all five
-kinds, shift title when present, note as fallback, "Shift no longer listed"
-when a cascade has nulled the reference), the error branch, EN/BM/ZH, and
-dark-mode contrast measured at 6.37–7.60 on the pills and 7.34–15.21 on the
-text. The populated and error states were forced through a temporary local
-fixture and a deliberately invalid column, both reverted — no rows were written,
-because the ledger is append-only and a QA top-up could never be removed.
-
-### Admin top-up UI — done 2026-08-23
-
-Admin → Deposits. Pick an employer, enter the amount and the bank reference,
-review, confirm. Calls admin_record_topup, then shows the resulting available
-and held balance.
-
-Shaped around the fact that the ledger is append-only: a mistyped amount can
-never be edited, only offset by another entry someone has to explain later. So
-the screen confirms BEFORE writing rather than offering an undo afterwards, and
-says plainly in an amber panel why. The bank reference is required by the RPC
-and is the idempotency key, so re-entering the same reference is refused --
-the UI names that case specifically instead of surfacing a unique-violation.
-Recent top-ups are listed underneath, so a duplicate transfer is visible before
-it is entered rather than after it bounces.
-
-Verified live in the admin console (admin route guard stubbed locally, then
-reverted -- confirmed reverted by checking /CariGaji/admin no longer reaches
-the screen): the employer list loads, Review stays disabled until both fields
-are filled, the confirm line reads back the exact amount, employer and
-reference, and submitting as a NON-admin is refused server-side with "Not
-authorized" and creates no ledger row. That last one is the useful result --
-even with the client-side guard defeated, admin_record_topup still says no.
-
-EN/BM/CH all render. Dark mode measured: append-only warning 6.37, selected
-employer row 7.91.
-
-NOT yet verified: the success path. It needs a real admin JWT and no QA account
-has app_metadata.role = 'admin'. See "Still open" below.
-
-### Still open on the deposit
-- Verify the top-up SUCCESS path with an admin account (the failure path is
-  verified; the write itself is not)
-- Flip enforcement on once real top-ups exist
-- Phase 2: FPX/DuitNow, then restore the stronger landing claim
-
-## Signed-out landing page: 638 words → 357 (2026-08-23)
-
-The page put three long sections between a first-time visitor and the first
-real shift card, one of them (187 words) addressed to employers. Owner's call:
-keep the shift cards, move the employer content, don't delete the trust
-material — it IS the trust proposition.
-
-- [x] Four collapsed `LandingSection` accordions: pay / trust / how it works
-      for workers / hiring instead. One open at a time, so an expanded block
-      can't push the shift list back off the screen.
-- [x] Employer content out of the default view, behind "Hiring instead?", with
-      the "Post a shift as an employer" CTA inside it.
-- [x] Payment-safety point relocated to a 5th step in `WelcomeIntroModal` —
-      worker and employer wording, EN/BM/CH.
-- [x] 9 now-unrendered landing headings removed from the translation table
-      (27 entries); parity holds at 1163 keys per language.
-
-Verified signed out at 375×812: 357 words, all four collapsed, scrollHeight
-equals the viewport, expand→collapse returns to exactly 357. Intro modal
-verified live for BOTH roles by clearing `intro_seen_at` through each QA
-account's own session and re-stamping it via Get started (both accounts left
-stamped, no residue). Console clean — the `activeChatShift` TDZ errors still
-in the buffer were proven stale by ordering a marker after them.
-
-Shipped as 495a476, Pages deploy green, and the live chunk
-`carigaji-app-CPWP38H4.js` confirmed to contain `intro.workerStep5` and
-`landing.sectionPayTitle` and none of the removed keys.
+- Employer and admin consoles (owner scoped this pass to the worker app). The
+  worker and employer chat views are near-verbatim duplicates, so three edits had
+  to be pinned to the worker portal by index and the two chats now differ.
+  Extracting one shared component is the obvious next step.
+- Employer applicant `<table>`; a `Modal` primitive for the ~15 hand-written
+  overlays; `settings.title`/`.subtitle` left defined but unused.
+- Appearance light/dark/system buttons keep their emoji — the owner designed
+  those explicitly on 2026-08-29 and they carry meaning.
