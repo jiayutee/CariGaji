@@ -938,6 +938,12 @@ const TRANSLATIONS = {
     "earnings.noPayoutsTitle": "No payouts yet",
     "earnings.noPayoutsHint": "Complete a shift and verify your bank details to receive your first payout here.",
     "earnings.salaryPayout": "salary payout",
+    "earnings.payoutStatusQueued": "Queued",
+    "earnings.payoutStatusReady": "Ready",
+    "earnings.payoutStatusScheduled": "Scheduled",
+    "earnings.payoutStatusProcessed": "Processed",
+    "earnings.payoutStatusFailed": "Failed",
+    "earnings.payoutStatusHeld": "On hold",
     "earnings.monthlyChartTitle": "Monthly earnings",
     "earnings.monthlyChartEmpty": "Your monthly earnings will appear here once you complete a shift.",
     "earnings.monthlyChartTruncatedNote": "Showing the most recent 12 months.",
@@ -951,6 +957,11 @@ const TRANSLATIONS = {
     "settings.status": "Status",
     "settings.saveBanking": "Save banking",
     "settings.verifySecureSign": "Verify via SecureSign (Demo)",
+    "settings.payoutMethodTitle": "How would you like to be paid?",
+    "settings.payoutMethodBank": "Bank transfer",
+    "settings.payoutMethodEwallet": "E-wallet",
+    "settings.payoutMethodEwalletSoon": "Not available yet — coming with FPX/DuitNow",
+    "settings.payoutMethodBankHint": "Paid into the account below once your hours are confirmed.",
     "cookie.bannerTitle": "We use cookies",
     "cookie.bannerBody": "We use essential cookies to keep you signed in, plus optional cookies to remember your preferences. Choose what you're comfortable with — you can change this anytime.",
     "cookie.acceptAll": "Accept All",
@@ -2140,6 +2151,12 @@ const TRANSLATIONS = {
     "earnings.noPayoutsTitle": "Belum ada bayaran",
     "earnings.noPayoutsHint": "Lengkapkan satu syif dan sahkan butiran bank anda untuk menerima bayaran pertama anda di sini.",
     "earnings.salaryPayout": "bayaran gaji",
+    "earnings.payoutStatusQueued": "Dalam giliran",
+    "earnings.payoutStatusReady": "Sedia",
+    "earnings.payoutStatusScheduled": "Dijadualkan",
+    "earnings.payoutStatusProcessed": "Diproses",
+    "earnings.payoutStatusFailed": "Gagal",
+    "earnings.payoutStatusHeld": "Ditahan",
     "earnings.monthlyChartTitle": "Pendapatan bulanan",
     "earnings.monthlyChartEmpty": "Pendapatan bulanan anda akan dipaparkan di sini selepas anda menyelesaikan satu syif.",
     "earnings.monthlyChartTruncatedNote": "Memaparkan 12 bulan terkini.",
@@ -2153,6 +2170,11 @@ const TRANSLATIONS = {
     "settings.status": "Status",
     "settings.saveBanking": "Simpan perbankan",
     "settings.verifySecureSign": "Sahkan melalui SecureSign (Demo)",
+    "settings.payoutMethodTitle": "Bagaimana anda mahu dibayar?",
+    "settings.payoutMethodBank": "Pindahan bank",
+    "settings.payoutMethodEwallet": "E-dompet",
+    "settings.payoutMethodEwalletSoon": "Belum tersedia — akan datang dengan FPX/DuitNow",
+    "settings.payoutMethodBankHint": "Dibayar ke akaun di bawah setelah jam kerja anda disahkan.",
     "cookie.bannerTitle": "Kami menggunakan kuki",
     "cookie.bannerBody": "Kami menggunakan kuki penting untuk mengekalkan sesi log masuk anda, serta kuki pilihan untuk mengingati keutamaan anda. Pilih apa yang anda selesa dengan — anda boleh menukarnya bila-bila masa.",
     "cookie.acceptAll": "Terima Semua",
@@ -3334,6 +3356,12 @@ const TRANSLATIONS = {
     "earnings.noPayoutsTitle": "暂无发放记录",
     "earnings.noPayoutsHint": "完成一个班次并验证您的银行资料，即可在此收到首笔发放。",
     "earnings.salaryPayout": "薪资发放",
+    "earnings.payoutStatusQueued": "排队中",
+    "earnings.payoutStatusReady": "可发放",
+    "earnings.payoutStatusScheduled": "已排程",
+    "earnings.payoutStatusProcessed": "已处理",
+    "earnings.payoutStatusFailed": "失败",
+    "earnings.payoutStatusHeld": "暂缓",
     "earnings.monthlyChartTitle": "每月收入",
     "earnings.monthlyChartEmpty": "完成班次后，您的每月收入将显示在这里。",
     "earnings.monthlyChartTruncatedNote": "显示最近 12 个月。",
@@ -3347,6 +3375,11 @@ const TRANSLATIONS = {
     "settings.status": "状态",
     "settings.saveBanking": "保存银行资料",
     "settings.verifySecureSign": "通过 SecureSign 验证（演示）",
+    "settings.payoutMethodTitle": "您希望以何种方式收款？",
+    "settings.payoutMethodBank": "银行转账",
+    "settings.payoutMethodEwallet": "电子钱包",
+    "settings.payoutMethodEwalletSoon": "尚未开放 — 将随 FPX/DuitNow 推出",
+    "settings.payoutMethodBankHint": "工时确认后将支付至下方账户。",
     "cookie.bannerTitle": "我们使用 Cookie",
     "cookie.bannerBody": "我们使用必要的 Cookie 以保持您的登入状态，以及可选的 Cookie 以记住您的偏好设置。您可以选择自己接受的方式 — 并可随时更改。",
     "cookie.acceptAll": "全部接受",
@@ -4335,6 +4368,23 @@ const mapVerificationPillColor = (status) => {
   if (status === "verified") return "green";
   if (status === "rejected") return "red";
   return "amber";
+};
+
+// payout_item.status was being rendered raw -- a worker saw the literal enum,
+// "processed internal", in every language. These are the six values the column's
+// check constraint allows; the fallback keeps an unknown future value readable
+// rather than blank.
+const PAYOUT_STATUS_KEYS = {
+  queued: "earnings.payoutStatusQueued",
+  ready: "earnings.payoutStatusReady",
+  scheduled: "earnings.payoutStatusScheduled",
+  processed_internal: "earnings.payoutStatusProcessed",
+  failed_internal: "earnings.payoutStatusFailed",
+  held: "earnings.payoutStatusHeld",
+};
+const payoutStatusLabel = (t, status) => {
+  const key = PAYOUT_STATUS_KEYS[status || "queued"];
+  return key ? t(key) : String(status).replaceAll("_", " ");
 };
 
 const mapPayoutPillColor = (status) => {
@@ -6437,9 +6487,12 @@ const StatStrip = ({ items = [] }) => (
         }}>{it.icon}</span>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, lineHeight: 1.15 }}>{it.value}</div>
+          {/* Wraps rather than truncating. The reference gets away with one line
+              because its labels are two short words ("Total rides"); ours are
+              translated and run longer, and a clipped "Total Internal Pay..." is
+              worse than two lines. */}
           <div style={{
-            fontSize: 11.5, color: BRAND.textMuted, marginTop: 1,
-            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+            fontSize: 11.5, color: BRAND.textMuted, marginTop: 1, lineHeight: 1.3,
           }}>{it.label}</div>
         </div>
       </div>
@@ -6501,7 +6554,9 @@ const InfoNote = ({ children, style }) => (
 // the right-hand column is caller-supplied rather than assumed to be a location.
 const Timeline = ({ startLabel, endLabel, gutter, topRight, bottomRight }) => (
   <div style={{ display: "flex", gap: 12 }}>
-    <div style={{ width: 46, flexShrink: 0, textAlign: "left" }}>
+    {/* 62px, not 46: en-MY formats times as "09:00 am", which wrapped onto two
+        lines in a narrower column and broke the alignment with the dots. */}
+    <div style={{ width: 62, flexShrink: 0, textAlign: "left" }}>
       <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{startLabel}</div>
       {gutter && <div style={{ fontSize: 11.5, color: BRAND.textMuted, margin: "6px 0" }}>{gutter}</div>}
       <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{endLabel}</div>
@@ -10133,7 +10188,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           );
           return (
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("nav.myBids")}</div>
+            <ScreenTitle isMobile={isMobile}>{t("nav.myBids")}</ScreenTitle>
             {unrated.length > 0 && (
               <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 12, padding: 14, marginBottom: 14 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
@@ -10186,10 +10241,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
                     />
                   </div>
+                  {/* The reference app draws a ride as two dots joined by a rule.
+                      A shift has one place and two times rather than two places,
+                      so the times run down the left and the place sits on the
+                      first row. Presentation only -- start_at/end_at/occurrences
+                      were already on the object, no query changed.
+                      overviewLocation, not the raw string: these cards can show a
+                      bid that has not been accepted, and the exact address is not
+                      the bidder's to see yet. */}
+                  {a.shiftStartAt && a.shiftEndAt && (
+                    <div style={{ margin: "0 0 14px" }}>
+                      <Timeline
+                        startLabel={formatShiftTime(a.shiftStartAt)}
+                        endLabel={formatShiftTime(a.shiftEndAt)}
+                        {...(() => {
+                          // formatDurationHours(0) returns "0m", so a shift whose
+                          // occurrences are missing start/end would render a
+                          // confident and wrong duration. No hours, no gutter.
+                          const hrs = totalOccurrenceHours(a.shiftOccurrences);
+                          return hrs > 0 ? { gutter: formatDurationHours(hrs) } : {};
+                        })()}
+                        topRight={overviewLocation(a.shiftLocation) || a.employer}
+                        bottomRight={a.isMultiDay ? formatOccurrencesSummary(a.shiftOccurrences) : null}
+                      />
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: 11, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</div>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: BRAND.green }}>RM{a.wageBid}<span style={{ fontSize: 13, fontWeight: 600, color: BRAND.textMuted }}>/h</span></span>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: BRAND.greenOnSurface }}>RM{a.wageBid}<span style={{ fontSize: 13, fontWeight: 600, color: BRAND.textMuted }}>/h</span></span>
                     </div>
                     {a.status === "shortlisted" && (
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
@@ -10737,21 +10817,36 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
         {tab === "earnings" && user && (
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("earnings.title")}</div>
-            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>{t("earnings.subtitle")}</div>
-            <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, borderRadius: 20, padding: isMobile ? 18 : 24, marginBottom: 20, color: "#fff" }}>
-              <div style={{ fontSize: isMobile ? 11 : 12, opacity: 0.8, marginBottom: 8 }}>{t("earnings.totalPayouts")}</div>
-              <div style={{ fontSize: isMobile ? 32 : 38, fontWeight: 900, marginBottom: 4 }}>{toCurrency(totalEarned)}</div>
-              <div style={{ fontSize: isMobile ? 12 : 13, opacity: 0.8 }}>
-                {payoutEligibility ? t("earnings.verified") : t("earnings.notVerified")}
+            {/* Was: a title/subtitle pair, a full-width blue gradient hero, and a
+                2x2 grid of Stat tiles -- three stacked blocks before any actual
+                payout. The reference opens a money screen with one large title
+                and a single two-up strip, so that is what this does now.
+                "Ready to release" and the banking tile are gone from the grid on
+                purpose: ready is surfaced per row by its own status pill, and
+                banking status is a thing you ACT on, so it belongs in the note
+                below where it can carry a link, not in a read-only tile. */}
+            <ScreenTitle isMobile={isMobile} sub={t("earnings.subtitle")}>{t("earnings.title")}</ScreenTitle>
+            <StatStrip items={[
+              { icon: <Icons.Money size={18} />, value: toCurrency(totalEarned), label: t("earnings.totalPayouts") },
+              { icon: <Icons.List size={18} />, value: String((workerPayoutSummary || []).length), label: t("earnings.statRecords") },
+            ]} />
+            <InfoNote>{payoutEligibility ? t("earnings.verified") : t("earnings.notVerified")}</InfoNote>
+            {/* Held payouts get a line only when there ARE any. A permanent
+                "Held: 0" tile is noise; a held payout is money the worker was
+                expecting and did not get, so when it happens it should read as a
+                warning rather than a statistic. */}
+            {(workerPayoutSummary || []).filter(p => p.status === "held").length > 0 && (
+              <div style={{
+                display: "flex", gap: 10, alignItems: "center", marginBottom: 18,
+                padding: "10px 12px", borderRadius: 10,
+                background: BRAND.amberLight, color: BRAND.onAmberLight,
+              }}>
+                <Icons.Info size={18} />
+                <span style={{ fontSize: 12.5, fontWeight: 600 }}>
+                  {t("earnings.statHeld")}: {(workerPayoutSummary || []).filter(p => p.status === "held").length}
+                </span>
               </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
-              <Stat label={t("earnings.statRecords")} value={String((workerPayoutSummary || []).length)} color={BRAND.primaryOnSurface} />
-              <Stat label={t("earnings.statReady")} value={String((workerPayoutSummary || []).filter(p => p.status === "ready").length)} color={BRAND.green} />
-              <Stat label={t("earnings.statHeld")} value={String((workerPayoutSummary || []).filter(p => p.status === "held").length)} color={BRAND.red} />
-              <Stat label={t("earnings.statBanking")} value={bankVerificationLabel(workerBanking?.verification_status, t)} sub="SecureSign" color={BRAND.blue} />
-            </div>
+            )}
             {!payoutsLoading && (
               <Card style={{ marginBottom: 20, padding: isMobile ? "16px 14px" : "20px" }}>
                 <div style={{ fontSize: isMobile ? 13 : 15, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.monthlyChartTitle")}</div>
@@ -10787,18 +10882,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         </div>
                       )}
                       <Card style={{ marginBottom: 10, padding: "14px 16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div>
-                            <div style={{ fontWeight: 600, fontSize: 13, color: BRAND.text }}>{p.shift}</div>
-                            <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : t("earnings.salaryPayout")}</div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text }}>{p.shift}</div>
+                            <div style={{ fontSize: 12.5, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : t("earnings.salaryPayout")}</div>
                           </div>
-                          <div style={{ textAlign: "right" }}>
-                            <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.green }}>+{toCurrency(p.amount)}</div>
-                            <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            {/* greenOnSurface, not green: this is money AS TEXT, and
+                                the flat token is tuned for a fill. */}
+                            <Money value={p.amount} size={17} />
+                            <div style={{ marginTop: 4 }}>
+                              {/* Was the raw enum -- a worker saw "processed internal". */}
+                              <Pill label={payoutStatusLabel(t, p.status)} color={mapPayoutPillColor(p.status)} />
+                            </div>
                           </div>
                         </div>
                         {p.status === "held" && payoutHoldReasonLabel(t, p.errorMessage) && (
-                          <div style={{ fontSize: 11, color: BRAND.red, marginTop: 6 }}>{payoutHoldReasonLabel(t, p.errorMessage)}</div>
+                          <div style={{ fontSize: 11.5, color: BRAND.redOnSurface, marginTop: 6 }}>{payoutHoldReasonLabel(t, p.errorMessage)}</div>
                         )}
                       </Card>
                     </div>
@@ -11117,6 +11217,33 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
               <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
                 {t("settings.salaryBankingHint")}
+              </div>
+              {/* The reference app asks how you want to be paid before showing any
+                  form. Worth stating even with one live option, because it makes
+                  the absence of the others explicit rather than mysterious.
+                  E-wallet is rendered DISABLED rather than hidden: there is no
+                  payment rail yet, and a greyed row with the reason on it is
+                  honest, where a row that looked tappable would not be. */}
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: BRAND.text, marginBottom: 2 }}>
+                {t("settings.payoutMethodTitle")}
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <ListRow
+                  icon={<Icons.Bank size={20} />}
+                  label={t("settings.payoutMethodBank")}
+                  sub={workerBanking?.account_number_last4
+                    ? `${t("employer.savedAccountPrefix")} ••••${workerBanking.account_number_last4}`
+                    : t("settings.payoutMethodBankHint")}
+                  chevron={false}
+                  value={<Icons.Check size={16} />}
+                />
+                <ListRow
+                  icon={<Icons.Wallet size={20} />}
+                  label={t("settings.payoutMethodEwallet")}
+                  sub={t("settings.payoutMethodEwalletSoon")}
+                  disabled
+                  last
+                />
               </div>
               <Select
                 label={t("settings.bankLabel")}
