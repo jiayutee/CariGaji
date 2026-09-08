@@ -8459,7 +8459,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('applications')
-      .select('shift_id, shift:shifts(id, title, start_at, employer_id, employer:profiles(full_name))')
+      .select('shift_id, shift:shifts(id, title, start_at, employer_id, employer:profiles(full_name, avatar_url))')
       .eq('worker_id', user.id)
       .eq('status', 'accepted')
       .then(({ data }) => {
@@ -8470,6 +8470,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           date: formatShiftDate(a.shift?.start_at),
           otherUserId: a.shift?.employer_id,
           otherUserLabel: a.shift?.employer?.full_name ? `${a.shift.employer.full_name} (Employer)` : 'Employer',
+          // Bare name and photo, kept separate from otherUserLabel: the inbox row
+          // now leads with the employer's avatar the way the reference app does,
+          // and Avatar needs the name WITHOUT the " (Employer)" suffix to derive
+          // sensible initials when there is no photo.
+          otherUserName: a.shift?.employer?.full_name ?? null,
+          otherUserAvatar: a.shift?.employer?.avatar_url ?? null,
         })));
       });
     return () => { active = false; };
@@ -10037,15 +10043,18 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </div>
                   <div style={{ display: "flex", gap: 0, borderTop: `1px solid ${BRAND.border}`, marginTop: 10 }}>
                     {[
-                      [s.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", s.occurrences.length) : s.date, "📅"],
+                      [s.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", s.occurrences.length) : s.date, <Icons.Calendar size={15} />],
                       // Listing cards only ever show the city/region, never the exact place.
-                      [overviewLocation(s.location), "📍"],
-                      [formatDurationHours(s.hours), "⏱️"],
-                      [t("discover.posApplied", { headcount: s.headcount, applied: s.totalApplicants }), "👥"],
+                      [overviewLocation(s.location), <Icons.Pin size={15} />],
+                      [formatDurationHours(s.hours), <Icons.Clock size={15} />],
+                      [t("discover.posApplied", { headcount: s.headcount, applied: s.totalApplicants }), <Icons.Users size={15} />],
                     ].map(([v, ico], i) => (
                       <div key={i} style={{ flex: 1, padding: isMobile ? "6px 0" : "8px 0", textAlign: "center", borderRight: i < 3 ? `1px solid ${BRAND.border}` : "none" }}>
-                        <div style={{ fontSize: isMobile ? 11 : 13 }}>{ico}</div>
-                        <div style={{ fontSize: isMobile ? 9 : 10, color: BRAND.textMuted, marginTop: 1, lineHeight: 1.3 }}>{v}</div>
+                        {/* Line icons rather than 📅📍⏱️👥. currentColor means they
+                            take this muted tone in both themes instead of the
+                            OS-dependent, always-full-colour emoji glyph. */}
+                        <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", color: BRAND.textMuted }}>{ico}</div>
+                        <div style={{ fontSize: isMobile ? 9 : 10, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.3 }}>{v}</div>
                       </div>
                     ))}
                   </div>
@@ -10480,7 +10489,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // ancestor's actual box (height:'100%') and making the open-thread
           // branch a flex:1 child means only the message list scrolls.
           <div style={activeChatShift ? {display:'flex', flexDirection:'column', height:'100%', minHeight:0} : {padding:'0 0 80px'}}>
-            <h2 style={{fontSize: isMobile ? 18 : 20, fontWeight:800, color:BRAND.text, margin:'16px 0 12px', flexShrink:0}}>{t("chat.title")}</h2>
+            {/* Hidden once a thread is open: that view has its own header, and
+                a second "Messages" title above it only ate vertical space. */}
+            {!activeChatShift && (
+              <ScreenTitle isMobile={isMobile} style={{margin:'8px 0 14px'}}>{t("chat.title")}</ScreenTitle>
+            )}
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
                 <div style={{textAlign:'center', color:BRAND.textMuted, marginTop:48}}>
@@ -10492,7 +10505,18 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 sortConversationsByRecent(chatConversations, roomPreviews).map(conv => (
                   <div key={conv.shiftId} onClick={() => setActiveChatShift(conv)}
                     style={{padding:14, background:BRAND.surface, borderRadius:10, border:`1px solid ${BRAND.border}`,
-                      marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                      marginBottom:10, cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12}}>
+                    {/* The reference app leads every inbox row with the other
+                        person's photo; this list had none at all, which is what
+                        made it read as a list of records rather than of people.
+                        The employer console has a verbatim copy of this row and
+                        is deliberately left alone -- this pass is worker-only. */}
+                    <Avatar
+                      name={conv.otherUserName || conv.otherUserLabel}
+                      size={44}
+                      color={BRAND.primary}
+                      src={getAvatarUrl(conv.otherUserAvatar)}
+                    />
                     <div style={{minWidth:0, flex:1}}>
                       <div style={{fontWeight: unreadRoomIds.has(conv.shiftId) ? 800 : 600, color:BRAND.text, display:'flex', alignItems:'center', gap:6}}>
                         {/* A dot as well as the weight: bold alone is easy to
@@ -10535,11 +10559,28 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               )
             ) : (
               <div style={{display:'flex', flexDirection:'column', flex:1, minHeight:0}}>
-                <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
+                {/* Header leads with the PERSON and the shift moves to its own
+                    strip below -- the same split the reference app uses for a ride.
+                    The back arrow hardcoded #2563EB, which stays the light-mode
+                    blue on a dark surface; primaryOnSurface adapts. The employer
+                    console holds a verbatim copy of this header and is left alone:
+                    this pass is worker-only. */}
+                <div style={{display:'flex', alignItems:'center', gap:10, marginBottom:10}}>
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
-                    style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
+                    aria-label={t("common.back")}
+                    style={{background:'none', border:'none', cursor:'pointer', color:BRAND.primaryOnSurface, display:'flex', alignItems:'center', padding:0}}>
+                    <Icons.ArrowLeft size={20} />
+                  </button>
+                  <Avatar
+                    name={activeChatShift.otherUserName || activeChatShift.otherUserLabel}
+                    size={38}
+                    color={BRAND.primary}
+                    src={getAvatarUrl(activeChatShift.otherUserAvatar)}
+                  />
                   <div style={{minWidth:0, flex:1}}>
-                    <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
+                    <div style={{fontWeight:700, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                      {activeChatShift.otherUserName || activeChatShift.otherUserLabel}
+                    </div>
                     {/* The names are the affordance -- tapping them says who is
                         actually in the room. A shift room can hold several
                         workers, and the header only ever showed a truncated
@@ -10558,14 +10599,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         : t("chat.membersCount", { n: chatMembers.length })} ▾
                     </button>
                   </div>
-                  {/* The conversation is about a specific shift, and half of
-                      what gets asked in it ("what time again?", "where?") is
-                      answered on that shift's page. Going there should not mean
-                      backing out of the room and hunting for it. */}
-                  <Btn size="xs" variant="secondary" onClick={() => setOpenShiftId(activeChatShift.shiftId)} style={{flexShrink:0}}>
-                    {t("chat.viewShiftBtn")}
-                  </Btn>
                 </div>
+                {/* Half of what gets asked in the room ("what time again?",
+                    "where?") is answered on the shift's page. This was a small xs
+                    button in the header row; as a full-width strip it states the
+                    shift, its date and that it is confirmed, and gives a far
+                    bigger tap target for the same action. */}
+                <button
+                  onClick={() => setOpenShiftId(activeChatShift.shiftId)}
+                  style={{
+                    display:'flex', alignItems:'center', gap:10, width:'100%', textAlign:'left',
+                    padding:'10px 0', marginBottom:10, border:'none', borderTop:`1px solid ${BRAND.border}`,
+                    borderBottom:`1px solid ${BRAND.border}`, background:'none', cursor:'pointer',
+                    fontFamily:'inherit', flexShrink:0,
+                  }}>
+                  <span style={{flex:1, minWidth:0}}>
+                    <span style={{display:'block', fontSize:14, fontWeight:700, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                      {activeChatShift.title}
+                    </span>
+                    <span style={{display:'block', fontSize:12.5, color:BRAND.textMuted, marginTop:2}}>
+                      {/* A room only exists for an accepted application, so this
+                          is a fact about the row, not an optimistic label. */}
+                      <span style={{color:BRAND.greenOnSurface, fontWeight:700}}>{t("myBids.pillAccepted")}</span>
+                      {activeChatShift.date ? ` \u00b7 ${activeChatShift.date}` : ""}
+                    </span>
+                  </span>
+                  <span aria-hidden="true" style={{color:BRAND.textMuted, display:'flex', flexShrink:0}}>
+                    <Icons.ChevronRight size={16} />
+                  </span>
+                </button>
                 {chatMembersOpen && (
                   <div style={{
                     border:`1px solid ${BRAND.border}`, borderRadius:10, background:BRAND.surface,
