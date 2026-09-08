@@ -4861,17 +4861,17 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
           }}
         />
         {!hideToggle && (
-          <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? t("auth.hidePassword") : t("auth.showPassword")} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+          <button type="button" onClick={() => setShow(s => !s)} aria-label={show ? t("auth.hidePassword") : t("auth.showPassword")} style={{ position: "absolute", right: 8, top: 6, border: "none", background: "transparent", cursor: "pointer", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", padding: 0, color: BRAND.textMuted }}>
             {show ? (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 3L21 21" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M10.58 10.58A3 3 0 0 0 13.42 13.42" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M2.05 12.6A11 11 0 0 0 12 20c2.1 0 4.09-.5 5.95-1.4" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 3L21 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10.58 10.58A3 3 0 0 0 13.42 13.42" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2.05 12.6A11 11 0 0 0 12 20c2.1 0 4.09-.5 5.95-1.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             ) : (
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             )}
           </button>
@@ -6213,69 +6213,69 @@ const WageRatePicker = ({ min, max, value, onChange, step = 1 }) => {
 const Icons = {
   Search: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M21 21l-4.35-4.35" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="11" cy="11" r="6" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   List: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Money: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="2" y="6" width="20" height="12" rx="2" stroke="#374151" strokeWidth="1.6" />
-      <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.6" />
+      <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   ),
   User: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="7" r="4" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Settings: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="3" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Close: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M18 6L6 18M6 6l12 12" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Camera: ({ size = 48 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2v11z" stroke="#374151" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="13" r="4" stroke="#374151" strokeWidth="1.4" />
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l2-3h6l2 3h3a2 2 0 0 1 2 2v11z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="13" r="4" stroke="currentColor" strokeWidth="1.4" />
     </svg>
   ),
   Edit: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 20h9" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 20h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Chat: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   ArrowLeft: ({ size = 18 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M19 12H5" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M12 19l-7-7 7-7" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19 12H5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   ChevronDown: ({ size = 14 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M6 9l6 6 6-6" stroke="#374151" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Rocket: ({ size = 16 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2s4 1 6 3 3 6 3 6-4 1-6 3-6 6-6 6-4-4-6-6 6-6 6-6 1-4 3-6z" stroke="#374151" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 2s4 1 6 3 3 6 3 6-4 1-6 3-6 6-6 6-4-4-6-6 6-6 6-6 1-4 3-6z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
   Star: ({ size = 14 }) => (
@@ -6283,7 +6283,302 @@ const Icons = {
       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="#F5A623" />
     </svg>
   ),
+  // ---- Added for the BlaBlaCar-style restyle. Same contract as the originals:
+  // 24x24 box, 1.6 stroke, and `currentColor` so the caller's `color` drives them.
+  Calendar: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
+  Pin: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <circle cx="12" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  ),
+  Clock: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Users: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="10" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M20 20v-1.5a3.5 3.5 0 0 0-2.6-3.38M15.5 5.2a3.2 3.2 0 0 1 0 5.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
+  Bank: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 9.5L12 4l9 5.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
+  Wallet: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a1 1 0 0 1 1 1v2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <rect x="3" y="7.5" width="18" height="11.5" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="16.5" cy="13.25" r="1.25" fill="currentColor" />
+    </svg>
+  ),
+  ChevronRight: ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  IdCard: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2.5" y="5" width="19" height="14" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="8.5" cy="11" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M14 10h4M14 13.5h4M5.4 16.2c.5-1.3 1.7-2 3.1-2s2.6.7 3.1 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
+  LifeBuoy: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3.6" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
+  Bug: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8 8a4 4 0 0 1 8 0v4a4 4 0 0 1-8 0z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8 10H4M20 10h-4M8 14H4.5M20 14h-3.5M9.5 5.5L8 4M14.5 5.5L16 4M12 16v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  ),
+  Gift: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="9" width="18" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 13h18M12 9v11" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 9S10.5 4 8 4a2.2 2.2 0 0 0 0 5zM12 9s1.5-5 4-5a2.2 2.2 0 0 1 0 5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  ),
+  LogOut: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 16l4-4-4-4M20 12H10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Check: ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Shield: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 3l7 3v5.5c0 4.4-3 8.1-7 9.5-4-1.4-7-5.1-7-9.5V6z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Info: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 11v5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12" cy="8" r="1" fill="currentColor" />
+    </svg>
+  ),
 };
+
+// ---------------------------------------------------------------------------
+// Layout kit
+//
+// Defined AFTER `Icons` on purpose: several of these render an icon, and this
+// file has produced four TDZ white-screens from hoisting something above the
+// const it reads. Referencing `Icons` inside a render body is safe; putting it
+// in a default parameter would not be, so don't.
+//
+// The look is lifted from BlaBlaCar: one very large screen title, a two-up
+// summary strip, plain chevron rows with hairline rules, money in green, and a
+// dotted timeline for anything with a start and an end. The point of extracting
+// them is repetition -- the app previously inline-styled every heading and row
+// at its call site, which is why no two screens quite matched.
+// ---------------------------------------------------------------------------
+
+// The single biggest visual tell of the reference app: a very large, tightly
+// tracked title with real whitespace under it.
+const ScreenTitle = ({ children, sub, onBack, isMobile, style }) => (
+  <div style={{ margin: "4px 0 18px", ...style }}>
+    {onBack && (
+      <button onClick={onBack} aria-label="Back" style={{
+        border: "none", background: "none", cursor: "pointer", padding: "4px 0",
+        marginBottom: 10, color: BRAND.primaryOnSurface, display: "flex", alignItems: "center",
+      }}>
+        <Icons.ArrowLeft size={22} />
+      </button>
+    )}
+    <h1 style={{
+      margin: 0, fontSize: isMobile ? 28 : 34, fontWeight: 800,
+      letterSpacing: "-0.03em", lineHeight: 1.12, color: BRAND.text,
+    }}>{children}</h1>
+    {sub && (
+      <div style={{ marginTop: 6, fontSize: 13.5, color: BRAND.textMuted, lineHeight: 1.45 }}>{sub}</div>
+    )}
+  </div>
+);
+
+// Two figures side by side, each with its glyph in a pale disc. Reused on
+// Payouts, My Bids and Profile so those screens open the same way.
+const StatStrip = ({ items = [] }) => (
+  <div style={{
+    display: "flex", gap: 8, alignItems: "stretch",
+    background: BRAND.surface, border: `1px solid ${BRAND.border}`,
+    borderRadius: 14, padding: "14px 16px", marginBottom: 18,
+  }}>
+    {items.map((it, i) => (
+      <div key={i} style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+        <span aria-hidden="true" style={{
+          width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
+          // primaryLight is a FIXED-LIGHT token, so its text/icon partner must be
+          // onPrimaryLight -- BRAND.primary here would go light-on-light in dark mode.
+          background: BRAND.primaryLight, color: BRAND.onPrimaryLight,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>{it.icon}</span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, lineHeight: 1.15 }}>{it.value}</div>
+          <div style={{
+            fontSize: 11.5, color: BRAND.textMuted, marginTop: 1,
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>{it.label}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+// A tappable row: glyph, label, optional second line, optional right-hand value,
+// chevron. `last` suppresses the rule so a group ends clean.
+const ListRow = ({ icon, label, sub, value, onClick, danger, disabled, last, chevron = true }) => {
+  const tint = danger ? BRAND.redOnSurface : BRAND.text;
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 12,
+        padding: "14px 0", border: "none", background: "none",
+        cursor: disabled ? "default" : "pointer", fontFamily: "inherit", textAlign: "left",
+        color: tint, opacity: disabled ? 0.5 : 1,
+        borderBottom: last ? "none" : `1px solid ${BRAND.border}`,
+      }}
+    >
+      {icon && (
+        <span aria-hidden="true" style={{
+          color: danger ? BRAND.redOnSurface : BRAND.textMuted,
+          display: "flex", alignItems: "center", flexShrink: 0,
+        }}>{icon}</span>
+      )}
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 15, fontWeight: 600, color: tint }}>{label}</span>
+        {sub && (
+          <span style={{ display: "block", fontSize: 12.5, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{sub}</span>
+        )}
+      </span>
+      {value && <span style={{ fontSize: 13.5, color: BRAND.textMuted, flexShrink: 0 }}>{value}</span>}
+      {chevron && !disabled && (
+        <span aria-hidden="true" style={{ color: BRAND.textMuted, display: "flex", flexShrink: 0 }}>
+          <Icons.ChevronRight size={16} />
+        </span>
+      )}
+    </button>
+  );
+};
+
+// The reference app's quiet explanatory line, set beside an info glyph.
+const InfoNote = ({ children, style }) => (
+  <div style={{ display: "flex", gap: 10, alignItems: "flex-start", margin: "0 0 18px", ...style }}>
+    <span aria-hidden="true" style={{ color: BRAND.textMuted, flexShrink: 0, marginTop: 1, display: "flex" }}>
+      <Icons.Info size={18} />
+    </span>
+    <div style={{ fontSize: 12.5, lineHeight: 1.5, color: BRAND.textMuted }}>{children}</div>
+  </div>
+);
+
+// Start -> end as two dots joined by a rule, with the elapsed time in the gutter.
+// A shift has one place and two times (unlike a ride, which has two places), so
+// the right-hand column is caller-supplied rather than assumed to be a location.
+const Timeline = ({ startLabel, endLabel, gutter, topRight, bottomRight }) => (
+  <div style={{ display: "flex", gap: 12 }}>
+    <div style={{ width: 46, flexShrink: 0, textAlign: "left" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{startLabel}</div>
+      {gutter && <div style={{ fontSize: 11.5, color: BRAND.textMuted, margin: "6px 0" }}>{gutter}</div>}
+      <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{endLabel}</div>
+    </div>
+    <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 5 }}>
+      <span style={{ width: 9, height: 9, borderRadius: "50%", border: `2px solid ${BRAND.textMuted}`, flexShrink: 0 }} />
+      <span style={{ flex: 1, width: 2, background: BRAND.border, minHeight: 22 }} />
+      <span style={{ width: 9, height: 9, borderRadius: "50%", background: BRAND.textMuted, flexShrink: 0 }} />
+    </div>
+    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: BRAND.text, lineHeight: "18px" }}>{topRight}</div>
+      {bottomRight
+        ? <div style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: "18px" }}>{bottomRight}</div>
+        : <div />}
+    </div>
+  </div>
+);
+
+// Money set the way the reference does it: full units large, cents raised small.
+// Defaults to green because every amount the worker sees is money owed TO them;
+// pass a colour for anything that isn't.
+const Money = ({ value, color = BRAND.greenOnSurface, size = 17, prefix = "" }) => {
+  const n = Number(value || 0);
+  const whole = Math.trunc(Math.abs(n));
+  const cents = Math.round((Math.abs(n) - whole) * 100).toString().padStart(2, "0");
+  return (
+    <span style={{ fontWeight: 800, fontSize: size, color, whiteSpace: "nowrap" }}>
+      {n < 0 ? "-" : prefix}RM {whole}
+      <span style={{ fontSize: Math.round(size * 0.62), verticalAlign: "super", marginLeft: 1 }}>{cents}</span>
+    </span>
+  );
+};
+
+// The worker tab bar. This markup used to exist in THREE places inside
+// WorkerPortal and the copies had already drifted: two routed through
+// handleWorkerNavClick (which clears the QR / bid-modal / selected-shift state)
+// while the third called setTab directly, so leaving the shift-detail screen via
+// the tab bar left that state behind. One component, one behaviour.
+//
+// `item.icon` may be a node or a function of the active flag, so the profile tab
+// can swap in the signed-in user's photo the way the reference app does.
+const WorkerBottomNav = ({ items, activeId, onSelect, isMobile, style }) => (
+  <div style={style}>
+    {items.map(n => {
+      const active = activeId === n.id;
+      return (
+        <button key={n.id} onClick={() => onSelect(n.id)}
+          aria-current={active ? "page" : undefined}
+          style={{
+            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px",
+            border: "none", background: "none", cursor: "pointer",
+            display: "flex", flexDirection: isMobile ? "column" : "row",
+            alignItems: "center", gap: isMobile ? 3 : 8,
+            borderRadius: isMobile ? 0 : 8,
+            // Icons inherit this through currentColor, so the active tab's glyph
+            // now changes colour with its label instead of staying grey.
+            color: active ? BRAND.primaryOnSurface : BRAND.textMuted,
+            fontFamily: "inherit",
+          }}>
+          <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
+            {typeof n.icon === "function" ? n.icon(active) : n.icon}
+            {n.badge > 0 && (
+              <span aria-hidden="true" style={{
+                position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
+                borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+              }}>{n.badge > 9 ? "9+" : n.badge}</span>
+            )}
+          </span>
+          <span style={{
+            fontSize: isMobile ? 11 : 14, fontWeight: active ? 700 : 500, whiteSpace: "nowrap",
+          }}>{n.label}</span>
+        </button>
+      );
+    })}
+  </div>
+);
 
 const Progress = ({ value, max = 100, color = BRAND.primary }) => (
   <div style={{ height: 6, background: BRAND.grayLight, borderRadius: 99, overflow: "hidden" }}>
@@ -7722,6 +8017,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [settingsOpenFaq, setSettingsOpenFaq] = useState(null);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
+  // Profile is now two sub-tabs rather than two bottom-nav tabs. Everything that
+  // used to live under `tab === "settings"` renders under the Account sub-tab;
+  // nothing was deleted, it is one tap deeper.
+  const [profileTab, setProfileTab] = useState("profile");
+
   // "unsupported" | "denied" | "on" | "off". Read from the browser rather than
   // stored: the user can revoke permission in site settings at any time, and a
   // remembered value would go stale without anything noticing. Resolved in an
@@ -8007,7 +8307,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // .eq() filter is needed here (a worker should also see disputes an
   // employer filed against them, not just ones they filed themselves).
   useEffect(() => {
-    if (!supabase || !user || tab !== "settings") return;
+    // Was `tab !== "settings"`. Settings is now the Account sub-tab of Profile;
+    // without this the disputes list would silently never load again.
+    if (!supabase || !user || !(tab === "profile" && profileTab === "account")) return;
     let active = true;
     (async () => {
       setMyDisputes(null);
@@ -8019,7 +8321,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       setMyDisputes(error ? [] : (data || []));
     })();
     return () => { active = false; };
-  }, [user, tab]);
+  }, [user, tab, profileTab]);
 
   // Fetch aggregated ratings for the clicked ratee (any StarRating display) —
   // same 42P01-graceful degradation as above.
@@ -8931,13 +9233,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Your account")
     : "";
 
+  // Five tabs, not six. Settings folded into Profile as a Profile | Account
+  // pair -- the same split the reference app uses -- which buys every remaining
+  // tab enough width for a legible label instead of six 9px ones.
   const navItems = [
     { id: "discover", label: t("nav.discover"), icon: <Icons.Search size={20} /> },
     { id: "applications", label: t("nav.myBids"), icon: <Icons.List size={20} /> },
     { id: "chat", label: t("nav.chat"), icon: <Icons.Chat size={20} />, badge: unreadRooms },
     { id: "earnings", label: t("nav.earnings"), icon: <Icons.Money size={20} /> },
-    { id: "profile", label: t("nav.profile"), icon: <Icons.User size={20} /> },
-    { id: "settings", label: t("nav.settings"), icon: <Icons.Settings size={20} /> },
+    {
+      id: "profile", label: t("nav.profile"),
+      icon: (active) => (user ? (
+        <span style={{
+          display: "inline-flex", borderRadius: "50%", padding: 1,
+          border: `2px solid ${active ? BRAND.primaryOnSurface : "transparent"}`,
+        }}>
+          <Avatar name={profileName} size={active ? 18 : 20} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
+        </span>
+      ) : <Icons.User size={20} />),
+    },
   ];
 
   const handleWorkerNavClick = (nextTab) => {
@@ -9065,29 +9379,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         </Btn>
         <Btn variant="secondary" onClick={() => setShowQR(false)} style={{ marginTop: 8 }}>{t("common.back")}</Btn>
       </div>
-      <div style={navBarStyle}>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
-            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
-            borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
-            fontFamily: "inherit",
-          }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
-              {n.icon}
-              {n.badge > 0 && (
-                <span aria-hidden="true" style={{
-                  position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
-                  borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
-                }}>{n.badge > 9 ? "9+" : n.badge}</span>
-              )}
-            </span>
-            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
-          </button>
-        ))}
-      </div>
+      <WorkerBottomNav items={navItems} activeId={tab} onSelect={handleWorkerNavClick} isMobile={isMobile} style={navBarStyle} />
     </div>
   );
 
@@ -9566,29 +9858,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           )}
         </div>
       </div>
-      <div style={navBarStyle}>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => handleWorkerNavClick(n.id)} style={{
-            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
-            borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
-            fontFamily: "inherit",
-          }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
-              {n.icon}
-              {n.badge > 0 && (
-                <span aria-hidden="true" style={{
-                  position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
-                  borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
-                }}>{n.badge > 9 ? "9+" : n.badge}</span>
-              )}
-            </span>
-            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
-          </button>
-        ))}
-      </div>
+      <WorkerBottomNav items={navItems} activeId={tab} onSelect={handleWorkerNavClick} isMobile={isMobile} style={navBarStyle} />
     </div>
   );
 
@@ -10492,6 +10762,31 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         )}
 
         {tab === "profile" && user && (
+          <div style={{
+            display: "flex", borderBottom: `1px solid ${BRAND.border}`,
+            margin: isMobile ? "0 0 4px" : "0 0 8px",
+          }}>
+            {[
+              { id: "profile", label: t("nav.profile") },
+              { id: "account", label: t("nav.settings") },
+            ].map(p => {
+              const on = profileTab === p.id;
+              return (
+                <button key={p.id} onClick={() => setProfileTab(p.id)} style={{
+                  flex: 1, padding: "12px 0", border: "none", background: "none",
+                  cursor: "pointer", fontFamily: "inherit", fontSize: 15,
+                  fontWeight: on ? 800 : 600,
+                  color: on ? BRAND.text : BRAND.textMuted,
+                  // The reference app marks the live tab with a rule sitting on
+                  // the divider itself, not with a pill or a fill.
+                  boxShadow: on ? `inset 0 -2px 0 0 ${BRAND.text}` : "none",
+                }}>{p.label}</button>
+              );
+            })}
+          </div>
+        )}
+
+        {tab === "profile" && user && profileTab === "profile" && (
           <div>
             <div style={{ textAlign: "center", padding: isMobile ? "12px 0 16px" : "20px 0 24px" }}>
               {/* In preview mode the avatar is a plain image and the
@@ -10607,10 +10902,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           </div>
         )}
 
-        {tab === "settings" && (
+        {tab === "profile" && user && profileTab === "account" && (
           <div>
-            <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("settings.title")}</div>
-            <div style={{ fontSize: isMobile ? 12 : 13, color: BRAND.textMuted, marginBottom: 16 }}>{t("settings.subtitle")}</div>
+            {/* The old "Settings" title/subtitle pair lived here. The sub-tab
+                above now names this pane, so repeating it only pushed the first
+                real row down the screen. That leaves settings.title/.subtitle
+                defined in all three languages but unused -- left in place
+                deliberately, since the Account pane is the next thing to gain a
+                proper header and they are the right strings for it. */}
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("settings.account")}</div>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
@@ -10694,28 +10993,24 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   // OWN identity/contact record — an employer manages that in
                   // the Employer Console, so it's hidden in preview rather
                   // than offering a duplicate (and misleading) entry point.
-                  previewMode ? null : { label: t("personalDetails.title"), icon: "🪪", onClick: () => setShowPersonalDetails(true) },
-                  { label: t("account.help"), icon: "❓", onClick: () => setSettingsHelpOpen(true) },
-                  { label: t("account.contactSupport"), icon: "💬", onClick: onOpenSupportChat },
-                  { label: t("issue.menuItem"), icon: "🐞", onClick: onOpenIssueReport },
-                  { label: t("account.referFriends"), icon: "🎁", onClick: shareWorkerReferralLink },
-                  { label: t("account.signOut"), icon: "↩️", danger: true, onClick: () => supabase.auth.signOut() },
+                  // Emoji swapped for the line-icon set. Emoji render differently
+                  // on every OS and were the loudest thing making these rows read
+                  // as less finished than the rest of the app.
+                  previewMode ? null : { label: t("personalDetails.title"), icon: <Icons.IdCard size={20} />, onClick: () => setShowPersonalDetails(true) },
+                  { label: t("account.help"), icon: <Icons.LifeBuoy size={20} />, onClick: () => setSettingsHelpOpen(true) },
+                  { label: t("account.contactSupport"), icon: <Icons.Chat size={20} />, onClick: onOpenSupportChat },
+                  { label: t("issue.menuItem"), icon: <Icons.Bug size={20} />, onClick: onOpenIssueReport },
+                  { label: t("account.referFriends"), icon: <Icons.Gift size={20} />, onClick: shareWorkerReferralLink },
+                  { label: t("account.signOut"), icon: <Icons.LogOut size={20} />, danger: true, onClick: () => supabase.auth.signOut() },
                 ].filter(Boolean).map((it, i, arr) => (
-                  <button
+                  <ListRow
                     key={it.label}
+                    icon={it.icon}
+                    label={it.label}
+                    danger={it.danger}
                     onClick={it.onClick}
-                    style={{
-                      width: "100%", display: "flex", alignItems: "center", gap: 10,
-                      padding: "12px 0", border: "none", background: "none", cursor: "pointer",
-                      fontFamily: "inherit", fontSize: 14, textAlign: "left",
-                      color: it.danger ? BRAND.red : BRAND.text,
-                      borderBottom: i < arr.length - 1 ? `1px solid ${BRAND.border}` : "none",
-                    }}
-                  >
-                    <span aria-hidden="true" style={{ fontSize: 16 }}>{it.icon}</span>
-                    <span style={{ flex: 1 }}>{it.label}</span>
-                    <span aria-hidden="true" style={{ color: BRAND.textMuted }}>›</span>
-                  </button>
+                    last={i === arr.length - 1}
+                  />
                 ))}
               </Card>
             )}
@@ -10919,29 +11214,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       </div>
 
       {/* Bottom nav */}
-      <div style={navBarStyle}>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => setTab(n.id)} style={{
-            flex: isMobile ? 1 : "0 0 auto", padding: isMobile ? "6px 0" : "8px 18px", border: "none", background: "none", cursor: "pointer",
-            display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", gap: isMobile ? 2 : 8,
-            borderRadius: isMobile ? 0 : 8,
-            color: tab === n.id ? BRAND.primaryOnSurface : BRAND.textMuted,
-            fontFamily: "inherit",
-          }}>
-            <span style={{ fontSize: isMobile ? 16 : 18, lineHeight: 1, position: "relative", display: "inline-flex" }}>
-              {n.icon}
-              {n.badge > 0 && (
-                <span aria-hidden="true" style={{
-                  position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
-                  borderRadius: 99, background: BRAND.red, color: "#fff", fontSize: 9.5, fontWeight: 700,
-                  display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
-                }}>{n.badge > 9 ? "9+" : n.badge}</span>
-              )}
-            </span>
-            <span style={{ fontSize: isMobile ? 9 : 14, fontWeight: tab === n.id ? 700 : 500, whiteSpace: "nowrap" }}>{n.label}</span>
-          </button>
-        ))}
-      </div>
+      <WorkerBottomNav items={navItems} activeId={tab} onSelect={handleWorkerNavClick} isMobile={isMobile} style={navBarStyle} />
     </div>
 
     {withdrawTarget && (() => {
