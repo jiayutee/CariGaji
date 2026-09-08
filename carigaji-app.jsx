@@ -6549,35 +6549,6 @@ const InfoNote = ({ children, style }) => (
   </div>
 );
 
-// Start -> end as two dots joined by a rule, with the elapsed time in the gutter.
-// A shift has one place and two times (unlike a ride, which has two places), so
-// the right-hand column is caller-supplied rather than assumed to be a location.
-const Timeline = ({ startLabel, endLabel, gutter, topRight, bottomRight }) => (
-  <div style={{ display: "flex", gap: 12 }}>
-    {/* 76px, not the original 46: en-MY formats times as "09:00 am", which
-        measures ~70px at this size and wrapped onto two lines in a narrower
-        column, breaking alignment with the dots. nowrap as well as the width, so
-        a locale that formats times longer still cannot break the layout -- it
-        will overflow visibly instead, which is easier to notice and fix. */}
-    <div style={{ width: 76, flexShrink: 0, textAlign: "left", whiteSpace: "nowrap" }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{startLabel}</div>
-      {gutter && <div style={{ fontSize: 11.5, color: BRAND.textMuted, margin: "6px 0" }}>{gutter}</div>}
-      <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, lineHeight: "18px" }}>{endLabel}</div>
-    </div>
-    <div aria-hidden="true" style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 5 }}>
-      <span style={{ width: 9, height: 9, borderRadius: "50%", border: `2px solid ${BRAND.textMuted}`, flexShrink: 0 }} />
-      <span style={{ flex: 1, width: 2, background: BRAND.border, minHeight: 22 }} />
-      <span style={{ width: 9, height: 9, borderRadius: "50%", background: BRAND.textMuted, flexShrink: 0 }} />
-    </div>
-    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-      <div style={{ fontSize: 14, fontWeight: 600, color: BRAND.text, lineHeight: "18px" }}>{topRight}</div>
-      {bottomRight
-        ? <div style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: "18px" }}>{bottomRight}</div>
-        : <div />}
-    </div>
-  </div>
-);
-
 // Money set the way the reference does it: full units large, cents raised small.
 // Defaults to green because every amount the worker sees is money owed TO them;
 // pass a colour for anything that isn't.
@@ -10244,31 +10215,51 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
                     />
                   </div>
-                  {/* The reference app draws a ride as two dots joined by a rule.
-                      A shift has one place and two times rather than two places,
-                      so the times run down the left and the place sits on the
-                      first row. Presentation only -- start_at/end_at/occurrences
-                      were already on the object, no query changed.
+                  {/* This was a vertical dotted timeline copied from the
+                      reference app's ride card. That was the wrong metaphor: two
+                      dots joined by a line means FROM one place TO another, and
+                      on a shift -- which has a single location and a time range --
+                      it read as a route with a missing destination. Owner flagged
+                      it, and they were right.
+                      A time span is horizontal. So: one line for when, one for
+                      where, using the same icon vocabulary as the Discover card,
+                      with no directional implication at all.
                       overviewLocation, not the raw string: these cards can show a
                       bid that has not been accepted, and the exact address is not
                       the bidder's to see yet. */}
-                  {a.shiftStartAt && a.shiftEndAt && (
-                    <div style={{ margin: "0 0 14px" }}>
-                      <Timeline
-                        startLabel={formatShiftTime(a.shiftStartAt)}
-                        endLabel={formatShiftTime(a.shiftEndAt)}
-                        {...(() => {
-                          // formatDurationHours(0) returns "0m", so a shift whose
-                          // occurrences are missing start/end would render a
-                          // confident and wrong duration. No hours, no gutter.
-                          const hrs = totalOccurrenceHours(a.shiftOccurrences);
-                          return hrs > 0 ? { gutter: formatDurationHours(hrs) } : {};
-                        })()}
-                        topRight={overviewLocation(a.shiftLocation) || a.employer}
-                        bottomRight={a.isMultiDay ? formatOccurrencesSummary(a.shiftOccurrences) : null}
-                      />
+                  {(a.shiftStartAt && a.shiftEndAt) || a.shiftLocation ? (
+                    <div style={{ margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 5 }}>
+                      {a.shiftStartAt && a.shiftEndAt && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: BRAND.text }}>
+                          <span aria-hidden="true" style={{ color: BRAND.textMuted, display: "flex", flexShrink: 0 }}>
+                            <Icons.Clock size={15} />
+                          </span>
+                          <span>
+                            <span style={{ fontWeight: 700 }}>
+                              {formatShiftTime(a.shiftStartAt)}–{formatShiftTime(a.shiftEndAt)}
+                            </span>
+                            {(() => {
+                              // formatDurationHours(0) returns "0m", so a shift whose
+                              // occurrences carry no start/end would state a
+                              // confident wrong duration. No hours, no duration.
+                              const hrs = totalOccurrenceHours(a.shiftOccurrences);
+                              return hrs > 0
+                                ? <span style={{ color: BRAND.textMuted }}> · {formatDurationHours(hrs)}</span>
+                                : null;
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                      {overviewLocation(a.shiftLocation) && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13, color: BRAND.text }}>
+                          <span aria-hidden="true" style={{ color: BRAND.textMuted, display: "flex", flexShrink: 0 }}>
+                            <Icons.Pin size={15} />
+                          </span>
+                          <span>{overviewLocation(a.shiftLocation)}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ) : null}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: 11, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</div>

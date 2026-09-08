@@ -23,7 +23,11 @@ Decisions taken by the owner before implementation:
 - [x] Chat thread: person-led header + shift context strip
 - [x] Payouts: title + `StatStrip` + note, replacing gradient hero + 2×2 grid
 - [x] Payout status labels — was rendering the raw DB enum in all 3 languages
-- [x] My Bids: `Timeline`
+- [x] My Bids: horizontal time range + location
+      (first attempt used a vertical dotted timeline copied from the ride
+      card -- owner flagged it as reading like a route. Wrong metaphor:
+      two dots joined by a line means from-here-to-there, and a shift has
+      one place. Replaced; the `Timeline` primitive was deleted with it.)
 - [x] Payout method chooser (their screenshot 2)
 
 ## Review
