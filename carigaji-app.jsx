@@ -9303,6 +9303,22 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     handleWorkerNavClick("discover");
   }, [homeSignal]);
 
+  // An open chat thread takes the whole screen on mobile, tab bar included.
+  //
+  // Why: the shell is pinned to visualViewport height so the composer stays
+  // above the on-screen keyboard. That works, but the tab bar was riding up
+  // with it -- so with the keyboard open the message list was squeezed between
+  // a header, a shift strip, a composer AND a 60px tab bar, leaving almost
+  // nothing readable while typing. You cannot re-read what someone asked you
+  // while you are answering it.
+  //
+  // Hiding the bar whenever the thread is open (not only when the keyboard is
+  // up) is deliberate: it matches the reference app, whose thread screen has no
+  // tab bar either, and it keeps the layout from jumping every time the input
+  // gains or loses focus. The thread has its own back button, so no route out
+  // is lost.
+  const chatThreadFullscreen = isMobile && tab === "chat" && Boolean(activeChatShift);
+
   const navBarStyle = isMobile
     ? {
         position: "sticky",
@@ -9902,7 +9918,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       {/* Content */}
-      <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
+      <div style={{ flex: 1, overflowY: "auto", paddingTop: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingLeft: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingRight: tab === "discover" ? 0 : isMobile ? 12 : 20, paddingBottom: chatThreadFullscreen ? 0 : navPadding, width: "100%", maxWidth: isMobile ? "100%" : 1160, margin: isMobile ? 0 : "0 auto", minHeight: 0 }}>
         {tab === "discover" && (
           <div>
             {/* Anonymous visitors land straight on this tab with nothing to
@@ -10783,10 +10799,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   })}
                   <div ref={chatEndRef} />
                 </div>
-                <div style={{display:'flex', gap:8, paddingTop:8, borderTop:`1px solid ${BRAND.border}`}}>
+                {/* With the tab bar gone this is the last thing on screen, so it
+                    carries the home-indicator inset itself. */}
+                <div style={{
+                  display:'flex', gap:8, paddingTop:8, borderTop:`1px solid ${BRAND.border}`,
+                  paddingBottom: chatThreadFullscreen ? navSafeAreaInset : 0,
+                }}>
                   <input
                     value={chatInput} onChange={e => setChatInput(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                    onFocus={() => {
+                      // The keyboard resizes the viewport a beat after focus.
+                      // Without this the newest message sits behind it and you
+                      // have to scroll to see what you are replying to.
+                      setTimeout(() => chatEndRef.current?.scrollIntoView({ block: 'end' }), 250);
+                    }}
                     placeholder={t("chat.inputPlaceholder")}
                     style={{flex:1, padding:'10px 12px', borderRadius:8, border:`1px solid ${BRAND.border}`, fontSize:14, background:BRAND.input, color:BRAND.text}}
                   />
@@ -11396,8 +11423,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         )}
       </div>
 
-      {/* Bottom nav */}
-      <WorkerBottomNav items={navItems} activeId={tab} onSelect={handleWorkerNavClick} isMobile={isMobile} style={navBarStyle} />
+      {/* Bottom nav — hidden while a chat thread is open on mobile, so the
+          message list keeps that height when the keyboard is up. */}
+      {!chatThreadFullscreen && (
+        <WorkerBottomNav items={navItems} activeId={tab} onSelect={handleWorkerNavClick} isMobile={isMobile} style={navBarStyle} />
+      )}
     </div>
 
     {withdrawTarget && (() => {
