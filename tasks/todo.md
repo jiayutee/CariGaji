@@ -64,3 +64,8 @@ Three real bugs fixed in passing, none of them cosmetic:
       worker view they were. Worker's path is "" so the URL alone cannot tell "I chose
       worker" from "I have not chosen" — sessionStorage supplies that, and dies with
       the tab, so a new tab still opens at the role's home.
+- [x] Chat badge counted rooms the user cannot open. The unread query trusted RLS
+      to scope itself; messages_admin_all grants an admin every row in the table,
+      so an admin's badge counted strangers' conversations that their inbox never
+      lists — unopenable, therefore unclearable. Now scoped with the same two
+      queries the inbox uses.

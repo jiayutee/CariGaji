@@ -5588,12 +5588,50 @@ const useUnreadChatRooms = (user) => {
 
   const refresh = useCallback(async () => {
     if (!user?.id) { setUnreadRooms(0); return; }
-    // RLS already limits this to rooms the user belongs to, so no room filter is
-    // needed here -- and adding one would mean first fetching the room list.
+
+    // Scope this to the rooms the user can actually OPEN, rather than to
+    // whatever RLS happens to return.
+    //
+    // The comment that used to sit here said RLS already limits the query to
+    // the user's own rooms, so no filter was needed. That is true for workers
+    // and employers and FALSE for admins: messages_admin_all (20260703d) grants
+    // an admin `for all` on public.messages, so this returned every
+    // conversation on the platform. The badge then counted strangers' rooms --
+    // which the inbox never lists, so they could not be opened, could not be
+    // marked seen, and the count sat there permanently. Opening every one of
+    // your own chats did nothing, because the room being counted was never
+    // yours.
+    //
+    // An employer could hit a smaller version of the same bug: a worker who was
+    // accepted, chatted, and then moved off 'accepted' leaves messages the
+    // employer can still read (they own the shift) in a room the inbox no
+    // longer lists.
+    //
+    // These two queries mirror how the inbox builds its list, so the badge can
+    // no longer count a room the user has no way to reach. Two extra lookups
+    // per refresh, both indexed and both tiny; correctness is worth more here
+    // than the round trip the old comment was protecting.
+    const [asWorker, asEmployer] = await Promise.all([
+      supabase.from('applications').select('shift_id')
+        .eq('worker_id', user.id).eq('status', 'accepted'),
+      supabase.from('applications').select('shift_id, shift:shifts!inner(employer_id)')
+        .eq('status', 'accepted').eq('shift.employer_id', user.id),
+    ]);
+    const roomIds = [...new Set([
+      ...(asWorker.data || []).map(r => r.shift_id),
+      ...(asEmployer.data || []).map(r => r.shift_id),
+    ].filter(Boolean))];
+    if (!roomIds.length) {
+      setUnreadRooms(0); setUnreadRoomIds(new Set());
+      setRoomPreviews(new Map()); setPreviewSenderNames({});
+      return;
+    }
+
     const { data, error } = await supabase
       .from('messages')
       .select('shift_id, sender_id, content, created_at')
       .is('recipient_id', null)
+      .in('shift_id', roomIds)
       .order('created_at', { ascending: false })
       .limit(300);
     if (error) { setUnreadRooms(0); setUnreadRoomIds(new Set()); setRoomPreviews(new Map()); return; }
