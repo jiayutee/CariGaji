@@ -7820,7 +7820,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
           {/* Payslip-style sample shift card */}
           <div style={{ flex: "0 0 auto", width: isMobile ? "100%" : 340, position: "relative" }}>
             <div style={{ position: "absolute", top: -14, right: 4, width: 66, height: 66, borderRadius: "50%", border: `2px dashed ${BRAND.green}`, background: BRAND.surfaceElevated, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-8deg)", zIndex: 1 }}>
-              <div style={{ textAlign: "center", fontSize: 8, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", color: BRAND.green, lineHeight: 1.3 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
+              <div style={{ textAlign: "center", fontSize: 8, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", color: BRAND.greenOnSurface, lineHeight: 1.3 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
             </div>
             <div style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 14, boxShadow: `0 12px 32px ${BRAND.shadow}`, padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12 }}>
@@ -9411,7 +9411,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       );
     }
     if (a.checkedOutAt && a.employerHoursConfirmedAt) {
-      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.green }}>{t("worker.hoursConfirmedBadge")}</span>;
+      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.greenOnSurface }}>{t("worker.hoursConfirmedBadge")}</span>;
     }
     if (a.checkedOutAt) {
       return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted }}>{t("worker.checkoutPendingBadge")}</span>;
@@ -9721,7 +9721,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {bidAmount && (
               <div style={{ background: BRAND.grayLight, borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("shiftDetail.estimatedTotalPay")}</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.green }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.greenOnSurface }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
                 {selectedShift.stipend > 0 && (
                   <div style={{ fontSize: 12, color: BRAND.textMuted }}>+ RM{selectedShift.stipend}{t("shiftDetail.transportAllowanceSuffix")}</div>
                 )}
@@ -9898,7 +9898,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, display: "flex", alignItems: "center", gap: 4 }}>
                   {selectedShift.employer}
-                  {selectedShift.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.green, fontWeight: 700 }}>✓</span>}
+                  {selectedShift.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 700 }}>✓</span>}
                 </div>
                 <div style={{ fontSize: 11, color: BRAND.textMuted }}>{t("shiftDetail.employerReliability")}</div>
               </div>
@@ -10113,7 +10113,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
                         <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
                           {s.employer}
-                          {s.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.green, fontWeight: 700 }}>✓</span>}
+                          {s.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 700 }}>✓</span>}
                         </div>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
@@ -11335,7 +11335,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("settings.status")}</span>
                 <Pill
-                  label={workerBanking?.verification_status ? `SecureSign ${workerBanking.verification_status}` : t("settings.secureSignPending")}
+                  label={workerBanking?.verification_status ? `SecureSign ${bankVerificationLabel(workerBanking.verification_status, t)}` : t("settings.secureSignPending")}
                   color={mapVerificationPillColor(workerBanking?.verification_status)}
                 />
               </div>
@@ -13733,7 +13733,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                               {t("employer.reportedHoursPrefix")}{a.workerReportedHours}h
                             </div>
                             {a.employerHoursConfirmedAt && (
-                              <div style={{ color: BRAND.green, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
+                              <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
                             )}
                             {a.employerHoursDisputed && (
                               <div style={{ color: BRAND.red, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursDisputedLabel")}</div>
@@ -14470,7 +14470,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   style={{ fontSize: 12 }}
                 />
                 {employerProfile?.ssm_document_path && !employerCompanyForm.ssmCertFile && (
-                  <div style={{ fontSize: 11, color: BRAND.green, marginTop: 6 }}>{t("employer.ssmCertOnFile")}</div>
+                  <div style={{ fontSize: 11, color: BRAND.greenOnSurface, marginTop: 6 }}>{t("employer.ssmCertOnFile")}</div>
                 )}
               </label>
               {companyDetailsMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{companyDetailsMessage}</div>}
@@ -14502,7 +14502,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                 <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("employer.verificationLabel")}</span>
                 <Pill
-                  label={employerBanking?.verification_status ? `SecureSign ${employerBanking.verification_status}` : t("settings.secureSignPending")}
+                  label={employerBanking?.verification_status ? `SecureSign ${bankVerificationLabel(employerBanking.verification_status, t)}` : t("settings.secureSignPending")}
                   color={mapVerificationPillColor(employerBanking?.verification_status)}
                 />
               </div>
@@ -14556,7 +14556,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <div style={{ fontSize: 11, color: BRAND.red, marginTop: 2 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
                     )}
                   </div>
-                  <Pill label={String(item.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(item.status)} />
+                  <Pill label={payoutStatusLabel(t, item.status)} color={mapPayoutPillColor(item.status)} />
                 </div>
               ))}
             </Card>
@@ -16058,10 +16058,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <tr key={p.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
                       <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 600, color: BRAND.text }}>{(p.worker_id && payoutQueueWorkerNames[p.worker_id]) || "N/A"}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{(p.source_refs?.shift_id && payoutQueueShiftTitles[p.source_refs.shift_id]) || "Shift"}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: BRAND.green }}>{toCurrency(p.amount)}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: BRAND.greenOnSurface }}>{toCurrency(p.amount)}</td>
                       <td style={{ padding: "10px 12px", fontSize: 13, color: BRAND.textMuted }}>{p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</td>
                       <td style={{ padding: "10px 12px" }}>
-                        <Pill label={String(p.status || "queued").replaceAll("_", " ")} color={mapPayoutPillColor(p.status)} />
+                        <Pill label={payoutStatusLabel(t, p.status)} color={mapPayoutPillColor(p.status)} />
                         {p.status === "held" && payoutHoldReasonLabel(t, p.error_message) && (
                           <div style={{ fontSize: 11, color: BRAND.red, marginTop: 4 }}>{payoutHoldReasonLabel(t, p.error_message)}</div>
                         )}
@@ -17112,7 +17112,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>{t("auth.ocrChecking")}</div>
               )}
               {idOcr.status === "match" && (
-                <div style={{ fontSize: 12, color: BRAND.green, fontWeight: 600, marginBottom: 12 }}>{t("auth.ocrMatch")}</div>
+                <div style={{ fontSize: 12, color: BRAND.greenOnSurface, fontWeight: 600, marginBottom: 12 }}>{t("auth.ocrMatch")}</div>
               )}
               {idOcr.status === "mismatch" && (
                 <div style={{ fontSize: 12, color: "#B45309", marginBottom: 12 }}>

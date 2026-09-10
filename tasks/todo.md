@@ -69,3 +69,15 @@ Three real bugs fixed in passing, none of them cosmetic:
       so an admin's badge counted strangers' conversations that their inbox never
       lists — unopenable, therefore unclearable. Now scoped with the same two
       queries the inbox uses.
+
+## 2026-09-10 — dogfood pass
+Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
+- [x] 6 contrast defects (10abd8c) — amber-on-amberLight KYC nudge, primary-as-text,
+      green-as-text est. budget, invisible stepper arrows, bulk-upload step drift
+- [x] 14 primary-as-text sites in dark (76221f7)
+- [x] 9 green-as-text sites; 2 payout pills rendering raw DB enums; 2 banking
+      labels concatenating the raw English status
+- Not covered: admin portal (no admin credential available).
+- Noted, not changed: employer applicant pool is a 723px table scrolling inside a
+  341px wrapper on mobile. Verified scrollable and reachable, so it works — but
+  it is the one screen that does not match the rest of the mobile design.
