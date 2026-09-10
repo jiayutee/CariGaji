@@ -10817,7 +10817,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     placeholder={t("chat.inputPlaceholder")}
                     style={{flex:1, padding:'10px 12px', borderRadius:8, border:`1px solid ${BRAND.border}`, fontSize:14, background:BRAND.input, color:BRAND.text}}
                   />
+                  {/* Tapping a button moves focus off the input, and losing focus
+                      is what closes the on-screen keyboard — so every send
+                      dismissed the keyboard and you had to tap the field again to
+                      write the next line. Nothing in sendMessage does this; it is
+                      simply what a tap does by default.
+                      Blocking the default on mousedown (browsers synthesise one
+                      before click on touch) means the button never takes focus, so
+                      the field keeps it and the keyboard stays up. Enter was always
+                      fine — pressing it never moved focus in the first place. */}
                   <button onClick={sendMessage}
+                    onMouseDown={e => e.preventDefault()}
                     style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
                     {t("chat.send")}
                   </button>
@@ -14711,7 +14721,17 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     placeholder={t("chat.inputPlaceholder")}
                     style={{flex:1, padding:'10px 12px', borderRadius:8, border:`1px solid ${BRAND.border}`, fontSize:14, background:BRAND.input, color:BRAND.text}}
                   />
+                  {/* Tapping a button moves focus off the input, and losing focus
+                      is what closes the on-screen keyboard — so every send
+                      dismissed the keyboard and you had to tap the field again to
+                      write the next line. Nothing in sendMessage does this; it is
+                      simply what a tap does by default.
+                      Blocking the default on mousedown (browsers synthesise one
+                      before click on touch) means the button never takes focus, so
+                      the field keeps it and the keyboard stays up. Enter was always
+                      fine — pressing it never moved focus in the first place. */}
                   <button onClick={sendMessage}
+                    onMouseDown={e => e.preventDefault()}
                     style={{padding:'10px 16px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
                     {t("chat.send")}
                   </button>
@@ -16288,8 +16308,11 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           disabled={sending}
           style={{ flex: 1, padding: "10px 12px", borderRadius: 8, border: `1px solid ${BRAND.border}`, fontSize: 13.5, background: BRAND.input, color: BRAND.text, fontFamily: "inherit" }}
         />
+        {/* Same reason as the shift-chat composer: keep focus on the field so
+            sending does not dismiss the keyboard. */}
         <button
           onClick={sendMessage}
+          onMouseDown={e => e.preventDefault()}
           disabled={sending || !input.trim()}
           style={{
             padding: "10px 16px", borderRadius: 8, border: "none", fontFamily: "inherit",
