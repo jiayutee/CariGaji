@@ -11058,7 +11058,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ fontSize: isMobile ? 18 : 20, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
               <div style={{ fontSize: isMobile ? 12 : 14, color: BRAND.textMuted }}>{user.email}</div>
               {!previewMode && (
-                <button onClick={() => setShowSedcard(true)} style={{ background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginTop: 6, fontFamily: "inherit" }}>
+                <button onClick={() => setShowSedcard(true)} style={{ background: "none", border: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginTop: 6, fontFamily: "inherit" }}>
                   {t("profile.viewEditSedcard")}
                 </button>
               )}
@@ -11081,8 +11081,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               // viewer themselves, which would read as an instruction to the
               // employer rather than a demonstration of the worker experience.
               <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.amber, marginBottom: 4 }}>{t("profile.completeKycTitle")}</div>
-                <div style={{ fontSize: 12, color: BRAND.amber, marginBottom: 12, lineHeight: 1.5 }}>{t("profile.completeKycHint")}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.onAmberLight, marginBottom: 4 }}>{t("profile.completeKycTitle")}</div>
+                <div style={{ fontSize: 12, color: BRAND.onAmberLight, marginBottom: 12, lineHeight: 1.5 }}>{t("profile.completeKycHint")}</div>
                 <Btn size="sm" onClick={onOpenKycUpload}>{t("profile.completeKycBtn")}</Btn>
               </Card>
             )}
@@ -13413,7 +13413,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.green }}>{t('employer.listCardEstBudget').replace('{amount}', s.estBudget)}</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.greenOnSurface }}>{t('employer.listCardEstBudget').replace('{amount}', s.estBudget)}</div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 6 }}>
                           <Badge color="green" size="xs">{t('employer.listCardPositionsBadge').replace('{count}', s.headcount)}</Badge>
                           <Badge color="blue" size="xs">{t('employer.listCardAppliedBadge').replace('{count}', s.applicants)}</Badge>
@@ -13770,7 +13770,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 28, height: 28, borderRadius: "50%", background: postStep >= s ? BRAND.primary : BRAND.border, color: postStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
                   <span style={{ fontSize: 12, color: postStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: postStep === s ? 700 : 400 }}>{[t("employer.stepShiftDetails"), t("employer.stepRequirements"), t("employer.stepReview")][s - 1]}</span>
-                  {s < 3 && <span style={{ color: BRAND.border, fontSize: 18 }}>→</span>}
+                  {s < 3 && <span aria-hidden="true" style={{ color: BRAND.textMuted, fontSize: 18 }}>→</span>}
                 </div>
               ))}
             </div>
@@ -14090,9 +14090,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: bulkUploadStep >= s ? BRAND.primary : BRAND.border, color: bulkUploadStep >= s ? "#fff" : BRAND.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: bulkUploadStep >= s ? BRAND.primary : BRAND.border, color: bulkUploadStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700 }}>{s}</div>
                   <span style={{ fontSize: 12, color: bulkUploadStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: bulkUploadStep === s ? 700 : 400 }}>{[t("employer.bulkStepUpload"), t("employer.bulkStepReview"), t("employer.bulkStepPublish")][s - 1]}</span>
-                  {s < 3 && <span style={{ color: BRAND.border, fontSize: 18 }}>→</span>}
+                  {s < 3 && <span aria-hidden="true" style={{ color: BRAND.textMuted, fontSize: 18 }}>→</span>}
                 </div>
               ))}
             </div>
