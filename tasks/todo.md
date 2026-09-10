@@ -56,3 +56,11 @@ Three real bugs fixed in passing, none of them cosmetic:
   overlays; `settings.title`/`.subtitle` left defined but unused.
 - Appearance light/dark/system buttons keep their emoji — the owner designed
   those explicitly on 2026-08-29 and they carry meaning.
+
+## 2026-09-10 — refresh no longer changes which portal you are in
+- [x] Landing redirect now: explicit URL > portal this tab was last in > role default.
+      The redirect ran on every session restore, not only on sign-in, so refreshing
+      threw an admin back to /admin (and an employer to /employer) however deep into
+      worker view they were. Worker's path is "" so the URL alone cannot tell "I chose
+      worker" from "I have not chosen" — sessionStorage supplies that, and dies with
+      the tab, so a new tab still opens at the role's home.

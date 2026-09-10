@@ -17250,6 +17250,32 @@ const MOBILE_BREAKPOINT = 768;
 const APP_BASE = (import.meta.env.BASE_URL || "/").replace(/\/+$/, ""); // "/CariGaji"
 const PORTAL_PATHS = { worker: "", employer: "employer", admin: "admin" };
 
+// The portal this tab is currently in.
+//
+// Needed because the worker portal's path is "" (see PORTAL_PATHS above), so an
+// admin sitting in worker view and an admin who has just opened the app have
+// the SAME address -- /en either way. The URL cannot distinguish "I chose
+// worker" from "I have not chosen yet", so on every refresh the role default
+// won and an admin was thrown back to /admin mid-task.
+//
+// sessionStorage rather than localStorage is the whole point of the fix: it
+// survives a refresh and dies with the tab, which is exactly the intended
+// lifetime. Refreshing resumes where you were; a brand-new tab still starts you
+// at your role's home. Wrapped because Safari private mode throws on access.
+const PORTAL_SESSION_KEY = "carigaji-portal";
+const rememberPortal = (portal) => {
+  try { window.sessionStorage.setItem(PORTAL_SESSION_KEY, portal); } catch { /* private mode */ }
+};
+const readRememberedPortal = () => {
+  try {
+    const v = window.sessionStorage.getItem(PORTAL_SESSION_KEY);
+    return Object.prototype.hasOwnProperty.call(PORTAL_PATHS, v) ? v : null;
+  } catch { return null; }
+};
+const forgetRememberedPortal = () => {
+  try { window.sessionStorage.removeItem(PORTAL_SESSION_KEY); } catch { /* private mode */ }
+};
+
 // Every address carries its language: /CariGaji/en, /CariGaji/bm/employer,
 // /CariGaji/ch/shift/<id>. Owner's call, 2026-08-29.
 //
@@ -17363,6 +17389,7 @@ export default function CariGaji() {
         window.history[method]({ carigajiPortal: next }, "", target);
       }
     }
+    rememberPortal(next);
     setPortalState(next);
   }, []);
 
@@ -17685,10 +17712,28 @@ export default function CariGaji() {
           // is still selected below -- only the ADDRESS is left alone, and
           // WorkerPortal re-asserts it once the shift loads.
           const onShiftLink = Boolean(shiftIdFromPath(window.location.pathname));
-          if (isAdminAccount) setPortal('admin', { replace: true });
-          else if (role === 'employer') setPortal('employer', { replace: true });
-          else if (!onShiftLink) setPortal('worker', { replace: true });
-          else setPortalState('worker');
+
+          // Where to land, in order of authority:
+          //   1. an explicit portal in the URL  -- /en/admin, /en/employer
+          //   2. the portal this tab was last in -- survives a refresh
+          //   3. the account's role default      -- first visit in a new tab
+          //
+          // Rule 2 is the fix. This block runs on EVERY session restore, not
+          // only on sign-in, so it used to fire on refresh too and send an
+          // admin straight back to /admin however deep into worker view they
+          // were. The role default is right for someone arriving fresh and
+          // wrong for someone resuming; the remembered portal is what tells
+          // those two apart, since the address alone cannot (worker's path is
+          // the empty string).
+          const urlPortal = portalFromPath(window.location.pathname);
+          const explicitInUrl = urlPortal === 'admin' || urlPortal === 'employer';
+          const roleDefault = isAdminAccount ? 'admin' : role === 'employer' ? 'employer' : 'worker';
+          const target = explicitInUrl ? urlPortal : (readRememberedPortal() || roleDefault);
+
+          // Unchanged from before: a shift deep link keeps its address, so the
+          // link someone shared still points at the shift after it opens.
+          if (target === 'worker' && onShiftLink) setPortalState('worker');
+          else setPortal(target, { replace: true });
         }
 
         // Self-heal missing names: OAuth sign-up (Google/Apple/Facebook)
@@ -17884,7 +17929,7 @@ export default function CariGaji() {
             {user ? (
               <ProfileMenu
                 user={user}
-                onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+                onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; forgetRememberedPortal(); setPortal("worker"); }}
                 onOpenIssueReport={() => setIssueReportOpen(true)}
                 onOpenSupportChat={() => setSupportChatOpen(true)}
                 isMobile={isMobile}
@@ -17937,7 +17982,7 @@ export default function CariGaji() {
         open={Boolean(user) && tncAcceptedAt === null}
         accepting={tncAccepting}
         onAccept={acceptTnC}
-        onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+        onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; forgetRememberedPortal(); setPortal("worker"); }}
                 onOpenIssueReport={() => setIssueReportOpen(true)}
       />
       {/* Progressive-signup sequence: T&C gate above, then required details,
@@ -17948,7 +17993,7 @@ export default function CariGaji() {
         user={user}
         role={userRole}
         onCompleted={ts => setDetailsCompletedAt(ts)}
-        onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; setPortal("worker"); }}
+        onSignOut={async () => { await disablePushNotifications(); await supabase.auth.signOut(); setUser(null); lastRoutedUserIdRef.current = null; forgetRememberedPortal(); setPortal("worker"); }}
                 onOpenIssueReport={() => setIssueReportOpen(true)}
       />
       <DetailsGateModal
