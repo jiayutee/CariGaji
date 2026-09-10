@@ -13252,6 +13252,144 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     </>
   );
 
+  // ── Applicant pool: one set of pieces, two layouts ────────────────────────
+  // A table on desktop, cards on mobile. Both call these rather than each
+  // hand-rolling the same markup. The action block alone has nine branches, and
+  // a second copy of it is exactly how the bulk-upload stepper and two of the
+  // three payout pills ended up still carrying bugs that had already been fixed
+  // in their twin. One copy, two layouts.
+  const applicantIdentity = (a) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", minWidth: 0 }} onClick={() => setWorkerProfileModal(a)} title={t("employer.viewWorkerProfile")}>
+      <Avatar name={a.name} size={28} color={BRAND.blue} src={getAvatarUrl(a.avatarUrl)} />
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primaryOnSurface, textDecoration: "underline", textUnderlineOffset: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
+          {a.verified && (
+            <span title={t("employer.applicantVerifiedTitle")} role="img" aria-label={t("employer.applicantVerifiedTitle")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: "#fff", fontSize: 9, lineHeight: 1, flexShrink: 0 }}>✓</span>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
+        {/* This worker signed, then the employer changed the terms -- the slot
+            is NOT confirmed until they re-accept. Shown here so the employer can
+            see the slot is at risk while there's still time to backfill it. */}
+        {reconfirmState(a) && (
+          <div
+            title={t("employer.awaitingReconfirmHint")}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 7px", borderRadius: 99, background: BRAND.amberLight, fontSize: 10.5, fontWeight: 700, color: BRAND.onAmberLight }}
+          >
+            ⚠️ {t("employer.awaitingReconfirm")}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const applicantStatusPill = (a, action) => (
+    <>
+      <Pill
+        label={
+          action === 'offered' ? t("employer.awaitingResponse") :
+          action === 'accepted' ? t("employer.pillAccepted") :
+          action === 'shortlisted' ? t("employer.pillShortlisted") :
+          action === 'rejected' ? t("employer.pillNotSelected") :
+          action === 'expired' ? t("employer.pillOfferExpired") :
+          action === 'withdrawn' ? t("employer.pillWithdrawn") :
+          t("employer.pillPending")
+        }
+        color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
+      />
+      {action === 'offered' && a.offerExpiresAt && (
+        <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}</div>
+      )}
+    </>
+  );
+
+  // Every colour here is the *OnSurface variant rather than the raw token:
+  // these are glyphs on a surface, not fills. BRAND.red and BRAND.blue as text
+  // measure 4.2 and 4.0 against a dark and light surface respectively. The
+  // dogfood sweep never caught them because no QA account has ever been in the
+  // no-show, expired or awaiting-response state.
+  const applicantActions = (a, action, isSelectable) => (
+    <>
+      {isSelectable && !bulkSelectMode && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>{t("employer.shortlistBtn")}</Btn>}
+          <Btn size="xs" variant="success" disabled={offering || openSlotsRemaining() === 0} onClick={() => makeOffer([a.id])}>{t("employer.selectBtn")}</Btn>
+          <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
+        </div>
+      )}
+      {action === "offered" && <span style={{ fontSize: 12, color: BRAND.primaryOnSurface }}>{t("employer.waitingOnWorker")}</span>}
+      {action === "accepted" && selectedShift.status !== "completed" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 12, color: BRAND.greenOnSurface }}>{t("employer.confirmedStatus")}</span>
+          <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
+          {/* Only once the shift has actually started, and only for someone who
+              never checked in -- the same preconditions employer_mark_no_show
+              enforces, so the button is never offered where it would fail. */}
+          {a.noShowAt ? (
+            <span title={a.noShowNote || undefined} style={{ fontSize: 11, fontWeight: 700, color: BRAND.redOnSurface }}>
+              {t("employer.noShowReported")}
+            </span>
+          ) : (
+            !a.checkedInAt && selectedShift.startAt && new Date(selectedShift.startAt) <= new Date() && (
+              <Btn size="xs" variant="secondary" onClick={() => { setNoShowTarget(a); setNoShowNote(""); }}
+                   style={{ color: BRAND.redOnSurface, borderColor: BRAND.red }}>
+                {t("employer.reportNoShowBtn")}
+              </Btn>
+            )
+          )}
+        </div>
+      )}
+      {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.redOnSurface }}>{t("employer.notSelected")}</span>}
+      {action === "expired" && <span style={{ fontSize: 12, color: BRAND.redOnSurface }}>{t("employer.offerExpiredStatus")}</span>}
+      {action === "accepted" && selectedShift.status === "completed" && (
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
+          {!myRatedApplicationIds.has(a.id) && (
+            <Btn size="xs" variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: selectedShift.title, rateeId: a.workerId, direction: 'employer_to_worker' }); }}>{t("rating.rateBtn")}</Btn>
+          )}
+          {myDisputedApplicationIds.has(a.id) ? (
+            <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, alignSelf: "center" }}>{t("myBids.disputeAlreadyFiledBadge")}</span>
+          ) : (
+            <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
+          )}
+        </div>
+      )}
+      {action === "accepted" && a.checkedOutAt && (
+        <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: BRAND.grayLight, fontSize: 11 }}>
+          <div style={{ color: BRAND.text, fontWeight: 600 }}>
+            {t("employer.reportedHoursPrefix")}{a.workerReportedHours}h
+          </div>
+          {a.employerHoursConfirmedAt && (
+            <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
+          )}
+          {a.employerHoursDisputed && (
+            <div style={{ color: BRAND.redOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursDisputedLabel")}</div>
+          )}
+          {!a.employerHoursConfirmedAt && !a.employerHoursDisputed && (
+            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+              <Btn size="xs" variant="success" onClick={() => confirmCheckoutHours(a.id)}>{t("employer.confirmHoursBtn")}</Btn>
+              <Btn size="xs" variant="danger" onClick={() => {
+                const note = window.prompt(t("employer.disputeHoursPrompt"), "");
+                if (note === null) return;
+                disputeCheckoutHours(a.id, note);
+              }}>{t("employer.disputeHoursBtn")}</Btn>
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+
+  const applicantSelectBox = (a, isSelectable, isChecked, style) => (
+    <input
+      type="checkbox"
+      style={style}
+      disabled={!isSelectable || (!isChecked && selectedApplicantIds.length >= openSlotsRemaining())}
+      checked={isChecked}
+      onChange={e => setSelectedApplicantIds(prev => e.target.checked ? [...prev, a.id] : prev.filter(id => id !== a.id))}
+    />
+  );
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%", fontFamily: "inherit" }}>
       {compact ? (
@@ -13450,9 +13588,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         {view === "shifts" && selectedShift && (
           <div>
             <button onClick={() => setSelectedShift(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primaryOnSurface, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("employer.backToShifts")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("employer.backToShifts")}</span></button>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 4 }}>
+            {/* Stacked on mobile. Side by side, the title and five action
+                buttons forced this row to 654px on a 375px screen, so it
+                scrolled sideways and "Cancel shift" sat off the edge. */}
+            <div style={{ display: "flex", flexDirection: compact ? "column" : "row", justifyContent: "space-between", alignItems: compact ? "stretch" : "flex-start", gap: 12, marginBottom: 4 }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: compact ? 1 : 0 }}>
                 <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>{t("employer.editShift")}</span></Btn>
                 <Btn
                   variant="secondary"
@@ -13601,7 +13742,64 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 hint={liveApplicants === null ? t("employer.loadingApplicantsHint") : t("employer.noApplicantsHint")}
               />
             )}
-            {(liveApplicants ?? []).length > 0 && (
+            {(liveApplicants ?? []).length > 0 && (compact ? (
+              /* Mobile: this was a 723px table inside a 341px viewport, so it
+                 scrolled sideways and everything past the worker's name -- bid,
+                 rating, and the accept/reject buttons -- sat off-screen. One
+                 card per applicant fits the width and puts the whole decision
+                 in a single glance. Same helpers as the table below it, so the
+                 two cannot drift apart. */
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {(liveApplicants ?? []).map(a => {
+                  const action = applicantAction[a.id] || a.status;
+                  const isSelectable = ['pending', 'shortlisted'].includes(action);
+                  const isChecked = selectedApplicantIds.includes(a.id);
+                  // NOT `applicantActions(...) && ...`: that helper returns a
+                  // Fragment, which is truthy even when every branch inside it
+                  // is false, so the card would grow an empty bordered strip for
+                  // a withdrawn applicant. Mirror the branches instead.
+                  const hasActions = (isSelectable && !bulkSelectMode)
+                    || ["offered", "accepted", "rejected", "expired"].includes(action);
+                  const metaLabel = { fontSize: 12, color: BRAND.textMuted };
+                  return (
+                    <Card key={a.id} style={{ padding: 14 }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                        {bulkSelectMode && applicantSelectBox(a, isSelectable, isChecked, { marginTop: 7, flexShrink: 0 })}
+                        <div style={{ flex: 1, minWidth: 0 }}>{applicantIdentity(a)}</div>
+                        <div style={{ flexShrink: 0, textAlign: "right" }}>{applicantStatusPill(a, action)}</div>
+                      </div>
+                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.border}`, display: "grid", gridTemplateColumns: "auto 1fr", rowGap: 9, columnGap: 12, alignItems: "center" }}>
+                        <span style={metaLabel}>{t("employer.colBidRate")}</span>
+                        <span style={{ justifySelf: "end", fontSize: 15, fontWeight: 800, color: BRAND.primaryOnSurface }}>RM{a.wageBid}</span>
+
+                        <span style={metaLabel}>{t("employer.colRating")}</span>
+                        <div style={{ justifySelf: "end" }}>
+                          <StarRating value={a.rating} size={12} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} />
+                        </div>
+
+                        <span style={metaLabel}>{t("employer.colReliability")}</span>
+                        <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: 8, width: 130 }}>
+                          <div style={{ flex: 1 }}>
+                            <Progress value={a.reliability} color={a.reliability > 90 ? BRAND.green : a.reliability > 75 ? BRAND.accent : BRAND.red} />
+                          </div>
+                          <span style={{ fontSize: 12, color: BRAND.text, minWidth: 22, textAlign: "right" }}>{a.reliability}</span>
+                        </div>
+
+                        <span style={metaLabel}>{t("employer.colKYC")}</span>
+                        <div style={{ justifySelf: "end" }}>
+                          <Badge color={a.kyc === "Advanced" ? "teal" : a.kyc === "Standard" ? "blue" : "gray"} size="xs">{a.kyc}</Badge>
+                        </div>
+                      </div>
+                      {hasActions && (
+                        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.border}` }}>
+                          {applicantActions(a, action, isSelectable)}
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
             <div style={{ overflowX: "auto", borderRadius: 16, border: `1px solid ${BRAND.border}` }}>
             <table style={{ width: "100%", minWidth: 720, borderCollapse: "collapse", background: BRAND.surface }}>
               <thead>
@@ -13619,42 +13817,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   return (
                     <tr key={a.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
                       {bulkSelectMode && (
-                        <td style={{ padding: "12px 14px" }}>
-                          <input
-                            type="checkbox"
-                            disabled={!isSelectable || (!isChecked && selectedApplicantIds.length >= openSlotsRemaining())}
-                            checked={isChecked}
-                            onChange={e => setSelectedApplicantIds(prev => e.target.checked ? [...prev, a.id] : prev.filter(id => id !== a.id))}
-                          />
-                        </td>
+                        <td style={{ padding: "12px 14px" }}>{applicantSelectBox(a, isSelectable, isChecked)}</td>
                       )}
-                      <td style={{ padding: "12px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => setWorkerProfileModal(a)} title={t("employer.viewWorkerProfileHint")}>
-                          <Avatar name={a.name} size={28} color={BRAND.blue} src={getAvatarUrl(a.avatarUrl)} />
-                          <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                              <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.primaryOnSurface, textDecoration: "underline", textUnderlineOffset: 2 }}>{a.name}</div>
-                              {a.verified && (
-                                <span title={t("employer.applicantVerifiedTitle")} role="img" aria-label={t("employer.applicantVerifiedTitle")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: "#fff", fontSize: 9, lineHeight: 1, flexShrink: 0 }}>✓</span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
-                            {/* This worker signed, then the employer changed
-                                the terms -- the slot is NOT confirmed until
-                                they re-accept. Shown here so the employer can
-                                see the slot is at risk while there's still
-                                time to backfill it. */}
-                            {reconfirmState(a) && (
-                              <div
-                                title={t("employer.awaitingReconfirmHint")}
-                                style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 7px", borderRadius: 99, background: BRAND.amberLight, fontSize: 10.5, fontWeight: 700, color: "#92400E" }}
-                              >
-                                ⚠️ {t("employer.awaitingReconfirm")}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
+                      <td style={{ padding: "12px 14px" }}>{applicantIdentity(a)}</td>
                       <td style={{ padding: "12px 14px" }}><Badge color={a.kyc === "Advanced" ? "teal" : a.kyc === "Standard" ? "blue" : "gray"} size="xs">{a.kyc}</Badge></td>
                       <td style={{ padding: "12px 14px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -13664,100 +13829,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       </td>
                       <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primaryOnSurface, fontSize: 14 }}>RM{a.wageBid}</td>
-                      <td style={{ padding: "12px 14px" }}>
-                        <Pill
-                          label={
-                            action === 'offered' ? t("employer.awaitingResponse") :
-                            action === 'accepted' ? t("employer.pillAccepted") :
-                            action === 'shortlisted' ? t("employer.pillShortlisted") :
-                            action === 'rejected' ? t("employer.pillNotSelected") :
-                            action === 'expired' ? t("employer.pillOfferExpired") :
-                            action === 'withdrawn' ? t("employer.pillWithdrawn") :
-                            t("employer.pillPending")
-                          }
-                          color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
-                        />
-                        {action === 'offered' && a.offerExpiresAt && (
-                          <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}</div>
-                        )}
-                      </td>
-                      <td style={{ padding: "12px 14px" }}>
-                        {isSelectable && !bulkSelectMode && (
-                          <div style={{ display: "flex", gap: 6 }}>
-                            {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>{t("employer.shortlistBtn")}</Btn>}
-                            <Btn size="xs" variant="success" disabled={offering || openSlotsRemaining() === 0} onClick={() => makeOffer([a.id])}>{t("employer.selectBtn")}</Btn>
-                            <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
-                          </div>
-                        )}
-                        {action === "offered" && <span style={{ fontSize: 12, color: BRAND.blue }}>{t("employer.waitingOnWorker")}</span>}
-                        {action === "accepted" && selectedShift.status !== "completed" && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                            <span style={{ fontSize: 12, color: BRAND.greenOnSurface }}>{t("employer.confirmedStatus")}</span>
-                            <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
-                            {/* Only once the shift has actually started, and only
-                                for someone who never checked in -- the same
-                                preconditions employer_mark_no_show enforces, so
-                                the button is never offered where it would fail. */}
-                            {a.noShowAt ? (
-                              <span title={a.noShowNote || undefined} style={{ fontSize: 11, fontWeight: 700, color: BRAND.red }}>
-                                {t("employer.noShowReported")}
-                              </span>
-                            ) : (
-                              !a.checkedInAt && selectedShift.startAt && new Date(selectedShift.startAt) <= new Date() && (
-                                <Btn size="xs" variant="secondary" onClick={() => { setNoShowTarget(a); setNoShowNote(""); }}
-                                     style={{ color: BRAND.red, borderColor: BRAND.red }}>
-                                  {t("employer.reportNoShowBtn")}
-                                </Btn>
-                              )
-                            )}
-                          </div>
-                        )}
-                        {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.notSelected")}</span>}
-                        {action === "expired" && <span style={{ fontSize: 12, color: BRAND.red }}>{t("employer.offerExpiredStatus")}</span>}
-                        {action === "accepted" && selectedShift.status === "completed" && (
-                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
-                            {!myRatedApplicationIds.has(a.id) && (
-                              <Btn size="xs" variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: selectedShift.title, rateeId: a.workerId, direction: 'employer_to_worker' }); }}>{t("rating.rateBtn")}</Btn>
-                            )}
-                            {myDisputedApplicationIds.has(a.id) ? (
-                              <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, alignSelf: "center" }}>{t("myBids.disputeAlreadyFiledBadge")}</span>
-                            ) : (
-                              <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
-                            )}
-                          </div>
-                        )}
-                        {action === "accepted" && a.checkedOutAt && (
-                          <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: BRAND.grayLight, fontSize: 11 }}>
-                            <div style={{ color: BRAND.text, fontWeight: 600 }}>
-                              {t("employer.reportedHoursPrefix")}{a.workerReportedHours}h
-                            </div>
-                            {a.employerHoursConfirmedAt && (
-                              <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
-                            )}
-                            {a.employerHoursDisputed && (
-                              <div style={{ color: BRAND.red, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursDisputedLabel")}</div>
-                            )}
-                            {!a.employerHoursConfirmedAt && !a.employerHoursDisputed && (
-                              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-                                <Btn size="xs" variant="success" onClick={() => confirmCheckoutHours(a.id)}>{t("employer.confirmHoursBtn")}</Btn>
-                                <Btn size="xs" variant="danger" onClick={() => {
-                                  const note = window.prompt(t("employer.disputeHoursPrompt"), "");
-                                  if (note === null) return;
-                                  disputeCheckoutHours(a.id, note);
-                                }}>{t("employer.disputeHoursBtn")}</Btn>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </td>
+                      <td style={{ padding: "12px 14px" }}>{applicantStatusPill(a, action)}</td>
+                      <td style={{ padding: "12px 14px" }}>{applicantActions(a, action, isSelectable)}</td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
             </div>
-            )}
+            ))}
           </div>
         )}
 

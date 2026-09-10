@@ -81,3 +81,7 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
 - Noted, not changed: employer applicant pool is a 723px table scrolling inside a
   341px wrapper on mobile. Verified scrollable and reachable, so it works — but
   it is the one screen that does not match the rest of the mobile design.
+- [x] Applicant pool: cards on mobile, table kept on desktop. Extracted four
+      shared render helpers so the two layouts cannot drift. Also stacked the
+      shift-detail action row on mobile — it was the last 654px element on the
+      screen. Shift detail now has zero elements wider than 375px.
