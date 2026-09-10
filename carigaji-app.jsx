@@ -5178,7 +5178,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
             ))}
             <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
               {t("help.stillNeedHelp")}{" "}
-              <button onClick={() => { setHelpOpen(false); onOpenSupportChat(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
+              <button onClick={() => { setHelpOpen(false); onOpenSupportChat(); }} style={{ border: "none", background: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
                 {t("help.contactSupportLink")}
               </button>
             </div>
@@ -6102,7 +6102,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                 style={{
                   width: "100%", padding: "10px 14px", border: "none", background: "transparent",
                   cursor: notifLoadingMore ? "default" : "pointer", fontFamily: "inherit",
-                  fontSize: 11.5, fontWeight: 600, color: BRAND.primary,
+                  fontSize: 11.5, fontWeight: 600, color: BRAND.primaryOnSurface,
                 }}
               >
                 {notifLoadingMore ? t("earnings.loadingMoreBtn") : t("earnings.loadMoreBtn")}
@@ -7287,7 +7287,7 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
             tabIndex={0}
             onClick={e => { e.preventDefault(); toggleExpanded(); }}
             onKeyDown={e => e.key === "Enter" && toggleExpanded()}
-            style={{ color: BRAND.primary, textDecoration: "underline", cursor: "pointer" }}
+            style={{ color: BRAND.primaryOnSurface, textDecoration: "underline", cursor: "pointer" }}
           >
             {t("auth.tncLinkText")}
           </span>
@@ -7531,8 +7531,8 @@ const AuthModal = ({
               <Input label={translate("auth.emailAddress")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} />
               <PasswordInput label={translate("auth.password")} placeholder={translate("auth.enterYourPassword")} value={form.password} onChange={e => onChange("password", e.target.value)} />
               <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginTop: -6, marginBottom: 16 }}>
-                <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.forgetPassword")}</button>
-                <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primary, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.noAccountYet")}</button>
+                <button type="button" onClick={() => onViewChange("reset")} style={{ border: "none", background: "transparent", color: BRAND.primaryOnSurface, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.forgetPassword")}</button>
+                <button type="button" onClick={() => onViewChange("register")} style={{ border: "none", background: "transparent", color: BRAND.primaryOnSurface, cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 600 }}>{translate("auth.noAccountYet")}</button>
               </div>
               <Btn type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{copy.action}</Btn>
               <SocialAuthButtons onOAuth={onOAuth} label={translate("common.signIn")} />
@@ -7686,7 +7686,7 @@ const MonthlyEarningsBarChart = ({ months, truncated, isMobile, t }) => {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text }}>{selected.fullLabel}</div>
-        <div style={{ fontSize: 15, fontWeight: 800, color: BRAND.primary, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 6 : 10, height: chartHeight, overflowX: months.length > 8 ? "auto" : "visible", paddingBottom: 2, borderBottom: `1px solid ${BRAND.border}` }}>
         {months.map(m => {
@@ -9546,7 +9546,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <button onClick={() => setShowSedcard(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
+        <button onClick={() => setShowSedcard(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
         </button>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
@@ -9628,7 +9628,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingTop: 24, paddingLeft: 24, paddingRight: 24, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <button onClick={() => setShowPersonalDetails(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primary, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
+        <button onClick={() => setShowPersonalDetails(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontSize: 13, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
         </button>
         <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
@@ -10370,7 +10370,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           const reconfirm = reconfirmState(a);
           return (
           <div>
-            <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primary, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("myBids.backToBids")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("myBids.backToBids")}</span></button>
+            <button onClick={() => setSelectedApplication(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: BRAND.primaryOnSurface, fontFamily: "inherit", marginBottom: 16 }} aria-label={t("myBids.backToBids")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("myBids.backToBids")}</span></button>
             {/* Terms changed after signing -- the booking is on hold until the
                 worker actively re-accepts. Deliberately the first thing in the
                 view, above the status pills, because nothing else on this
@@ -11263,7 +11263,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   ))}
                   <div style={{ marginTop: 16, fontSize: 12, color: BRAND.textMuted }}>
                     {t("help.stillNeedHelp")}{" "}
-                    <button onClick={() => { setSettingsHelpOpen(false); onOpenSupportChat(); }} style={{ border: "none", background: "none", color: BRAND.primary, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
+                    <button onClick={() => { setSettingsHelpOpen(false); onOpenSupportChat(); }} style={{ border: "none", background: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline", fontFamily: "inherit", fontSize: 12 }}>
                       {t("help.contactSupportLink")}
                     </button>
                   </div>
@@ -14115,7 +14115,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{ fontSize: 12, color: BRAND.red, marginTop: -8, marginBottom: 8 }}>{bulkUploadFileError}</div>
                 )}
                 <button type="button" onClick={() => setBulkGuideOpen(o => !o)}
-                  style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16, background: "none", border: "none", padding: 0, cursor: "pointer", color: BRAND.primary, fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16, background: "none", border: "none", padding: 0, cursor: "pointer", color: BRAND.primaryOnSurface, fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
                   <span style={{ display: "inline-block", transform: bulkGuideOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s" }}>▶</span>
                   {t("employer.bulkGuideToggle")}
                 </button>
@@ -14642,7 +14642,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <div style={{display:'flex', flexDirection:'column', flex:1, minHeight:0}}>
                 <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:12}}>
                   <button onClick={() => { setActiveChatShift(null); setChatMessages([]); }}
-                    style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:'#2563EB'}}>←</button>
+                    style={{background:'none', border:'none', cursor:'pointer', fontSize:18, color:BRAND.primaryOnSurface}}>←</button>
                   <div style={{minWidth:0, flex:1}}>
                     <div style={{fontWeight:600, color:BRAND.text}}>{activeChatShift.title}</div>
                     {/* The names are the affordance -- tapping them says who is
@@ -15718,7 +15718,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     ) : (
                       Object.entries(kycSignedUrls[worker.id]).map(([filename, url]) => (
                         <a key={filename} href={url} target="_blank" rel="noopener noreferrer"
-                          style={{ fontSize: 12, color: BRAND.primary, textDecoration: "underline" }}>
+                          style={{ fontSize: 12, color: BRAND.primaryOnSurface, textDecoration: "underline" }}>
                           📄 {filename}
                         </a>
                       ))
@@ -16834,7 +16834,7 @@ const AvatarGuidePicker = ({ file, existingUrl, onChange, role, disabled }) => {
           <label style={{
             display: "inline-block", padding: "8px 14px", borderRadius: 8,
             border: `1px solid ${BRAND.border}`, background: BRAND.surface,
-            cursor: disabled ? "wait" : "pointer", fontSize: 13, fontWeight: 600, color: BRAND.primary,
+            cursor: disabled ? "wait" : "pointer", fontSize: 13, fontWeight: 600, color: BRAND.primaryOnSurface,
           }}>
             {displayUrl ? t("details.avatarChangeBtn") : t("details.avatarChooseBtn")}
             <input type="file" accept="image/*" disabled={disabled} style={{ display: "none" }}
