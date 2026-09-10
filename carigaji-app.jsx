@@ -1158,8 +1158,8 @@ const TRANSLATIONS = {
     "notification.minAgo": "{n}m ago",
     "notification.hourAgo": "{n}h ago",
     "notification.dayAgo": "{n}d ago",
-    "discover.filtersLabel": "Filters",
-    "discover.hideFiltersLabel": "Hide Filters",
+    "filters.label": "Filters",
+    "filters.hide": "Hide Filters",
     "discover.verifiedEmployerTooltip": "SSM-verified employer",
     "discover.welcomeBack": "Welcome back, {name} 👋",
     "discover.subtitleLoggedIn": "Find shifts near you — bid your rate",
@@ -1225,7 +1225,7 @@ const TRANSLATIONS = {
     "discover.filterEndsBy": "Ends by",
     "discover.highBookingChance": "🔥 High booking chance",
     "discover.weekendsOnly": "📅 Weekends only",
-    "discover.clearAll": "Clear all",
+    "filters.clearAll": "Clear all",
     "discover.loadingShifts": "Loading shifts…",
     "discover.loadingShiftsHint": "Hang tight while we fetch open shifts.",
     "discover.noShiftsMatch": "No shifts match right now",
@@ -2376,8 +2376,8 @@ const TRANSLATIONS = {
     "notification.minAgo": "{n}m lalu",
     "notification.hourAgo": "{n}j lalu",
     "notification.dayAgo": "{n}h lalu",
-    "discover.filtersLabel": "Penapis",
-    "discover.hideFiltersLabel": "Sembunyi Penapis",
+    "filters.label": "Penapis",
+    "filters.hide": "Sembunyi Penapis",
     "discover.verifiedEmployerTooltip": "Majikan disahkan SSM",
     "discover.welcomeBack": "Selamat kembali, {name} 👋",
     "discover.subtitleLoggedIn": "Cari syif berhampiran anda — buat bidaan anda",
@@ -2443,7 +2443,7 @@ const TRANSLATIONS = {
     "discover.filterEndsBy": "Berakhir sebelum",
     "discover.highBookingChance": "🔥 Peluang tempahan tinggi",
     "discover.weekendsOnly": "📅 Hujung minggu sahaja",
-    "discover.clearAll": "Kosongkan semua",
+    "filters.clearAll": "Kosongkan semua",
     "discover.loadingShifts": "Memuatkan syif…",
     "discover.loadingShiftsHint": "Tunggu sebentar semasa kami dapatkan syif terbuka.",
     "discover.noShiftsMatch": "Tiada syif sepadan buat masa ini",
@@ -3593,8 +3593,8 @@ const TRANSLATIONS = {
     "notification.minAgo": "{n} 分钟前",
     "notification.hourAgo": "{n} 小时前",
     "notification.dayAgo": "{n} 天前",
-    "discover.filtersLabel": "筛选条件",
-    "discover.hideFiltersLabel": "隐藏筛选条件",
+    "filters.label": "筛选条件",
+    "filters.hide": "隐藏筛选条件",
     "discover.verifiedEmployerTooltip": "SSM 认证雇主",
     "discover.welcomeBack": "欢迎回来，{name} 👋",
     "discover.subtitleLoggedIn": "寻找附近的班次 — 出价争取工作机会",
@@ -3660,7 +3660,7 @@ const TRANSLATIONS = {
     "discover.filterEndsBy": "结束时间早于",
     "discover.highBookingChance": "🔥 高录用机会",
     "discover.weekendsOnly": "📅 仅限周末",
-    "discover.clearAll": "清除全部",
+    "filters.clearAll": "清除全部",
     "discover.loadingShifts": "正在加载班次…",
     "discover.loadingShiftsHint": "请稍候，我们正在获取开放中的班次。",
     "discover.noShiftsMatch": "目前没有符合条件的班次",
@@ -5008,6 +5008,61 @@ const Select = ({ label, options, value, onChange, style = {} }) => (
     }}>
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
+  </div>
+);
+
+// ── Filtering, one pattern ────────────────────────────────────────────────
+// Discover established this: a small "Filters (3) ▼" toggle carrying a count of
+// what is active, opening a grey panel of compact fields with a Clear all at the
+// end. When the applicant pool got its own filter and sort, it shipped as two
+// always-visible full-size Selects instead -- two controls doing the same job,
+// looking nothing alike, in one app. The owner spotted it.
+//
+// Extracted so there is one definition rather than a second copy to drift.
+// FILTER_CONTROL_STYLE deliberately omits `color`: the root carries
+// color-scheme, so the UA picks a readable value in both themes (measured at
+// 14:1 and 17:1 in dark). Setting it explicitly here would be a guess that
+// happens to agree.
+const FILTER_CONTROL_STYLE = {
+  width: "100%", padding: "6px 8px", borderRadius: 6,
+  border: `1px solid ${BRAND.border}`, fontSize: 13,
+  boxSizing: "border-box", background: BRAND.input,
+};
+
+const FilterToggle = ({ open, onToggle, activeCount = 0, t }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+    <button
+      onClick={onToggle}
+      aria-expanded={open}
+      style={{ fontSize: 12, padding: "4px 10px", borderRadius: 6, border: `1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor: "pointer", color: BRAND.textMuted, fontFamily: "inherit" }}
+    >
+      {open
+        ? `${t("filters.hide")} ▲`
+        : `${t("filters.label")}${activeCount > 0 ? ` (${activeCount})` : ""} ▼`}
+    </button>
+  </div>
+);
+
+const FilterPanel = ({ children }) => (
+  <div style={{ marginBottom: 12, padding: 12, background: BRAND.grayLight, borderRadius: 8, border: `1px solid ${BRAND.border}` }}>
+    {children}
+  </div>
+);
+
+const FilterField = ({ label, children }) => (
+  <div>
+    <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 3 }}>{label}</div>
+    {children}
+  </div>
+);
+
+const FilterClearAll = ({ show, onClear, t }) => (
+  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+    {show && (
+      <button onClick={onClear} style={{ fontSize: 12, padding: "5px 14px", borderRadius: 6, border: `1px solid ${BRAND.red}`, background: BRAND.redLight, cursor: "pointer", color: BRAND.onRedLight, fontFamily: "inherit" }}>
+        {t("filters.clearAll")}
+      </button>
+    )}
   </div>
 );
 
@@ -10025,24 +10080,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             </div>
             <div style={{ padding: isMobile ? "0 12px 8px" : "0 20px 8px" }}>
-              {(() => {
-                const activeFilterCount = [filterCity, filterArea, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
+              <FilterToggle
+                open={showFilters}
+                onToggle={() => setShowFilters(f => !f)}
+                activeCount={[filterCity, filterArea, filterDate, filterPayMin, filterPayMax, filterDuration, filterTimeStart, filterTimeEnd].filter(Boolean).length
                   + (filterCat !== 'All' ? 1 : 0)
                   + (filterHighBooking ? 1 : 0)
-                  + (filterWeekend ? 1 : 0);
-                return (
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                    <button
-                      onClick={() => setShowFilters(f => !f)}
-                      style={{fontSize:12,padding:'4px 10px',borderRadius:6,border:`1px solid ${BRAND.border}`,background:BRAND.grayLight,cursor:'pointer',color:BRAND.textMuted}}
-                    >
-                      {showFilters ? `${t("discover.hideFiltersLabel")} ▲` : `${t("discover.filtersLabel")}${activeFilterCount > 0 ? ` (${activeFilterCount})` : ''} ▼`}
-                    </button>
-                  </div>
-                );
-              })()}
+                  + (filterWeekend ? 1 : 0)}
+                t={t}
+              />
               {showFilters && (
-                <div style={{marginBottom:12, padding:12, background:BRAND.grayLight, borderRadius:8, border:`1px solid ${BRAND.border}`}}>
+                <FilterPanel>
                   {/* Row 1: Location, Date, Duration */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
@@ -10117,20 +10165,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       {t("discover.weekendsOnly")}
                     </label>
                   </div>
-                  {/* Clear all button */}
-                  <div style={{display:'flex', justifyContent:'flex-end', marginTop:8}}>
-                    {(filterCity||filterArea||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd) && (
-                      <button onClick={() => {
-                        setFilterCity(''); setFilterArea(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
-                        setFilterDuration(''); setFilterCat('All');
-                        setFilterHighBooking(false); setFilterWeekend(false);
-                        setFilterTimeStart(''); setFilterTimeEnd('');
-                      }} style={{fontSize:12, padding:'5px 14px', borderRadius:6, border:`1px solid ${BRAND.red}`, background:BRAND.redLight, cursor:'pointer', color:BRAND.onRedLight}}>
-                        {t("discover.clearAll")}
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  <FilterClearAll
+                    show={Boolean(filterCity||filterArea||filterDate||filterPayMin||filterPayMax||filterDuration||filterCat!=='All'||filterHighBooking||filterWeekend||filterTimeStart||filterTimeEnd)}
+                    onClear={() => {
+                      setFilterCity(''); setFilterArea(''); setFilterDate(''); setFilterPayMin(''); setFilterPayMax('');
+                      setFilterDuration(''); setFilterCat('All');
+                      setFilterHighBooking(false); setFilterWeekend(false);
+                      setFilterTimeStart(''); setFilterTimeEnd('');
+                    }}
+                    t={t}
+                  />
+                </FilterPanel>
               )}
             </div>
             <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
@@ -11814,6 +11859,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [applicantAction, setApplicantAction] = useState({});
   const [selectedApplicantIds, setSelectedApplicantIds] = useState([]);
   const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [applicantFiltersOpen, setApplicantFiltersOpen] = useState(false);
   const [applicantSort, setApplicantSort] = useState("default");
   const [applicantStatusFilter, setApplicantStatusFilter] = useState("all");
   const [offering, setOffering] = useState(false);
@@ -13818,46 +13864,57 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               />
             )}
             {(liveApplicants ?? []).length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
-                <Select
-                  label={t("employer.filterStatusLabel")}
-                  value={applicantStatusFilter}
-                  onChange={e => setApplicantStatusFilter(e.target.value)}
-                  style={{ marginBottom: 0, flex: compact ? "1 1 100%" : "0 0 210px" }}
-                  options={[
-                    { value: "all", label: t("employer.filterAll") },
-                    { value: "pending", label: t("employer.pillPending") },
-                    { value: "shortlisted", label: t("employer.pillShortlisted") },
-                    { value: "offered", label: t("employer.awaitingResponse") },
-                    { value: "accepted", label: t("employer.pillAccepted") },
-                    { value: "rejected", label: t("employer.pillNotSelected") },
-                  ]}
+              <>
+                <FilterToggle
+                  open={applicantFiltersOpen}
+                  onToggle={() => setApplicantFiltersOpen(o => !o)}
+                  activeCount={(applicantStatusFilter !== "all" ? 1 : 0) + (applicantSort !== "default" ? 1 : 0)}
+                  t={t}
                 />
-                <Select
-                  label={t("employer.sortLabel")}
-                  value={applicantSort}
-                  onChange={e => setApplicantSort(e.target.value)}
-                  style={{ marginBottom: 0, flex: compact ? "1 1 100%" : "0 0 260px" }}
-                  options={[
-                    { value: "default", label: t("employer.sortDefault") },
-                    { value: "bidLow", label: t("employer.sortBidLow") },
-                    { value: "bidHigh", label: t("employer.sortBidHigh") },
-                    { value: "newest", label: t("employer.sortNewest") },
-                    { value: "oldest", label: t("employer.sortOldest") },
-                    { value: "rating", label: t("employer.sortRating") },
-                    { value: "reliability", label: t("employer.sortReliability") },
-                  ]}
-                />
-                {/* Only when the two differ. A count that always reads "3 of 3"
-                    is noise the employer learns to stop reading. */}
+                {applicantFiltersOpen && (
+                  <FilterPanel>
+                    <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "1fr 1fr", gap: 8 }}>
+                      <FilterField label={t("employer.filterStatusLabel")}>
+                        <select value={applicantStatusFilter} onChange={e => setApplicantStatusFilter(e.target.value)} style={FILTER_CONTROL_STYLE}>
+                          <option value="all">{t("employer.filterAll")}</option>
+                          <option value="pending">{t("employer.pillPending")}</option>
+                          <option value="shortlisted">{t("employer.pillShortlisted")}</option>
+                          <option value="offered">{t("employer.awaitingResponse")}</option>
+                          <option value="accepted">{t("employer.pillAccepted")}</option>
+                          <option value="rejected">{t("employer.pillNotSelected")}</option>
+                        </select>
+                      </FilterField>
+                      <FilterField label={t("employer.sortLabel")}>
+                        <select value={applicantSort} onChange={e => setApplicantSort(e.target.value)} style={FILTER_CONTROL_STYLE}>
+                          <option value="default">{t("employer.sortDefault")}</option>
+                          <option value="bidLow">{t("employer.sortBidLow")}</option>
+                          <option value="bidHigh">{t("employer.sortBidHigh")}</option>
+                          <option value="newest">{t("employer.sortNewest")}</option>
+                          <option value="oldest">{t("employer.sortOldest")}</option>
+                          <option value="rating">{t("employer.sortRating")}</option>
+                          <option value="reliability">{t("employer.sortReliability")}</option>
+                        </select>
+                      </FilterField>
+                    </div>
+                    <FilterClearAll
+                      show={applicantStatusFilter !== "all" || applicantSort !== "default"}
+                      onClear={() => { setApplicantStatusFilter("all"); setApplicantSort("default"); }}
+                      t={t}
+                    />
+                  </FilterPanel>
+                )}
+                {/* Outside the panel on purpose: when a filter is hiding rows that
+                    has to stay visible after the panel collapses, or a half-empty
+                    pool looks like the shift lost applicants. Only rendered when
+                    the two counts actually differ. */}
                 {visibleApplicants.length !== (liveApplicants ?? []).length && (
-                  <div style={{ fontSize: 12, color: BRAND.textMuted, paddingBottom: 10 }}>
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>
                     {t("employer.showingCount")
                       .replace("{shown}", visibleApplicants.length)
                       .replace("{total}", (liveApplicants ?? []).length)}
                   </div>
                 )}
-              </div>
+              </>
             )}
             {/* Distinct from "no applicants yet": there ARE applicants, this
                 filter just excludes all of them. Telling someone their shift has

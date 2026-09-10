@@ -89,3 +89,8 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       oldest / rating / reliability (stable — ties keep the order applied).
       Filter: by status. Both layouts read one derived list; shift facts (open
       slots, bulk counter, "N applied") stay on the unfiltered list.
+- [x] Applicant pool filter now uses Discover's existing pattern, extracted into
+      FilterToggle / FilterPanel / FilterField / FilterClearAll + a shared control
+      style. Discover converted to the same primitives. `discover.filtersLabel` /
+      `hideFiltersLabel` / `clearAll` renamed to `filters.*` since they are no
+      longer Discover-only.
