@@ -892,6 +892,19 @@ const TRANSLATIONS = {
     "employer.selectedTotalLabel": "Total for this selection:",
     "employer.cancellingShift": "Cancelling…",
     "employer.applicantPool": "Applicant pool",
+    "employer.sortLabel": "Sort",
+    "employer.sortDefault": "Default (order applied)",
+    "employer.sortBidLow": "Bid: lowest first",
+    "employer.sortBidHigh": "Bid: highest first",
+    "employer.sortNewest": "Applied: newest first",
+    "employer.sortOldest": "Applied: oldest first",
+    "employer.sortRating": "Rating: highest first",
+    "employer.sortReliability": "Reliability: highest first",
+    "employer.filterStatusLabel": "Status",
+    "employer.filterAll": "All applicants",
+    "employer.showingCount": "Showing {shown} of {total}",
+    "employer.noneMatchFilter": "No applicants match this filter",
+    "employer.noneMatchFilterHint": "Try “All applicants”, or clear the sort.",
     "employer.postAShiftTitle": "Post a Shift",
     "employer.editShiftTitle": "Edit Shift",
     "employer.postAShiftSubtitle": "Fill in shift details and required workers",
@@ -2105,6 +2118,19 @@ const TRANSLATIONS = {
     "employer.selectedTotalLabel": "Jumlah untuk pilihan ini:",
     "employer.cancellingShift": "Membatalkan…",
     "employer.applicantPool": "Kumpulan Pemohon",
+    "employer.sortLabel": "Susun",
+    "employer.sortDefault": "Lalai (ikut turutan memohon)",
+    "employer.sortBidLow": "Bidaan: terendah dahulu",
+    "employer.sortBidHigh": "Bidaan: tertinggi dahulu",
+    "employer.sortNewest": "Memohon: terbaharu dahulu",
+    "employer.sortOldest": "Memohon: terlama dahulu",
+    "employer.sortRating": "Penilaian: tertinggi dahulu",
+    "employer.sortReliability": "Kebolehpercayaan: tertinggi dahulu",
+    "employer.filterStatusLabel": "Status",
+    "employer.filterAll": "Semua pemohon",
+    "employer.showingCount": "Memaparkan {shown} daripada {total}",
+    "employer.noneMatchFilter": "Tiada pemohon sepadan dengan penapis ini",
+    "employer.noneMatchFilterHint": "Cuba “Semua pemohon”, atau kosongkan susunan.",
     "employer.postAShiftTitle": "Siar Syif",
     "employer.editShiftTitle": "Sunting Syif",
     "employer.postAShiftSubtitle": "Isikan butiran syif dan keperluan pekerja",
@@ -3310,6 +3336,19 @@ const TRANSLATIONS = {
     "employer.selectedTotalLabel": "此次选择的总额：",
     "employer.cancellingShift": "取消中…",
     "employer.applicantPool": "申请人名单",
+    "employer.sortLabel": "排序",
+    "employer.sortDefault": "默认（按申请顺序）",
+    "employer.sortBidLow": "出价：由低至高",
+    "employer.sortBidHigh": "出价：由高至低",
+    "employer.sortNewest": "申请时间：最新优先",
+    "employer.sortOldest": "申请时间：最早优先",
+    "employer.sortRating": "评分：由高至低",
+    "employer.sortReliability": "可靠度：由高至低",
+    "employer.filterStatusLabel": "状态",
+    "employer.filterAll": "全部申请人",
+    "employer.showingCount": "显示 {total} 位中的 {shown} 位",
+    "employer.noneMatchFilter": "没有符合此筛选条件的申请人",
+    "employer.noneMatchFilterHint": "试试「全部申请人」，或清除排序。",
     "employer.postAShiftTitle": "发布班次",
     "employer.editShiftTitle": "编辑班次",
     "employer.postAShiftSubtitle": "填写班次详情及所需人手",
@@ -11775,6 +11814,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [applicantAction, setApplicantAction] = useState({});
   const [selectedApplicantIds, setSelectedApplicantIds] = useState([]);
   const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [applicantSort, setApplicantSort] = useState("default");
+  const [applicantStatusFilter, setApplicantStatusFilter] = useState("all");
   const [offering, setOffering] = useState(false);
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerProfile, setEmployerProfile] = useState(null);
@@ -13155,6 +13196,40 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   };
 
   // Slots still open on this shift = headcount minus already-accepted workers.
+  // What the applicant pool actually shows, after the employer's filter and
+  // sort. Everything else -- open slots, the bulk-select counter, the "N
+  // applied" badge -- deliberately keeps reading liveApplicants, because those
+  // are facts about the SHIFT and must not change when someone narrows a view.
+  //
+  // Sort is stable: ties keep the order applied, which is the order the query
+  // returns and the only ordering that carries any meaning of its own. Without
+  // that, two workers on the same bid would swap places between renders.
+  const APPLICANT_SORTS = {
+    default:     null,
+    bidLow:      (a, b) => a.wageBid - b.wageBid,
+    bidHigh:     (a, b) => b.wageBid - a.wageBid,
+    newest:      (a, b) => new Date(b.appliedAt || 0) - new Date(a.appliedAt || 0),
+    oldest:      (a, b) => new Date(a.appliedAt || 0) - new Date(b.appliedAt || 0),
+    rating:      (a, b) => (b.rating ?? 0) - (a.rating ?? 0),
+    reliability: (a, b) => (b.reliability ?? 0) - (a.reliability ?? 0),
+  };
+  const visibleApplicants = useMemo(() => {
+    const all = liveApplicants ?? [];
+    // The pill an employer sees is applicantAction[id] when they have just acted
+    // and the row has not reloaded yet, so filter on the same value the card
+    // displays -- otherwise rejecting someone under a "Pending" filter leaves
+    // them on screen labelled "Not selected".
+    const shown = applicantStatusFilter === "all"
+      ? all
+      : all.filter(a => (applicantAction[a.id] || a.status) === applicantStatusFilter);
+    const cmp = APPLICANT_SORTS[applicantSort];
+    if (!cmp) return shown;
+    return shown
+      .map((a, i) => [a, i])
+      .sort((x, y) => cmp(x[0], y[0]) || x[1] - y[1])
+      .map(pair => pair[0]);
+  }, [liveApplicants, applicantAction, applicantSort, applicantStatusFilter]);
+
   const openSlotsRemaining = () => {
     const acceptedCount = (liveApplicants ?? []).filter(a => a.status === 'accepted').length;
     return Math.max(0, (selectedShift?.headcount ?? 1) - acceptedCount);
@@ -13742,7 +13817,59 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 hint={liveApplicants === null ? t("employer.loadingApplicantsHint") : t("employer.noApplicantsHint")}
               />
             )}
-            {(liveApplicants ?? []).length > 0 && (compact ? (
+            {(liveApplicants ?? []).length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
+                <Select
+                  label={t("employer.filterStatusLabel")}
+                  value={applicantStatusFilter}
+                  onChange={e => setApplicantStatusFilter(e.target.value)}
+                  style={{ marginBottom: 0, flex: compact ? "1 1 100%" : "0 0 210px" }}
+                  options={[
+                    { value: "all", label: t("employer.filterAll") },
+                    { value: "pending", label: t("employer.pillPending") },
+                    { value: "shortlisted", label: t("employer.pillShortlisted") },
+                    { value: "offered", label: t("employer.awaitingResponse") },
+                    { value: "accepted", label: t("employer.pillAccepted") },
+                    { value: "rejected", label: t("employer.pillNotSelected") },
+                  ]}
+                />
+                <Select
+                  label={t("employer.sortLabel")}
+                  value={applicantSort}
+                  onChange={e => setApplicantSort(e.target.value)}
+                  style={{ marginBottom: 0, flex: compact ? "1 1 100%" : "0 0 260px" }}
+                  options={[
+                    { value: "default", label: t("employer.sortDefault") },
+                    { value: "bidLow", label: t("employer.sortBidLow") },
+                    { value: "bidHigh", label: t("employer.sortBidHigh") },
+                    { value: "newest", label: t("employer.sortNewest") },
+                    { value: "oldest", label: t("employer.sortOldest") },
+                    { value: "rating", label: t("employer.sortRating") },
+                    { value: "reliability", label: t("employer.sortReliability") },
+                  ]}
+                />
+                {/* Only when the two differ. A count that always reads "3 of 3"
+                    is noise the employer learns to stop reading. */}
+                {visibleApplicants.length !== (liveApplicants ?? []).length && (
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, paddingBottom: 10 }}>
+                    {t("employer.showingCount")
+                      .replace("{shown}", visibleApplicants.length)
+                      .replace("{total}", (liveApplicants ?? []).length)}
+                  </div>
+                )}
+              </div>
+            )}
+            {/* Distinct from "no applicants yet": there ARE applicants, this
+                filter just excludes all of them. Telling someone their shift has
+                no applicants when it has six would be a lie the UI told. */}
+            {(liveApplicants ?? []).length > 0 && visibleApplicants.length === 0 && (
+              <EmptyState
+                icon="🔍"
+                title={t("employer.noneMatchFilter")}
+                hint={t("employer.noneMatchFilterHint")}
+              />
+            )}
+            {visibleApplicants.length > 0 && (compact ? (
               /* Mobile: this was a 723px table inside a 341px viewport, so it
                  scrolled sideways and everything past the worker's name -- bid,
                  rating, and the accept/reject buttons -- sat off-screen. One
@@ -13750,7 +13877,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                  in a single glance. Same helpers as the table below it, so the
                  two cannot drift apart. */
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {(liveApplicants ?? []).map(a => {
+                {visibleApplicants.map(a => {
                   const action = applicantAction[a.id] || a.status;
                   const isSelectable = ['pending', 'shortlisted'].includes(action);
                   const isChecked = selectedApplicantIds.includes(a.id);
@@ -13810,7 +13937,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </tr>
               </thead>
               <tbody>
-                {(liveApplicants ?? []).map(a => {
+                {visibleApplicants.map(a => {
                   const action = applicantAction[a.id] || a.status;
                   const isSelectable = ['pending', 'shortlisted'].includes(action);
                   const isChecked = selectedApplicantIds.includes(a.id);

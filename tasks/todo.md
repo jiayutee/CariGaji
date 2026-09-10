@@ -85,3 +85,7 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       shared render helpers so the two layouts cannot drift. Also stacked the
       shift-detail action row on mobile — it was the last 654px element on the
       screen. Shift detail now has zero elements wider than 375px.
+- [x] Applicant pool filter + sort. Sort: default / bid low / bid high / newest /
+      oldest / rating / reliability (stable — ties keep the order applied).
+      Filter: by status. Both layouts read one derived list; shift facts (open
+      slots, bulk counter, "N applied") stay on the unfiltered list.
