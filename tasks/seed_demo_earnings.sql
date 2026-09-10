@@ -101,6 +101,35 @@ where idempotency_key like 'demo-earnings-%'
   and worker_id = (select id from auth.users where lower(email) = lower('jiayutee97@gmail.com'))
 order by scheduled_date;
 
+-- ── OPTIONAL: give the demo rows a real shift, for a fuller payment slip ────
+-- The rows above carry no shift_id, so the Earnings list shows them as
+-- "Completed shift" and the payment slip has nothing to put under Job,
+-- Employer or Where. That is correct -- inventing a shift they did not work
+-- would be worse -- but if this account HAS worked a shift, pointing the demo
+-- rows at it makes the slip render in full.
+--
+-- Only ever picks a shift this worker actually had an accepted application on.
+-- Safe to skip, and safe to re-run.
+--
+-- do $$
+-- declare v_worker uuid; v_shift uuid; v_n int;
+-- begin
+--   select id into v_worker from auth.users where lower(email) = lower('jiayutee97@gmail.com');
+--   select a.shift_id into v_shift
+--     from public.applications a
+--    where a.worker_id = v_worker and a.status = 'accepted'
+--    order by a.applied_at desc limit 1;
+--   if v_shift is null then
+--     raise notice 'No accepted application for this account — leaving the demo rows unlinked.';
+--     return;
+--   end if;
+--   update public.payout_item
+--      set source_refs = source_refs || jsonb_build_object('shift_id', v_shift, 'hours', 6)
+--    where worker_id = v_worker and idempotency_key like 'demo-earnings-%';
+--   get diagnostics v_n = row_count;
+--   raise notice 'Linked % demo payout(s) to shift %.', v_n, v_shift;
+-- end $$;
+
 -- ── ROLLBACK — run this once you have seen the screen ───────────────────────
 -- Removes exactly what the block above created and nothing else: the payout
 -- items by their tagged key, then only those cycles this script created that no
