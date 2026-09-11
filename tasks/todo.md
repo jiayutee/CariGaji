@@ -135,3 +135,22 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
 - [x] Pluralisation: the card read "1 shifts done" as soon as the count became
       real — the hardcoded 0 had hidden it. Now uses the existing {plural} +
       common.pluralSuffix pattern.
+
+## 2026-09-12 — the two unverified rating items, now verified
+- [x] EMPLOYER -> WORKER rating: inserted live. overall 4.7, computed by the
+      trigger from 6 aspects, propagated to profiles.rating (was 0).
+- [x] WORKER -> EMPLOYER rating: inserted live. overall 4.5, propagated. This is
+      the direction that had never been exercised.
+- [x] unique(application_id, direction) holds — a second same-direction insert
+      returns 409.
+- [x] UI closes the loop: on the completed shift the Rate button is GONE for the
+      rated worker, View contract / File a Dispute remain, card reads
+      "1 shift done", status Completed.
+- [ ] OWNER: run 20260912b (corrected — revokes from public AND anon; the first
+      draft revoked anon only, which leaves EXECUTE via the PUBLIC grant).
+- NOTE: verifying this required building the condition, because no account I
+  hold was a worker on a completed shift. Left behind permanently in QA data:
+  shift "RATINGS QA probe" (c95d42aa, 2026-09-08, completed), one accepted
+  application, and two ratings. Not removable — ratings has no DELETE policy and
+  guard_delete_of_booked_shift blocks deleting a shift that has applications.
+  Test Worker One now shows rating 4.7, Test Employer Two 4.5.
