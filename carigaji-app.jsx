@@ -49,6 +49,35 @@ const occurrenceHours = (occ) => {
 };
 const totalOccurrenceHours = (occurrences) => (occurrences ?? []).reduce((sum, occ) => sum + occurrenceHours(occ), 0);
 
+// When a shift actually FINISHES: the last occurrence's end, in Malaysia time,
+// with an occurrence ending at or before its start treated as running past
+// midnight -- the same +24h wrap occurrenceHours applies. This is the client
+// mirror of public.shift_ends_at() (20260911); the two must agree, which is why
+// the rule lives here once rather than inline at the call site.
+//
+// NOT end_at: that column mirrors the EARLIEST occurrence (20260712d), so on a
+// Sat + Mon shift it says Saturday. It is only the fallback, for a shift whose
+// occurrences carry nothing parseable.
+//
+// Returns null when nothing can be read. Callers treat null as "cannot tell"
+// and must leave such a shift alone -- never hide one on a guess.
+//
+// Malaysia is fixed UTC+8 with no DST, so the literal offset is exact, and it
+// is already how this file builds KL timestamps (see the post-shift form).
+const shiftLastEndsAt = (occurrences, endAt = null) => {
+  let last = null;
+  for (const occ of occurrences ?? []) {
+    if (!occ?.date || !occ?.start || !occ?.end) continue;
+    const t = new Date(`${occ.date}T${occ.end}:00+08:00`);
+    if (Number.isNaN(t.getTime())) continue;
+    if (occ.end <= occ.start) t.setDate(t.getDate() + 1);   // runs past midnight
+    if (!last || t > last) last = t;
+  }
+  if (last) return last;
+  const fallback = endAt ? new Date(endAt) : null;
+  return fallback && !Number.isNaN(fallback.getTime()) ? fallback : null;
+};
+
 // Estimated late-cancellation payout for a given multiplier (0.5 for the
 // contract_50 choice, 1.0 for show_up_100) — mirrors create_cancellation_payout
 // in 20260717h exactly (same floor of 0.25h, same round-to-2dp), so the
@@ -9044,6 +9073,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
           endTime: shiftHHMM(s.end_at),
+          // Raw, for shiftLastEndsAt's fallback. Everything above is a
+          // display string and cannot be compared against the clock.
+          endAt: s.end_at ?? null,
           date: formatShiftDate(s.start_at),
         })));
       })
@@ -9369,6 +9401,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   );
   const filtered = useMemo(() => {
     let s = shiftsSource.filter(x => !hiddenShiftIds.has(x.id));
+    // A shift that has already finished is not browsable, whatever its status
+    // still says. It normally leaves the feed when complete_ended_shifts()
+    // flips it to 'completed' -- but that sweep only runs when a SIGNED-IN user
+    // loads a portal (no pg_cron, and anon's EXECUTE was revoked 2026-09-12),
+    // so a signed-out visitor could see a finished shift listed as open until
+    // somebody signed in. Checking the clock here makes the feed right
+    // regardless of who has visited, instead of depending on it.
+    // null means the dates could not be read: leave it visible rather than
+    // hide a shift on a guess.
+    s = s.filter(x => {
+      const ended = shiftLastEndsAt(x.occurrences, x.endAt);
+      return !ended || ended > new Date();
+    });
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
     if (filterCity) s = s.filter(x => resolveCity(x.location) === filterCity);
     if (filterArea) s = s.filter(x => x.location.toLowerCase().includes(filterArea.toLowerCase()));

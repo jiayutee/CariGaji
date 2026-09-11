@@ -162,3 +162,6 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
   application, and two ratings. Not removable — ratings has no DELETE policy and
   guard_delete_of_booked_shift blocks deleting a shift that has applications.
   Test Worker One now shows rating 4.7, Test Employer Two 4.5.
+- [x] Discover now hides finished shifts client-side (shiftLastEndsAt), so the
+      feed is correct regardless of whether anyone has triggered the sweep. This
+      closes the gap the anon revoke left for signed-out visitors.
