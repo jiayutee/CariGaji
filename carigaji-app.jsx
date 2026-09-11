@@ -8760,6 +8760,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     const loadApplications = async () => {
       if (!user) return setLiveApplications(null);
+      // Complete any shift whose last occurrence has ended, BEFORE reading.
+      // Ratings, disputes and "shifts done" all key off status = 'completed',
+      // and nothing else ever set it (20260911). No pg_cron here, so this is
+      // the sweep. Best-effort on purpose: until that migration is applied the
+      // RPC does not exist, and loading must not depend on it.
+      try { await supabase.rpc('complete_ended_shifts'); } catch { /* sweep is best-effort */ }
       const { data, error } = await supabase
         .from('applications')
         .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
@@ -12404,6 +12410,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // published shift didn't appear until the next full reload.
   const loadEmployerShifts = useCallback(async () => {
     if (!user) return setLiveEmployerShifts(null);
+    // Complete any shift whose last occurrence has ended, BEFORE reading.
+    // Ratings, disputes and "shifts done" all key off status = 'completed',
+    // and nothing else ever set it (20260911). No pg_cron here, so this is
+    // the sweep. Best-effort on purpose: until that migration is applied the
+    // RPC does not exist, and loading must not depend on it.
+    try { await supabase.rpc('complete_ended_shifts'); } catch { /* sweep is best-effort */ }
     const { data, error } = await supabase
       .from('shifts')
       .select('id, title, category, location, dress_code, transport_allowance, description, start_at, end_at, occurrences, headcount, filled_count, status, language_requirements, wage_max, applications_close_at, platform_fee_pct')

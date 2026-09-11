@@ -94,3 +94,15 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       style. Discover converted to the same primitives. `discover.filtersLabel` /
       `hideFiltersLabel` / `clearAll` renamed to `filters.*` since they are no
       longer Discover-only.
+
+## 2026-09-11 — shifts never became 'completed'
+- [x] Reported: employers cannot rate workers after a shift ends. Root cause was
+      not in the rating code — shifts.status='completed' is required by ~10
+      features (both rating directions, disputes, "shifts done", the rate
+      prompts) and NOTHING ever wrote it. Live: 6 shifts, all 'open', 4 over.
+- [x] 20260911_complete_ended_shifts.sql: shift_ends_at() (last occurrence, KL
+      time, overnight wrap) + parameterless complete_ended_shifts() sweep +
+      one-off backfill + self-test. No pg_cron here, so both portals call the
+      sweep on load, best-effort.
+- [ ] OWNER: run the migration. Then verify live: stale shifts -> completed,
+      employer can insert a rating.
