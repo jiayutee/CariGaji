@@ -146,8 +146,16 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
 - [x] UI closes the loop: on the completed shift the Rate button is GONE for the
       rated worker, View contract / File a Dispute remain, card reads
       "1 shift done", status Completed.
-- [ ] OWNER: run 20260912b (corrected — revokes from public AND anon; the first
-      draft revoked anon only, which leaves EXECUTE via the PUBLIC grant).
+- [x] OWNER ran 20260912b 2026-09-12. Verified live: anon -> 42501 "permission
+      denied for function complete_ended_shifts" (HTTP 401); authenticated still
+      200; platform_fee_pct (which the signed-out landing reads) untouched at
+      0.1500. Employer console loads and the probe shift is still completed.
+      Signed-out landing renders, Discover lists shifts, and the completed probe
+      shift is correctly absent from it.
+      Confirmed by observation, not by reading the guard: on a signed-out load
+      the only RPCs called are platform_fee_pct and
+      get_public_employer_trust_signals -- complete_ended_shifts is never called
+      by anon, so the revoke produces no 401s on the visitor path.
 - NOTE: verifying this required building the condition, because no account I
   hold was a worker on a completed shift. Left behind permanently in QA data:
   shift "RATINGS QA probe" (c95d42aa, 2026-09-08, completed), one accepted
