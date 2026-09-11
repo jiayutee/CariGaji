@@ -116,3 +116,14 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       signed-out Discover visitors too. Lock it with
       `revoke execute on function public.complete_ended_shifts() from anon;`
       if you would rather it were authenticated-only.
+
+## 2026-09-12 — "N shifts done" was a hardcoded zero
+- [x] carigaji-app.jsx mapped every applicant with `completedShifts: 0`, so the
+      employer's applicant card read "0 shifts done" for everyone, always.
+      Separate defect from the completed-shifts fix; found while verifying it.
+- [x] 20260912_worker_completed_shift_counts.sql: SECURITY DEFINER count, scoped
+      to workers who have applied to the caller's own shifts. RLS cannot compute
+      this client-side (employers see only their own shifts' applications), so a
+      client count would have silently meant "shifts done with me".
+- [ ] OWNER: run the migration. Until then every card keeps showing 0, which is
+      today's behaviour — verified the pool still renders with the RPC 404ing.

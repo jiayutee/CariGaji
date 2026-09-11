@@ -12905,6 +12905,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           qualificationsOther: a.worker?.qualifications_other ?? "",
           wage: Number(a.wage_ask),
           wageBid: Number(a.wage_ask),
+          // Placeholder. RLS cannot count this client-side -- an employer only
+          // sees applications on their OWN shifts -- so the real number is
+          // filled in below from worker_completed_shift_counts(). 0 until then,
+          // which is also the fallback if that function is not deployed yet.
           completedShifts: 0,
           status: a.status,
           appliedAt: a.applied_at,
@@ -12935,6 +12939,26 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         // reorders verified workers ahead of unverified ones.
         mapped.sort((x, y) => (y.verified ? 1 : 0) - (x.verified ? 1 : 0));
         setLiveApplicants(mapped);
+
+        // Real "N shifts done", patched in after the pool is already on screen.
+        // Deliberately not awaited before the first render: the count is a
+        // secondary signal and holding the whole applicant list behind a second
+        // round trip to show it would be the wrong trade. Best-effort -- if the
+        // function is missing or errors, every card keeps the 0 it has now,
+        // which is exactly today's behaviour.
+        const workerIds = [...new Set(mapped.map(a => a.workerId).filter(Boolean))];
+        if (workerIds.length) {
+          supabase.rpc('worker_completed_shift_counts', { p_worker_ids: workerIds })
+            .then(({ data: counts, error: countError }) => {
+              if (!active || countError || !counts) return;
+              const byWorker = new Map(counts.map(c => [c.worker_id, c.completed_shifts]));
+              // Workers with none are omitted by the function rather than
+              // returned as 0, so default here instead of trusting a lookup.
+              setLiveApplicants(prev => (prev ?? []).map(a => (
+                { ...a, completedShifts: byWorker.get(a.workerId) ?? 0 }
+              )));
+            });
+        }
       });
     return () => { active = false; };
   }, [selectedShift]);
