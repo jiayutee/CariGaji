@@ -104,5 +104,15 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       time, overnight wrap) + parameterless complete_ended_shifts() sweep +
       one-off backfill + self-test. No pg_cron here, so both portals call the
       sweep on load, best-effort.
-- [ ] OWNER: run the migration. Then verify live: stale shifts -> completed,
-      employer can insert a rating.
+- [x] OWNER ran it 2026-09-12. Verified live: 6 shifts -> 2 open / 4 completed,
+      "ended but still open" = 0; shift_ends_at returns the LAST occurrence and
+      wraps overnight; the completed shift now renders Rate + File a Dispute for
+      both accepted workers, and the dashboard rate prompt is back.
+- [ ] Decide: anon can EXECUTE complete_ended_shifts. Not introduced by that
+      migration — Supabase default privileges grant EXECUTE to anon explicitly,
+      so `revoke from public` does not remove it. Confirmed project-wide: anon
+      can also call is_shift_chat_member and platform_fee_pct. Harmless here (no
+      arguments, only the correct transition) and it makes the sweep run for
+      signed-out Discover visitors too. Lock it with
+      `revoke execute on function public.complete_ended_shifts() from anon;`
+      if you would rather it were authenticated-only.
