@@ -1393,7 +1393,7 @@ const TRANSLATIONS = {
     "employer.colBidRate": "Bid (RM/h)",
     "employer.colStatus": "Status",
     "employer.colAction": "Action",
-    "employer.shiftsDoneSuffix": "shifts done",
+    "employer.shiftsDoneSuffix": "shift{plural} done",
     "employer.awaitingResponse": "Awaiting response",
     "employer.shortlistBtn": "Shortlist",
     "employer.selectBtn": "Select",
@@ -13591,7 +13591,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <span title={t("employer.applicantVerifiedTitle")} role="img" aria-label={t("employer.applicantVerifiedTitle")} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: "#fff", fontSize: 9, lineHeight: 1, flexShrink: 0 }}>✓</span>
           )}
         </div>
-        <div style={{ fontSize: 11, color: BRAND.textMuted }}>{a.completedShifts} {t("employer.shiftsDoneSuffix")}</div>
+        {/* Same {plural} shape as positionsOpenHint and offerToWorkers. This
+            read "1 shifts done" the moment the count stopped being hardcoded --
+            the zero had been hiding the plural bug, since "0 shifts" is right. */}
+        <div style={{ fontSize: 11, color: BRAND.textMuted }}>
+          {a.completedShifts}{" "}
+          {t("employer.shiftsDoneSuffix").replace("{plural}", a.completedShifts === 1 ? "" : t("common.pluralSuffix"))}
+        </div>
         {/* This worker signed, then the employer changed the terms -- the slot
             is NOT confirmed until they re-accept. Shown here so the employer can
             see the slot is at risk while there's still time to backfill it. */}

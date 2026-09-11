@@ -127,3 +127,11 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       client count would have silently meant "shifts done with me".
 - [ ] OWNER: run the migration. Until then every card keeps showing 0, which is
       today's behaviour — verified the pool still renders with the RPC 404ing.
+- [x] OWNER ran it 2026-09-12. Verified live: RPC returns 1 for each of the two
+      accepted workers on the completed shift; a worker who never applied to that
+      employer is omitted; a different employer asking about those same workers
+      gets []. UI shows "1 shift done / 1 shift done / 0 shifts done" (the third
+      is the pending applicant).
+- [x] Pluralisation: the card read "1 shifts done" as soon as the count became
+      real — the hardcoded 0 had hidden it. Now uses the existing {plural} +
+      common.pluralSuffix pattern.
