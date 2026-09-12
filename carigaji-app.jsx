@@ -11016,8 +11016,18 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
                           {isMe ? 'You' : (chatSenderNames[msg.sender_id] || 'Member')}
                         </div>
+                        {/* The incoming bubble had a fill and no edge: grayLight is
+                            #F9FAFB on a #FFFFFF surface -- 1.05:1, a shape nobody
+                            can see. Mine reads because #2563EB is 5.17:1 against
+                            the same surface, which is why only one side looked
+                            like it had bubbles. Dark mode was the same fault
+                            mirrored (#0F172A on #111827).
+                            A border is the fix rather than a darker fill: it gives
+                            the bubble an edge in both themes without touching the
+                            text contrast, which already passes. */}
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                          background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
+                          background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14,
+                          border: isMe ? '1px solid transparent' : `1px solid ${BRAND.border}`}}>
                           <div>{msg.content}</div>
                           {/* Hovering gives the unabbreviated date and time, so
                               anyone reconciling a conversation against a shift
@@ -15253,8 +15263,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         <div style={{fontSize:11, fontWeight:600, color:BRAND.textMuted, margin: isMe ? '0 2px 2px 0' : '0 0 2px 2px'}}>
                           {isMe ? 'You' : (chatSenderNames[msg.sender_id] || 'Member')}
                         </div>
+                        {/* The incoming bubble had a fill and no edge: grayLight is
+                            #F9FAFB on a #FFFFFF surface -- 1.05:1, a shape nobody
+                            can see. Mine reads because #2563EB is 5.17:1 against
+                            the same surface, which is why only one side looked
+                            like it had bubbles. Dark mode was the same fault
+                            mirrored (#0F172A on #111827).
+                            A border is the fix rather than a darker fill: it gives
+                            the bubble an edge in both themes without touching the
+                            text contrast, which already passes. */}
                         <div style={{maxWidth:'75%', padding:'8px 12px', borderRadius: isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                          background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14}}>
+                          background: isMe ? BRAND.primary : BRAND.grayLight, color: isMe ? '#fff' : BRAND.text, fontSize:14,
+                          border: isMe ? '1px solid transparent' : `1px solid ${BRAND.border}`}}>
                           <div>{msg.content}</div>
                           {/* Hovering gives the unabbreviated date and time, so
                               anyone reconciling a conversation against a shift
@@ -16824,6 +16844,8 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
                 borderRadius: isMe ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
                 background: isMe ? BRAND.primary : BRAND.grayLight,
                 color: isMe ? "#fff" : BRAND.text,
+                // Same invisible-bubble fix as the shift chat above.
+                border: isMe ? "1px solid transparent" : `1px solid ${BRAND.border}`,
                 whiteSpace: "pre-wrap",
               }}>
                 {m.content}

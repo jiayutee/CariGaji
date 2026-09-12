@@ -195,3 +195,6 @@ Revisit when: a few hundred completed shifts AND simultaneous reveal + a review
 window + report/appeal flow + a written policy + a named person handling
 reports. Get a legal read on Malaysian defamation exposure first (marketing.md
 already routes this class of question to a lawyer).
+- [x] Chat: incoming bubbles had a fill and no edge (grayLight #F9FAFB on #FFFFFF
+      = 1.05:1), so only the sender's blue bubble looked like a bubble. Added a
+      1px border in all three chat copies. Light edge 1.24:1, dark 1.34:1.
