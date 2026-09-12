@@ -165,3 +165,33 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
 - [x] Discover now hides finished shifts client-side (shiftLastEndsAt), so the
       feed is correct regardless of whether anyone has triggered the sweep. This
       closes the gap the anon revoke left for signed-out visitors.
+
+## Written ratings — ON HOLD (decided 2026-09-12)
+Owner's call: not now. Recorded so the reasoning does not have to be re-derived.
+
+- Blocked on capability, not effort: free text about a named person needs a
+  report queue, a content policy, and someone to action reports. None exist.
+- Two-sided prose needs simultaneous reveal (neither side sees the other's until
+  both submit or the window closes), or it becomes a retaliation weapon after a
+  dispute or a no-show report. That changes the one-rating-per-booking flow, so
+  it is a design requirement rather than a later add-on.
+- Density: under ~100 completed shifts most profiles would show zero reviews,
+  which reads worse than showing none.
+- Not the bottleneck. Fill rate is; the launch gates are SSM, bank account,
+  payment rail, KYC.
+
+Worth knowing: ratings today are PRIVATE (RLS: rater or ratee only). So there
+are two separate products here — FEEDBACK (text the rated person sees, low risk)
+and REVIEWS (text future counterparties see, all the risk above). Easy to
+conflate.
+
+Cheaper 80% if this comes back: structured TAGS instead of prose ("early",
+"took initiative", "clear instructions", "paid on time"). Nothing to moderate,
+translates across en/bm/zh where free text will not, machine-usable for matching
+later, and it fits the existing schema as another key in ratings.aspects.
+Optionally plus a private admin-only note for early warning on problem accounts.
+
+Revisit when: a few hundred completed shifts AND simultaneous reveal + a review
+window + report/appeal flow + a written policy + a named person handling
+reports. Get a legal read on Malaysian defamation exposure first (marketing.md
+already routes this class of question to a lawyer).
