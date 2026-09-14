@@ -682,6 +682,7 @@ const TRANSLATIONS = {
     "shiftDetail.notApplicable": "N/A",
     "shiftDetail.yourBid": "Your bid",
     "myBids.transportAllowanceRow": "🚌 Transport allowance",
+    "myBids.employerLabel": "🏢 Employer",
     "myBids.employerRangeRow": "💰 Employer range",
     "myBids.shortlistedBanner": "🎉 You've been shortlisted! Open chat to discuss and receive your offer.",
     "myBids.loadingBids": "Loading your bids…",
@@ -1316,6 +1317,7 @@ const TRANSLATIONS = {
     "filters.label": "Filters",
     "filters.hide": "Hide Filters",
     "discover.verifiedEmployerTooltip": "SSM-verified employer",
+    "discover.viewEmployerRatings": "View this employer's ratings",
     "discover.welcomeBack": "Welcome back, {name} 👋",
     "discover.subtitleLoggedIn": "Find shifts near you — bid your rate",
     "discover.browseHeading": "Browse open shifts",
@@ -1591,6 +1593,7 @@ const TRANSLATIONS = {
     "employer.companyDetailsTitle": "Company Details",
     "employer.profilePhotoTitle": "Profile photo",
     "employer.profilePhotoHint": "A company logo or a clear photo of the hiring contact. Workers see this next to your name when they open one of your shifts.",
+    "employer.noRatingsHint": "Ratings from workers will appear here once shifts you post are completed.",
     "employer.personalDetailsHint": "Your own contact and identity details as the hiring contact — separate from your company's registration above.",
     "employer.viewContractBtn": "View contract",
     "employer.viewWorkerProfileHint": "View worker profile",
@@ -1978,6 +1981,7 @@ const TRANSLATIONS = {
     "shiftDetail.notApplicable": "T/B",
     "shiftDetail.yourBid": "Tawaran anda",
     "myBids.transportAllowanceRow": "🚌 Elaun pengangkutan",
+    "myBids.employerLabel": "🏢 Majikan",
     "myBids.employerRangeRow": "💰 Julat majikan",
     "myBids.shortlistedBanner": "🎉 Anda telah disenarai pendek! Buka sembang untuk berbincang dan terima tawaran anda.",
     "myBids.loadingBids": "Memuatkan tawaran anda…",
@@ -2604,6 +2608,7 @@ const TRANSLATIONS = {
     "filters.label": "Penapis",
     "filters.hide": "Sembunyi Penapis",
     "discover.verifiedEmployerTooltip": "Majikan disahkan SSM",
+    "discover.viewEmployerRatings": "Lihat penilaian majikan ini",
     "discover.welcomeBack": "Selamat kembali, {name} 👋",
     "discover.subtitleLoggedIn": "Cari syif berhampiran anda — buat bidaan anda",
     "discover.browseHeading": "Layari syif terbuka",
@@ -2879,6 +2884,7 @@ const TRANSLATIONS = {
     "employer.companyDetailsTitle": "Butiran Syarikat",
     "employer.profilePhotoTitle": "Gambar profil",
     "employer.profilePhotoHint": "Logo syarikat atau gambar jelas orang yang mengambil pekerja. Pekerja melihat ini di sebelah nama anda apabila mereka membuka syif anda.",
+    "employer.noRatingsHint": "Penilaian daripada pekerja akan dipaparkan di sini setelah syif yang anda siarkan selesai.",
     "employer.personalDetailsHint": "Butiran hubungan dan identiti anda sendiri sebagai orang yang mengambil pekerja — berasingan daripada pendaftaran syarikat di atas.",
     "employer.viewContractBtn": "Lihat kontrak",
     "employer.viewWorkerProfileHint": "Lihat profil pekerja",
@@ -3266,6 +3272,7 @@ const TRANSLATIONS = {
     "shiftDetail.notApplicable": "不适用",
     "shiftDetail.yourBid": "您的出价",
     "myBids.transportAllowanceRow": "🚌 交通津贴",
+    "myBids.employerLabel": "🏢 雇主",
     "myBids.employerRangeRow": "💰 雇主薪资范围",
     "myBids.shortlistedBanner": "🎉 您已入围！打开聊天以讨论详情并接收录用通知。",
     "myBids.loadingBids": "正在加载您的出价…",
@@ -3891,6 +3898,7 @@ const TRANSLATIONS = {
     "filters.label": "筛选条件",
     "filters.hide": "隐藏筛选条件",
     "discover.verifiedEmployerTooltip": "SSM 认证雇主",
+    "discover.viewEmployerRatings": "查看该雇主的评分",
     "discover.welcomeBack": "欢迎回来，{name} 👋",
     "discover.subtitleLoggedIn": "寻找附近的班次 — 出价争取工作机会",
     "discover.browseHeading": "浏览开放中的班次",
@@ -4166,6 +4174,7 @@ const TRANSLATIONS = {
     "employer.companyDetailsTitle": "公司详情",
     "employer.profilePhotoTitle": "头像",
     "employer.profilePhotoHint": "公司标志或招聘联络人的清晰照片。员工在查看您的班次时，会在您的名字旁看到此图片。",
+    "employer.noRatingsHint": "员工对您的评分将在您发布的班次完成后显示于此。",
     "employer.personalDetailsHint": "您作为招聘联络人的个人联络方式及身份信息 — 与上方的公司注册资料是分开的。",
     "employer.viewContractBtn": "查看合同",
     "employer.viewWorkerProfileHint": "查看员工个人资料",
@@ -10657,7 +10666,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         </div>
                         <div style={{ fontWeight: 700, fontSize: isMobile ? 13 : 15, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
                         <div style={{ fontSize: isMobile ? 11 : 12, color: BRAND.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
-                          {s.employer}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // card itself opens the shift; this opens the employer's ratings instead
+                              if (!user) { onRequireAuth("signin"); return; }
+                              openRatingDetails(s.employerId, "worker_to_employer", s.employer);
+                            }}
+                            title={t("discover.viewEmployerRatings")}
+                            style={{ border: "none", background: "none", padding: 0, margin: 0, font: "inherit", color: "inherit", cursor: "pointer", textDecoration: "underline", textDecorationColor: "transparent" }}
+                            onMouseEnter={e => e.currentTarget.style.textDecorationColor = BRAND.textMuted}
+                            onMouseLeave={e => e.currentTarget.style.textDecorationColor = "transparent"}
+                          >
+                            {s.employer}
+                          </button>
                           {s.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 700 }}>✓</span>}
                         </div>
                       </div>
@@ -10807,7 +10828,18 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 2 }}>{a.shiftTitle}</div>
-                      <div style={{ fontSize: 12, color: BRAND.textMuted }}>{a.employer} · {a.isMultiDay ? formatOccurrencesSummary(a.shiftOccurrences) : a.date}</div>
+                      <div style={{ fontSize: 12, color: BRAND.textMuted }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openRatingDetails(a.employerId, "worker_to_employer", a.employer); }}
+                          title={t("discover.viewEmployerRatings")}
+                          style={{ border: "none", background: "none", padding: 0, margin: 0, font: "inherit", color: "inherit", cursor: "pointer", textDecoration: "underline", textDecorationColor: "transparent" }}
+                          onMouseEnter={e => e.currentTarget.style.textDecorationColor = BRAND.textMuted}
+                          onMouseLeave={e => e.currentTarget.style.textDecorationColor = "transparent"}
+                        >
+                          {a.employer}
+                        </button>
+                        {" · "}{a.isMultiDay ? formatOccurrencesSummary(a.shiftOccurrences) : a.date}
+                      </div>
                     </div>
                     <Pill
                       label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
@@ -11051,6 +11083,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
               {[
+                [t("myBids.employerLabel"), (
+                  <button
+                    onClick={() => openRatingDetails(a.employerId, "worker_to_employer", a.employer)}
+                    title={t("discover.viewEmployerRatings")}
+                    style={{ border: "none", background: "none", padding: 0, margin: 0, font: "inherit", fontWeight: 500, color: BRAND.primaryOnSurface, cursor: "pointer", textDecoration: "underline" }}
+                  >
+                    {a.employer}
+                  </button>
+                )],
                 [t("shiftDetail.location"), a.shiftLocation || t("shiftDetail.tba")],
                 a.isMultiDay
                   ? [t("employer.labelSchedule"), a.shiftOccurrences.map(o => formatOccurrenceLine(o, { weekday: 'short', day: 'numeric', month: 'short' })).join(' · ')]
@@ -11133,13 +11174,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {a.status === "accepted" && a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
                 <Btn variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: a.shiftTitle, rateeId: a.employerId, direction: 'worker_to_employer' }); }} style={{ flex: 1, justifyContent: "center" }}>{t("rating.rateBtn")}</Btn>
               )}
-              {canFileDispute(a) && !myDisputedApplicationIds.has(a.id) && (
-                <Btn variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.fileDisputeBtn")}</Btn>
-              )}
-              {a.shiftStatus === "completed" && myDisputedApplicationIds.has(a.id) && (
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: BRAND.textMuted }}>{t("myBids.disputeAlreadyFiledBadge")}</div>
-              )}
             </div>
+            {/* Deliberately its own small row, separated from the primary
+                actions above rather than sharing their flex:1 row -- it used
+                to sit directly beside Check In at the same size, and an
+                infrequent, hard-to-undo action next to a frequent one invites
+                a mis-tap. Kept reachable, not equally weighted. */}
+            {canFileDispute(a) && !myDisputedApplicationIds.has(a.id) && (
+              <div style={{ marginTop: 10, textAlign: "right" }}>
+                <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle })}>{t("myBids.fileDisputeBtn")}</Btn>
+              </div>
+            )}
+            {a.shiftStatus === "completed" && myDisputedApplicationIds.has(a.id) && (
+              <div style={{ marginTop: 10, textAlign: "right", fontSize: 12, fontWeight: 600, color: BRAND.textMuted }}>{t("myBids.disputeAlreadyFiledBadge")}</div>
+            )}
           </div>
           );
         })()}
@@ -12496,6 +12544,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // Same duplicate-dispute guard as WorkerPortal (see there for why) —
   // application_ids this employer has already filed a dispute for.
   const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Set());
+  // Employer's OWN received ratings (workers rating this employer), for the
+  // Account screen -- mirrors WorkerPortal's myReceivedRatings, same RPC,
+  // opposite direction. Employer had no self-rating view at all before this.
+  const [myEmployerRatings, setMyEmployerRatings] = useState(null);
+  useEffect(() => {
+    if (view !== "account" || !user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_ratee_ratings', { p_ratee_id: user.id, p_direction: 'worker_to_employer' });
+        if (!cancelled) setMyEmployerRatings(error ? [] : (data ?? []));
+      } catch {
+        if (!cancelled) setMyEmployerRatings([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [view, user]);
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
@@ -15288,6 +15353,36 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
                 <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>{t("employer.profilePhotoHint")}</div>
               </div>
+            </Card>
+            {/* Mirrors WorkerPortal's own "Recent Ratings" card -- same RPC
+                (get_ratee_ratings), opposite direction. Employer had no
+                self-rating view of any kind before this. */}
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
+              {myEmployerRatings === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
+              {myEmployerRatings && myEmployerRatings.length === 0 && (
+                <EmptyState icon="⭐" title={t("profile.noRatingsTitle")} hint={t("employer.noRatingsHint")} />
+              )}
+              {myEmployerRatings && myEmployerRatings.length > 0 && (
+                <>
+                  {RATING_ASPECTS.worker_to_employer.map(asp => {
+                    const scores = myEmployerRatings.map(r => r.aspects?.[asp.value]).filter(v => typeof v === "number");
+                    const avg = scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : null;
+                    return (
+                      <div key={asp.value} style={{ marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, color: BRAND.text }}>{t(asp.labelKey)}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: BRAND.accent }}>{avg != null ? avg.toFixed(1) : "—"}</span>
+                        </div>
+                        <Progress value={avg != null ? (avg / 5) * 100 : 0} color={BRAND.accent} />
+                      </div>
+                    );
+                  })}
+                  <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>
+                    {t("profile.rating")}: {(myEmployerRatings.reduce((s, r) => s + (r.overall || 0), 0) / myEmployerRatings.length).toFixed(1)} ({myEmployerRatings.length})
+                  </div>
+                </>
+              )}
             </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, gap: 12 }}>
