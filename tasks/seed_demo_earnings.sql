@@ -135,14 +135,44 @@ order by scheduled_date;
 -- items by their tagged key, then only those cycles this script created that no
 -- other row still points at.
 --
+-- ⚠️  THIS BLOCK IS COMMENTED OUT ON PURPOSE, so that pasting the whole file
+--     seeds without immediately deleting what it just seeded. That means you
+--     MUST STRIP THE LEADING "-- " before running it. Pasting it as-is executes
+--     nothing but comments, and Postgres reports SUCCESS with no rows affected
+--     -- indistinguishable from a rollback that worked. This exact mistake was
+--     made on 2026-09-13: the rollback was "run", reported no error, and all 6
+--     demo rows plus 5 demo cycles were still present afterwards.
+--
+--     ALWAYS confirm with the verification query at the bottom. Do not treat
+--     "no error" as proof.
+--
 -- do $$
--- declare v_worker uuid;
+-- declare v_worker uuid; v_items int; v_cycles int;
 -- begin
 --   select id into v_worker from auth.users where lower(email) = lower('jiayutee97@gmail.com');
+--   -- Guard: without this, a missed email makes worker_id = NULL, which matches
+--   -- no row, so the delete silently removes nothing and still says success.
+--   if v_worker is null then
+--     raise exception 'No account with that email -- nothing deleted.';
+--   end if;
 --   delete from public.payout_item
 --    where worker_id = v_worker and idempotency_key like 'demo-earnings-%';
+--   get diagnostics v_items = row_count;
 --   delete from public.payout_cycle c
 --    where c.holiday_source_version = 'demo-seed'
 --      and not exists (select 1 from public.payout_item p where p.payout_cycle_id = c.id);
---   raise notice 'Demo earnings removed.';
+--   get diagnostics v_cycles = row_count;
+--   raise notice 'Deleted % payout_item row(s) and % demo cycle(s).', v_items, v_cycles;
 -- end $$;
+--
+-- ── VERIFY THE ROLLBACK (run after) ────────────────────────────────────────
+-- All three of the first columns must be 0. total_items_visible is the control:
+-- if it were 0 as well, the zeros above it would prove nothing -- they would
+-- just be a query looking at an empty table.
+--
+-- select
+--   (select count(*) from public.payout_item
+--      where idempotency_key like 'demo-earnings-%')          as demo_items_left,
+--   (select count(*) from public.payout_cycle
+--      where holiday_source_version = 'demo-seed')            as demo_cycles_left,
+--   (select count(*) from public.payout_item)                 as total_items_visible;
