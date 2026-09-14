@@ -17,6 +17,29 @@ $TELEGRAM_BOT_TOKEN / $TELEGRAM_CHAT_ID). This is the single source of
 truth — do not hardcode the literal token in this file; if it's ever
 rotated, only .env needs to change.
 
+## SUPABASE SERVICE ROLE (for STEP 1.5 only — issue_reports)
+
+`public.issue_reports` RLS restricts SELECT/UPDATE to the reporter's own row
+or a signed-in `role='admin'` JWT — this runbook has neither (it is a script,
+not a signed-in browser session), so reading it needs the service role key,
+which bypasses RLS. Before STEP 1.5:
+
+  grep -E '^SUPABASE_SERVICE_ROLE_KEY=' /Users/jiayutee/Dev/Projects/CariGaji/.env
+
+If it is missing or empty: **skip STEP 1.5 silently this cycle** (do not
+Telegram about it every 2 hours) and continue to STEP 1 as before. Do not
+fabricate a key, do not use the anon/VITE_ key instead — that key is
+RLS-scoped exactly like a normal browser session and will read back nothing
+for other users' reports, which would look like "no new reports" forever
+rather than the real reason (no credential to read them).
+
+**Never let this key reach `carigaji-app.jsx`, `src/`, or anything Vite
+bundles.** It must stay in `.env` under a name Vite does not prefix-match
+(no `VITE_` prefix — same reason `TELEGRAM_BOT_TOKEN`/`NOTION_TOKEN` are
+unprefixed in this same file). Setting it up is a one-time OWNER action —
+Supabase dashboard → Settings → API → service_role — this runbook only
+reads it, never writes or requests it, and never touches `.env` otherwise.
+
 ## NOTION ACCESS
 Prefer the connected Notion MCP tools (mcp__*__notion-search, notion-fetch,
 notion-create-pages, notion-update-page, notion-query-data-sources) if they
@@ -246,6 +269,55 @@ Read Agenda, Done Today, Blockers.
 If Status = "Done" → send Telegram "✅ All tasks done for today!" and stop.
 If no entry for today → fall back to the Feature Backlog: query highest-priority
 pending items (Status != Done, sorted by Priority desc).
+
+## STEP 1.5 — Pick up new in-app issue reports
+
+Users can report a problem in-app (Report a problem, `issue_reports` table).
+Nothing reads that table today except the admin console the owner opens by
+hand — reports otherwise sit unseen. This step folds new ones into the SAME
+Feature Backlog work loop everything else already goes through, rather than
+inventing a second path: it FILES rows here, it does not diagnose or fix
+anything itself — that is what the normal STEP 2–6 loop already does once a
+row exists.
+
+1. Read `SUPABASE_SERVICE_ROLE_KEY` per the credential section above. If
+   absent, skip this whole step silently and continue to the WORK LOOP.
+2. Fetch unhandled reports:
+
+       curl -s -G "https://eqxpskyymohghxgtykfr.supabase.co/rest/v1/issue_reports" \
+         -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+         -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+         --data-urlencode "select=id,category,severity,description,page_context,reporter_role,created_at" \
+         --data-urlencode "status=eq.new" \
+         --data-urlencode "order=created_at.asc"
+
+3. For each row returned:
+   a. Map severity to Feature Backlog Priority: `blocking` → 5,
+      `normal` → 3, `minor` → 1.
+   b. Create a Feature Backlog page: Issue = `[User report] {category}: first
+      ~150 chars of description`, Note = full description + `page_context` +
+      `reporter_role` + the report's own `id` (so the two records stay
+      cross-referenceable), Priority as mapped, Status = "Not started".
+   c. Verify the write the same way every other Notion create is verified in
+      this runbook (re-fetch, confirm it landed) before touching the source row.
+   d. Mark it picked up, so it is not filed twice next cycle:
+
+          curl -s -X PATCH "https://eqxpskyymohghxgtykfr.supabase.co/rest/v1/issue_reports?id=eq.[id]" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"status":"investigating"}'
+
+4. If one or more rows were filed, send ONE combined Telegram summary (not
+   one message per report): "📥 [N] new issue report(s) filed to the
+   backlog: [Issue titles, one per line]. Will be picked up by priority in
+   the normal work loop." Send nothing if there were zero new reports —
+   this step should be silent on an empty result, same as any other cycle
+   that finds nothing new.
+5. This step never marks a report `resolved`, `wont_fix`, or `duplicate` —
+   only an admin reviewing the actual fix (via the admin console's Issue
+   Reports tab) closes that loop. `investigating` here means "a backlog row
+   now exists for it," not "the bug is fixed."
 
 ## WORK LOOP — Repeat Steps 2–6 for EVERY pending agenda item
 
