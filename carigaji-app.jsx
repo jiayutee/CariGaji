@@ -495,6 +495,62 @@ const BRAND = {
   overlay: "var(--cg-overlay)",
 };
 
+// One type scale, colocated with BRAND for the same reason: a single named
+// definition beats the same semantic reappearing at a different size every
+// place it's used. Before this, "a screen title" rendered at 34/28 (worker's
+// restyled ScreenTitle), 22 (every employer/admin console header, flat, no
+// mobile variant), 20, 18, 15 -- six sizes for one role, spread across three
+// portals that never agreed with each other.
+//
+// Weight ladder: 800 screen title / 700 section heading / 600 card title and
+// button / 400 body. Sizes below intentionally clear the 12px floor -- the
+// landing page's own body copy and the SSM seal did not (11px, 8px).
+//
+// Only `title`/`titleMobile` are wired up in this pass (ScreenTitle, plus the
+// 16 employer/admin screen headers that were flat 22px with no responsive
+// behavior of their own). `section`/`cardTitle`/`body`/`label` are declared
+// as the reference values for that future sweep -- the ~50 section-heading
+// call sites across three consoles are a separate, larger pass, not
+// mechanically listed the way the 16 titles were.
+const TYPE = {
+  title: { fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12 },
+  titleMobile: { fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12 },
+  section: { fontSize: 16, fontWeight: 700, lineHeight: 1.3 },
+  cardTitle: { fontSize: 14, fontWeight: 600, lineHeight: 1.3 },
+  body: { fontSize: 14, fontWeight: 400, lineHeight: 1.5 },
+  label: { fontSize: 12, fontWeight: 600, lineHeight: 1.3 },
+};
+
+// One z-index scale. Before this, "a full-screen backdrop dialog" -- the same
+// role every time -- sat at 100, 200, 300, 1000, 1100 or 1200 depending only
+// on which screen wrote it, with no two ever open at once to justify the
+// spread. The plan named 5 tiers (nav, sticky, drawer, modal, toast); two more
+// are added here because collapsing them into those 5 would have inverted a
+// real, currently-correct stacking relationship rather than just renaming it:
+//   - `popover`: a small anchored dropdown (account menu, notification bell)
+//     is not a full-screen backdrop the way a modal is, and belongs BELOW
+//     modal so an opened dialog correctly covers it.
+//   - `panel` (cookie consent) and `gate` (mandatory T&C/KYC/welcome) both
+//     used to share a tier with an ordinary modal by coincidence, not design.
+//     Cookie consent can appear unprompted over an open toast; the onboarding
+//     gates block the whole app and must outrank even that.
+const Z = {
+  nav: 50,       // reserved: bottom nav / top bars carry no explicit z-index
+                 // today (DOM order + position:sticky/fixed already keeps
+                 // them on top of page content) -- declared for the day one
+                 // needs to be pinned above a scrolling list explicitly.
+  popover: 400,
+  sticky: 900,   // persistent floating chrome that survives navigation: the
+                 // cookie reopener bubble, the support-chat launcher button.
+  modal: 1100,
+  drawer: 1250,  // above modal: opening the hamburger menu should cover
+                 // anything already on screen.
+  toast: 1300,   // fire-and-forget notifications, and the support-chat
+                 // widget -- both stay visible even while a modal is open.
+  panel: 1400,
+  gate: 1500,
+};
+
 // ─── i18n dictionary (v1 foundation — core strings only, not exhaustive) ────
 const TRANSLATIONS = {
   en: {
@@ -689,6 +745,7 @@ const TRANSLATIONS = {
     "disputes.statusResolved": "Resolved",
     "disputes.statusDismissed": "Dismissed",
     "disputes.resolvedLabel": "Resolved:",
+    "disputes.viewShiftChat": "View shift chat",
     "rating.rateBtn": "Rate",
     "employer.ratePromptTitle": "You have {count} worker(s) to rate",
     "employer.ratePromptBody": "How did {name} do on \"{shift}\"? Your rating is what other employers see when choosing who to book \u2014 and workers see yours too.",
@@ -714,6 +771,43 @@ const TRANSLATIONS = {
     "rating.aspect.wellPlanned": "Well planned",
     "rating.aspect.clearInstructions": "Clear instructions",
     "admin.disputesEmptyState": "No disputes filed yet.",
+    "employer.workerProfileTitle": "Worker profile",
+    "nav.menuTitle": "Menu",
+    "admin.navOverview": "Overview",
+    "admin.navKycQueue": "KYC Queue",
+    "admin.navEmployerQueue": "Employer Queue",
+    "admin.navDisputes": "Disputes",
+    "admin.navFlags": "Flags",
+    "admin.navPayouts": "Payouts",
+    "admin.navDeposits": "Deposits",
+    "admin.navConfig": "Config",
+    "admin.navReports": "Issue Reports",
+    "admin.reportsTitle": "Issue Reports",
+    "admin.reportsCount": "{n} report{s} total",
+    "admin.reportsEmpty": "No issue reports yet.",
+    "admin.reportStatusNew": "New",
+    "admin.reportStatusInvestigating": "Investigating",
+    "admin.reportStatusResolved": "Resolved",
+    "admin.reportStatusWontFix": "Won't fix",
+    "admin.reportStatusDuplicate": "Duplicate",
+    "admin.reportReportedBy": "Reported by",
+    "admin.reportPage": "Page",
+    "admin.reportNoteLabel": "Admin note",
+    "admin.reportNotePlaceholder": "Internal note — not shown to the reporter",
+    "admin.reportSave": "Save",
+    "admin.reportSaved": "Saved.",
+    "admin.reportSaveFailed": "Failed to save: ",
+    "admin.statNewReports": "New reports",
+    "admin.overviewTitle": "Platform Overview",
+    "admin.kycQueueTitle": "KYC Review Queue",
+    "admin.employerQueueTitle": "Employer Verification Queue",
+    "admin.disputesTitle": "Disputes Dashboard",
+    "admin.flagsTitle": "Fraud & No-Show Flags",
+    "admin.payoutsTitle": "Payout Overrides",
+    "admin.configTitle": "Platform Configuration",
+    "admin.flagsEmptyTitle": "No flag source connected",
+    "admin.flagsEmptyHint": "Fraud and no-show detection is not built yet. Nothing in the schema records GPS mismatches, QR token reuse or confirmed no-shows, so there is nothing to review here. This screen stays empty on purpose rather than showing example cases that could be mistaken for real ones.",
+    "admin.flagsCount": "{n} active flags requiring review",
     "admin.depositsTitle": "Employer deposits",
     "admin.depositsIntro": "Record a bank transfer an employer has already made. This is the only way funds enter the deposit ledger until an FPX/DuitNow gateway exists — so only enter an amount you can see on a bank statement.",
     "admin.depositsAppendOnlyWarning": "The ledger is append-only. A recorded top-up cannot be edited or deleted — a mistake can only be offset by another entry, which someone will have to explain later. Check the amount before confirming.",
@@ -748,6 +842,23 @@ const TRANSLATIONS = {
     "admin.disputeDismissed": "Dispute dismissed.",
     "admin.disputeResolveFailed": "Failed to resolve dispute: ",
     "admin.disputeDismissFailed": "Failed to dismiss dispute: ",
+    "admin.disputeMarkUnderReview": "Mark Under Review",
+    "admin.disputeUnderReviewSet": "Dispute marked under review.",
+    "admin.disputeUnderReviewFailed": "Failed to mark under review: ",
+    "admin.disputeInvestigate": "Investigate",
+    "admin.disputeInvestigateTitle": "Investigate dispute",
+    "admin.disputeEvidenceTitle": "Evidence",
+    "admin.disputeCheckedIn": "Checked in",
+    "admin.disputeCheckedOut": "Checked out",
+    "admin.disputeWorkerSigned": "Worker signed contract",
+    "admin.disputeEmployerSigned": "Employer signed contract",
+    "admin.disputeWageAsk": "Agreed wage",
+    "admin.disputeWageRange": "Shift wage range",
+    "admin.disputeShiftWindow": "Shift window",
+    "admin.disputeNotRecorded": "Not recorded",
+    "admin.disputeChatTitle": "Shift chat",
+    "admin.disputeChatEmpty": "No messages in this shift's chat yet.",
+    "admin.disputeChatSendFailed": "Failed to send message: ",
     "profile.signInTitle": "Sign in to view your profile",
     "profile.signInHint": "Your KYC status, reliability score, ratings, and shift history live here once you sign in.",
     "profile.changePhoto": "Change profile picture",
@@ -1163,7 +1274,7 @@ const TRANSLATIONS = {
     "issue.contextNote": "We'll automatically include which page you were on ({page}) and your app version, so you don't have to describe it.",
     "issue.submitBtn": "Send report",
     "issue.sending": "Sending\u2026",
-    "issue.thanks": "Thank you \u2014 your report was sent. We read every one.",
+    "issue.thanks": "Thank you \u2014 your report was sent and will be investigated.",
     "issue.needDescription": "Please describe what happened.",
     "issue.failed": "Could not send the report: ",
     "withdraw.btn": "Withdraw from this shift",
@@ -1930,6 +2041,7 @@ const TRANSLATIONS = {
     "disputes.statusResolved": "Diselesaikan",
     "disputes.statusDismissed": "Ditolak",
     "disputes.resolvedLabel": "Diselesaikan:",
+    "disputes.viewShiftChat": "Lihat sembang syif",
     "rating.rateBtn": "Nilai",
     "employer.ratePromptTitle": "Anda ada {count} pekerja untuk dinilai",
     "employer.ratePromptBody": "Bagaimana prestasi {name} dalam \"{shift}\"? Penilaian anda dilihat oleh majikan lain semasa memilih pekerja \u2014 dan pekerja juga melihat penilaian anda.",
@@ -1955,6 +2067,43 @@ const TRANSLATIONS = {
     "rating.aspect.wellPlanned": "Perancangan yang baik",
     "rating.aspect.clearInstructions": "Arahan yang jelas",
     "admin.disputesEmptyState": "Tiada pertikaian difailkan lagi.",
+    "employer.workerProfileTitle": "Profil pekerja",
+    "nav.menuTitle": "Menu",
+    "admin.navOverview": "Ringkasan",
+    "admin.navKycQueue": "Baris Gilir KYC",
+    "admin.navEmployerQueue": "Baris Gilir Majikan",
+    "admin.navDisputes": "Pertikaian",
+    "admin.navFlags": "Bendera",
+    "admin.navPayouts": "Pembayaran",
+    "admin.navDeposits": "Deposit",
+    "admin.navConfig": "Tetapan",
+    "admin.navReports": "Laporan Isu",
+    "admin.reportsTitle": "Laporan Isu",
+    "admin.reportsCount": "{n} laporan jumlah",
+    "admin.reportsEmpty": "Belum ada laporan isu.",
+    "admin.reportStatusNew": "Baharu",
+    "admin.reportStatusInvestigating": "Sedang disiasat",
+    "admin.reportStatusResolved": "Selesai",
+    "admin.reportStatusWontFix": "Tidak akan dibaiki",
+    "admin.reportStatusDuplicate": "Pendua",
+    "admin.reportReportedBy": "Dilaporkan oleh",
+    "admin.reportPage": "Halaman",
+    "admin.reportNoteLabel": "Nota admin",
+    "admin.reportNotePlaceholder": "Nota dalaman — tidak ditunjukkan kepada pelapor",
+    "admin.reportSave": "Simpan",
+    "admin.reportSaved": "Disimpan.",
+    "admin.reportSaveFailed": "Gagal menyimpan: ",
+    "admin.statNewReports": "Laporan baharu",
+    "admin.overviewTitle": "Ringkasan Platform",
+    "admin.kycQueueTitle": "Baris Gilir Semakan KYC",
+    "admin.employerQueueTitle": "Baris Gilir Pengesahan Majikan",
+    "admin.disputesTitle": "Papan Pemuka Pertikaian",
+    "admin.flagsTitle": "Bendera Penipuan & Tidak Hadir",
+    "admin.payoutsTitle": "Pindaan Pembayaran",
+    "admin.configTitle": "Konfigurasi Platform",
+    "admin.flagsEmptyTitle": "Tiada sumber bendera disambungkan",
+    "admin.flagsEmptyHint": "Pengesanan penipuan dan ketidakhadiran belum dibina. Tiada apa-apa dalam skema yang merekodkan ketidakpadanan GPS, penggunaan semula token QR atau ketidakhadiran yang disahkan, jadi tiada apa-apa untuk disemak di sini. Skrin ini sengaja dibiarkan kosong dan bukannya memaparkan contoh kes yang boleh disalah anggap sebagai kes sebenar.",
+    "admin.flagsCount": "{n} bendera aktif memerlukan semakan",
     "admin.depositsTitle": "Deposit majikan",
     "admin.depositsIntro": "Rekod pemindahan bank yang telah dibuat oleh majikan. Inilah satu-satunya cara dana masuk ke lejar deposit sehingga gerbang FPX/DuitNow wujud — jadi masukkan jumlah yang benar-benar kelihatan pada penyata bank sahaja.",
     "admin.depositsAppendOnlyWarning": "Lejar ini hanya boleh ditambah. Top-up yang direkodkan tidak boleh disunting atau dipadam — kesilapan hanya boleh diimbangi dengan entri baharu, yang perlu dijelaskan oleh seseorang kemudian. Semak jumlahnya sebelum mengesahkan.",
@@ -1989,6 +2138,23 @@ const TRANSLATIONS = {
     "admin.disputeDismissed": "Pertikaian ditolak.",
     "admin.disputeResolveFailed": "Gagal menyelesaikan pertikaian: ",
     "admin.disputeDismissFailed": "Gagal menolak pertikaian: ",
+    "admin.disputeMarkUnderReview": "Tandakan Sedang Disemak",
+    "admin.disputeUnderReviewSet": "Pertikaian ditanda sedang disemak.",
+    "admin.disputeUnderReviewFailed": "Gagal menanda sedang disemak: ",
+    "admin.disputeInvestigate": "Siasat",
+    "admin.disputeInvestigateTitle": "Siasat pertikaian",
+    "admin.disputeEvidenceTitle": "Bukti",
+    "admin.disputeCheckedIn": "Daftar masuk",
+    "admin.disputeCheckedOut": "Daftar keluar",
+    "admin.disputeWorkerSigned": "Pekerja tandatangan kontrak",
+    "admin.disputeEmployerSigned": "Majikan tandatangan kontrak",
+    "admin.disputeWageAsk": "Gaji dipersetujui",
+    "admin.disputeWageRange": "Julat gaji syif",
+    "admin.disputeShiftWindow": "Tempoh syif",
+    "admin.disputeNotRecorded": "Tidak direkodkan",
+    "admin.disputeChatTitle": "Sembang syif",
+    "admin.disputeChatEmpty": "Belum ada mesej dalam sembang syif ini.",
+    "admin.disputeChatSendFailed": "Gagal menghantar mesej: ",
     "profile.signInTitle": "Log masuk untuk lihat profil anda",
     "profile.signInHint": "Status KYC, skor kebolehpercayaan, penilaian, dan sejarah syif anda akan dipaparkan di sini setelah anda log masuk.",
     "profile.changePhoto": "Tukar gambar profil",
@@ -2397,7 +2563,7 @@ const TRANSLATIONS = {
     "issue.contextNote": "Kami akan sertakan secara automatik halaman yang anda berada ({page}) dan versi aplikasi anda, jadi anda tidak perlu menerangkannya.",
     "issue.submitBtn": "Hantar laporan",
     "issue.sending": "Menghantar\u2026",
-    "issue.thanks": "Terima kasih \u2014 laporan anda telah dihantar. Kami membaca setiap satu.",
+    "issue.thanks": "Terima kasih \u2014 laporan anda telah dihantar dan akan disiasat.",
     "issue.needDescription": "Sila terangkan apa yang berlaku.",
     "issue.failed": "Gagal menghantar laporan: ",
     "withdraw.btn": "Tarik diri daripada syif ini",
@@ -3163,6 +3329,7 @@ const TRANSLATIONS = {
     "disputes.statusResolved": "已解决",
     "disputes.statusDismissed": "已驳回",
     "disputes.resolvedLabel": "已处理：",
+    "disputes.viewShiftChat": "查看班次聊天记录",
     "rating.rateBtn": "评分",
     "employer.ratePromptTitle": "您有 {count} 位员工待评价",
     "employer.ratePromptBody": "{name} 在「{shift}」的表现如何？您的评价会显示给其他雇主作为选人参考——员工也能看到您的评价。",
@@ -3188,6 +3355,43 @@ const TRANSLATIONS = {
     "rating.aspect.wellPlanned": "规划周全",
     "rating.aspect.clearInstructions": "指示清晰",
     "admin.disputesEmptyState": "暂无提交的申诉。",
+    "employer.workerProfileTitle": "工人档案",
+    "nav.menuTitle": "菜单",
+    "admin.navOverview": "总览",
+    "admin.navKycQueue": "KYC 队列",
+    "admin.navEmployerQueue": "雇主队列",
+    "admin.navDisputes": "申诉",
+    "admin.navFlags": "风险标记",
+    "admin.navPayouts": "发放",
+    "admin.navDeposits": "保证金",
+    "admin.navConfig": "配置",
+    "admin.navReports": "问题报告",
+    "admin.reportsTitle": "问题报告",
+    "admin.reportsCount": "共 {n} 份报告",
+    "admin.reportsEmpty": "暂无问题报告。",
+    "admin.reportStatusNew": "新",
+    "admin.reportStatusInvestigating": "调查中",
+    "admin.reportStatusResolved": "已处理",
+    "admin.reportStatusWontFix": "不予处理",
+    "admin.reportStatusDuplicate": "重复报告",
+    "admin.reportReportedBy": "报告人",
+    "admin.reportPage": "所在页面",
+    "admin.reportNoteLabel": "管理员备注",
+    "admin.reportNotePlaceholder": "内部备注 — 不会显示给报告人",
+    "admin.reportSave": "保存",
+    "admin.reportSaved": "已保存。",
+    "admin.reportSaveFailed": "保存失败：",
+    "admin.statNewReports": "新报告",
+    "admin.overviewTitle": "平台总览",
+    "admin.kycQueueTitle": "KYC 审核队列",
+    "admin.employerQueueTitle": "雇主验证队列",
+    "admin.disputesTitle": "申诉面板",
+    "admin.flagsTitle": "欺诈与缺勤标记",
+    "admin.payoutsTitle": "发放调整",
+    "admin.configTitle": "平台配置",
+    "admin.flagsEmptyTitle": "未连接标记数据源",
+    "admin.flagsEmptyHint": "欺诈与缺勤检测尚未构建。数据库中没有任何字段记录 GPS 不匹配、QR 令牌重复使用或已确认的缺勤，因此这里没有可供审核的内容。此页面刻意保持为空，而不是显示可能被误认为真实案例的示例数据。",
+    "admin.flagsCount": "{n} 个待审核的活跃标记",
     "admin.depositsTitle": "雇主保证金",
     "admin.depositsIntro": "记录雇主已经完成的银行转账。在 FPX/DuitNow 支付网关上线之前，这是资金进入保证金台账的唯一途径——因此只能录入银行对账单上确实存在的金额。",
     "admin.depositsAppendOnlyWarning": "台账只可追加。已记录的充值无法修改或删除——错误只能通过另一笔条目来冲抵，而这需要有人在日后作出解释。确认前请核对金额。",
@@ -3222,6 +3426,23 @@ const TRANSLATIONS = {
     "admin.disputeDismissed": "申诉已驳回。",
     "admin.disputeResolveFailed": "处理申诉失败：",
     "admin.disputeDismissFailed": "驳回申诉失败：",
+    "admin.disputeMarkUnderReview": "标记为审核中",
+    "admin.disputeUnderReviewSet": "申诉已标记为审核中。",
+    "admin.disputeUnderReviewFailed": "标记审核中失败：",
+    "admin.disputeInvestigate": "调查",
+    "admin.disputeInvestigateTitle": "调查申诉",
+    "admin.disputeEvidenceTitle": "证据",
+    "admin.disputeCheckedIn": "签到时间",
+    "admin.disputeCheckedOut": "签退时间",
+    "admin.disputeWorkerSigned": "员工签署合同",
+    "admin.disputeEmployerSigned": "雇主签署合同",
+    "admin.disputeWageAsk": "议定薪资",
+    "admin.disputeWageRange": "班次薪资范围",
+    "admin.disputeShiftWindow": "班次时段",
+    "admin.disputeNotRecorded": "无记录",
+    "admin.disputeChatTitle": "班次聊天记录",
+    "admin.disputeChatEmpty": "此班次聊天记录暂无消息。",
+    "admin.disputeChatSendFailed": "发送消息失败：",
     "profile.signInTitle": "登入以查看您的个人资料",
     "profile.signInHint": "登入后即可在此查看您的 KYC 状态、可靠度评分、评价及班次记录。",
     "profile.changePhoto": "更改头像",
@@ -3629,7 +3850,7 @@ const TRANSLATIONS = {
     "issue.contextNote": "我们会自动记录您所在的页面（{page}）及应用版本，您无需另外说明。",
     "issue.submitBtn": "发送报告",
     "issue.sending": "发送中…",
-    "issue.thanks": "谢谢您 — 您的报告已发送。我们会认真查看每一份反馈。",
+    "issue.thanks": "谢谢您 — 您的报告已发送，我们会进行调查。",
     "issue.needDescription": "请描述发生的情况。",
     "issue.failed": "发送报告失败：",
     "withdraw.btn": "退出此班次",
@@ -4687,7 +4908,7 @@ const ToastProvider = ({ children }) => {
           left: "50%",
           bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
           transform: "translateX(-50%)",
-          zIndex: 1000,
+          zIndex: Z.modal,
           display: "flex",
           flexDirection: "column",
           gap: 10,
@@ -5219,6 +5440,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
   const { t, language } = useLanguage();
   const [open, setOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const helpDialog = useDialog(helpOpen, () => setHelpOpen(false), { label: t("help.title") });
   const [openFaq, setOpenFaq] = useState(null);
   const ref = useRef(null);
 
@@ -5293,7 +5515,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
       </button>
       {open && (
         <div role="menu" style={{
-          position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 400,
+          position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: Z.popover,
           minWidth: 220, background: BRAND.surface, border: `1px solid ${BRAND.border}`,
           borderRadius: 12, boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
         }}>
@@ -5326,11 +5548,11 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
         // has backdropFilter, which creates a containing block for position:fixed
         // descendants — without escaping it, this overlay was sized/clipped to the
         // header's own box instead of the viewport.
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setHelpOpen(false)}>
+        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setHelpOpen(false)}>
           {/* alignItems: flex-start (not center) pins the panel's top edge to a
               fixed viewport position — expanding/collapsing an FAQ only grows
               or shrinks the bottom, it no longer shifts the top edge. */}
-          <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+          <div {...helpDialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
               <button onClick={() => setHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
@@ -5482,6 +5704,11 @@ const NOTIFICATION_PAGE_SIZE = 20;
 const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
   const { t } = useLanguage();
   const toast = useToast();
+  // Declared AFTER the useLanguage() destructure above, not before it: the hook
+  // takes t("issue.title") as the dialog's accessible name, and referencing `t`
+  // one line above its own const is a TDZ crash -- which esbuild does not catch
+  // and which has white-screened this file four times before.
+  const dialog = useDialog(open, onClose, { label: t("issue.title") });
   const [category, setCategory] = useState("bug");
   const [severity, setSeverity] = useState("normal");
   const [description, setDescription] = useState("");
@@ -5516,8 +5743,8 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
   const SEVERITIES = ["blocking", "normal", "minor"];
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1400, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 460, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16}} onClick={onClose}>
+      <div {...dialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 460, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.text, margin: 0 }}>🐞 {t("issue.title")}</h3>
           <button onClick={onClose} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
@@ -5719,6 +5946,103 @@ const writeChatSeen = (userId, shiftId, iso) => {
 // Rooms with a message newer than what this user has seen, ignoring their own
 // messages. Returns the room COUNT rather than a message count: "3" meaning
 // three conversations need attention is more useful than three messages in one.
+// Dialog behaviour for the ~35 hand-rolled overlays in this file. Before this,
+// NOT ONE of them could be closed with Escape, none announced itself as a
+// dialog, and none moved focus -- a keyboard or screen-reader user could open a
+// modal and have no way out of it. The single Escape listener in the whole file
+// was on the language dropdown.
+//
+// Deliberately a hook and not a <Modal> component: converting 35 call sites to a
+// wrapper would move a lot of JSX across the boundary that has already produced
+// four TDZ white-screens here. This attaches to an overlay that stays exactly
+// where it is -- one hook call, one ref, one prop spread.
+//
+// Returns props for the PANEL (not the backdrop). tabIndex -1 makes the panel
+// focusable so focus has somewhere to land without stealing it from a specific
+// control; the browser then tabs forward into the panel's own inputs.
+// `label` gives the dialog its accessible name. Prefer passing the SAME t() key
+// the visible heading uses, so the announced name and the on-screen title read
+// from one translation entry and cannot drift apart. `labelledBy` is available
+// where a heading already has a stable id worth pointing at.
+const useDialog = (open, onClose, { labelledBy, label } = {}) => {
+  const panelRef = useRef(null);
+  const restoreRef = useRef(null);
+
+  // onClose is passed as an inline arrow at every call site, so its identity
+  // changes on EVERY render. Depending on it directly would tear the effect
+  // down and rebuild it each render -- and the cleanup restores focus, so
+  // typing one character into a modal's textarea would re-render, fire the
+  // cleanup, and yank focus back to whatever opened the modal. Hold it in a ref
+  // and depend on `open` alone.
+  const closeRef = useRef(onClose);
+  useEffect(() => { closeRef.current = onClose; });
+
+  useEffect(() => {
+    if (!open) return undefined;
+    // Remember who opened this, so focus can go home on close. Without it,
+    // dismissing a modal drops focus to <body> and a keyboard user restarts
+    // from the top of the page.
+    restoreRef.current = document.activeElement;
+    const panel = panelRef.current;
+    if (panel) panel.focus({ preventScroll: true });
+
+    // Selector for the standard interactive-element set. Panel itself carries
+    // tabIndex={-1} (see the return value below), so `:not([tabindex="-1"])`
+    // excludes it from the trap boundary -- Tab cycles the REAL controls
+    // inside it, not the container.
+    const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();   // nested overlays: only the topmost one closes
+        closeRef.current?.();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      // Queried fresh on every Tab press, not cached at effect setup -- a
+      // dialog's content can change while it's open (an FAQ accordion
+      // expanding, a rating form revealing more stars), and a stale list
+      // would trap focus against elements that no longer exist or miss ones
+      // that just appeared. offsetParent!==null filters out anything
+      // display:none, so a hidden control never becomes a false trap boundary.
+      const focusable = [...panel.querySelectorAll(FOCUSABLE_SELECTOR)]
+        .filter((el) => el.offsetParent !== null);
+      if (focusable.length === 0) return;   // nothing inside to cycle -- let Tab behave natively
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+      // Any other position: let Tab move naturally within the panel.
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      const restore = restoreRef.current;
+      // Only restore if the opener is still in the document and focusable --
+      // a row that has since re-rendered away would throw or scroll oddly.
+      if (restore && document.contains(restore) && typeof restore.focus === "function") {
+        restore.focus({ preventScroll: true });
+      }
+    };
+  }, [open]);
+
+  return {
+    ref: panelRef,
+    role: "dialog",
+    "aria-modal": "true",
+    ...(labelledBy ? { "aria-labelledby": labelledBy } : {}),
+    ...(!labelledBy && label ? { "aria-label": label } : {}),
+    tabIndex: -1,
+  };
+};
+
 const useUnreadChatRooms = (user) => {
   const [unreadRooms, setUnreadRooms] = useState(0);
   const [previewSenderNames, setPreviewSenderNames] = useState({});
@@ -6138,7 +6462,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
       </button>
       {open && panelPos && (
         <div role="menu" style={{
-          position: "fixed", top: panelPos.top, left: panelPos.left, zIndex: 400,
+          position: "fixed", top: panelPos.top, left: panelPos.left, zIndex: Z.popover,
           width: panelPos.width, background: BRAND.surface, border: `1px solid ${BRAND.border}`,
           borderRadius: 12, boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
         }}>
@@ -6352,6 +6676,7 @@ const RATING_ASPECTS = {
 // directly so callers don't need to prop-drill translate.
 const RatingDetailsModal = ({ modal, onClose }) => {
   const { t } = useLanguage();
+  const dialog = useDialog(Boolean(modal), onClose, { label: t("rating.detailsTitle") });
   if (!modal) return null;
   const aspectDefs = RATING_ASPECTS[modal.direction] || [];
   const list = modal.list;
@@ -6362,8 +6687,8 @@ const RatingDetailsModal = ({ modal, onClose }) => {
   });
   const overallAvg = list && list.length ? list.reduce((s, r) => s + (r.overall || 0), 0) / list.length : null;
   return (
-    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
-      <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <div {...dialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("rating.detailsTitle")}</h3>
         {modal.label && <p style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>{modal.label}</p>}
         {list === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
@@ -6665,8 +6990,7 @@ const ScreenTitle = ({ children, sub, onBack, isMobile, style }) => (
       </button>
     )}
     <h1 style={{
-      margin: 0, fontSize: isMobile ? 28 : 34, fontWeight: 800,
-      letterSpacing: "-0.03em", lineHeight: 1.12, color: BRAND.text,
+      margin: 0, ...(isMobile ? TYPE.titleMobile : TYPE.title), color: BRAND.text,
     }}>{children}</h1>
     {sub && (
       <div style={{ marginTop: 6, fontSize: 13.5, color: BRAND.textMuted, lineHeight: 1.45 }}>{sub}</div>
@@ -6760,8 +7084,13 @@ const InfoNote = ({ children, style }) => (
 // pass a colour for anything that isn't.
 const Money = ({ value, color = BRAND.greenOnSurface, size = 17, prefix = "" }) => {
   const n = Number(value || 0);
-  const whole = Math.trunc(Math.abs(n));
-  const cents = Math.round((Math.abs(n) - whole) * 100).toString().padStart(2, "0");
+  // Derive from the SAME formatter every other RM figure in the app uses, so
+  // rounding can never disagree between this superscript display and a plain
+  // toCurrency() string sitting next to it. toCurrency() always returns
+  // "RM 12.34" (fixed 2 decimals, space after RM); strip that fixed prefix and
+  // split on the decimal point rather than re-deriving whole/cents with a
+  // second, independent round().
+  const [whole, cents] = toCurrency(Math.abs(n)).slice(3).split(".");
   return (
     <span style={{ fontWeight: 800, fontSize: size, color, whiteSpace: "nowrap" }}>
       {n < 0 ? "-" : prefix}RM {whole}
@@ -7556,6 +7885,7 @@ const AuthModal = ({
   onOAuth,
 }) => {
   const { t: translate } = useLanguage();
+  const dialog = useDialog(open, onClose, { label: view === "register" ? translate("common.signUp") : translate("common.signIn") });
   const [showErrors, setShowErrors] = useState(false);
   // The modal has no fee value of its own, and the promo must not render while
   // the global rate is 0. One read, same pattern as the landing hero and the
@@ -7642,8 +7972,9 @@ const AuthModal = ({
   }[view];
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(17,24,39,0.58)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: Z.modal, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div
+        {...dialog}
         style={{ width: "100%", maxWidth: view === "register" ? 640 : 440, maxHeight: "90vh", background: BRAND.surface, borderRadius: 20, boxShadow: `0 24px 70px ${BRAND.shadow}`, overflow: "hidden", display: "flex", flexDirection: "column" }}
         onClick={e => e.stopPropagation()}
       >
@@ -7783,13 +8114,13 @@ const AuthModal = ({
   );
 };
 
-// ─── Mock data ───────────────────────────────────────────────────────────────
-const ADMIN_KYC = [
-  { id: 1, name: "Muhammad Izzat", type: "Standard", submitted: "2 hours ago", status: "pending", docs: ["MyKad front", "MyKad back", "Selfie"] },
-  { id: 2, name: "Siti Rahmah Binti Ali", type: "Standard", submitted: "4 hours ago", status: "pending", docs: ["MyKad front", "MyKad back", "Selfie"] },
-  { id: 3, name: "Chong Wei Han", type: "Advanced", submitted: "1 day ago", status: "flagged", docs: ["MyKad front", "MyKad back", "Selfie", "Food Handler Cert"] },
-  { id: 4, name: "Rubini Krishnan", type: "Standard", submitted: "1 day ago", status: "pending", docs: ["MyKad front", "MyKad back", "Selfie"] },
-];
+// ADMIN_KYC used to live here: four invented people ("Muhammad Izzat", "Siti
+// Rahmah Binti Ali", ...) with fabricated MyKad submissions and review states.
+// It was already dead by the time it was removed on 2026-09-13 -- the admin KYC
+// queue reads real rows into `kycQueue` from Supabase and has proper loading and
+// empty branches -- but invented identity documents should not sit in the bundle
+// waiting for someone to wire them back up to a screen that approves real people
+// to work. Deleted rather than left commented out.
 
 // Dispute categories shared by the worker/employer file-a-dispute modals and
 // the admin dashboard. v1 is informational only — text-only evidence, no
@@ -7988,7 +8319,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
           {/* Payslip-style sample shift card */}
           <div style={{ flex: "0 0 auto", width: isMobile ? "100%" : 340, position: "relative" }}>
             <div style={{ position: "absolute", top: -14, right: 4, width: 66, height: 66, borderRadius: "50%", border: `2px dashed ${BRAND.green}`, background: BRAND.surfaceElevated, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-8deg)", zIndex: 1 }}>
-              <div style={{ textAlign: "center", fontSize: 8, fontWeight: 800, letterSpacing: "0.04em", textTransform: "uppercase", color: BRAND.greenOnSurface, lineHeight: 1.3 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
+              <div style={{ textAlign: "center", fontSize: 9.5, fontWeight: 800, letterSpacing: "0.02em", textTransform: "uppercase", color: BRAND.greenOnSurface, lineHeight: 1.25 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
             </div>
             <div style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 14, boxShadow: `0 12px 32px ${BRAND.shadow}`, padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12 }}>
@@ -8003,7 +8334,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
                   <span>{k}</span><b style={{ color: BRAND.text, fontWeight: 700 }}>{v}</b>
                 </div>
               ))}
-              <div style={{ marginTop: 10, background: BRAND.amberLight, borderRadius: 8, padding: "9px 11px", fontSize: 11, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
+              <div style={{ marginTop: 10, background: BRAND.amberLight, borderRadius: 8, padding: "9px 11px", fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
                 {t("landing.sampleEscrowNote")}
               </div>
             </div>
@@ -8046,7 +8377,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
             <div key={item.title} style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: "16px 12px", textAlign: "center" }}>
               <div style={{ width: 42, height: 42, margin: "0 auto 10px", borderRadius: "50%", border: `2px solid ${item.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{item.icon}</div>
               <div style={{ fontWeight: 700, fontSize: 12.5, color: BRAND.text, marginBottom: 4 }}>{item.title}</div>
-              <div style={{ fontSize: 11, color: BRAND.textMuted, lineHeight: 1.5 }}>{item.body}</div>
+              <div style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.5 }}>{item.body}</div>
             </div>
           ))}
         </div>
@@ -8249,6 +8580,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     return () => { active = false; };
   }, [showPersonalDetails, user]);
   const [settingsHelpOpen, setSettingsHelpOpen] = useState(false);
+  const settingsHelpDialog = useDialog(settingsHelpOpen, () => setSettingsHelpOpen(false), { label: t("help.title") });
   const [settingsOpenFaq, setSettingsOpenFaq] = useState(null);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
   const [tab, setTab] = useState("discover");
@@ -8304,8 +8636,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   };
 
   const [showBidModal, setShowBidModal] = useState(false);
+  const bidModalDialog = useDialog(showBidModal, () => setShowBidModal(false), { label: t("shiftDetail.placeBidTitle") });
   const [bidAmount, setBidAmount] = useState("");
   const [bidSuccess, setBidSuccess] = useState(false);
+  const bidSuccessDialog = useDialog(bidSuccess, () => setBidSuccess(false), { label: t("shiftDetail.bidSubmitted") });
   // Resume the bid flow after sign-in: "Place Bid" while logged out sends the
   // user through the sign-in modal (an overlay, doesn't navigate away), so
   // selectedShift is still intact — this just reopens the bid modal once
@@ -8382,6 +8716,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // view is open so the same shift can be reopened later.
   const [openShiftId, setOpenShiftId] = useState(null);
   const [slipPayout, setSlipPayout] = useState(null);   // payout row shown as a slip
+  const slipDialog = useDialog(Boolean(slipPayout), () => setSlipPayout(null), { label: t("slip.title") });
   const [anonEmployerTrust, setAnonEmployerTrust] = useState(null); // employer_id -> {full_name, reliability_score, rating, employer_verification_status}
   const [filterCity, setFilterCity] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -8453,9 +8788,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const chatEndRef = useRef(null);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ block: 'end' }); }, [chatMessages]);
   const [workerContractModal, setWorkerContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk, employerName }
+  const workerContractDialog = useDialog(Boolean(workerContractModal), () => setWorkerContractModal(null), { label: t("contract.workerTitle") });
   const [cancellationContractModal, setCancellationContractModal] = useState(null); // { applicationId, shiftTitle, shiftDate, wageAsk }
+  const cancellationDialog = useDialog(Boolean(cancellationContractModal), () => setCancellationContractModal(null), { label: t("contract.cancellationTitle") });
   const [cancellationProofUploading, setCancellationProofUploading] = useState(null); // applicationId currently uploading, or null
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
+  const workerDisputeDialog = useDialog(Boolean(disputeModal), () => setDisputeModal(null), { label: t("myBids.fileDisputeTitle") });
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
   const [myDisputes, setMyDisputes] = useState(null);
@@ -8467,6 +8805,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // disputes for the same shift, with no client or DB-level guard.
   const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Set());
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
+  const workerRatingDialog = useDialog(Boolean(ratingModal), () => setRatingModal(null), { label: t("rating.modalTitle") });
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
   // application_ids the signed-in worker has already rated (worker_to_employer
@@ -8551,7 +8890,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       setMyDisputes(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift:shifts(title, employer_id))")
+        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift_id, shift:shifts(id, title, employer_id))")
         .order("created_at", { ascending: false });
       if (!active) return;
       setMyDisputes(error ? [] : (data || []));
@@ -8909,6 +9248,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [user]);
 
   const [withdrawTarget, setWithdrawTarget] = useState(null); // application, or null
+  const withdrawDialog = useDialog(Boolean(withdrawTarget), () => setWithdrawTarget(null), { label: t("withdraw.title") });
   const [withdrawReason, setWithdrawReason] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
 
@@ -9356,8 +9696,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const cats = ["All", ...SHIFT_CATEGORIES];
   // Shared style objects for the Discover-tab site footer below — kept out
   // of the JSX to avoid repeating the same object literal per link/chip.
-  const footerLinkStyle = { border: "none", background: "transparent", padding: 0, textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: BRAND.textMuted };
-  const footerCategoryChipStyle = { border: `1px solid ${BRAND.border}`, background: BRAND.surface, borderRadius: 99, padding: "4px 10px", cursor: "pointer", fontFamily: "inherit", fontSize: 12, color: BRAND.textMuted };
+  // padding: 0 measured at 154x15px live -- fails even the WCAG 2.2 AA target
+  // size floor (2.5.8, 24x24), not just the AAA 44x44 one. Vertical padding
+  // added to clear 24px without changing the footer's visual density.
+  const footerLinkStyle = { border: "none", background: "transparent", padding: "6px 0", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: 13, color: BRAND.textMuted };
+  // Not live-measured like footerLinkStyle above, but the same arithmetic
+  // (12px font, ~14.4px line box + 4px+4px padding = ~22px) lands just under
+  // the 24px floor -- bumped defensively alongside the button that was measured.
+  const footerCategoryChipStyle = { border: `1px solid ${BRAND.border}`, background: BRAND.surface, borderRadius: 99, padding: "6px 10px", cursor: "pointer", fontFamily: "inherit", fontSize: 12, color: BRAND.textMuted };
   const shiftsSource = useMemo(() => {
     const base = liveShifts ?? [];
     if (!anonEmployerTrust) return base;
@@ -9907,11 +10253,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       {showBidModal && (
-        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "flex-end", zIndex: 100, borderRadius: 20 }}>
-          <div style={{ background: BRAND.surface, borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
+        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "flex-end", zIndex: Z.modal, borderRadius: 20 }}>
+          <div {...bidModalDialog} style={{ background: BRAND.surface, borderRadius: "20px 20px 0 0", padding: 24, width: "100%" }}>
             <div style={{ fontWeight: 800, fontSize: 18, color: BRAND.text, marginBottom: 4 }}>{t("shiftDetail.placeBidTitle")}</div>
             <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20 }}>
-              {t("shiftDetail.employerRange")}{selectedShift.wageMin}–RM{selectedShift.wageMax}/h{t("shiftDetail.maxBid")}{(selectedShift.wageMax * 1.5).toFixed(0)}/h
+              {t("shiftDetail.employerRange")}{selectedShift.wageMin}–RM{selectedShift.wageMax}/h{t("shiftDetail.maxBid")}{(selectedShift.wageMax * 1.5).toFixed(2)}/h
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("shiftDetail.wageAskLabel")}</label>
@@ -9949,7 +10295,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 (async () => {
                   if (!bidAmount) return;
                   if (guardPreview()) return;
-                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`${t("toast.maxBidPrefix")}${(selectedShift.wageMax * 1.5).toFixed(0)}/h`, "error"); return; }
+                  if (parseFloat(bidAmount) > selectedShift.wageMax * 1.5) { toast(`${t("toast.maxBidPrefix")}${(selectedShift.wageMax * 1.5).toFixed(2)}/h`, "error"); return; }
                   if (!user) { setShowBidModal(false); onRequireAuth("signin"); return; }
                   // Guard: mock shifts use numeric ids — require a real UUID id to insert
                   if (typeof selectedShift.id !== 'string' || !selectedShift.id.includes('-')) {
@@ -10019,8 +10365,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         </div>
       )}
       {bidSuccess && (
-        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200, borderRadius: 20 }}>
-          <div style={{ background: BRAND.surface, borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
+        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: Z.modal, borderRadius: 20 }}>
+          <div {...bidSuccessDialog} style={{ background: BRAND.surface, borderRadius: 20, padding: isMobile ? 24 : 32, textAlign: "center" }}>
             <div style={{ fontSize: isMobile ? 40 : 48, marginBottom: 12 }}>🎉</div>
             <div style={{ fontWeight: 800, fontSize: isMobile ? 18 : 20, color: BRAND.text }}>{t("shiftDetail.bidSubmitted")}</div>
             <div style={{ color: BRAND.textMuted, fontSize: isMobile ? 12 : 14, marginTop: 8 }}>RM{bidAmount}/h · {t("shiftDetail.bidSubmittedHint")}</div>
@@ -10205,61 +10551,65 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {/* Row 1: Location, Date, Duration */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterCity")}</div>
-                      <select value={filterCity} onChange={e=>{ setFilterCity(e.target.value); setFilterArea(''); }}
+                      <label htmlFor="discover-filter-city" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterCity")}</label>
+                      <select id="discover-filter-city" value={filterCity} onChange={e=>{ setFilterCity(e.target.value); setFilterArea(''); }}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, marginBottom:4}}>
                         <option value="">{t("discover.anyCity")}</option>
                         {Object.keys(CITY_REGIONS).map(city => (
                           <option key={city} value={city}>{city}</option>
                         ))}
                       </select>
+                      {/* No visible label of its own -- it appears only once a
+                          city is picked, narrowing that selection. Reuses its
+                          own placeholder string as the accessible name rather
+                          than inventing separate text that could drift from it. */}
                       {filterCity && (
-                        <input placeholder={t("discover.filterAreaPlaceholder")} value={filterArea} onChange={e=>setFilterArea(e.target.value)}
+                        <input aria-label={t("discover.filterAreaPlaceholder")} placeholder={t("discover.filterAreaPlaceholder")} value={filterArea} onChange={e=>setFilterArea(e.target.value)}
                           style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:12, boxSizing:'border-box', color:BRAND.textMuted, background:BRAND.input}} />
                       )}
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterDate")}</div>
-                      <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
+                      <label htmlFor="discover-filter-date" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterDate")}</label>
+                      <input id="discover-filter-date" type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMaxDuration")}</div>
-                      <input type="number" min="0" placeholder={t("discover.filterMaxDurationPlaceholder")} value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
+                      <label htmlFor="discover-filter-duration" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMaxDuration")}</label>
+                      <input id="discover-filter-duration" type="number" min="0" placeholder={t("discover.filterMaxDurationPlaceholder")} value={filterDuration} onChange={e=>setFilterDuration(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                   </div>
                   {/* Row 2: Job type, Min pay, Max pay */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterJobType")}</div>
-                      <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
+                      <label htmlFor="discover-filter-jobtype" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterJobType")}</label>
+                      <select id="discover-filter-jobtype" value={filterCat} onChange={e=>setFilterCat(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input}}>
                         <option value="All">{t("discover.allTypes")}</option>
                         {SHIFT_CATEGORIES.map(c => <option key={c} value={c}>{shiftCategoryLabel(c, t)}</option>)}
                       </select>
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMinPay")}</div>
-                      <input type="number" min="0" placeholder={t("discover.filterMinPayPlaceholder")} value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
+                      <label htmlFor="discover-filter-minpay" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMinPay")}</label>
+                      <input id="discover-filter-minpay" type="number" min="0" placeholder={t("discover.filterMinPayPlaceholder")} value={filterPayMin} onChange={e=>setFilterPayMin(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMaxPay")}</div>
-                      <input type="number" min="0" placeholder={t("discover.filterMaxPayPlaceholder")} value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
+                      <label htmlFor="discover-filter-maxpay" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterMaxPay")}</label>
+                      <input id="discover-filter-maxpay" type="number" min="0" placeholder={t("discover.filterMaxPayPlaceholder")} value={filterPayMax} onChange={e=>setFilterPayMax(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                   </div>
                   {/* Row 3: Start time, End time */}
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8}}>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterStartsAfter")}</div>
-                      <input type="time" value={filterTimeStart} onChange={e=>setFilterTimeStart(e.target.value)}
+                      <label htmlFor="discover-filter-starts" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterStartsAfter")}</label>
+                      <input id="discover-filter-starts" type="time" value={filterTimeStart} onChange={e=>setFilterTimeStart(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                     <div>
-                      <div style={{fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterEndsBy")}</div>
-                      <input type="time" value={filterTimeEnd} onChange={e=>setFilterTimeEnd(e.target.value)}
+                      <label htmlFor="discover-filter-ends" style={{display:'block', fontSize:11, color:BRAND.textMuted, marginBottom:3}}>{t("discover.filterEndsBy")}</label>
+                      <input id="discover-filter-ends" type="time" value={filterTimeEnd} onChange={e=>setFilterTimeEnd(e.target.value)}
                         style={{width:'100%', padding:'6px 8px', borderRadius:6, border:`1px solid ${BRAND.border}`, fontSize:13, boxSizing:'border-box', background:BRAND.input, color:BRAND.text}} />
                     </div>
                   </div>
@@ -10407,7 +10757,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // whole marketplace leans on that number, so it needs asking for,
           // not just allowing.
           const unrated = (liveApplications ?? []).filter(
-            a => a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id)
+            a => a.status === "accepted" && a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id)
           );
           return (
           <div>
@@ -10780,7 +11130,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                 </>
               )}
-              {a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
+              {a.status === "accepted" && a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id) && (
                 <Btn variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: a.shiftTitle, rateeId: a.employerId, direction: 'worker_to_employer' }); }} style={{ flex: 1, justifyContent: "center" }}>{t("rating.rateBtn")}</Btn>
               )}
               {canFileDispute(a) && !myDisputedApplicationIds.has(a.id) && (
@@ -11479,8 +11829,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </Card>
             )}
             {settingsHelpOpen && (
-              <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: 1200, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setSettingsHelpOpen(false)}>
-                <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setSettingsHelpOpen(false)}>
+                <div {...settingsHelpDialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
                     <button onClick={() => setSettingsHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
@@ -11601,6 +11951,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{d.description}</div>
+                    <Btn size="xs" variant="secondary" style={{ marginTop: 6 }} onClick={() => { setActiveChatShift({ shiftId: d.application?.shift_id, title: d.application?.shift?.title ?? "", date: "", otherUserLabel: "" }); setTab("chat"); }}>{t("disputes.viewShiftChat")}</Btn>
                     {d.resolved_at && (
                       <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6 }}>
                         {t("disputes.resolvedLabel")} {new Date(d.resolved_at).toLocaleDateString("en-MY")}
@@ -11714,8 +12065,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {withdrawTarget && (() => {
       const { hours, penalty } = withdrawalPenaltyFor(withdrawTarget.shiftStartAt, withdrawTiers);
       return (
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setWithdrawTarget(null)}>
-        <div style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 430, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setWithdrawTarget(null)}>
+        <div {...withdrawDialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 430, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
           <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.text, margin: "0 0 8px" }}>{t("withdraw.title")}</h3>
           <div style={{ fontSize: 13, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 14 }}>
             {t("withdraw.body", { shift: withdrawTarget.shiftTitle })}
@@ -11759,10 +12110,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     })()}
 
     {workerContractModal && (
-      <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-        <div style={{background:'#fff', borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-          <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>{t("contract.workerTitle")}</h3>
-          <p style={{fontSize:12, color:'#6b7280', marginBottom:16}}>{t("contract.readCarefully")}</p>
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div {...workerContractDialog} style={{background: BRAND.surfaceElevated, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
+          <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("contract.workerTitle")}</h3>
+          <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
 
           {(() => {
             const contractRows = buildContractRows(t, {
@@ -11787,7 +12138,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               workerSignedAt: workerContractModal.workerSignedAt,
             });
             return (
-          <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
+          <div style={{background: BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color: BRAND.text, marginBottom:16}}>
             <p><strong>{t("contract.agreementHeading")}</strong></p>
             {renderContractRowsJSX(contractRows)}
           </div>
@@ -11796,7 +12147,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 
           <div style={{display:'flex', gap:8}}>
             <button onClick={() => setWorkerContractModal(null)}
-              style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
+              style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
               {workerContractModal.readOnly ? t("common.close") : t("common.cancel")}
             </button>
             <button onClick={() => {
@@ -11851,7 +12202,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 );
                 setWorkerContractModal(null);
               }}
-                style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
                 {t("contract.signBtn")}
               </button>
             )}
@@ -11861,8 +12212,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     )}
 
     {disputeModal && (
-      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-        <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div {...workerDisputeDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
           <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
           <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{disputeModal.shiftTitle}</p>
 
@@ -11915,9 +12266,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return (
       <div
         onClick={() => setSlipPayout(null)}
-        style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}
+        style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}
       >
-        <div onClick={e => e.stopPropagation()} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:460, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}}>
+        <div {...slipDialog} onClick={e => e.stopPropagation()} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:460, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}}>
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:4}}>
             <h3 style={{fontSize:18, fontWeight:800, color: BRAND.text, margin:0}}>{t("slip.title")}</h3>
             <button onClick={() => setSlipPayout(null)} aria-label={t("common.close")}
@@ -11979,8 +12330,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       const allSet = !aspects.some(a => !ratingForm[a.value]);
       const overall = allSet ? (aspects.reduce((sum, a) => sum + (ratingForm[a.value] || 0), 0) / aspects.length).toFixed(1) : null;
       return (
-      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-        <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div {...workerRatingDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
           <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
           <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{ratingModal.shiftTitle}</p>
 
@@ -12014,8 +12365,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <RatingDetailsModal modal={ratingDetailsModal} onClose={() => setRatingDetailsModal(null)} />
 
     {cancellationContractModal && (
-      <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-        <div style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div {...cancellationDialog} style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
           <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}>{t("contract.cancellationTitle")}</h3>
           <p style={{fontSize:12, color:BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
 
@@ -12350,7 +12701,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       setMyDisputes(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift:shifts(title, employer_id))")
+        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift_id, shift:shifts(id, title, employer_id))")
         .order("created_at", { ascending: false });
       if (!active) return;
       setMyDisputes(error ? [] : (data || []));
@@ -12433,6 +12784,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // Now it's a collapsible left-side drawer on mobile, toggled by a
   // hamburger button; desktop (compact=false) is unaffected.
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarDialog = useDialog(sidebarOpen, () => setSidebarOpen(false), { label: t("nav.menuTitle") });
 
   // The rate a NEW shift would be posted at, read from the database rather
   // than from the constant above, so ending the launch promotion is one SQL
@@ -12909,6 +13261,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // would drift from what actually gets paid, and the employer would have
   // agreed to a number that never materialises.
   const [cancelQuote, setCancelQuote] = useState(null);   // { shiftId, title, rows, total, maxTotal } | null
+
+  // Dialog semantics for this console's eight overlays. Called unconditionally
+  // here, never inside the {modal && (...)} JSX -- a hook behind a condition
+  // changes the hook order between renders and React throws. Each returns props
+  // for its PANEL div; the backdrop keeps whatever click handling it already had.
+  // Each `label` reuses the SAME translation key as that dialog's visible
+  // heading, so the announced name and the on-screen title cannot drift apart.
+  // Without it a screen reader announces only "dialog", with no indication of
+  // which one -- role without a name is barely better than no role at all.
+  const contractDialog       = useDialog(Boolean(contractModal),       () => setContractModal(null),       { label: t("contract.employerTitle") });
+  const disputeDialog        = useDialog(Boolean(disputeModal),        () => setDisputeModal(null),        { label: t("myBids.fileDisputeTitle") });
+  const ratingDialog         = useDialog(Boolean(ratingModal),         () => setRatingModal(null),         { label: t("rating.modalTitle") });
+  const viewContractDialog   = useDialog(Boolean(viewContractModal),   () => setViewContractModal(null),   { label: t("contract.agreementHeading") });
+  const checkinCodeDialog    = useDialog(Boolean(checkinCodeModal),    () => setCheckinCodeModal(null),    { label: t("employer.checkinCodeTitle") });
+  const workerProfileDialog  = useDialog(Boolean(workerProfileModal),  () => setWorkerProfileModal(null),  { label: t("employer.workerProfileTitle") });
+  const noShowDialog         = useDialog(Boolean(noShowTarget),        () => setNoShowTarget(null),        { label: t("employer.noShowTitle") });
+  const cancelQuoteDialog    = useDialog(Boolean(cancelQuote),         () => setCancelQuote(null),         { label: t("employer.cancelQuoteTitle") });
   const [cancelQuoteLoading, setCancelQuoteLoading] = useState(false);
   const [cancelAccepted, setCancelAccepted] = useState(false);
 
@@ -13784,9 +14153,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ fontWeight: 800, fontSize: 15, color: BRAND.text }}>{navItems.find(n => n.id === view)?.label || "CariGaji"}</div>
           </div>
           {sidebarOpen && createPortal(
-            <div style={{ position: "fixed", inset: 0, zIndex: 1250, display: "flex" }}>
-              <div onClick={() => setSidebarOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
-              <div style={{ position: "relative", width: "78%", maxWidth: 280, height: "100%", background: BRAND.surface, boxShadow: `4px 0 24px ${BRAND.shadow}`, display: "flex", flexDirection: "column", padding: "24px 0", overflowY: "auto" }}>
+            <div style={{ position: "fixed", inset: 0, zIndex: Z.drawer, display: "flex" }}>
+              <div onClick={() => setSidebarOpen(false)} style={{ position: "absolute", inset: 0, background: BRAND.overlay }} />
+              <div {...sidebarDialog} style={{ position: "relative", width: "78%", maxWidth: 280, height: "100%", background: BRAND.surface, boxShadow: `4px 0 24px ${BRAND.shadow}`, display: "flex", flexDirection: "column", padding: "24px 0", overflowY: "auto" }}>
                 {sidebarContent}
               </div>
             </div>,
@@ -13806,7 +14175,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           const unrated = pendingWorkerRatings.filter(x => !myRatedApplicationIds.has(x.id));
           return (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("employer.dashboardTitle")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("employer.dashboardTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.goodMorning")}{employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
             {/* On the dashboard, not buried in a finished shift's applicant
                 pool -- this is the first screen an employer sees. */}
@@ -13909,7 +14278,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
               <div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{t("employer.shiftsTitle")}</div>
+                <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text }}>{t("employer.shiftsTitle")}</div>
                 <div style={{ fontSize: 14, color: BRAND.textMuted }}>{t("employer.manageShiftsSubtitle")}</div>
               </div>
               <div style={{ display: "flex", gap: 10 }}>
@@ -13976,7 +14345,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 buttons forced this row to 654px on a 375px screen, so it
                 scrolled sideways and "Cancel shift" sat off the edge. */}
             <div style={{ display: "flex", flexDirection: compact ? "column" : "row", justifyContent: "space-between", alignItems: compact ? "stretch" : "flex-start", gap: 12, marginBottom: 4 }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text }}>{selectedShift.title}</div>
+              <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text }}>{selectedShift.title}</div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flexShrink: compact ? 1 : 0 }}>
                 <Btn variant="secondary" onClick={() => startEditShift(selectedShift.id)} style={{ padding: "8px 14px" }}>{Icons.Edit ? Icons.Edit({ size: 14 }) : "✏️"} <span style={{ marginLeft: 6 }}>{t("employer.editShift")}</span></Btn>
                 <Btn
@@ -14290,7 +14659,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
         {view === "postshift" && (
           <div style={{ maxWidth: 600 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{editingShiftId ? t("employer.editShiftTitle") : t("employer.postAShiftTitle")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{editingShiftId ? t("employer.editShiftTitle") : t("employer.postAShiftTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{editingShiftId ? t("employer.editShiftSubtitle") : t("employer.postAShiftSubtitle")}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
@@ -14396,7 +14765,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     </div>
                     {form.wageMin && form.wageMax && (
                       <div style={{ background: BRAND.primaryLight, borderRadius: 8, padding: "8px 12px", fontSize: 12, color: BRAND.onPrimaryLight }}>
-                        {t("employer.bidCapHint").replace("{amount}", (parseFloat(form.wageMax || 0) * 1.5).toFixed(0))}
+                        {t("employer.bidCapHint").replace("{amount}", (parseFloat(form.wageMax || 0) * 1.5).toFixed(2))}
                       </div>
                     )}
                   </div>
@@ -14514,7 +14883,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     return (
                       <div style={{ background: BRAND.amberLight, borderRadius: 10, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: 12, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
-                        <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>RM{reserve.toFixed(0)}</div>
+                        <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.amber }}>{toCurrency(reserve)}</div>
                         <div style={{ fontSize: 11, color: BRAND.amber }}>{platformFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(platformFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
                         {/* The trial line only appears when a fee actually
                             exists. While the global rate is 0 everyone is free
@@ -14612,7 +14981,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
         {view === "bulkupload" && (
           <div style={{ maxWidth: bulkUploadStep === 1 ? 600 : 1160 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("employer.bulkUploadTitle")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("employer.bulkUploadTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.bulkUploadSubtitle")}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
@@ -14787,7 +15156,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
         {view === "billing" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 24 }}>{t("employer.billingTitle")}</div>
             {/* The deposit reads first: it is what backs the payout figures
                 below. Replaces a checkbox the employer ticked about
                 themselves, which nothing verified. */}
@@ -14896,7 +15265,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
         {view === "account" && (
           <div style={{ maxWidth: 500 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 24 }}>{t("employer.accountTitle")}</div>
             {/* Profile photo — the employer-console home for what used to be
                 editable only via the worker-app view's avatar overlay. */}
             <Card style={{ marginBottom: 16 }}>
@@ -15060,6 +15429,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{d.description}</div>
+                    <Btn size="xs" variant="secondary" style={{ marginTop: 6 }} onClick={() => { setActiveChatShift({ shiftId: d.application?.shift_id, title: d.application?.shift?.title ?? "", date: "", otherUserLabel: "" }); setView("chat"); }}>{t("disputes.viewShiftChat")}</Btn>
                     {d.resolved_at && (
                       <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 6 }}>
                         {t("disputes.resolvedLabel")} {new Date(d.resolved_at).toLocaleDateString("en-MY")}
@@ -15111,7 +15481,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           // ancestor's actual box instead of guessing a vh-offset, so only
           // the message list scrolls instead of both it and the outer pane.
           <div style={activeChatShift ? {display:'flex', flexDirection:'column', height:'100%', minHeight:0} : {}}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4, flexShrink:0 }}>{t("chat.title")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4, flexShrink:0 }}>{t("chat.title")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 16, flexShrink:0 }}>{t("chat.employerSubtitle")}</div>
             {!activeChatShift ? (
               chatConversations.length === 0 ? (
@@ -15318,11 +15688,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       </div>
 
       {contractModal && (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-          <div style={{background:'#fff', borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'80vh', overflowY:'auto'}}>
-            <h3 style={{fontSize:18, fontWeight:700, color:'#1e293b', marginBottom:4}}>{t("contract.employerTitle")}</h3>
-            <p style={{fontSize:12, color:'#64748b', marginBottom:16}}>{t("contract.employerSubtitle")}</p>
-            <div style={{background:'#f8fafc', borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:'#374151', marginBottom:16}}>
+        <div style={{position:'fixed', inset:0, background:BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div {...contractDialog} style={{background:BRAND.surfaceElevated, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'80vh', overflowY:'auto'}}>
+            <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}>{t("contract.employerTitle")}</h3>
+            <p style={{fontSize:12, color:BRAND.textMuted, marginBottom:16}}>{t("contract.employerSubtitle")}</p>
+            <div style={{background:BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:BRAND.text, marginBottom:16}}>
               <p><strong>{t("contract.agreementHeading")}</strong></p>
               <p>{t("contract.enteredBetween")}</p>
               <p>• <strong>{t("contract.employerLabel")}</strong> {t("contract.employerOnFile")}</p>
@@ -15344,19 +15714,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <p>6. {t("contract.employerClause6")}</p>
               <p>7. {t("contract.employerClause7")}</p>
             </div>
-            <p style={{fontSize:12, color:'#64748b', marginBottom:12}}>
+            <p style={{fontSize:12, color:BRAND.textMuted, marginBottom:12}}>
               {t("contract.confirmSendNote").replace("{name}", contractModal.workerName)}
             </p>
             <div style={{display:'flex', gap:8}}>
               <button onClick={() => setContractModal(null)}
-                style={{flex:1, padding:'10px', borderRadius:8, border:'1px solid #e2e8f0', background:'#f8fafc', cursor:'pointer', color:'#64748b'}}>
+                style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background:BRAND.grayLight, cursor:'pointer', color:BRAND.textMuted}}>
                 {t("common.cancel")}
               </button>
               <button onClick={() => {
                 toast(t('toast.contractSent'), 'success');
                 setContractModal(null);
               }}
-                style={{flex:2, padding:'10px', borderRadius:8, background:'#2563EB', color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
+                style={{flex:2, padding:'10px', borderRadius:8, background:BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
                 {t("contract.confirmSendBtn")}
               </button>
             </div>
@@ -15365,8 +15735,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       )}
 
       {disputeModal && (
-        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div {...disputeDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
             <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
             <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{disputeModal.shiftTitle}</p>
 
@@ -15405,8 +15775,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         const allSet = !aspects.some(a => !ratingForm[a.value]);
         const overall = allSet ? (aspects.reduce((sum, a) => sum + (ratingForm[a.value] || 0), 0) / aspects.length).toFixed(1) : null;
         return (
-        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
-          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+          <div {...ratingDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
             <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
             <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{ratingModal.shiftTitle}</p>
 
@@ -15440,8 +15810,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       <RatingDetailsModal modal={ratingDetailsModal} onClose={() => setRatingDetailsModal(null)} />
 
       {viewContractModal && (
-        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setViewContractModal(null)}>
-          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setViewContractModal(null)}>
+          <div {...viewContractDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
             <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("contract.agreementHeading")}</h3>
             <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{selectedShift?.title}</p>
             {(() => {
@@ -15518,8 +15888,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       )}
 
       {checkinCodeModal && (
-        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCheckinCodeModal(null)}>
-          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:360, width:'100%', textAlign:'center', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCheckinCodeModal(null)}>
+          <div {...checkinCodeDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:360, width:'100%', maxHeight:'85vh', overflowY:'auto', textAlign:'center', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
             <div style={{ fontSize: 16, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("employer.checkinCodeTitle")}</div>
             <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 20 }}>{checkinCodeModal.title}</div>
             <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: 10, fontFamily: "monospace", color: BRAND.primary, marginBottom: 8 }}>
@@ -15535,8 +15905,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       )}
 
       {workerProfileModal && (
-        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setWorkerProfileModal(null)}>
-          <div style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setWorkerProfileModal(null)}>
+          <div {...workerProfileDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:440, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
               <Avatar name={workerProfileModal.name} size={48} color={BRAND.blue} src={getAvatarUrl(workerProfileModal.avatarUrl)} />
               <div>
@@ -15586,8 +15956,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       )}
 
       {noShowTarget && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1300, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setNoShowTarget(null)}>
-          <div style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 430, width: "100%" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setNoShowTarget(null)}>
+          <div {...noShowDialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 430, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.red, margin: "0 0 8px" }}>{t("employer.noShowTitle")}</h3>
             <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, marginBottom: 12 }}>
               {t("employer.noShowBody", { name: noShowTarget.name })}
@@ -15619,8 +15989,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         const rows = cancelQuote.rows;
         const owes = cancelQuote.total > 0;
         return (
-        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCancelQuote(null)}>
-          <div style={{background:BRAND.surface, borderRadius:16, padding:22, maxWidth:560, width:'100%', maxHeight:'85vh', overflowY:'auto'}} onClick={e => e.stopPropagation()}>
+        <div style={{position:'fixed', inset:0, background:BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCancelQuote(null)}>
+          <div {...cancelQuoteDialog} style={{background:BRAND.surface, borderRadius:16, padding:22, maxWidth:560, width:'100%', maxHeight:'85vh', overflowY:'auto'}} onClick={e => e.stopPropagation()}>
             <h3 style={{fontSize:18, fontWeight:800, color:BRAND.text, margin:'0 0 4px'}}>{t("employer.cancelQuoteTitle")}</h3>
             <div style={{fontSize:13, color:BRAND.textMuted, marginBottom:16}}>{cancelQuote.title}</div>
 
@@ -15722,8 +16092,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
   const [view, setView] = useState("overview");
-  const [kycActions, setKycActions] = useState({});
-  const [flagActions, setFlagActions] = useState({});
+  // kycActions/flagActions were local-only "decisions" for the two mock queues;
+  // both are gone now, and neither ever reached the database.
   const [livePayoutQueue, setLivePayoutQueue] = useState(null);
   const [payoutQueueShiftTitles, setPayoutQueueShiftTitles] = useState({}); // shift_id -> title
   const [payoutQueueWorkerNames, setPayoutQueueWorkerNames] = useState({}); // worker_id -> full_name
@@ -15734,6 +16104,103 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [kycSignedUrls, setKycSignedUrls] = useState({});
   const [overviewStats, setOverviewStats] = useState(null);
   const [disputesQueue, setDisputesQueue] = useState(null);
+  const [issueReportsQueue, setIssueReportsQueue] = useState(null);
+  const ISSUE_STATUS_LABEL_KEYS = {
+    new: "admin.reportStatusNew",
+    investigating: "admin.reportStatusInvestigating",
+    resolved: "admin.reportStatusResolved",
+    wont_fix: "admin.reportStatusWontFix",
+    duplicate: "admin.reportStatusDuplicate",
+  };
+  const [issueNoteDrafts, setIssueNoteDrafts] = useState({}); // { [id]: text } -- unsent edits
+  const [savingIssueReport, setSavingIssueReport] = useState(null); // id currently saving
+
+  useEffect(() => {
+    if (!supabase || (view !== "reports" && view !== "overview")) return;
+    let active = true;
+    (async () => {
+      setIssueReportsQueue(null);
+      const { data, error } = await supabase
+        .from("issue_reports")
+        .select("id, category, severity, description, page_context, reporter_role, status, admin_note, created_at")
+        .order("created_at", { ascending: false });
+      if (!active) return;
+      setIssueReportsQueue(error ? [] : (data || []));
+    })();
+    return () => { active = false; };
+  }, [view]);
+
+  const saveIssueReport = async (reportId, status) => {
+    const note = issueNoteDrafts[reportId];
+    setSavingIssueReport(reportId);
+    const patch = { status };
+    if (note !== undefined) patch.admin_note = note;
+    const { error } = await supabase.from("issue_reports").update(patch).eq("id", reportId);
+    setSavingIssueReport(null);
+    if (error) { toast(`${t("admin.reportSaveFailed")}${error.message}`, "error"); return; }
+    setIssueReportsQueue(prev => (prev ?? []).map(r => r.id === reportId ? { ...r, ...patch } : r));
+    toast(t("admin.reportSaved"), "success");
+  };
+  // Dispute currently open in the investigate/discuss panel, or null.
+  const [disputeDetailFor, setDisputeDetailFor] = useState(null);
+  const disputeDetailDialog = useDialog(Boolean(disputeDetailFor), () => setDisputeDetailFor(null), { label: t("admin.disputeInvestigateTitle") });
+  const [disputeMessages, setDisputeMessages] = useState(null);
+  const [disputeMessageInput, setDisputeMessageInput] = useState("");
+  const [sendingDisputeMessage, setSendingDisputeMessage] = useState(false);
+  const [disputeSenderNames, setDisputeSenderNames] = useState({});
+
+  // Load the shift's chat history when the investigate panel opens. Same
+  // room worker+employer already share (messages, recipient_id null) --
+  // messages_admin_all lets admin read/write it without being a member.
+  useEffect(() => {
+    if (!disputeDetailFor?.application?.shift_id) { setDisputeMessages(null); return undefined; }
+    let active = true;
+    const shiftId = disputeDetailFor.application.shift_id;
+    setDisputeMessages(null);
+    supabase
+      .from('messages')
+      .select('id, sender_id, content, created_at')
+      .eq('shift_id', shiftId)
+      .is('recipient_id', null)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (!active) return;
+        setDisputeMessages(data ?? []);
+        const ids = [...new Set((data ?? []).map(m => m.sender_id))];
+        if (!ids.length) return;
+        supabase.from('profiles').select('id, full_name').in('id', ids).then(({ data: ps }) => {
+          if (!active || !ps) return;
+          setDisputeSenderNames(prev => ({ ...prev, ...Object.fromEntries(ps.map(p => [p.id, p.full_name || null])) }));
+        });
+      });
+    return () => { active = false; };
+  }, [disputeDetailFor]);
+
+  const sendDisputeMessage = async () => {
+    const shiftId = disputeDetailFor?.application?.shift_id;
+    const content = disputeMessageInput.trim();
+    if (!shiftId || !content || !user) return;
+    setSendingDisputeMessage(true);
+    const { data, error } = await supabase.from('messages').insert({
+      shift_id: shiftId,
+      sender_id: user.id,
+      recipient_id: null, // group room -- both parties see the admin's message
+      content,
+    }).select('id, sender_id, content, created_at').single();
+    setSendingDisputeMessage(false);
+    if (error) { toast(t('admin.disputeChatSendFailed') + error.message, 'error'); return; }
+    setDisputeMessageInput('');
+    setDisputeMessages(prev => (prev ?? []).some(m => m.id === data.id) ? prev : [...(prev ?? []), data]);
+  };
+
+  const markDisputeUnderReview = async (disputeId) => {
+    const { error } = await supabase.from("disputes")
+      .update({ status: "under_review" })
+      .eq("id", disputeId);
+    if (error) { toast(`${t("admin.disputeUnderReviewFailed")}${error.message}`, "error"); return; }
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "under_review" } : d));
+    toast(t("admin.disputeUnderReviewSet"), "success");
+  };
   // Deposits: recording a bank transfer an employer has actually made. The
   // ledger is append-only, so a mistyped amount can never be edited -- only
   // offset by another entry someone has to reason about later. That is why
@@ -15752,7 +16219,23 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   // [] = loaded but empty/unavailable (RLS denial or table missing pre-migration).
   const [analyticsCounts, setAnalyticsCounts] = useState(null);
 
-  const navItems = ["Overview", "KYC Queue", "Employer Queue", "Disputes", "Flags", "Payouts", "Deposits", "Config"];
+  // {id, label} like the employer console (13565), NOT a plain string array.
+  // The old version derived the route from the label itself --
+  // `n.toLowerCase().replace(" ", "")` -- so the moment these strings were
+  // translated, every nav button would have routed to a view id that does not
+  // exist and the console would have rendered blank in BM and Chinese while
+  // still working in English. The id is the route; the label is only ever shown.
+  const navItems = [
+    { id: "overview", label: t("admin.navOverview") },
+    { id: "kycqueue", label: t("admin.navKycQueue") },
+    { id: "employerqueue", label: t("admin.navEmployerQueue") },
+    { id: "disputes", label: t("admin.navDisputes") },
+    { id: "reports", label: t("admin.navReports") },
+    { id: "flags", label: t("admin.navFlags") },
+    { id: "payouts", label: t("admin.navPayouts") },
+    { id: "deposits", label: t("admin.navDeposits") },
+    { id: "config", label: t("admin.navConfig") },
+  ];
   // Who is actually signed in. Only accounts carrying app_metadata.role='admin'
   // reach this screen, so the identity line shows the real name and the email
   // -- useful precisely because an operator may hold more than one account.
@@ -15761,12 +16244,19 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   // Mobile: eight stacked full-width nav buttons filled the whole first screen
   // before any content appeared. Same drawer the employer console uses.
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarDialog = useDialog(sidebarOpen, () => setSidebarOpen(false), { label: t("nav.menuTitle") });
 
-  const FLAGS = [
-    { id: 1, user: "Wei Jian Lim", type: "GPS mismatch", riskScore: 87, shift: "Warehouse Packer – Shah Alam", time: "3 hours ago", status: "open" },
-    { id: 2, user: "Unknown Device #42", type: "QR token reuse", riskScore: 95, shift: "Event Crew – Music Festival", time: "5 hours ago", status: "open" },
-    { id: 3, user: "Muhammad Izzat", type: "No-show (confirmed)", riskScore: 72, shift: "F&B Server – Wedding Banquet", time: "1 day ago", status: "open" },
-  ];
+  // This queue used to render three INVENTED people -- names, risk scores and
+  // "GPS mismatch" / "No-show (confirmed)" accusations -- through the same
+  // Card/Badge treatment real records would use, with buttons claiming the
+  // outcome was "logged to audit trail" when nothing was written anywhere. An
+  // operator had no way to tell the fabrications from real cases, and could
+  // suspend an account on the strength of one. Removed 2026-09-13.
+  //
+  // Nothing in the schema records GPS mismatches, QR token reuse or confirmed
+  // no-shows, so there is no data source to point this at yet. It stays empty
+  // until one exists: an empty queue is honest, sample accusations are not.
+  const FLAGS = [];
 
   const loadPayoutQueue = async () => {
     const { data, error } = await supabase
@@ -15865,7 +16355,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setDisputesQueue(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, shift:shifts(title, employer_id))")
+        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, worker_signed_at, employer_signed_at, shift_id, shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at))")
         .order("created_at", { ascending: false });
       if (error) { setDisputesQueue([]); return; }
       setDisputesQueue(data || []);
@@ -16082,15 +16572,15 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         )}
       </div>
       {navItems.map(n => {
-        const key = n.toLowerCase().replace(" ", "");
+        const key = n.id;
         return (
-          <button key={n} onClick={() => { setView(key); if (compact) setSidebarOpen(false); }} style={{
+          <button key={n.id} onClick={() => { setView(key); if (compact) setSidebarOpen(false); }} style={{
             display: "block", width: "100%", textAlign: "left", padding: "10px 20px",
             background: view === key ? ADMIN_SIDEBAR_ACTIVE_BG : "none",
             color: view === key ? BRAND.primary : ADMIN_SIDEBAR_MUTED,
             border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
             borderLeft: view === key ? `3px solid ${BRAND.primary}` : "3px solid transparent",
-          }}>{n}</button>
+          }}>{n.label}</button>
         );
       })}
       <div style={{ padding: "24px 20px 0", marginTop: 16, borderTop: `1px solid ${ADMIN_SIDEBAR_RULE}` }}>
@@ -16115,12 +16605,12 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               actual metric below the fold. */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: BRAND.dark, flexShrink: 0 }}>
             <button onClick={() => setSidebarOpen(true)} aria-label="Open admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_ON_DARK, padding: 4, lineHeight: 1 }}>☰</button>
-            <div style={{ fontWeight: 800, fontSize: 15, color: ADMIN_SIDEBAR_ON_DARK }}>{navItems.find(n => n.toLowerCase().replace(" ", "") === view) || "Admin"}</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: ADMIN_SIDEBAR_ON_DARK }}>{navItems.find(n => n.id === view)?.label || "Admin"}</div>
           </div>
           {sidebarOpen && createPortal(
-            <div style={{ position: "fixed", inset: 0, zIndex: 1250, display: "flex" }}>
-              <div onClick={() => setSidebarOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)" }} />
-              <div style={{ position: "relative", width: "78%", maxWidth: 280, height: "100%", background: BRAND.dark, boxShadow: `4px 0 24px ${BRAND.shadow}`, display: "flex", flexDirection: "column", padding: "24px 0", overflowY: "auto" }}>
+            <div style={{ position: "fixed", inset: 0, zIndex: Z.drawer, display: "flex" }}>
+              <div onClick={() => setSidebarOpen(false)} style={{ position: "absolute", inset: 0, background: BRAND.overlay }} />
+              <div {...sidebarDialog} style={{ position: "relative", width: "78%", maxWidth: 280, height: "100%", background: BRAND.dark, boxShadow: `4px 0 24px ${BRAND.shadow}`, display: "flex", flexDirection: "column", padding: "24px 0", overflowY: "auto" }}>
                 {sidebarContent}
               </div>
             </div>,
@@ -16138,12 +16628,13 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "overview" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Platform Overview</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.overviewTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Klang Valley — Live metrics</div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
               <Stat label="Pending KYC" value={kycQueue?.length ?? "—"} color={BRAND.amber} />
               <Stat label="Open disputes" value={disputesQueue?.filter(d => d.status === "open" || d.status === "under_review").length ?? "—"} color={BRAND.red} />
+              <Stat label={t("admin.statNewReports")} value={issueReportsQueue?.filter(r => r.status === "new").length ?? "—"} color={issueReportsQueue?.some(r => r.status === "new" && r.severity === "blocking") ? BRAND.red : BRAND.amber} />
               <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
@@ -16208,7 +16699,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "kycqueue" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>KYC Review Queue</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.kycQueueTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
               {kycQueue === null ? "Loading…" : `${kycQueue.length} pending review${kycQueue.length !== 1 ? "s" : ""}`}
             </div>
@@ -16269,7 +16760,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "employerqueue" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Employer Verification Queue</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.employerQueueTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
               {employerQueue === null ? "Loading…" : `${employerQueue.length} pending verification${employerQueue.length !== 1 ? "s" : ""}`}
             </div>
@@ -16318,7 +16809,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "disputes" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Disputes Dashboard</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.disputesTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
               {disputesQueue === null ? "Loading…" : `${disputesQueue.length} dispute${disputesQueue.length !== 1 ? "s" : ""} total`}
             </div>
@@ -16350,7 +16841,11 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     </div>
                   )}
                   {isPending ? (
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Btn size="sm" variant="secondary" onClick={() => setDisputeDetailFor(d)}>{t("admin.disputeInvestigate")}</Btn>
+                      {d.status === "open" && (
+                        <Btn size="sm" variant="secondary" onClick={() => markDisputeUnderReview(d.id)}>{t("admin.disputeMarkUnderReview")}</Btn>
+                      )}
                       <Btn size="sm" variant="success" onClick={() => resolveDispute(d.id)}>{t("admin.disputeResolve")}</Btn>
                       <Btn size="sm" variant="secondary" onClick={() => dismissDispute(d.id)}>{t("admin.disputeDismiss")}</Btn>
                     </div>
@@ -16366,45 +16861,125 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
           </div>
         )}
 
+        {disputeDetailFor && createPortal(
+          <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setDisputeDetailFor(null)}>
+            <div {...disputeDetailDialog} onClick={e => e.stopPropagation()} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 560, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>{t("admin.disputeInvestigateTitle")}</h3>
+                <button onClick={() => setDisputeDetailFor(null)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+              </div>
+
+              {/* Evidence -- read-only, no mutation. Same data every worker/
+                  employer contract screen already shows, just surfaced here
+                  so admin does not have to trust the free-text description
+                  alone. */}
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 8 }}>{t("admin.disputeEvidenceTitle")}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+                {[
+                  [t("admin.disputeShiftWindow"), disputeDetailFor.application?.shift?.start_at ? `${new Date(disputeDetailFor.application.shift.start_at).toLocaleString("en-MY")} – ${disputeDetailFor.application.shift.end_at ? new Date(disputeDetailFor.application.shift.end_at).toLocaleString("en-MY") : "—"}` : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeWageRange"), disputeDetailFor.application?.shift ? `${toCurrency(disputeDetailFor.application.shift.wage_min)} – ${toCurrency(disputeDetailFor.application.shift.wage_max)}` : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeWageAsk"), disputeDetailFor.application?.wage_ask != null ? toCurrency(disputeDetailFor.application.wage_ask) : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeCheckedIn"), disputeDetailFor.application?.checked_in_at ? new Date(disputeDetailFor.application.checked_in_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeCheckedOut"), disputeDetailFor.application?.checked_out_at ? new Date(disputeDetailFor.application.checked_out_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeWorkerSigned"), disputeDetailFor.application?.worker_signed_at ? new Date(disputeDetailFor.application.worker_signed_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeEmployerSigned"), disputeDetailFor.application?.employer_signed_at ? new Date(disputeDetailFor.application.employer_signed_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <div style={{ fontSize: 11, color: BRAND.textMuted }}>{label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: BRAND.text }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Discuss -- the SAME group chat room worker+employer already
+                  share for this shift (messages, recipient_id null). Admin
+                  posting here is visible to both parties inline with the job
+                  chat, not a separate admin-only thread. */}
+              <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 8 }}>{t("admin.disputeChatTitle")}</div>
+              <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: 12, maxHeight: 220, overflowY: "auto", padding: 12, marginBottom: 12 }}>
+                {disputeMessages === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
+                {disputeMessages?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.disputeChatEmpty")}</div>}
+                {disputeMessages?.map(m => (
+                  <div key={m.id} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 2 }}>
+                      {disputeSenderNames[m.sender_id] ?? "…"} · {new Date(m.created_at).toLocaleString("en-MY")}
+                    </div>
+                    <div style={{ fontSize: 13, color: BRAND.text, whiteSpace: "pre-wrap" }}>{m.content}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={disputeMessageInput}
+                  onChange={e => setDisputeMessageInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDisputeMessage(); } }}
+                  placeholder={t("chat.inputPlaceholder")}
+                  style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, outline: "none" }}
+                />
+                <Btn size="sm" onClick={sendDisputeMessage} disabled={sendingDisputeMessage || !disputeMessageInput.trim()}>{t("chat.send")}</Btn>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {view === "reports" && (
+          <div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.reportsTitle")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>
+              {issueReportsQueue === null ? "Loading…" : t("admin.reportsCount").replace("{n}", issueReportsQueue.length).replace("{s}", issueReportsQueue.length === 1 ? "" : "s")}
+            </div>
+            {issueReportsQueue?.length === 0 && (
+              <div style={{ color: BRAND.textMuted, padding: 16 }}>{t("admin.reportsEmpty")}</div>
+            )}
+            {issueReportsQueue?.map(r => (
+              <Card key={r.id} style={{ marginBottom: 14 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+                  <Badge color={r.severity === "blocking" ? "red" : r.severity === "normal" ? "amber" : "gray"}>{t(`issue.sev.${r.severity}`)}</Badge>
+                  <Badge color="gray">{t(`issue.cat.${r.category}`)}</Badge>
+                  <span style={{ fontSize: 12, color: BRAND.textMuted, marginLeft: "auto" }}>{new Date(r.created_at).toLocaleString("en-MY")}</span>
+                </div>
+                <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: 10 }}>{r.description}</div>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>
+                  <span>{t("admin.reportReportedBy")}: {r.reporter_role ?? "—"}</span>
+                  {r.page_context && <span>{t("admin.reportPage")}: {r.page_context}</span>}
+                </div>
+                <Select
+                  label=""
+                  value={r.status}
+                  onChange={e => saveIssueReport(r.id, e.target.value)}
+                  options={Object.keys(ISSUE_STATUS_LABEL_KEYS).map(s => ({ value: s, label: t(ISSUE_STATUS_LABEL_KEYS[s]) }))}
+                  style={{ marginBottom: 10 }}
+                />
+                <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 4 }}>{t("admin.reportNoteLabel")}</div>
+                <textarea
+                  value={issueNoteDrafts[r.id] ?? r.admin_note ?? ""}
+                  onChange={e => setIssueNoteDrafts(prev => ({ ...prev, [r.id]: e.target.value }))}
+                  placeholder={t("admin.reportNotePlaceholder")}
+                  rows={2}
+                  style={{ width: "100%", padding: "8px 12px", borderRadius: 8, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical", marginBottom: 8 }}
+                />
+                <Btn size="sm" onClick={() => saveIssueReport(r.id, r.status)} disabled={savingIssueReport === r.id}>{t("admin.reportSave")}</Btn>
+              </Card>
+            ))}
+          </div>
+        )}
+
         {view === "flags" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Fraud & No-Show Flags</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{FLAGS.length} active flags requiring review</div>
-            {FLAGS.map(f => {
-              const action = flagActions[f.id];
-              return (
-                <Card key={f.id} style={{ marginBottom: 14 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: BRAND.text, marginBottom: 4 }}>{f.user}</div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <Badge color={f.type === "QR token reuse" ? "red" : f.type === "GPS mismatch" ? "amber" : "orange"}>{f.type}</Badge>
-                        <Badge color={f.riskScore > 90 ? "red" : f.riskScore > 75 ? "amber" : "gray"}>Risk: {f.riskScore}/100</Badge>
-                      </div>
-                    </div>
-                    <div style={{ fontSize: 12, color: BRAND.textMuted }}>{f.time}</div>
-                  </div>
-                  <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 14 }}>Shift: {f.shift}</div>
-                  {action ? (
-                    <div style={{ padding: "8px 12px", borderRadius: 8, background: action === "suspended" ? BRAND.redLight : BRAND.amberLight, fontSize: 13, fontWeight: 600, color: action === "suspended" ? "#991B1B" : "#92400E" }}>
-                      Action: {action} — logged to audit trail
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Btn size="sm" variant="danger" onClick={() => setFlagActions(prev => ({ ...prev, [f.id]: "suspended" }))}>Suspend Account</Btn>
-                      <Btn size="sm" variant="secondary" onClick={() => setFlagActions(prev => ({ ...prev, [f.id]: "warning issued" }))}>Issue Warning</Btn>
-                      <Btn size="sm" variant="secondary" onClick={() => setFlagActions(prev => ({ ...prev, [f.id]: "dismissed" }))}>Dismiss</Btn>
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.flagsTitle")}</div>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("admin.flagsCount").replace("{n}", FLAGS.length)}</div>
+            <EmptyState
+              icon="🚩"
+              title={t("admin.flagsEmptyTitle")}
+              hint={t("admin.flagsEmptyHint")}
+            />
           </div>
         )}
 
         {view === "deposits" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 6 }}>{t("admin.depositsTitle")}</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 6 }}>{t("admin.depositsTitle")}</div>
             <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 20, maxWidth: 640, lineHeight: 1.55 }}>
               {t("admin.depositsIntro")}
             </div>
@@ -16555,7 +17130,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "payouts" && (
           <div>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 24 }}>Payout Overrides</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 24 }}>{t("admin.payoutsTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Pending payouts" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "ready" || p.status === "scheduled").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.amber} />
               <Stat label="Disputed (held)" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "held").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.red} />
@@ -16620,7 +17195,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
         {view === "config" && (
           <div style={{ maxWidth: 520 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>Platform Configuration</div>
+            <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.configTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Global rules — changes apply immediately</div>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Bid rules</div>
@@ -16760,7 +17335,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           aria-label={t("supportChat.restore")}
           title={t("supportChat.restore")}
           style={{
-            position: "fixed", right: 20, bottom: bubbleBottom, zIndex: 900,
+            position: "fixed", right: 20, bottom: bubbleBottom, zIndex: Z.sticky,
             width: 48, height: 48, borderRadius: "50%",
             background: BRAND.primary, border: "none",
             boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
@@ -16777,7 +17352,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
       <button
         onClick={() => setMode("open")}
         style={{
-          position: "fixed", right: 24, bottom: 24, zIndex: 900,
+          position: "fixed", right: 24, bottom: 24, zIndex: Z.sticky,
           display: "flex", alignItems: "center", gap: 8,
           padding: "10px 16px", borderRadius: 99,
           background: BRAND.primary, border: "none", color: "#fff",
@@ -16794,9 +17369,9 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
 
   // ── Open state ───────────────────────────────────────────────────────────
   const containerStyle = isMobile
-    ? { position: "fixed", inset: 0, zIndex: 1300, background: BRAND.surface, display: "flex", flexDirection: "column" }
+    ? { position: "fixed", inset: 0, zIndex: Z.toast, background: BRAND.surface, display: "flex", flexDirection: "column" }
     : {
-        position: "fixed", right: 24, bottom: 24, zIndex: 1300,
+        position: "fixed", right: 24, bottom: 24, zIndex: Z.toast,
         width: 360, height: 500, maxHeight: "80vh",
         background: BRAND.surface, border: `1px solid ${BRAND.border}`, borderRadius: 16,
         boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
@@ -16925,6 +17500,11 @@ const CookieConsentManager = ({ isMobile }) => {
   const { t } = useLanguage();
   const [consent, setConsent] = useState(() => readCookieConsent());
   const [panelOpen, setPanelOpen] = useState(false);
+  // The cookie panel is the single most-seen modal on the site -- every
+  // first-time visitor meets it -- and it had no Escape, no dialog role and no
+  // focus management. It is also the overlay implicated in WCAG 2.2 AA
+  // "Focus Not Obscured", since it sits over the hero at every scroll position.
+  const panelDialog = useDialog(panelOpen, () => setPanelOpen(false), { label: t("cookie.panelTitle") });
   const [activeTab, setActiveTab] = useState("categories");
   const [bubbleHidden, setBubbleHidden] = useState(() => readCookieBubbleHidden());
   const [draft, setDraft] = useState(() => {
@@ -16990,7 +17570,7 @@ const CookieConsentManager = ({ isMobile }) => {
   return (
     <>
       {bannerVisible && createPortal(
-        <div style={{ position: "fixed", left: 16, right: 16, bottom: edgeBottom, zIndex: 1300, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+        <div style={{ position: "fixed", left: 16, right: 16, bottom: edgeBottom, zIndex: Z.toast, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
           <div style={{
             pointerEvents: "auto",
             background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: 16,
@@ -17012,7 +17592,7 @@ const CookieConsentManager = ({ isMobile }) => {
       )}
 
       {reopenVisible && createPortal(
-        <div style={{ position: "fixed", left: 16, bottom: edgeBottom, zIndex: 900, display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ position: "fixed", left: 16, bottom: edgeBottom, zIndex: Z.sticky, display: "flex", alignItems: "center", gap: 4 }}>
           <button
             onClick={() => openPanel("categories")}
             aria-label={t("cookie.reopenPreferences")}
@@ -17051,10 +17631,11 @@ const CookieConsentManager = ({ isMobile }) => {
 
       {panelOpen && createPortal(
         <div
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 1400, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.panel, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={() => setPanelOpen(false)}
         >
           <div
+            {...panelDialog}
             style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 520, width: "100%", maxHeight: "85vh", overflowY: "auto" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -17297,7 +17878,7 @@ const TnCGateModal = ({ open, accepting, onAccept, onSignOut }) => {
   const { hasScrolledToEnd, boxRef, onScroll } = useTnCScrollGate();
   if (!open) return null;
   return createPortal(
-    <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: Z.gate, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 520, width: "100%", maxHeight: "85vh", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
         <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("auth.tncGateTitle")}</div>
         <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 16 }}>{t("auth.tncGateSubtitle")}</div>
@@ -17561,7 +18142,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
 
   if (!open) return null;
   return createPortal(
-    <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: Z.gate, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 560, width: "100%", maxHeight: "88vh", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
         <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{kycOnly ? t("details.kycOnlyTitle") : t("details.title")}</div>
         <div style={{ fontSize: 13, color: BRAND.textMuted, marginBottom: 16 }}>{kycOnly ? t("details.kycOnlySubtitle") : (isEmployer ? t("details.subtitleEmployer") : t("details.subtitleWorker"))}</div>
@@ -17695,7 +18276,7 @@ const WelcomeIntroModal = ({ open, role, saving, onDone }) => {
     ? [t("intro.employerStep1"), t("intro.employerStep2"), t("intro.employerStep3"), t("intro.employerStep4"), t("intro.employerStep5")]
     : [t("intro.workerStep1"), t("intro.workerStep2"), t("intro.workerStep3"), t("intro.workerStep4"), t("intro.workerStep5")];
   return createPortal(
-    <div style={{ position: "fixed", inset: 0, zIndex: 1500, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: Z.gate, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxSizing: "border-box" }}>
         <div style={{ fontSize: 34, textAlign: "center", marginBottom: 8 }} aria-hidden="true">👋</div>
         <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, textAlign: "center", marginBottom: 4 }}>{t("intro.title")}</div>
