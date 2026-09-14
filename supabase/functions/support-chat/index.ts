@@ -15,7 +15,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+// llama-3.3-70b-versatile was retired from Groq's hosted catalog sometime
+// before 2026-09-14 -- every support-chat message failed identically with
+// "model_not_found" regardless of content, confirmed live against
+// api.groq.com/openai/v1/models (llama-3.x is gone entirely, not just this
+// one model). openai/gpt-oss-120b is Groq's current closest match in size
+// and general-purpose capability to what was originally chosen here.
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 // Per-user, per-day cap. Groq's free tier is shared across every CariGaji
 // user, so this exists to stop one account (malicious or a runaway retry
