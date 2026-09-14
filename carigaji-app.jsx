@@ -10414,7 +10414,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             // Exact address is shown when the employer made it public, or when
             // this worker has been accepted for the shift. Otherwise only the
             // coarse city/region is shown, with a note explaining why.
-            const acceptedForShift = selectedShift.myStatus === "accepted";
+            //
+            // `selectedShift.myStatus` was read here before, but nothing in
+            // the codebase ever sets that field -- neither the Discover-card
+            // path nor the notification/chat "View shift" deep-link loader
+            // construct a selectedShift with myStatus on it, so this was
+            // always undefined and acceptedForShift was always false. An
+            // accepted worker opening their own accepted_only shift via chat
+            // (or, just as broken, via Discover) saw the coarse-area notice
+            // instead of the real address. liveApplications is already loaded
+            // for My Bids and carries the real accepted/pending status per
+            // shift, so look the answer up there instead of a field that was
+            // never wired to any data source.
+            const acceptedForShift = (liveApplications ?? []).some(a => a.shiftId === selectedShift.id && a.status === "accepted");
             const canSeeExact = selectedShift.addressVisibility !== "accepted_only" || acceptedForShift;
             const detailLocation = canSeeExact ? selectedShift.location : overviewLocation(selectedShift.location);
             const locationNote = canSeeExact ? null : t("shiftDetail.locationNote");
