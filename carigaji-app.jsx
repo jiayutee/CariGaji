@@ -595,6 +595,10 @@ const TRANSLATIONS = {
     "toast.sendFailed": "Failed to send: ",
     "toast.checkinSuccess": "Checked in successfully.",
     "toast.checkoutSuccess": "Checkout submitted. Your employer will confirm your hours.",
+    "toast.acceptModificationSuccess": "Accepted. Your employer will be paid based on this.",
+    "toast.acceptModificationFailed": "Failed to accept: ",
+    "toast.rejectModificationSuccess": "Rejected. Please submit your own hours again.",
+    "toast.rejectModificationFailed": "Failed to reject: ",
     "toast.maxBidPrefix": "Max bid is RM",
     "toast.sampleShiftBidInfo": "This is a sample shift. Apply to a live shift to submit a bid.",
     "toast.applicationFailed": "Failed to submit application: ",
@@ -1402,15 +1406,27 @@ const TRANSLATIONS = {
     "worker.checkoutPendingBadge": "Checkout submitted — awaiting confirmation",
     "worker.hoursConfirmedBadge": "✓ Hours confirmed",
     "worker.hoursDisputedBadge": "Employer disputed your hours",
+    "worker.employerProposedLabel": "Employer proposed {hours}h",
+    "worker.acceptModificationBtn": "Accept",
+    "worker.rejectModificationBtn": "Reject, resubmit",
     "employer.checkinCodeBtn": "Check-in code",
     "employer.checkinCodeTitle": "Worker check-in code",
     "employer.checkinCodeRotateHint": "Show this to workers at the venue. It changes every 30 seconds — read it fresh each time.",
+    "employer.checkinCodeRefreshBtn": "Refresh now",
     "employer.reportedHoursPrefix": "Reported: ",
     "employer.hoursConfirmedLabel": "✓ Hours confirmed",
     "employer.hoursDisputedLabel": "Hours disputed",
     "employer.confirmHoursBtn": "Confirm",
     "employer.disputeHoursBtn": "Dispute",
     "employer.disputeHoursPrompt": "Why are you disputing these hours? (optional)",
+    "employer.disputeHoursPlaceholder": "Why are you disputing these hours? (optional)",
+    "employer.modifyHoursBtn": "Decline & Modify",
+    "employer.modifyHoursPlaceholder": "Hours worked",
+    "employer.modifyHoursNotePlaceholder": "Why are you proposing a different number?",
+    "employer.modifyHoursSubmitBtn": "Send proposal",
+    "employer.hoursProposedPendingLabel": "You proposed {hours}h — waiting for the worker",
+    "employer.toastHoursModifyProposed": "Proposal sent to the worker.",
+    "employer.toastModifyHoursFailed": "Failed to send proposal: ",
     "employer.toastHoursConfirmed": "Hours confirmed.",
     "employer.toastHoursDisputed": "Hours disputed. The worker has been notified to resubmit.",
     "employer.toastConfirmHoursFailed": "Could not confirm hours: ",
@@ -1546,6 +1562,7 @@ const TRANSLATIONS = {
     "employer.pillPending": "Pending",
     "employer.pillShortlisted": "Shortlisted",
     "employer.pillAccepted": "Accepted",
+    "employer.pillCheckedIn": "Checked In",
     "employer.pillNotSelected": "Not selected",
     "employer.pillOfferExpired": "Offer expired",
     "employer.pillWithdrawn": "Withdrawn",
@@ -1894,6 +1911,10 @@ const TRANSLATIONS = {
     "toast.sendFailed": "Gagal hantar: ",
     "toast.checkinSuccess": "Berjaya daftar masuk.",
     "toast.checkoutSuccess": "Daftar keluar dihantar. Majikan anda akan mengesahkan jam anda.",
+    "toast.acceptModificationSuccess": "Diterima. Majikan anda akan membayar berdasarkan ini.",
+    "toast.acceptModificationFailed": "Gagal menerima: ",
+    "toast.rejectModificationSuccess": "Ditolak. Sila hantar semula jam anda sendiri.",
+    "toast.rejectModificationFailed": "Gagal menolak: ",
     "toast.maxBidPrefix": "Tawaran maksimum ialah RM",
     "toast.sampleShiftBidInfo": "Ini syif contoh sahaja. Mohon syif sebenar untuk hantar tawaran.",
     "toast.applicationFailed": "Gagal hantar permohonan: ",
@@ -2693,15 +2714,27 @@ const TRANSLATIONS = {
     "worker.checkoutPendingBadge": "Daftar keluar dihantar — menunggu pengesahan",
     "worker.hoursConfirmedBadge": "✓ Jam disahkan",
     "worker.hoursDisputedBadge": "Majikan mempertikaikan jam anda",
+    "worker.employerProposedLabel": "Majikan mencadangkan {hours}j",
+    "worker.acceptModificationBtn": "Terima",
+    "worker.rejectModificationBtn": "Tolak, hantar semula",
     "employer.checkinCodeBtn": "Kod daftar masuk",
     "employer.checkinCodeTitle": "Kod daftar masuk pekerja",
     "employer.checkinCodeRotateHint": "Tunjukkan ini kepada pekerja di tempat acara. Ia berubah setiap 30 saat — baca semula setiap kali.",
+    "employer.checkinCodeRefreshBtn": "Muat semula sekarang",
     "employer.reportedHoursPrefix": "Dilaporkan: ",
     "employer.hoursConfirmedLabel": "✓ Jam disahkan",
     "employer.hoursDisputedLabel": "Jam dipertikaikan",
     "employer.confirmHoursBtn": "Sahkan",
     "employer.disputeHoursBtn": "Pertikai",
     "employer.disputeHoursPrompt": "Mengapa anda mempertikaikan jam ini? (pilihan)",
+    "employer.disputeHoursPlaceholder": "Mengapa anda mempertikaikan jam ini? (pilihan)",
+    "employer.modifyHoursBtn": "Tolak & Ubah Suai",
+    "employer.modifyHoursPlaceholder": "Jam bekerja",
+    "employer.modifyHoursNotePlaceholder": "Kenapa anda mencadangkan angka yang berbeza?",
+    "employer.modifyHoursSubmitBtn": "Hantar cadangan",
+    "employer.hoursProposedPendingLabel": "Anda mencadangkan {hours}j — menunggu respons pekerja",
+    "employer.toastHoursModifyProposed": "Cadangan dihantar kepada pekerja.",
+    "employer.toastModifyHoursFailed": "Gagal menghantar cadangan: ",
     "employer.toastHoursConfirmed": "Jam disahkan.",
     "employer.toastHoursDisputed": "Jam dipertikaikan. Pekerja telah dimaklumkan untuk menghantar semula.",
     "employer.toastConfirmHoursFailed": "Tidak dapat mengesahkan jam: ",
@@ -2837,6 +2870,7 @@ const TRANSLATIONS = {
     "employer.pillPending": "Tertunda",
     "employer.pillShortlisted": "Disenarai pendek",
     "employer.pillAccepted": "Diterima",
+    "employer.pillCheckedIn": "Sudah Daftar Masuk",
     "employer.pillNotSelected": "Tidak dipilih",
     "employer.pillOfferExpired": "Tawaran tamat tempoh",
     "employer.pillWithdrawn": "Ditarik balik",
@@ -3185,6 +3219,10 @@ const TRANSLATIONS = {
     "toast.sendFailed": "发送失败：",
     "toast.checkinSuccess": "签到成功。",
     "toast.checkoutSuccess": "签退已提交，雇主将确认您的工时。",
+    "toast.acceptModificationSuccess": "已接受，雇主将据此付款。",
+    "toast.acceptModificationFailed": "接受失败：",
+    "toast.rejectModificationSuccess": "已拒绝，请重新提交您的工时。",
+    "toast.rejectModificationFailed": "拒绝失败：",
     "toast.maxBidPrefix": "最高出价为 RM",
     "toast.sampleShiftBidInfo": "这是一个示例班次。请申请正式班次以提交出价。",
     "toast.applicationFailed": "提交申请失败：",
@@ -3983,15 +4021,27 @@ const TRANSLATIONS = {
     "worker.checkoutPendingBadge": "签退已提交 — 等待确认中",
     "worker.hoursConfirmedBadge": "✓ 工时已确认",
     "worker.hoursDisputedBadge": "雇主对您的工时提出异议",
+    "worker.employerProposedLabel": "雇主提议了 {hours} 小时",
+    "worker.acceptModificationBtn": "接受",
+    "worker.rejectModificationBtn": "拒绝，重新提交",
     "employer.checkinCodeBtn": "签到验证码",
     "employer.checkinCodeTitle": "员工签到验证码",
     "employer.checkinCodeRotateHint": "将此验证码展示给现场的员工。它每 30 秒更新一次 — 请每次都重新查看。",
+    "employer.checkinCodeRefreshBtn": "立即刷新",
     "employer.reportedHoursPrefix": "报告工时：",
     "employer.hoursConfirmedLabel": "✓ 工时已确认",
     "employer.hoursDisputedLabel": "工时有异议",
     "employer.confirmHoursBtn": "确认",
     "employer.disputeHoursBtn": "提出异议",
     "employer.disputeHoursPrompt": "为什么对这些工时有异议？（可选）",
+    "employer.disputeHoursPlaceholder": "为什么对这些工时有异议？（可选）",
+    "employer.modifyHoursBtn": "拒绝并修改",
+    "employer.modifyHoursPlaceholder": "工作时数",
+    "employer.modifyHoursNotePlaceholder": "为什么提出不同的时数？",
+    "employer.modifyHoursSubmitBtn": "发送提议",
+    "employer.hoursProposedPendingLabel": "您提议了 {hours} 小时 — 等待员工回应",
+    "employer.toastHoursModifyProposed": "提议已发送给员工。",
+    "employer.toastModifyHoursFailed": "发送提议失败：",
     "employer.toastHoursConfirmed": "工时已确认。",
     "employer.toastHoursDisputed": "工时异议已提交，系统已通知员工重新提交。",
     "employer.toastConfirmHoursFailed": "无法确认工时：",
@@ -4127,6 +4177,7 @@ const TRANSLATIONS = {
     "employer.pillPending": "待处理",
     "employer.pillShortlisted": "已入围",
     "employer.pillAccepted": "已接受",
+    "employer.pillCheckedIn": "已签到",
     "employer.pillNotSelected": "未获选",
     "employer.pillOfferExpired": "邀约已过期",
     "employer.pillWithdrawn": "已撤回",
@@ -8675,6 +8726,42 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // hours worked after checking in, so payout can reflect real time instead
   // of always the full contracted duration.
   const [checkoutTarget, setCheckoutTarget] = useState(null); // { applicationId, shiftTitle, defaultHours }
+  const [respondingHoursModification, setRespondingHoursModification] = useState(null); // applicationId currently accepting/rejecting
+
+  const acceptHoursModification = async (applicationId) => {
+    setRespondingHoursModification(applicationId);
+    const { error } = await supabase.rpc('worker_accept_modification', { p_application_id: applicationId });
+    setRespondingHoursModification(null);
+    if (error) { toast(t('toast.acceptModificationFailed') + error.message, 'error'); return; }
+    setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? {
+      ...a,
+      workerReportedHours: a.employerProposedHours,
+      employerHoursConfirmedAt: new Date().toISOString(),
+      employerHoursDisputed: false,
+      employerProposedHours: null,
+      employerProposedNote: null,
+    } : a));
+    toast(t('toast.acceptModificationSuccess'), 'success');
+  };
+
+  const rejectHoursModification = async (applicationId) => {
+    setRespondingHoursModification(applicationId);
+    const { error } = await supabase.rpc('worker_reject_modification', { p_application_id: applicationId });
+    setRespondingHoursModification(null);
+    if (error) { toast(t('toast.rejectModificationFailed') + error.message, 'error'); return; }
+    // Mirrors what the RPC just did server-side: checked_out_at goes back to
+    // null, which is what makes the ORDINARY "checked in, not checked out"
+    // Check Out button naturally reappear below -- no separate resubmit UI
+    // needed for this step.
+    setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? {
+      ...a,
+      checkedOutAt: null,
+      employerProposedHours: null,
+      employerProposedNote: null,
+      hoursResubmitted: true,
+    } : a));
+    toast(t('toast.rejectModificationSuccess'), 'success');
+  };
   const [checkoutHours, setCheckoutHours] = useState("");
   const [checkoutBreakMinutes, setCheckoutBreakMinutes] = useState("");
   const [checkoutNote, setCheckoutNote] = useState("");
@@ -9145,7 +9232,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       try { await supabase.rpc('complete_ended_shifts'); } catch { /* sweep is best-effort */ }
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -9173,6 +9260,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         employerHoursConfirmedAt: a.employer_hours_confirmed_at ?? null,
         employerHoursDisputed: a.employer_hours_disputed ?? false,
         employerHoursDisputeNote: a.employer_hours_dispute_note ?? null,
+        employerProposedHours: a.employer_proposed_hours ?? null,
+        employerProposedNote: a.employer_proposed_note ?? null,
+        hoursResubmitted: a.hours_resubmitted ?? false,
         cancellationChoice: a.cancellation_choice ?? null,
         cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
         cancellationProofPath: a.cancellation_proof_path ?? null,
@@ -9957,6 +10047,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const renderCheckState = (a, stopClick) => {
     if (!a.checkedInAt) {
       return <Btn size="sm" variant="success" onClick={(e) => { stopClick?.(e); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>;
+    }
+    if (a.checkedOutAt && a.employerProposedHours != null) {
+      return (
+        <div style={{ textAlign: "right", maxWidth: 220 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: 8, padding: "6px 8px", marginBottom: 6 }}>
+            {t("worker.employerProposedLabel").replace("{hours}", a.employerProposedHours)}
+            {a.employerProposedNote && <div style={{ fontWeight: 400, marginTop: 2 }}>{a.employerProposedNote}</div>}
+          </div>
+          <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+            <Btn size="xs" variant="secondary" disabled={respondingHoursModification === a.id} onClick={(e) => { stopClick?.(e); rejectHoursModification(a.id); }}>{t("worker.rejectModificationBtn")}</Btn>
+            <Btn size="xs" variant="success" disabled={respondingHoursModification === a.id} onClick={(e) => { stopClick?.(e); acceptHoursModification(a.id); }}>{t("worker.acceptModificationBtn")}</Btn>
+          </div>
+        </div>
+      );
     }
     if (a.employerHoursDisputed) {
       return (
@@ -11170,13 +11274,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {a.checkedInAt && !a.checkedOutAt && (
                     <Btn variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkOutBtn")}</Btn>
                   )}
-                  {a.checkedInAt && a.checkedOutAt && a.employerHoursDisputed && (
+                  {a.checkedInAt && a.checkedOutAt && a.employerProposedHours != null && (
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
+                        {t("worker.employerProposedLabel").replace("{hours}", a.employerProposedHours)}
+                        {a.employerProposedNote && <div style={{ fontWeight: 400, marginTop: 2 }}>{a.employerProposedNote}</div>}
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <Btn size="xs" variant="secondary" disabled={respondingHoursModification === a.id} onClick={() => rejectHoursModification(a.id)}>{t("worker.rejectModificationBtn")}</Btn>
+                        <Btn size="xs" variant="success" disabled={respondingHoursModification === a.id} onClick={() => acceptHoursModification(a.id)}>{t("worker.acceptModificationBtn")}</Btn>
+                      </div>
+                    </div>
+                  )}
+                  {a.checkedInAt && a.checkedOutAt && a.employerHoursDisputed && a.employerProposedHours == null && (
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</span>
                       <Btn size="sm" variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }}>{t("worker.resubmitCheckout")}</Btn>
                     </div>
                   )}
-                  {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && (
+                  {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
                     <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
                       {a.employerHoursConfirmedAt ? t("worker.hoursConfirmedBadge") : t("worker.checkoutPendingBadge")}
                     </div>
@@ -12549,6 +12665,31 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [checkinCodeModal, setCheckinCodeModal] = useState(null); // { shiftId, title }
   const [checkinCode, setCheckinCode] = useState(null);
   const [checkinCodeExpiresAt, setCheckinCodeExpiresAt] = useState(null);
+  // Component-scope so both the polling effect below AND the manual
+  // "Refresh now" button call the exact same fetch -- one implementation,
+  // not a duplicate copy that could drift.
+  const refreshCheckinCode = () => {
+    if (!checkinCodeModal?.shiftId) return;
+    supabase.rpc('get_shift_checkin_code', { p_shift_id: checkinCodeModal.shiftId }).then(({ data, error }) => {
+      if (error || !data?.[0]) { setCheckinCode(null); return; }
+      setCheckinCode(data[0].code);
+      setCheckinCodeExpiresAt(data[0].expires_at);
+    });
+  };
+  // Countdown display, ticking every 1s from the server's real expires_at.
+  // The code itself still comes from the 5s poll below (or the manual
+  // refresh button) -- this is purely what the number on screen shows
+  // between those actual fetches, computed fresh each tick rather than
+  // stored, so it can never drift out of sync with checkinCodeExpiresAt.
+  const [checkinCodeNow, setCheckinCodeNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!checkinCodeModal) return undefined;
+    const tick = setInterval(() => setCheckinCodeNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, [checkinCodeModal]);
+  const checkinCodeSecondsLeft = checkinCodeExpiresAt
+    ? Math.max(0, Math.ceil((new Date(checkinCodeExpiresAt).getTime() - checkinCodeNow) / 1000))
+    : 30;
   const [disputeModal, setDisputeModal] = useState(null); // { applicationId, shiftTitle }
   const [disputeForm, setDisputeForm] = useState({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   const [filingDispute, setFilingDispute] = useState(false);
@@ -13296,7 +13437,34 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     const { error } = await supabase.rpc('employer_dispute_checkout', { p_application_id: applicationId, p_note: note || null });
     if (error) { toast(t('employer.toastDisputeHoursFailed') + error.message, 'error'); return; }
     setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, employerHoursDisputed: true, employerHoursConfirmedAt: null } : a));
+    // Closes the inline form only on success -- on failure the note the
+    // employer typed stays on screen instead of silently vanishing.
+    setHoursActionTarget(null);
     toast(t('employer.toastHoursDisputed'), 'success');
+  };
+
+  // Decline & Modify -- the negotiation middle ground between Accept and
+  // Dispute. hoursActionTarget carries { applicationId, mode: 'modify' |
+  // 'dispute' } for whichever row currently has its inline form open (one
+  // shared form, both paths need hours-or-note input, so one state pair
+  // rather than two near-duplicate ones).
+  const [hoursActionTarget, setHoursActionTarget] = useState(null);
+  const [hoursActionValue, setHoursActionValue] = useState("");
+  const [hoursActionNote, setHoursActionNote] = useState("");
+  const [submittingHoursAction, setSubmittingHoursAction] = useState(false);
+
+  const proposeHoursModification = async (applicationId, hours, note) => {
+    setSubmittingHoursAction(true);
+    const { error } = await supabase.rpc('employer_propose_modification', {
+      p_application_id: applicationId, p_hours: Number(hours), p_note: note || null,
+    });
+    setSubmittingHoursAction(false);
+    if (error) { toast(t('employer.toastModifyHoursFailed') + error.message, 'error'); return; }
+    setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId
+      ? { ...a, employerProposedHours: Number(hours), employerProposedNote: note || null }
+      : a));
+    setHoursActionTarget(null);
+    toast(t('employer.toastHoursModifyProposed'), 'success');
   };
 
   // Confirmed = accepted + contract-signed — only these workers are owed a
@@ -13386,7 +13554,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -13424,6 +13592,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           workerCheckoutNote: a.worker_checkout_note ?? null,
           employerHoursConfirmedAt: a.employer_hours_confirmed_at ?? null,
           employerHoursDisputed: a.employer_hours_disputed ?? false,
+          employerProposedHours: a.employer_proposed_hours ?? null,
+          employerProposedNote: a.employer_proposed_note ?? null,
+          hoursResubmitted: a.hours_resubmitted ?? false,
           cancellationChoice: a.cancellation_choice ?? null,
           cancellationChoiceDeadline: a.cancellation_choice_deadline ?? null,
           cancellationProofPath: a.cancellation_proof_path ?? null,
@@ -13525,18 +13696,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // few seconds.
   useEffect(() => {
     if (!checkinCodeModal?.shiftId) return undefined;
-    let active = true;
-    const fetchCode = () => {
-      supabase.rpc('get_shift_checkin_code', { p_shift_id: checkinCodeModal.shiftId }).then(({ data, error }) => {
-        if (!active) return;
-        if (error || !data?.[0]) { setCheckinCode(null); return; }
-        setCheckinCode(data[0].code);
-        setCheckinCodeExpiresAt(data[0].expires_at);
-      });
-    };
-    fetchCode();
-    const interval = setInterval(fetchCode, 5000);
-    return () => { active = false; clearInterval(interval); };
+    refreshCheckinCode();
+    const interval = setInterval(refreshCheckinCode, 5000);
+    return () => clearInterval(interval);
   }, [checkinCodeModal]);
 
   // Best-effort expiry sweep: whenever the applicant pool loads, flip any
@@ -14114,10 +14276,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     </div>
   );
 
-  const applicantStatusPill = (a, action) => (
+  const applicantStatusPill = (a, action) => {
+    // Display-only refinement of the SAME 'accepted' state -- does not touch
+    // `action` itself (isSelectable and the action buttons still correctly
+    // key off the real applications.status). Without this an accepted
+    // worker still reads "Accepted" after they've physically checked in,
+    // which an employer scanning the pool mid-shift can't tell apart from
+    // someone who hasn't shown up yet.
+    const isCheckedIn = action === 'accepted' && a.checkedInAt && !a.checkedOutAt;
+    return (
     <>
       <Pill
         label={
+          isCheckedIn ? t("employer.pillCheckedIn") :
           action === 'offered' ? t("employer.awaitingResponse") :
           action === 'accepted' ? t("employer.pillAccepted") :
           action === 'shortlisted' ? t("employer.pillShortlisted") :
@@ -14126,13 +14297,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           action === 'withdrawn' ? t("employer.pillWithdrawn") :
           t("employer.pillPending")
         }
-        color={action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
+        color={isCheckedIn ? "blue" : action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
       />
       {action === 'offered' && a.offerExpiresAt && (
         <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}</div>
       )}
     </>
-  );
+    );
+  };
 
   // Every colour here is the *OnSurface variant rather than the raw token:
   // these are glyphs on a surface, not fills. BRAND.red and BRAND.blue as text
@@ -14196,15 +14368,44 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           {a.employerHoursDisputed && (
             <div style={{ color: BRAND.redOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursDisputedLabel")}</div>
           )}
-          {!a.employerHoursConfirmedAt && !a.employerHoursDisputed && (
-            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              <Btn size="xs" variant="success" onClick={() => confirmCheckoutHours(a.id)}>{t("employer.confirmHoursBtn")}</Btn>
-              <Btn size="xs" variant="danger" onClick={() => {
-                const note = window.prompt(t("employer.disputeHoursPrompt"), "");
-                if (note === null) return;
-                disputeCheckoutHours(a.id, note);
-              }}>{t("employer.disputeHoursBtn")}</Btn>
+          {/* Awaiting the worker's response to a pending proposal -- no
+              buttons here, this side has already acted. */}
+          {a.employerProposedHours != null && (
+            <div style={{ marginTop: 6, padding: "6px 8px", borderRadius: 6, background: BRAND.amberLight, color: BRAND.onAmberLight }}>
+              <div style={{ fontWeight: 700 }}>{t("employer.hoursProposedPendingLabel").replace("{hours}", a.employerProposedHours)}</div>
+              {a.employerProposedNote && <div style={{ marginTop: 2 }}>{a.employerProposedNote}</div>}
             </div>
+          )}
+          {!a.employerHoursConfirmedAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
+            hoursActionTarget?.applicationId === a.id ? (
+              <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
+                {hoursActionTarget.mode === 'modify' && (
+                  <input type="number" step="0.5" min="0" placeholder={t("employer.modifyHoursPlaceholder")}
+                    value={hoursActionValue} onChange={e => setHoursActionValue(e.target.value)}
+                    style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${BRAND.border}`, fontSize: 12, marginBottom: 4, color: BRAND.text, background: BRAND.input }} />
+                )}
+                <textarea rows={2} placeholder={t(hoursActionTarget.mode === 'modify' ? "employer.modifyHoursNotePlaceholder" : "employer.disputeHoursPlaceholder")}
+                  value={hoursActionNote} onChange={e => setHoursActionNote(e.target.value)}
+                  style={{ width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${BRAND.border}`, fontSize: 12, fontFamily: "inherit", resize: "vertical", color: BRAND.text, background: BRAND.input, marginBottom: 4 }} />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <Btn size="xs" variant={hoursActionTarget.mode === 'modify' ? 'success' : 'danger'} disabled={submittingHoursAction || (hoursActionTarget.mode === 'modify' && !hoursActionValue)}
+                    onClick={() => hoursActionTarget.mode === 'modify'
+                      ? proposeHoursModification(a.id, hoursActionValue, hoursActionNote)
+                      : disputeCheckoutHours(a.id, hoursActionNote).then(() => setHoursActionTarget(null))}
+                  >{t(hoursActionTarget.mode === 'modify' ? "employer.modifyHoursSubmitBtn" : "employer.disputeHoursBtn")}</Btn>
+                  <Btn size="xs" variant="secondary" onClick={() => setHoursActionTarget(null)}>{t("common.cancel")}</Btn>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                <Btn size="xs" variant="success" onClick={() => confirmCheckoutHours(a.id)}>{t("employer.confirmHoursBtn")}</Btn>
+                {!a.hoursResubmitted ? (
+                  <Btn size="xs" variant="secondary" onClick={() => { setHoursActionValue(String(a.workerReportedHours ?? '')); setHoursActionNote(''); setHoursActionTarget({ applicationId: a.id, mode: 'modify' }); }}>{t("employer.modifyHoursBtn")}</Btn>
+                ) : (
+                  <Btn size="xs" variant="danger" onClick={() => { setHoursActionNote(''); setHoursActionTarget({ applicationId: a.id, mode: 'dispute' }); }}>{t("employer.disputeHoursBtn")}</Btn>
+                )}
+              </div>
+            )
           )}
         </div>
       )}
@@ -16002,7 +16203,24 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: 10, fontFamily: "monospace", color: BRAND.primary, marginBottom: 8 }}>
               {checkinCode ?? "······"}
             </div>
-            <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 20 }}>{t("employer.checkinCodeRotateHint")}</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+              <div style={{ position: "relative", width: 22, height: 22, flexShrink: 0 }}>
+                <svg width="22" height="22" viewBox="0 0 22 22" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="11" cy="11" r="9" fill="none" stroke={BRAND.border} strokeWidth="3" />
+                  <circle cx="11" cy="11" r="9" fill="none" stroke={BRAND.primaryOnSurface} strokeWidth="3"
+                    strokeDasharray={2 * Math.PI * 9}
+                    strokeDashoffset={2 * Math.PI * 9 * (1 - checkinCodeSecondsLeft / 30)}
+                    style={{ transition: "stroke-dashoffset 1s linear" }} />
+                </svg>
+              </div>
+              <span style={{ fontSize: 12, color: BRAND.textMuted, fontVariantNumeric: "tabular-nums" }}>
+                {t("employer.checkinCodeRotateHint")} ({checkinCodeSecondsLeft}s)
+              </span>
+            </div>
+            <button onClick={refreshCheckinCode}
+              style={{width:'100%', padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: 'none', cursor:'pointer', color: BRAND.primaryOnSurface, fontWeight:600, marginBottom: 8}}>
+              {t("employer.checkinCodeRefreshBtn")}
+            </button>
             <button onClick={() => setCheckinCodeModal(null)}
               style={{width:'100%', padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.text, fontWeight:600}}>
               {t("common.close")}
