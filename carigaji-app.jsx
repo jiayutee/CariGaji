@@ -1425,6 +1425,9 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "Why are you proposing a different number?",
     "employer.modifyHoursSubmitBtn": "Send proposal",
     "employer.hoursProposedPendingLabel": "You proposed {hours}h — waiting for the worker",
+    "hours.employerNoteLabel": "Employer's note:",
+    "hours.yourNoteLabel": "Your note:",
+    "hours.workerNoteLabel": "Worker's note:",
     "employer.actionBidsToReview": "{count} bid(s) to review",
     "employer.actionHoursToConfirm": "{count} timesheet(s) to confirm",
     "employer.actionToRate": "{count} worker(s) to rate",
@@ -2737,6 +2740,9 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "Kenapa anda mencadangkan angka yang berbeza?",
     "employer.modifyHoursSubmitBtn": "Hantar cadangan",
     "employer.hoursProposedPendingLabel": "Anda mencadangkan {hours}j — menunggu respons pekerja",
+    "hours.employerNoteLabel": "Nota majikan:",
+    "hours.yourNoteLabel": "Nota anda:",
+    "hours.workerNoteLabel": "Nota pekerja:",
     "employer.actionBidsToReview": "{count} bida untuk disemak",
     "employer.actionHoursToConfirm": "{count} lembaran waktu untuk disahkan",
     "employer.actionToRate": "{count} pekerja untuk dinilai",
@@ -4048,6 +4054,9 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "为什么提出不同的时数？",
     "employer.modifyHoursSubmitBtn": "发送提议",
     "employer.hoursProposedPendingLabel": "您提议了 {hours} 小时 — 等待员工回应",
+    "hours.employerNoteLabel": "雇主留言：",
+    "hours.yourNoteLabel": "您的留言：",
+    "hours.workerNoteLabel": "员工留言：",
     "employer.actionBidsToReview": "{count} 个报价待审核",
     "employer.actionHoursToConfirm": "{count} 份工时待确认",
     "employer.actionToRate": "{count} 位员工待评价",
@@ -9244,7 +9253,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       try { await supabase.rpc('complete_ended_shifts'); } catch { /* sweep is best-effort */ }
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -9269,6 +9278,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         checkedInAt: a.checked_in_at ?? null,
         checkedOutAt: a.checked_out_at ?? null,
         workerReportedHours: a.worker_reported_hours ?? null,
+        workerCheckoutNote: a.worker_checkout_note ?? null,
         employerHoursConfirmedAt: a.employer_hours_confirmed_at ?? null,
         employerHoursDisputed: a.employer_hours_disputed ?? false,
         employerHoursDisputeNote: a.employer_hours_dispute_note ?? null,
@@ -10056,6 +10066,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // checked in" through the full worker-report → employer-confirm/dispute
   // cycle. Shared by the My Bids list card and the shift-detail view so the
   // two don't drift.
+  // The hours conversation, one line per message. Both notes are stored on the
+  // application; they only help if the other side can actually read them.
+  const renderHoursNote = (label, text, align) => text ? (
+    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4, textAlign: align, maxWidth: 240, marginLeft: align === "right" ? "auto" : undefined, marginRight: align === "center" ? "auto" : undefined, overflowWrap: "anywhere" }}>
+      <span style={{ fontWeight: 600 }}>{label}</span> {text}
+    </div>
+  ) : null;
+
   const renderCheckState = (a, stopClick) => {
     if (!a.checkedInAt) {
       return <Btn size="sm" variant="success" onClick={(e) => { stopClick?.(e); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>;
@@ -10078,7 +10096,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return (
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</div>
-          <Btn size="sm" variant="success" onClick={(e) => {
+          {renderHoursNote(t("hours.employerNoteLabel"), a.employerHoursDisputeNote, "right")}
+          <Btn size="sm" variant="success" style={{ marginTop: 6 }} onClick={(e) => {
             stopClick?.(e);
             setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) });
             setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null);
@@ -10090,7 +10109,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.greenOnSurface }}>{t("worker.hoursConfirmedBadge")}</span>;
     }
     if (a.checkedOutAt) {
-      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted }}>{t("worker.checkoutPendingBadge")}</span>;
+      return (
+        <div style={{ textAlign: "right" }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted }}>{t("worker.checkoutPendingBadge")}</span>
+          {renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "right")}
+        </div>
+      );
     }
     return (
       <Btn size="sm" variant="success" onClick={(e) => {
@@ -10204,8 +10228,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               ...x,
               checkedOutAt: new Date().toISOString(),
               workerReportedHours: Number(checkoutHours),
+              workerCheckoutNote: checkoutNote || null,
               employerHoursConfirmedAt: null,
               employerHoursDisputed: false,
+              employerHoursDisputeNote: null,
             } : x));
             setCheckoutTarget(null);
             toast(t("toast.checkoutSuccess"), "success");
@@ -11301,12 +11327,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {a.checkedInAt && a.checkedOutAt && a.employerHoursDisputed && a.employerProposedHours == null && (
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</span>
-                      <Btn size="sm" variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }}>{t("worker.resubmitCheckout")}</Btn>
+                      {renderHoursNote(t("hours.employerNoteLabel"), a.employerHoursDisputeNote, "center")}
+                      <Btn size="sm" variant="success" style={{ marginTop: 6 }} onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }}>{t("worker.resubmitCheckout")}</Btn>
                     </div>
                   )}
                   {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
                       {a.employerHoursConfirmedAt ? t("worker.hoursConfirmedBadge") : t("worker.checkoutPendingBadge")}
+                      {!a.employerHoursConfirmedAt && renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "center")}
                     </div>
                   )}
                 </>
@@ -13463,7 +13491,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const disputeCheckoutHours = async (applicationId, note) => {
     const { error } = await supabase.rpc('employer_dispute_checkout', { p_application_id: applicationId, p_note: note || null });
     if (error) { toast(t('employer.toastDisputeHoursFailed') + error.message, 'error'); return; }
-    setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, employerHoursDisputed: true, employerHoursConfirmedAt: null } : a));
+    setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, employerHoursDisputed: true, employerHoursDisputeNote: note || null, employerHoursConfirmedAt: null } : a));
     // Closes the inline form only on success -- on failure the note the
     // employer typed stays on screen instead of silently vanishing.
     setHoursActionTarget(null);
@@ -13581,7 +13609,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -13619,6 +13647,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           workerCheckoutNote: a.worker_checkout_note ?? null,
           employerHoursConfirmedAt: a.employer_hours_confirmed_at ?? null,
           employerHoursDisputed: a.employer_hours_disputed ?? false,
+          employerHoursDisputeNote: a.employer_hours_dispute_note ?? null,
           employerProposedHours: a.employer_proposed_hours ?? null,
           employerProposedNote: a.employer_proposed_note ?? null,
           hoursResubmitted: a.hours_resubmitted ?? false,
@@ -14389,11 +14418,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div style={{ color: BRAND.text, fontWeight: 600 }}>
             {t("employer.reportedHoursPrefix")}{a.workerReportedHours}h
           </div>
+          {a.workerCheckoutNote && (
+            <div style={{ color: BRAND.textMuted, marginTop: 2, overflowWrap: "anywhere" }}>
+              <span style={{ fontWeight: 600 }}>{t("hours.workerNoteLabel")}</span> {a.workerCheckoutNote}
+            </div>
+          )}
           {a.employerHoursConfirmedAt && (
             <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
           )}
           {a.employerHoursDisputed && (
-            <div style={{ color: BRAND.redOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursDisputedLabel")}</div>
+            <div style={{ color: BRAND.redOnSurface, fontWeight: 600, marginTop: 2 }}>
+              {t("employer.hoursDisputedLabel")}
+              {a.employerHoursDisputeNote && <div style={{ fontWeight: 400, color: BRAND.textMuted, overflowWrap: "anywhere" }}><span style={{ fontWeight: 600 }}>{t("hours.yourNoteLabel")}</span> {a.employerHoursDisputeNote}</div>}
+            </div>
           )}
           {/* Awaiting the worker's response to a pending proposal -- no
               buttons here, this side has already acted. */}
