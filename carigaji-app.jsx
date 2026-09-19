@@ -64,6 +64,10 @@ const totalOccurrenceHours = (occurrences) => (occurrences ?? []).reduce((sum, o
 //
 // Malaysia is fixed UTC+8 with no DST, so the literal offset is exact, and it
 // is already how this file builds KL timestamps (see the post-shift form).
+// Workers may check out until this long after the shift's last occurrence ends
+// (enforced server-side in worker_submit_checkout; this only drives the UI).
+const CHECKOUT_WINDOW_MS = 48 * 60 * 60 * 1000;
+
 const shiftLastEndsAt = (occurrences, endAt = null) => {
   let last = null;
   for (const occ of occurrences ?? []) {
@@ -597,7 +601,7 @@ const TRANSLATIONS = {
     "toast.checkoutSuccess": "Checkout submitted. Your employer will confirm your hours.",
     "toast.acceptModificationSuccess": "Accepted. Your employer will be paid based on this.",
     "toast.acceptModificationFailed": "Failed to accept: ",
-    "toast.rejectModificationSuccess": "Rejected. Please submit your own hours again.",
+    "toast.rejectModificationSuccess": "Your hours were resubmitted. The employer will review them.",
     "toast.rejectModificationFailed": "Failed to reject: ",
     "toast.maxBidPrefix": "Max bid is RM",
     "toast.sampleShiftBidInfo": "This is a sample shift. Apply to a live shift to submit a bid.",
@@ -1214,6 +1218,35 @@ const TRANSLATIONS = {
     "notif.offer_confirmed.body": "{worker_name} accepted your offer for \"{shift_title}\".",
     "notif.marked_no_show.title": "You were reported as not attending",
     "notif.marked_no_show.body": "The employer reported that you did not attend \"{shift_title}\". This costs {points} reliability points. If you did attend, open the shift and raise a dispute.",
+    "notif.attendance_missed_checkin.title": "You missed check-in",
+    "notif.attendance_missed_checkin.body": "The shift \"{shift_title}\" has ended and you did not check in. If you attended, open the shift and ask the employer to check you in. If they disagree you can raise a dispute.",
+    "notif.attendance_employer_missed_checkin.title": "A worker did not check in",
+    "notif.attendance_employer_missed_checkin.body": "{worker_name} did not check in for \"{shift_title}\". If they attended, check them in on their behalf; otherwise report a no-show.",
+    "notif.attendance_request.title": "A worker sent an attendance request",
+    "notif.attendance_request.body": "{worker_name} sent an attendance request for \"{shift_title}\". Open the shift to respond.",
+    "notif.attendance_request_reminder.title": "A worker is still waiting for you",
+    "notif.attendance_request_reminder.body": "{worker_name} sent an attendance request for \"{shift_title}\" more than a day ago. Please respond so it can be settled without an admin.",
+    "notif.attendance_request_approved.title": "The employer checked you in",
+    "notif.attendance_request_approved.body": "The employer confirmed you attended \"{shift_title}\" and checked you in. You can now submit your hours.",
+    "notif.attendance_request_declined.title": "The employer declined your request",
+    "notif.attendance_request_declined.body": "For \"{shift_title}\", the employer declined your attendance request. If you disagree you can raise a dispute from the shift and an admin will review it.",
+    "notif.attendance_checkout_reminder.title": "Check out of your shift",
+    "notif.attendance_checkout_reminder.window.body": "Please submit your hours for \"{shift_title}\". You have about {hours_left} hours left to check out.",
+    "notif.attendance_checkout_reminder.resubmit.body": "You rejected the employer's proposal for \"{shift_title}\". Please submit your own hours so the employer can review them.",
+    "notif.attendance_checkout_window_closed.title": "Check-out window closed",
+    "notif.attendance_checkout_window_closed.body": "The 48-hour window to check out of \"{shift_title}\" has closed. Ask the employer to submit your hours on your behalf, or raise a dispute.",
+    "notif.attendance_employer_not_checked_out.title": "A worker did not check out",
+    "notif.attendance_employer_not_checked_out.body": "{worker_name} did not check out of \"{shift_title}\" within 48 hours. You can submit their hours on their behalf.",
+    "notif.shift_hours_submitted_on_behalf.title": "The employer submitted your hours",
+    "notif.shift_hours_submitted_on_behalf.body": "The employer recorded {hours} hours for \"{shift_title}\" because you did not check out. Accept them to be paid, or reject and submit your own.",
+    "notif.hours_confirmation_reminder.title": "Hours are waiting for your confirmation",
+    "notif.hours_confirmation_reminder.body": "{worker_name} submitted hours for \"{shift_title}\". Please confirm them, propose different hours, or dispute.",
+    "notif.hours_awaiting_employer.title": "Still waiting for the employer",
+    "notif.hours_awaiting_employer.body": "The employer has not responded to the hours you submitted for \"{shift_title}\". If it stays unanswered you can raise a dispute from the shift and an admin will review it.",
+    "notif.no_show_reversed.title": "Your no-show report was withdrawn",
+    "notif.no_show_reversed.body": "The no-show report for \"{shift_title}\" was withdrawn and your reliability points were restored.",
+    "notif.attendance_admin_ruling.title": "An admin ruled on an attendance dispute",
+    "notif.attendance_admin_ruling.body": "An admin ruled on the attendance dispute for \"{shift_title}\". Open the shift to see the outcome.",
     "notif.bid_received.title": "New bid received",
     "notif.bid_received.body": "Someone applied for \"{shift_title}\".",
     "notif.bid_accepted.title": "Bid accepted",
@@ -1407,8 +1440,10 @@ const TRANSLATIONS = {
     "worker.hoursConfirmedBadge": "✓ Hours confirmed",
     "worker.hoursDisputedBadge": "Employer disputed your hours",
     "worker.employerProposedLabel": "Employer proposed {hours}h",
+    "worker.resubmitTitle": "Resubmit your hours",
+    "worker.resubmitProposalHint": "Submitting rejects the employer's proposal and sends your hours instead. Add a note so they understand the difference.",
     "worker.acceptModificationBtn": "Accept",
-    "worker.rejectModificationBtn": "Reject, resubmit",
+    "worker.rejectModificationBtn": "Reject & resubmit hours",
     "employer.checkinCodeBtn": "Check-in code",
     "employer.checkinCodeTitle": "Worker check-in code",
     "employer.checkinCodeRotateHint": "Show this to workers at the venue. It changes every 30 seconds — read it fresh each time.",
@@ -1425,9 +1460,78 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "Why are you proposing a different number?",
     "employer.modifyHoursSubmitBtn": "Send proposal",
     "employer.hoursProposedPendingLabel": "You proposed {hours}h — waiting for the worker",
-    "hours.employerNoteLabel": "Employer's note:",
-    "hours.yourNoteLabel": "Your note:",
-    "hours.workerNoteLabel": "Worker's note:",
+    "rating.commentPlaceholder": "Additional comments (optional)",
+    "rating.commentPrivacyHint": "Only they can read this. It is not shown on their public profile.",
+    "rating.feedbackReceivedTitle": "Comments you received",
+    "shiftDetail.aboutEmployer": "About the employer",
+    "employer.aboutCompanyTitle": "About your company",
+    "employer.aboutCompanyHint": "A short introduction that workers see on your profile and on your shift pages before they apply.",
+    "employer.aboutCompanyPlaceholder": "e.g. Family-run catering team in Bangsar. We run corporate dinners and weddings.",
+    "employer.aboutCompanySaveBtn": "Save",
+    "employer.aboutCompanySaved": "Company description saved",
+    "employer.aboutCompanySaveFailed": "Could not save: ",
+    "admin.rulingTitle": "Attendance ruling",
+    "admin.rulingHint": "Settle the attendance record itself. This closes the dispute and notifies both sides.",
+    "admin.rulingOutcomeLabel": "Outcome",
+    "admin.rulingGrant": "Grant attendance and pay hours",
+    "admin.rulingConfirmNoShow": "Confirm no-show",
+    "admin.rulingReverseNoShow": "Reverse no-show (restore points)",
+    "admin.rulingHoursLabel": "Hours to pay",
+    "admin.rulingNoteLabel": "Note to both parties",
+    "admin.rulingApplyBtn": "Apply ruling",
+    "admin.rulingApplied": "Ruling applied and dispute closed",
+    "admin.disputeCheckedInBy": "Check-in method",
+    "admin.disputeCheckedOutBy": "Check-out method",
+    "admin.disputeNoShow": "No-show mark",
+    "admin.disputeReportedHours": "Reported hours",
+    "admin.method.code": "Rotating code",
+    "admin.method.employer": "By employer",
+    "admin.method.admin": "By admin",
+    "admin.method.worker": "By worker",
+    "attendance.employerNotCheckedIn": "Not checked in",
+    "attendance.employerRequestCheckIn": "The worker says they attended and asks to be checked in",
+    "attendance.employerCheckInBehalfBtn": "Check in on their behalf",
+    "attendance.employerDeclineBtn": "Decline",
+    "attendance.employerDeclineNotePlaceholder": "Reason (optional)",
+    "attendance.employerConfirmDeclineBtn": "Decline request",
+    "attendance.employerNotCheckedOut": "The worker has not checked out",
+    "attendance.employerRequestCheckOut": "The worker missed check-out and asks you to submit their hours",
+    "attendance.employerAwaitingCheckout": "Has not checked out yet — they have until {when}",
+    "attendance.employerSubmitHoursBtn": "Submit hours for worker",
+    "attendance.employerHoursPlaceholder": "Hours worked",
+    "attendance.employerNotePlaceholder": "Note (optional)",
+    "attendance.employerSubmitHoursHint": "The worker still has to accept these hours before they are paid.",
+    "attendance.employerSubmitHoursConfirmBtn": "Send to worker",
+    "attendance.employerOnBehalfPending": "You submitted {hours}h for the worker — waiting for them",
+    "attendance.employerUndoNoShowBtn": "Undo no-show",
+    "attendance.toastCheckedIn": "Worker checked in",
+    "attendance.toastDeclined": "Request declined",
+    "attendance.toastHoursSubmitted": "Hours sent to the worker",
+    "attendance.toastNoShowUndone": "No-show report withdrawn",
+    "employer.actionAttendance": "{count} attendance to resolve",
+    "attendance.requestTitle": "Message the employer",
+    "attendance.requestCheckInIntro": "Tell the employer you attended. If they agree, they can check you in on your behalf.",
+    "attendance.requestCheckOutIntro": "Tell the employer roughly how long you worked. They can submit your hours for you to accept.",
+    "attendance.requestNotePlaceholder": "Add a note (optional)",
+    "attendance.requestSendBtn": "Send request",
+    "attendance.requestSent": "Request sent to the employer",
+    "attendance.noShowTitle": "Reported as not attending",
+    "attendance.noShowHint": "The employer says you did not attend. If you did, ask them to review it, or raise a dispute.",
+    "attendance.missedCheckInTitle": "You missed check-in",
+    "attendance.missedCheckInHint": "The shift has ended, so check-in is closed. If you attended, ask the employer to check you in.",
+    "attendance.checkoutClosedTitle": "Check-out window closed",
+    "attendance.checkoutClosedHint": "You had 48 hours after the shift to check out. Ask the employer to submit your hours for you.",
+    "attendance.askCheckInBtn": "Ask employer to check me in",
+    "attendance.askReviewBtn": "Ask employer to review",
+    "attendance.askCheckoutBtn": "Ask employer to submit my hours",
+    "attendance.requestPending": "Request sent — waiting for the employer",
+    "attendance.requestDeclined": "The employer declined",
+    "attendance.checkoutBy": "Check out by {when}",
+    "worker.employerSubmittedLabel": "Employer submitted {hours}h for you",
+    "employer.hoursAwaitingResubmit": "The worker rejected your proposal — waiting for their resubmitted hours",
+    "hours.employerNoteLabel": "Note from the employer",
+    "hours.yourNoteLabel": "Your note",
+    "hours.workerNoteLabel": "Note from the worker",
     "employer.actionBidsToReview": "{count} bid(s) to review",
     "employer.actionHoursToConfirm": "{count} timesheet(s) to confirm",
     "employer.actionToRate": "{count} worker(s) to rate",
@@ -1920,7 +2024,7 @@ const TRANSLATIONS = {
     "toast.checkoutSuccess": "Daftar keluar dihantar. Majikan anda akan mengesahkan jam anda.",
     "toast.acceptModificationSuccess": "Diterima. Majikan anda akan membayar berdasarkan ini.",
     "toast.acceptModificationFailed": "Gagal menerima: ",
-    "toast.rejectModificationSuccess": "Ditolak. Sila hantar semula jam anda sendiri.",
+    "toast.rejectModificationSuccess": "Jam anda telah dihantar semula. Majikan akan menyemaknya.",
     "toast.rejectModificationFailed": "Gagal menolak: ",
     "toast.maxBidPrefix": "Tawaran maksimum ialah RM",
     "toast.sampleShiftBidInfo": "Ini syif contoh sahaja. Mohon syif sebenar untuk hantar tawaran.",
@@ -2533,6 +2637,35 @@ const TRANSLATIONS = {
     "notif.offer_confirmed.body": "{worker_name} telah menerima tawaran anda untuk \"{shift_title}\".",
     "notif.marked_no_show.title": "Anda dilaporkan tidak hadir",
     "notif.marked_no_show.body": "Majikan melaporkan bahawa anda tidak hadir untuk \"{shift_title}\". Ini menyebabkan {points} mata kebolehpercayaan ditolak. Jika anda hadir, buka syif tersebut dan buat bantahan.",
+    "notif.attendance_missed_checkin.title": "Anda terlepas daftar masuk",
+    "notif.attendance_missed_checkin.body": "Syif \"{shift_title}\" telah tamat dan anda tidak mendaftar masuk. Jika anda hadir, buka syif dan minta majikan mendaftar masuk anda. Jika mereka tidak bersetuju, anda boleh membuat bantahan.",
+    "notif.attendance_employer_missed_checkin.title": "Seorang pekerja tidak mendaftar masuk",
+    "notif.attendance_employer_missed_checkin.body": "{worker_name} tidak mendaftar masuk untuk \"{shift_title}\". Jika mereka hadir, daftar masuk bagi pihak mereka; jika tidak, laporkan tidak hadir.",
+    "notif.attendance_request.title": "Seorang pekerja menghantar permintaan kehadiran",
+    "notif.attendance_request.body": "{worker_name} menghantar permintaan kehadiran untuk \"{shift_title}\". Buka syif untuk membalas.",
+    "notif.attendance_request_reminder.title": "Seorang pekerja masih menunggu anda",
+    "notif.attendance_request_reminder.body": "{worker_name} menghantar permintaan kehadiran untuk \"{shift_title}\" lebih sehari lalu. Sila balas supaya ia dapat diselesaikan tanpa admin.",
+    "notif.attendance_request_approved.title": "Majikan mendaftar masuk anda",
+    "notif.attendance_request_approved.body": "Majikan mengesahkan anda hadir di \"{shift_title}\" dan mendaftar masuk anda. Anda kini boleh menghantar jam anda.",
+    "notif.attendance_request_declined.title": "Majikan menolak permintaan anda",
+    "notif.attendance_request_declined.body": "Untuk \"{shift_title}\", majikan menolak permintaan kehadiran anda. Jika tidak bersetuju, anda boleh membuat bantahan dan admin akan menyemaknya.",
+    "notif.attendance_checkout_reminder.title": "Daftar keluar dari syif anda",
+    "notif.attendance_checkout_reminder.window.body": "Sila hantar jam anda untuk \"{shift_title}\". Anda ada lebih kurang {hours_left} jam lagi untuk daftar keluar.",
+    "notif.attendance_checkout_reminder.resubmit.body": "Anda menolak cadangan majikan untuk \"{shift_title}\". Sila hantar jam anda sendiri supaya majikan boleh menyemaknya.",
+    "notif.attendance_checkout_window_closed.title": "Tempoh daftar keluar telah tamat",
+    "notif.attendance_checkout_window_closed.body": "Tempoh 48 jam untuk daftar keluar dari \"{shift_title}\" telah tamat. Minta majikan menghantar jam anda, atau buat bantahan.",
+    "notif.attendance_employer_not_checked_out.title": "Seorang pekerja tidak mendaftar keluar",
+    "notif.attendance_employer_not_checked_out.body": "{worker_name} tidak mendaftar keluar dari \"{shift_title}\" dalam 48 jam. Anda boleh menghantar jam mereka.",
+    "notif.shift_hours_submitted_on_behalf.title": "Majikan menghantar jam anda",
+    "notif.shift_hours_submitted_on_behalf.body": "Majikan merekod {hours} jam untuk \"{shift_title}\" kerana anda tidak mendaftar keluar. Terima untuk dibayar, atau tolak dan hantar jam anda sendiri.",
+    "notif.hours_confirmation_reminder.title": "Jam menunggu pengesahan anda",
+    "notif.hours_confirmation_reminder.body": "{worker_name} menghantar jam untuk \"{shift_title}\". Sila sahkan, cadangkan jam lain, atau pertikaikan.",
+    "notif.hours_awaiting_employer.title": "Masih menunggu majikan",
+    "notif.hours_awaiting_employer.body": "Majikan belum membalas jam yang anda hantar untuk \"{shift_title}\". Jika terus tidak dibalas, anda boleh membuat bantahan dan admin akan menyemaknya.",
+    "notif.no_show_reversed.title": "Laporan tidak hadir anda ditarik balik",
+    "notif.no_show_reversed.body": "Laporan tidak hadir untuk \"{shift_title}\" telah ditarik balik dan mata kebolehpercayaan anda dipulihkan.",
+    "notif.attendance_admin_ruling.title": "Admin membuat keputusan tentang pertikaian kehadiran",
+    "notif.attendance_admin_ruling.body": "Admin telah membuat keputusan tentang pertikaian kehadiran untuk \"{shift_title}\". Buka syif untuk melihat keputusan.",
     "notif.bid_received.title": "Bidaan baharu diterima",
     "notif.bid_received.body": "Seseorang telah memohon untuk \"{shift_title}\".",
     "notif.bid_accepted.title": "Bidaan diterima",
@@ -2722,8 +2855,10 @@ const TRANSLATIONS = {
     "worker.hoursConfirmedBadge": "✓ Jam disahkan",
     "worker.hoursDisputedBadge": "Majikan mempertikaikan jam anda",
     "worker.employerProposedLabel": "Majikan mencadangkan {hours}j",
+    "worker.resubmitTitle": "Hantar semula jam anda",
+    "worker.resubmitProposalHint": "Menghantar akan menolak cadangan majikan dan menghantar jam anda sebagai ganti. Tambah nota supaya mereka faham perbezaannya.",
     "worker.acceptModificationBtn": "Terima",
-    "worker.rejectModificationBtn": "Tolak, hantar semula",
+    "worker.rejectModificationBtn": "Tolak & hantar semula jam",
     "employer.checkinCodeBtn": "Kod daftar masuk",
     "employer.checkinCodeTitle": "Kod daftar masuk pekerja",
     "employer.checkinCodeRotateHint": "Tunjukkan ini kepada pekerja di tempat acara. Ia berubah setiap 30 saat — baca semula setiap kali.",
@@ -2740,9 +2875,78 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "Kenapa anda mencadangkan angka yang berbeza?",
     "employer.modifyHoursSubmitBtn": "Hantar cadangan",
     "employer.hoursProposedPendingLabel": "Anda mencadangkan {hours}j — menunggu respons pekerja",
-    "hours.employerNoteLabel": "Nota majikan:",
-    "hours.yourNoteLabel": "Nota anda:",
-    "hours.workerNoteLabel": "Nota pekerja:",
+    "rating.commentPlaceholder": "Komen tambahan (pilihan)",
+    "rating.commentPrivacyHint": "Hanya mereka boleh membaca ini. Ia tidak dipaparkan pada profil awam mereka.",
+    "rating.feedbackReceivedTitle": "Komen yang anda terima",
+    "shiftDetail.aboutEmployer": "Tentang majikan",
+    "employer.aboutCompanyTitle": "Tentang syarikat anda",
+    "employer.aboutCompanyHint": "Pengenalan ringkas yang dilihat pekerja pada profil dan halaman syif anda sebelum mereka memohon.",
+    "employer.aboutCompanyPlaceholder": "cth. Pasukan katering keluarga di Bangsar. Kami mengendalikan majlis makan malam korporat dan perkahwinan.",
+    "employer.aboutCompanySaveBtn": "Simpan",
+    "employer.aboutCompanySaved": "Penerangan syarikat disimpan",
+    "employer.aboutCompanySaveFailed": "Tidak dapat menyimpan: ",
+    "admin.rulingTitle": "Keputusan kehadiran",
+    "admin.rulingHint": "Selesaikan rekod kehadiran itu sendiri. Ini menutup pertikaian dan memberitahu kedua-dua pihak.",
+    "admin.rulingOutcomeLabel": "Keputusan",
+    "admin.rulingGrant": "Beri kehadiran dan bayar jam",
+    "admin.rulingConfirmNoShow": "Sahkan tidak hadir",
+    "admin.rulingReverseNoShow": "Batalkan tidak hadir (pulihkan mata)",
+    "admin.rulingHoursLabel": "Jam untuk dibayar",
+    "admin.rulingNoteLabel": "Nota kepada kedua-dua pihak",
+    "admin.rulingApplyBtn": "Guna keputusan",
+    "admin.rulingApplied": "Keputusan digunakan dan pertikaian ditutup",
+    "admin.disputeCheckedInBy": "Kaedah daftar masuk",
+    "admin.disputeCheckedOutBy": "Kaedah daftar keluar",
+    "admin.disputeNoShow": "Tanda tidak hadir",
+    "admin.disputeReportedHours": "Jam dilaporkan",
+    "admin.method.code": "Kod berputar",
+    "admin.method.employer": "Oleh majikan",
+    "admin.method.admin": "Oleh admin",
+    "admin.method.worker": "Oleh pekerja",
+    "attendance.employerNotCheckedIn": "Belum daftar masuk",
+    "attendance.employerRequestCheckIn": "Pekerja mengatakan mereka hadir dan meminta didaftar masuk",
+    "attendance.employerCheckInBehalfBtn": "Daftar masuk bagi pihak mereka",
+    "attendance.employerDeclineBtn": "Tolak",
+    "attendance.employerDeclineNotePlaceholder": "Sebab (pilihan)",
+    "attendance.employerConfirmDeclineBtn": "Tolak permintaan",
+    "attendance.employerNotCheckedOut": "Pekerja belum daftar keluar",
+    "attendance.employerRequestCheckOut": "Pekerja terlepas daftar keluar dan meminta anda menghantar jam mereka",
+    "attendance.employerAwaitingCheckout": "Belum daftar keluar — mereka ada sehingga {when}",
+    "attendance.employerSubmitHoursBtn": "Hantar jam untuk pekerja",
+    "attendance.employerHoursPlaceholder": "Jam bekerja",
+    "attendance.employerNotePlaceholder": "Nota (pilihan)",
+    "attendance.employerSubmitHoursHint": "Pekerja masih perlu menerima jam ini sebelum dibayar.",
+    "attendance.employerSubmitHoursConfirmBtn": "Hantar kepada pekerja",
+    "attendance.employerOnBehalfPending": "Anda menghantar {hours}j untuk pekerja — menunggu mereka",
+    "attendance.employerUndoNoShowBtn": "Batalkan laporan tidak hadir",
+    "attendance.toastCheckedIn": "Pekerja telah didaftar masuk",
+    "attendance.toastDeclined": "Permintaan ditolak",
+    "attendance.toastHoursSubmitted": "Jam dihantar kepada pekerja",
+    "attendance.toastNoShowUndone": "Laporan tidak hadir ditarik balik",
+    "employer.actionAttendance": "{count} kehadiran untuk diselesaikan",
+    "attendance.requestTitle": "Mesej kepada majikan",
+    "attendance.requestCheckInIntro": "Beritahu majikan bahawa anda hadir. Jika bersetuju, mereka boleh mendaftar masuk anda bagi pihak anda.",
+    "attendance.requestCheckOutIntro": "Beritahu majikan lebih kurang berapa lama anda bekerja. Mereka boleh menghantar jam anda untuk anda terima.",
+    "attendance.requestNotePlaceholder": "Tambah nota (pilihan)",
+    "attendance.requestSendBtn": "Hantar permintaan",
+    "attendance.requestSent": "Permintaan dihantar kepada majikan",
+    "attendance.noShowTitle": "Dilaporkan tidak hadir",
+    "attendance.noShowHint": "Majikan mengatakan anda tidak hadir. Jika anda hadir, minta mereka menyemak semula atau buat bantahan.",
+    "attendance.missedCheckInTitle": "Anda terlepas daftar masuk",
+    "attendance.missedCheckInHint": "Syif telah tamat, jadi daftar masuk ditutup. Jika anda hadir, minta majikan mendaftar masuk anda.",
+    "attendance.checkoutClosedTitle": "Tempoh daftar keluar telah tamat",
+    "attendance.checkoutClosedHint": "Anda mempunyai 48 jam selepas syif untuk daftar keluar. Minta majikan menghantar jam anda.",
+    "attendance.askCheckInBtn": "Minta majikan daftar masuk saya",
+    "attendance.askReviewBtn": "Minta majikan menyemak",
+    "attendance.askCheckoutBtn": "Minta majikan hantar jam saya",
+    "attendance.requestPending": "Permintaan dihantar — menunggu majikan",
+    "attendance.requestDeclined": "Majikan menolak",
+    "attendance.checkoutBy": "Daftar keluar sebelum {when}",
+    "worker.employerSubmittedLabel": "Majikan menghantar {hours}j untuk anda",
+    "employer.hoursAwaitingResubmit": "Pekerja menolak cadangan anda — menunggu jam yang dihantar semula",
+    "hours.employerNoteLabel": "Nota daripada majikan",
+    "hours.yourNoteLabel": "Nota anda",
+    "hours.workerNoteLabel": "Nota daripada pekerja",
     "employer.actionBidsToReview": "{count} bida untuk disemak",
     "employer.actionHoursToConfirm": "{count} lembaran waktu untuk disahkan",
     "employer.actionToRate": "{count} pekerja untuk dinilai",
@@ -3235,7 +3439,7 @@ const TRANSLATIONS = {
     "toast.checkoutSuccess": "签退已提交，雇主将确认您的工时。",
     "toast.acceptModificationSuccess": "已接受，雇主将据此付款。",
     "toast.acceptModificationFailed": "接受失败：",
-    "toast.rejectModificationSuccess": "已拒绝，请重新提交您的工时。",
+    "toast.rejectModificationSuccess": "您的工时已重新提交，雇主将进行审核。",
     "toast.rejectModificationFailed": "拒绝失败：",
     "toast.maxBidPrefix": "最高出价为 RM",
     "toast.sampleShiftBidInfo": "这是一个示例班次。请申请正式班次以提交出价。",
@@ -3847,6 +4051,35 @@ const TRANSLATIONS = {
     "notif.offer_confirmed.body": "{worker_name} 已接受您给出的「{shift_title}」邀约。",
     "notif.marked_no_show.title": "您被报告为缺席",
     "notif.marked_no_show.body": "雇主报告您未出席「{shift_title}」。此举将扣除 {points} 可靠度积分。若您确实有出席，请打开该班次并提出申诉。",
+    "notif.attendance_missed_checkin.title": "您错过了签到",
+    "notif.attendance_missed_checkin.body": "班次「{shift_title}」已结束，您未签到。若您确实出席，请打开该班次并请雇主为您签到；若对方不同意，您可以提出申诉。",
+    "notif.attendance_employer_missed_checkin.title": "有员工未签到",
+    "notif.attendance_employer_missed_checkin.body": "{worker_name} 未在「{shift_title}」签到。若其确实出席，请代其签到；否则请报告缺席。",
+    "notif.attendance_request.title": "有员工发来出勤请求",
+    "notif.attendance_request.body": "{worker_name} 就「{shift_title}」发来出勤请求。请打开该班次回复。",
+    "notif.attendance_request_reminder.title": "有员工仍在等待您",
+    "notif.attendance_request_reminder.body": "{worker_name} 一天多前就「{shift_title}」发来出勤请求。请尽快回复，以免需要管理员介入。",
+    "notif.attendance_request_approved.title": "雇主已为您签到",
+    "notif.attendance_request_approved.body": "雇主确认您出席了「{shift_title}」并已为您签到。您现在可以提交工时。",
+    "notif.attendance_request_declined.title": "雇主拒绝了您的请求",
+    "notif.attendance_request_declined.body": "就「{shift_title}」，雇主拒绝了您的出勤请求。若不同意，您可以在该班次提出申诉，管理员将进行审核。",
+    "notif.attendance_checkout_reminder.title": "请为您的班次签退",
+    "notif.attendance_checkout_reminder.window.body": "请提交「{shift_title}」的工时。您还有约 {hours_left} 小时可以签退。",
+    "notif.attendance_checkout_reminder.resubmit.body": "您拒绝了雇主对「{shift_title}」的提议。请提交您自己的工时，供雇主审核。",
+    "notif.attendance_checkout_window_closed.title": "签退时限已过",
+    "notif.attendance_checkout_window_closed.body": "「{shift_title}」的 48 小时签退期限已过。请请雇主代您提交工时，或提出申诉。",
+    "notif.attendance_employer_not_checked_out.title": "有员工未签退",
+    "notif.attendance_employer_not_checked_out.body": "{worker_name} 未在 48 小时内为「{shift_title}」签退。您可以代其提交工时。",
+    "notif.shift_hours_submitted_on_behalf.title": "雇主已为您提交工时",
+    "notif.shift_hours_submitted_on_behalf.body": "由于您未签退，雇主为「{shift_title}」记录了 {hours} 小时。接受即可获得报酬，或拒绝并提交您自己的工时。",
+    "notif.hours_confirmation_reminder.title": "有工时等待您确认",
+    "notif.hours_confirmation_reminder.body": "{worker_name} 提交了「{shift_title}」的工时。请确认、提议其他工时，或提出异议。",
+    "notif.hours_awaiting_employer.title": "仍在等待雇主",
+    "notif.hours_awaiting_employer.body": "雇主尚未回应您为「{shift_title}」提交的工时。若持续无回应，您可以在该班次提出申诉，管理员将进行审核。",
+    "notif.no_show_reversed.title": "您的缺席报告已撤回",
+    "notif.no_show_reversed.body": "「{shift_title}」的缺席报告已撤回，您的可靠度积分已恢复。",
+    "notif.attendance_admin_ruling.title": "管理员已就出勤争议作出裁定",
+    "notif.attendance_admin_ruling.body": "管理员已就「{shift_title}」的出勤争议作出裁定。请打开该班次查看结果。",
     "notif.bid_received.title": "收到新出价",
     "notif.bid_received.body": "有人申请了「{shift_title}」。",
     "notif.bid_accepted.title": "出价已被接受",
@@ -4036,8 +4269,10 @@ const TRANSLATIONS = {
     "worker.hoursConfirmedBadge": "✓ 工时已确认",
     "worker.hoursDisputedBadge": "雇主对您的工时提出异议",
     "worker.employerProposedLabel": "雇主提议了 {hours} 小时",
+    "worker.resubmitTitle": "重新提交您的工时",
+    "worker.resubmitProposalHint": "提交后将拒绝雇主的提议，并改为发送您的工时。请附上说明，让对方了解差异。",
     "worker.acceptModificationBtn": "接受",
-    "worker.rejectModificationBtn": "拒绝，重新提交",
+    "worker.rejectModificationBtn": "拒绝并重新提交工时",
     "employer.checkinCodeBtn": "签到验证码",
     "employer.checkinCodeTitle": "员工签到验证码",
     "employer.checkinCodeRotateHint": "将此验证码展示给现场的员工。它每 30 秒更新一次 — 请每次都重新查看。",
@@ -4054,9 +4289,78 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "为什么提出不同的时数？",
     "employer.modifyHoursSubmitBtn": "发送提议",
     "employer.hoursProposedPendingLabel": "您提议了 {hours} 小时 — 等待员工回应",
-    "hours.employerNoteLabel": "雇主留言：",
-    "hours.yourNoteLabel": "您的留言：",
-    "hours.workerNoteLabel": "员工留言：",
+    "rating.commentPlaceholder": "补充评论（可选）",
+    "rating.commentPrivacyHint": "仅对方可见，不会显示在其公开资料中。",
+    "rating.feedbackReceivedTitle": "您收到的评论",
+    "shiftDetail.aboutEmployer": "关于雇主",
+    "employer.aboutCompanyTitle": "关于您的公司",
+    "employer.aboutCompanyHint": "简短介绍，员工在申请前可在您的资料和班次页面看到。",
+    "employer.aboutCompanyPlaceholder": "例如：位于孟沙的家族式餐饮团队，承办企业晚宴和婚宴。",
+    "employer.aboutCompanySaveBtn": "保存",
+    "employer.aboutCompanySaved": "公司简介已保存",
+    "employer.aboutCompanySaveFailed": "无法保存：",
+    "admin.rulingTitle": "出勤裁定",
+    "admin.rulingHint": "直接处理出勤记录本身。此操作将关闭争议并通知双方。",
+    "admin.rulingOutcomeLabel": "裁定结果",
+    "admin.rulingGrant": "认定出勤并支付工时",
+    "admin.rulingConfirmNoShow": "确认缺席",
+    "admin.rulingReverseNoShow": "撤销缺席（恢复积分）",
+    "admin.rulingHoursLabel": "支付工时",
+    "admin.rulingNoteLabel": "给双方的说明",
+    "admin.rulingApplyBtn": "执行裁定",
+    "admin.rulingApplied": "裁定已执行，争议已关闭",
+    "admin.disputeCheckedInBy": "签到方式",
+    "admin.disputeCheckedOutBy": "签退方式",
+    "admin.disputeNoShow": "缺席标记",
+    "admin.disputeReportedHours": "申报工时",
+    "admin.method.code": "动态验证码",
+    "admin.method.employer": "雇主代办",
+    "admin.method.admin": "管理员代办",
+    "admin.method.worker": "员工本人",
+    "attendance.employerNotCheckedIn": "未签到",
+    "attendance.employerRequestCheckIn": "员工称自己已出席，请求代为签到",
+    "attendance.employerCheckInBehalfBtn": "代其签到",
+    "attendance.employerDeclineBtn": "拒绝",
+    "attendance.employerDeclineNotePlaceholder": "原因（可选）",
+    "attendance.employerConfirmDeclineBtn": "拒绝请求",
+    "attendance.employerNotCheckedOut": "员工尚未签退",
+    "attendance.employerRequestCheckOut": "员工错过了签退，请您代为提交工时",
+    "attendance.employerAwaitingCheckout": "尚未签退 — 截止 {when}",
+    "attendance.employerSubmitHoursBtn": "代员工提交工时",
+    "attendance.employerHoursPlaceholder": "工作小时数",
+    "attendance.employerNotePlaceholder": "留言（可选）",
+    "attendance.employerSubmitHoursHint": "员工仍需接受这些工时后才会获得报酬。",
+    "attendance.employerSubmitHoursConfirmBtn": "发送给员工",
+    "attendance.employerOnBehalfPending": "您已代员工提交 {hours} 小时 — 等待其回应",
+    "attendance.employerUndoNoShowBtn": "撤销缺席报告",
+    "attendance.toastCheckedIn": "已为员工签到",
+    "attendance.toastDeclined": "请求已拒绝",
+    "attendance.toastHoursSubmitted": "工时已发送给员工",
+    "attendance.toastNoShowUndone": "缺席报告已撤回",
+    "employer.actionAttendance": "{count} 项出勤待处理",
+    "attendance.requestTitle": "联系雇主",
+    "attendance.requestCheckInIntro": "告知雇主您已出席。若雇主同意，可代您签到。",
+    "attendance.requestCheckOutIntro": "告知雇主您大约工作了多久。雇主可代您提交工时，供您确认。",
+    "attendance.requestNotePlaceholder": "添加留言（可选）",
+    "attendance.requestSendBtn": "发送请求",
+    "attendance.requestSent": "请求已发送给雇主",
+    "attendance.noShowTitle": "被报告为缺席",
+    "attendance.noShowHint": "雇主称您未出席。若您确实出席，请请雇主复核，或提出申诉。",
+    "attendance.missedCheckInTitle": "您错过了签到",
+    "attendance.missedCheckInHint": "班次已结束，签到已关闭。若您确实出席，请请雇主为您签到。",
+    "attendance.checkoutClosedTitle": "签退时限已过",
+    "attendance.checkoutClosedHint": "班次结束后您有 48 小时签退。请请雇主代您提交工时。",
+    "attendance.askCheckInBtn": "请雇主为我签到",
+    "attendance.askReviewBtn": "请雇主复核",
+    "attendance.askCheckoutBtn": "请雇主提交我的工时",
+    "attendance.requestPending": "请求已发送 — 等待雇主回应",
+    "attendance.requestDeclined": "雇主已拒绝",
+    "attendance.checkoutBy": "请在 {when} 前签退",
+    "worker.employerSubmittedLabel": "雇主为您提交了 {hours} 小时",
+    "employer.hoursAwaitingResubmit": "员工拒绝了您的提议 — 等待其重新提交工时",
+    "hours.employerNoteLabel": "雇主的留言",
+    "hours.yourNoteLabel": "您的留言",
+    "hours.workerNoteLabel": "员工的留言",
     "employer.actionBidsToReview": "{count} 个报价待审核",
     "employer.actionHoursToConfirm": "{count} 份工时待确认",
     "employer.actionToRate": "{count} 位员工待评价",
@@ -5027,6 +5331,50 @@ const ToastProvider = ({ children }) => {
 };
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
+// One message in the hours conversation (proposal note, dispute note, checkout
+// note). A bubble with a label, not muted small print: these notes are how the
+// two sides settle the hours without a dispute, so they must be read.
+// tone "them" = the other party's words, "me" = your own.
+const HoursNote = ({ label, text, tone = "them", align = "left" }) => {
+  if (!text) return null;
+  const them = tone === "them";
+  return (
+    <div style={{
+      marginTop: 8, padding: "8px 10px", borderRadius: 10, textAlign: "left",
+      fontSize: 13, lineHeight: 1.4, overflowWrap: "anywhere", maxWidth: 260,
+      marginLeft: align === "right" || align === "center" ? "auto" : undefined,
+      marginRight: align === "center" ? "auto" : undefined,
+      background: them ? BRAND.blueLight : BRAND.grayLight,
+      color: them ? BRAND.onBlueLight : BRAND.text,
+      border: `1px solid ${them ? BRAND.blue : BRAND.border}`,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.02em", marginBottom: 2, opacity: 0.9 }}>💬 {label}</div>
+      <div style={{ fontWeight: 500 }}>{text}</div>
+    </div>
+  );
+};
+
+// Comments other people left when rating YOU. Private feedback: RLS lets only
+// the rater and the rated person read a rating row, and the public
+// get_ratee_ratings RPC never returns the comment.
+const ReceivedFeedback = ({ items }) => {
+  const { t } = useLanguage();
+  if (!items || items.length === 0) return null;
+  return (
+    <div style={{ marginTop: 14 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("rating.feedbackReceivedTitle")}</div>
+      {items.map((f, i) => (
+        <div key={i} style={{ marginTop: 6, padding: "8px 10px", borderRadius: 10, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, fontSize: 13, lineHeight: 1.4, color: BRAND.text, overflowWrap: "anywhere" }}>
+          <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 2 }}>
+            {"★ " + Number(f.overall).toFixed(1)} · {formatShiftDate(f.created_at, { day: "numeric", month: "short", year: "numeric" })}
+          </div>
+          {f.comment}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const Badge = memo(({ color = "gray", children, size = "sm" }) => {
   const map = {
     gray: { bg: BRAND.grayLight, text: BRAND.textMuted },
@@ -6755,7 +7103,7 @@ const RATING_ASPECTS = {
 // null (loading) | [] (empty or the ratings table not migrated yet) |
 // array of { aspects, overall }. Self-contained: reads t() from context
 // directly so callers don't need to prop-drill translate.
-const RatingDetailsModal = ({ modal, onClose }) => {
+const RatingDetailsModal = ({ modal, onClose, about = null }) => {
   const { t } = useLanguage();
   const dialog = useDialog(Boolean(modal), onClose, { label: t("rating.detailsTitle") });
   if (!modal) return null;
@@ -6771,7 +7119,13 @@ const RatingDetailsModal = ({ modal, onClose }) => {
     <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div {...dialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 420, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("rating.detailsTitle")}</h3>
-        {modal.label && <p style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 16 }}>{modal.label}</p>}
+        {modal.label && <p style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: about ? 8 : 16 }}>{modal.label}</p>}
+        {about && (
+          <div style={{ padding: "10px 12px", borderRadius: 10, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: BRAND.textMuted, marginBottom: 2 }}>{t("shiftDetail.aboutEmployer")}</div>
+            <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{about}</div>
+          </div>
+        )}
         {list === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
         {list && list.length === 0 && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 8 }}>{t("rating.aspectAvgEmpty")}</div>}
         {list && list.length > 0 && (
@@ -8736,6 +9090,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   }, [user, pendingBidAfterAuth, selectedShift]);
   const [filterCat, setFilterCat] = useState("All");
   const [showQR, setShowQR] = useState(false);
+  useEffect(() => {
+    if (selectedShift?.employerId) loadEmployerAbout([selectedShift.employerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedShift?.employerId]);
   // Which application the check-in screen is acting on — the rotating-code
   // check-in (owner decision 2026-07-25) needs to know which shift/contract
   // to validate against, unlike the old fake camera-simulation modal.
@@ -8765,23 +9123,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     toast(t('toast.acceptModificationSuccess'), 'success');
   };
 
-  const rejectHoursModification = async (applicationId) => {
-    setRespondingHoursModification(applicationId);
-    const { error } = await supabase.rpc('worker_reject_modification', { p_application_id: applicationId });
-    setRespondingHoursModification(null);
-    if (error) { toast(t('toast.rejectModificationFailed') + error.message, 'error'); return; }
-    // Mirrors what the RPC just did server-side: checked_out_at goes back to
-    // null, which is what makes the ORDINARY "checked in, not checked out"
-    // Check Out button naturally reappear below -- no separate resubmit UI
-    // needed for this step.
-    setLiveApplications(prev => (prev ?? []).map(a => a.id === applicationId ? {
-      ...a,
-      checkedOutAt: null,
-      employerProposedHours: null,
-      employerProposedNote: null,
-      hoursResubmitted: true,
-    } : a));
-    toast(t('toast.rejectModificationSuccess'), 'success');
+  // "Reject" on an employer proposal is a two-part act -- decline their number
+  // AND give your own -- so it opens the hours form straight away instead of
+  // rejecting silently and leaving a bare Check Out button. The reject RPC only
+  // runs when the worker actually submits, so cancelling leaves the proposal
+  // untouched.
+  const openResubmitAfterProposal = (a) => {
+    setCheckoutTarget({
+      applicationId: a.id,
+      shiftTitle: a.shiftTitle,
+      defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences),
+      rejectFirst: true,
+      proposal: { hours: a.employerProposedHours, note: a.employerProposedNote },
+    });
+    setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null);
   };
   const [checkoutHours, setCheckoutHours] = useState("");
   const [checkoutBreakMinutes, setCheckoutBreakMinutes] = useState("");
@@ -8925,16 +9280,43 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const workerRatingDialog = useDialog(Boolean(ratingModal), () => setRatingModal(null), { label: t("rating.modalTitle") });
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [ratingComment, setRatingComment] = useState("");   // optional private feedback to the rated person
   // application_ids the signed-in worker has already rated (worker_to_employer
   // direction) — hides the Rate button once filed, mirrors the immutable-once-
   // filed convention already used for disputes.
   const [myRatedApplicationIds, setMyRatedApplicationIds] = useState(new Set());
+  // Employers' own "about us" text (get_employer_about), keyed by employer id.
+  // Public on purpose -- it is what the employer wrote for workers to read --
+  // and fetched through an RPC that returns only that field.
+  const [employerAbout, setEmployerAbout] = useState({});
+  const loadEmployerAbout = useCallback(async (ids) => {
+    const wanted = [...new Set((ids ?? []).filter(Boolean))].filter(id => !(id in employerAbout));
+    if (wanted.length === 0) return;
+    const { data, error } = await supabase.rpc('get_employer_about', { p_employer_ids: wanted });
+    if (error) return;
+    setEmployerAbout(prev => {
+      const next = { ...prev };
+      wanted.forEach(id => { next[id] = null; });
+      (data ?? []).forEach(r => { next[r.id] = r.company_description ?? null; });
+      return next;
+    });
+  }, [employerAbout]);
   const [ratingDetailsModal, setRatingDetailsModal] = useState(null); // { rateeId, direction, label, list }
   // Ratings this worker has received from employers — null (not loaded yet)
   // | [] (none) | array of { aspects, overall }. Powers the Profile tab's
   // "Recent Ratings" card, which previously always rendered an empty state
   // regardless of real data (never wired to get_ratee_ratings at all).
   const [myReceivedRatings, setMyReceivedRatings] = useState(null);
+  const [myReceivedFeedback, setMyReceivedFeedback] = useState([]);   // comments, private to the rated person
+  useEffect(() => {
+    if (tab !== "profile" || !user) return;
+    let cancelled = false;
+    supabase.from('ratings').select('comment, overall, created_at')
+      .eq('ratee_id', user.id).eq('direction', 'employer_to_worker').not('comment', 'is', null)
+      .order('created_at', { ascending: false }).limit(20)
+      .then(({ data, error }) => { if (!cancelled) setMyReceivedFeedback(error ? [] : (data ?? [])); });
+    return () => { cancelled = true; };
+  }, [tab, user]);
 
   useEffect(() => {
     if (tab !== "profile" || !user) return;
@@ -9020,6 +9402,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const openRatingDetails = (rateeId, direction, label) => {
     if (!rateeId) return;
     setRatingDetailsModal({ rateeId, direction, label, list: null });
+    if (direction === 'worker_to_employer') loadEmployerAbout([rateeId]);
     (async () => {
       try {
         const { data, error } = await supabase.rpc('get_ratee_ratings', { p_ratee_id: rateeId, p_direction: direction });
@@ -9045,6 +9428,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         direction: ratingModal.direction,
         aspects: ratingForm,
         overall,
+        comment: ratingComment.trim() || null,
       });
       setSubmittingRating(false);
       if (error) { toast(t('toast.ratingFailed') + error.message, 'error'); return; }
@@ -9052,6 +9436,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       setMyRatedApplicationIds(prev => new Set(prev).add(ratingModal.applicationId));
       setRatingModal(null);
       setRatingForm({});
+      setRatingComment("");
     } catch (err) {
       setSubmittingRating(false);
       toast(t('toast.ratingFailed') + (err?.message ?? ''), 'error');
@@ -9253,7 +9638,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       try { await supabase.rpc('complete_ended_shifts'); } catch { /* sweep is best-effort */ }
       const { data, error } = await supabase
         .from('applications')
-        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
+        .select('id, shift_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, shift:shifts(id, title, description, category, location, start_at, end_at, occurrences, wage_min, wage_max, headcount, dress_code, employer_id, transport_allowance, status, language_requirements, employer:profiles(full_name))')
         .eq('worker_id', user.id)
         .order('applied_at', { ascending: false });
       if (!active) return;
@@ -9275,6 +9660,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         termsChangedAt: a.terms_changed_at ?? null,
         termsReconfirmedAt: a.terms_reconfirmed_at ?? null,
         termsChangeSummary: a.terms_change_summary ?? null,
+        noShowAt: a.no_show_at ?? null,
+        noShowNote: a.no_show_note ?? null,
         checkedInAt: a.checked_in_at ?? null,
         checkedOutAt: a.checked_out_at ?? null,
         workerReportedHours: a.worker_reported_hours ?? null,
@@ -9309,6 +9696,45 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     loadApplications();
     return () => { active = false; };
   }, [user]);
+
+  // ── Attendance recovery: a worker who missed check-in or check-out asks the
+  // employer to fix it (worker_request_attendance); the employer checks them in
+  // or submits their hours; failing that the worker can raise a dispute.
+  const [attendanceRequests, setAttendanceRequests] = useState({});   // `${applicationId}:${kind}` -> latest request
+  const attendanceAppIds = (liveApplications ?? []).filter(a => a.status === 'accepted').map(a => a.id).join(',');
+  const loadAttendanceRequests = useCallback(async () => {
+    if (!attendanceAppIds) { setAttendanceRequests({}); return; }
+    const { data, error } = await supabase
+      .from('attendance_requests')
+      .select('id, application_id, kind, status, note, response_note, created_at')
+      .in('application_id', attendanceAppIds.split(','))
+      .order('created_at', { ascending: false });
+    if (error) return;
+    const map = {};
+    (data ?? []).forEach(r => { const k = `${r.application_id}:${r.kind}`; if (!map[k]) map[k] = r; });
+    setAttendanceRequests(map);
+  }, [attendanceAppIds]);
+  useEffect(() => { loadAttendanceRequests(); }, [loadAttendanceRequests]);
+
+  const [attendanceRequestTarget, setAttendanceRequestTarget] = useState(null); // { applicationId, kind, shiftTitle }
+  const [attendanceRequestNote, setAttendanceRequestNote] = useState("");
+  const [sendingAttendanceRequest, setSendingAttendanceRequest] = useState(false);
+  const attendanceRequestDialog = useDialog(Boolean(attendanceRequestTarget), () => setAttendanceRequestTarget(null), { label: t("attendance.requestTitle") });
+  const sendAttendanceRequest = async () => {
+    if (!attendanceRequestTarget) return;
+    setSendingAttendanceRequest(true);
+    const { error } = await supabase.rpc('worker_request_attendance', {
+      p_application_id: attendanceRequestTarget.applicationId,
+      p_kind: attendanceRequestTarget.kind,
+      p_note: attendanceRequestNote.trim() || null,
+    });
+    setSendingAttendanceRequest(false);
+    if (error) { toast(error.message, 'error'); return; }
+    setAttendanceRequestTarget(null);
+    setAttendanceRequestNote("");
+    toast(t('attendance.requestSent'), 'success');
+    loadAttendanceRequests();
+  };
 
   // Best-effort expiry sweep: flip any of the worker's own offers whose
   // deadline has passed to 'expired' (permitted by applications_expire_offer).
@@ -10066,27 +10492,80 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // checked in" through the full worker-report → employer-confirm/dispute
   // cycle. Shared by the My Bids list card and the shift-detail view so the
   // two don't drift.
+  // What (if anything) has gone wrong with this worker's attendance, judged from
+  // the shift's real end time. null = the ordinary check-in / check-out flow.
+  const attendanceIssue = (a) => {
+    if (a.status !== "accepted" || !a.workerSignedAt || a.shiftStatus === "cancelled") return null;
+    if (a.noShowAt) return "noShow";
+    const endsAt = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt);
+    if (!endsAt) return null;
+    const now = Date.now();
+    if (!a.checkedInAt) return now > endsAt.getTime() ? "missedCheckIn" : null;
+    if (!a.checkedOutAt && a.employerProposedHours == null && !a.hoursResubmitted && now > endsAt.getTime() + CHECKOUT_WINDOW_MS) return "checkoutClosed";
+    return null;
+  };
+
+  const checkoutDeadlineHint = (a, align) => {
+    if (a.checkedOutAt || a.hoursResubmitted) return null;
+    const endsAt = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt);
+    if (!endsAt || Date.now() <= endsAt.getTime()) return null;
+    const iso = new Date(endsAt.getTime() + CHECKOUT_WINDOW_MS).toISOString();
+    const when = `${formatShiftDate(iso, { day: "numeric", month: "short" })}, ${formatShiftTime(iso)}`;
+    return <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4, textAlign: align }}>{t("attendance.checkoutBy").replace("{when}", when)}</div>;
+  };
+
+  const renderAttendanceIssue = (a, issue, align, stopClick) => {
+    const kind = issue === "checkoutClosed" ? "check_out" : "check_in";
+    const req = attendanceRequests[`${a.id}:${kind}`];
+    const pending = req?.status === "pending";
+    const declined = req?.status === "declined";
+    const tone = issue === "noShow" ? BRAND.red : BRAND.onAmberLight;
+    const askLabel = issue === "checkoutClosed" ? t("attendance.askCheckoutBtn") : issue === "noShow" ? t("attendance.askReviewBtn") : t("attendance.askCheckInBtn");
+    const hint = issue === "noShow" ? (a.noShowNote ? a.noShowNote : t("attendance.noShowHint")) : issue === "checkoutClosed" ? t("attendance.checkoutClosedHint") : t("attendance.missedCheckInHint");
+    const title = issue === "noShow" ? t("attendance.noShowTitle") : issue === "checkoutClosed" ? t("attendance.checkoutClosedTitle") : t("attendance.missedCheckInTitle");
+    const justify = align === "right" ? "flex-end" : "center";
+    return (
+      <div style={{ textAlign: align, maxWidth: 260, marginLeft: align === "right" ? "auto" : undefined, marginRight: align === "center" ? "auto" : undefined }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: tone }}>{title}</div>
+        <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 2, overflowWrap: "anywhere" }}>{hint}</div>
+        {pending && <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginTop: 6 }}>{t("attendance.requestPending")}</div>}
+        {declined && (
+          <>
+            <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.red, marginTop: 6 }}>{t("attendance.requestDeclined")}</div>
+            <HoursNote label={t("hours.employerNoteLabel")} text={req.response_note} tone="them" align={align} />
+          </>
+        )}
+        <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap", justifyContent: justify }}>
+          {!pending && (
+            <Btn size="xs" variant="success" onClick={(e) => { stopClick?.(e); setAttendanceRequestNote(""); setAttendanceRequestTarget({ applicationId: a.id, kind, shiftTitle: a.shiftTitle }); }}>{askLabel}</Btn>
+          )}
+          {(issue === "noShow" || pending || declined) && (
+            <Btn size="xs" variant="secondary" onClick={(e) => { stopClick?.(e); setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle }); }}>{t("myBids.fileDisputeBtn")}</Btn>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // The hours conversation, one line per message. Both notes are stored on the
   // application; they only help if the other side can actually read them.
-  const renderHoursNote = (label, text, align) => text ? (
-    <div style={{ fontSize: 12, color: BRAND.textMuted, marginTop: 4, textAlign: align, maxWidth: 240, marginLeft: align === "right" ? "auto" : undefined, marginRight: align === "center" ? "auto" : undefined, overflowWrap: "anywhere" }}>
-      <span style={{ fontWeight: 600 }}>{label}</span> {text}
-    </div>
-  ) : null;
+  const renderHoursNote = (label, text, align, tone = "them") => <HoursNote label={label} text={text} tone={tone} align={align} />;
 
   const renderCheckState = (a, stopClick) => {
+    const issue = attendanceIssue(a);
+    if (issue) return renderAttendanceIssue(a, issue, "right", stopClick);
     if (!a.checkedInAt) {
       return <Btn size="sm" variant="success" onClick={(e) => { stopClick?.(e); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>;
     }
-    if (a.checkedOutAt && a.employerProposedHours != null) {
+    if (a.employerProposedHours != null) {
       return (
         <div style={{ textAlign: "right", maxWidth: 220 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: 8, padding: "6px 8px", marginBottom: 6 }}>
-            {t("worker.employerProposedLabel").replace("{hours}", a.employerProposedHours)}
-            {a.employerProposedNote && <div style={{ fontWeight: 400, marginTop: 2 }}>{a.employerProposedNote}</div>}
+            {t(a.checkedOutAt ? "worker.employerProposedLabel" : "worker.employerSubmittedLabel").replace("{hours}", a.employerProposedHours)}
+            <HoursNote label={t("hours.employerNoteLabel")} text={a.employerProposedNote} tone="them" />
           </div>
           <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
-            <Btn size="xs" variant="secondary" disabled={respondingHoursModification === a.id} onClick={(e) => { stopClick?.(e); rejectHoursModification(a.id); }}>{t("worker.rejectModificationBtn")}</Btn>
+            <Btn size="xs" variant="secondary" disabled={respondingHoursModification === a.id} onClick={(e) => { stopClick?.(e); openResubmitAfterProposal(a); }}>{t("worker.rejectModificationBtn")}</Btn>
             <Btn size="xs" variant="success" disabled={respondingHoursModification === a.id} onClick={(e) => { stopClick?.(e); acceptHoursModification(a.id); }}>{t("worker.acceptModificationBtn")}</Btn>
           </div>
         </div>
@@ -10112,16 +10591,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return (
         <div style={{ textAlign: "right" }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted }}>{t("worker.checkoutPendingBadge")}</span>
-          {renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "right")}
+          {renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "right", "me")}
         </div>
       );
     }
     return (
-      <Btn size="sm" variant="success" onClick={(e) => {
-        stopClick?.(e);
-        setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) });
-        setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null);
-      }}>{t("worker.checkOutBtn")}</Btn>
+      <div style={{ textAlign: "right" }}>
+        <Btn size="sm" variant="success" onClick={(e) => {
+          stopClick?.(e);
+          setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) });
+          setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null);
+        }}>{t("worker.checkOutBtn")}</Btn>
+        {checkoutDeadlineHint(a, "right")}
+      </div>
     );
   };
 
@@ -10176,9 +10658,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8, textAlign: "center" }}>{t("worker.checkoutTitle")}</div>
+        <div style={{ fontSize: 24, fontWeight: 800, color: BRAND.text, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.proposal ? t("worker.resubmitTitle") : t("worker.checkoutTitle")}</div>
         <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.shiftTitle}</div>
-        <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 24, textAlign: "center", maxWidth: 320 }}>{t("worker.checkoutSubtitle")}</div>
+        {checkoutTarget.proposal ? (
+          <div style={{ fontSize: 13, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: 10, padding: "10px 12px", marginBottom: 20, maxWidth: 320, textAlign: "center" }}>
+            <div style={{ fontWeight: 700 }}>{t("worker.employerProposedLabel").replace("{hours}", checkoutTarget.proposal.hours)}</div>
+            {checkoutTarget.proposal.note && <div style={{ marginTop: 2, overflowWrap: "anywhere" }}>{checkoutTarget.proposal.note}</div>}
+            <div style={{ marginTop: 6 }}>{t("worker.resubmitProposalHint")}</div>
+          </div>
+        ) : (
+          <div style={{ color: BRAND.textMuted, fontSize: 14, marginBottom: 24, textAlign: "center", maxWidth: 320 }}>{t("worker.checkoutSubtitle")}</div>
+        )}
         <div style={{ width: "100%", maxWidth: 320 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("worker.checkoutHoursLabel")}</div>
           <input
@@ -10213,6 +10703,20 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             if (guardPreview()) return;
             setCheckoutSubmitting(true);
             setCheckoutResult(null);
+            if (checkoutTarget.rejectFirst) {
+              const { error: rejectError } = await supabase.rpc("worker_reject_modification", { p_application_id: checkoutTarget.applicationId });
+              if (rejectError) {
+                setCheckoutSubmitting(false);
+                setCheckoutResult({ ok: false, message: t("toast.rejectModificationFailed") + rejectError.message });
+                return;
+              }
+              // Rejected server-side. If the resubmission below then fails, a
+              // retry must not try to reject a proposal that no longer exists.
+              setLiveApplications(prev => (prev ?? []).map(x => x.id === checkoutTarget.applicationId ? {
+                ...x, checkedOutAt: null, employerProposedHours: null, employerProposedNote: null, hoursResubmitted: true,
+              } : x));
+              setCheckoutTarget(prev => prev ? { ...prev, rejectFirst: false } : prev);
+            }
             const { error } = await supabase.rpc("worker_submit_checkout", {
               p_application_id: checkoutTarget.applicationId,
               p_hours: Number(checkoutHours),
@@ -10234,7 +10738,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               employerHoursDisputeNote: null,
             } : x));
             setCheckoutTarget(null);
-            toast(t("toast.checkoutSuccess"), "success");
+            toast(checkoutTarget.proposal ? t("toast.rejectModificationSuccess") : t("toast.checkoutSuccess"), "success");
           }}
         >
           {checkoutSubmitting ? "…" : t("worker.submitCheckout")}
@@ -10629,6 +11133,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <StarRating value={selectedShift.rating ?? 0} onClick={(user && selectedShift.employerId) ? () => openRatingDetails(selectedShift.employerId, 'worker_to_employer', selectedShift.employer) : null} />
               <span style={{ fontSize: 12, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
+            {employerAbout[selectedShift.employerId] && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.border}` }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: BRAND.textMuted, marginBottom: 2 }}>{t("shiftDetail.aboutEmployer")}</div>
+                <div style={{ fontSize: 13, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{employerAbout[selectedShift.employerId]}</div>
+              </div>
+            )}
           </Card>
           {/* Deliberately NOT disabled in preview — the bid modal (rate
               slider, live gross-pay calc, binding-offer copy) is a big part
@@ -11295,7 +11805,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   and never gated on employer approval -- a worker who cannot
                   come needs a route that isn't "just don't turn up". Placed
                   last and styled quietly so it is findable, not inviting. */}
-              {a.status === "accepted" && a.shiftStatus !== "cancelled" && !a.checkedInAt && (
+              {a.status === "accepted" && a.shiftStatus !== "cancelled" && !a.checkedInAt && !attendanceIssue(a) && (
                 <Btn variant="secondary" onClick={() => { setWithdrawTarget(a); setWithdrawReason(""); }}
                      style={{ flex: 1, justifyContent: "center", color: BRAND.red, borderColor: BRAND.red }}>
                   {t("withdraw.btn")}
@@ -11306,20 +11816,26 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
                       ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
-                  {!a.checkedInAt && (
+                  {!a.checkedInAt && !attendanceIssue(a) && (
                     <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
                   )}
-                  {a.checkedInAt && !a.checkedOutAt && (
-                    <Btn variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkOutBtn")}</Btn>
+                  {attendanceIssue(a) && (
+                    <div style={{ flex: 1 }}>{renderAttendanceIssue(a, attendanceIssue(a), "center")}</div>
                   )}
-                  {a.checkedInAt && a.checkedOutAt && a.employerProposedHours != null && (
+                  {a.checkedInAt && !a.checkedOutAt && !attendanceIssue(a) && a.employerProposedHours == null && (
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "stretch" }}>
+                      <Btn variant="success" onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }} style={{ justifyContent: "center" }}>{t("worker.checkOutBtn")}</Btn>
+                      {checkoutDeadlineHint(a, "center")}
+                    </div>
+                  )}
+                  {a.checkedInAt && a.employerProposedHours != null && (
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: 8, padding: "6px 10px", textAlign: "center" }}>
-                        {t("worker.employerProposedLabel").replace("{hours}", a.employerProposedHours)}
-                        {a.employerProposedNote && <div style={{ fontWeight: 400, marginTop: 2 }}>{a.employerProposedNote}</div>}
+                        {t(a.checkedOutAt ? "worker.employerProposedLabel" : "worker.employerSubmittedLabel").replace("{hours}", a.employerProposedHours)}
+                        <HoursNote label={t("hours.employerNoteLabel")} text={a.employerProposedNote} tone="them" />
                       </div>
                       <div style={{ display: "flex", gap: 6 }}>
-                        <Btn size="xs" variant="secondary" disabled={respondingHoursModification === a.id} onClick={() => rejectHoursModification(a.id)}>{t("worker.rejectModificationBtn")}</Btn>
+                        <Btn size="xs" variant="secondary" disabled={respondingHoursModification === a.id} onClick={() => openResubmitAfterProposal(a)}>{t("worker.rejectModificationBtn")}</Btn>
                         <Btn size="xs" variant="success" disabled={respondingHoursModification === a.id} onClick={() => acceptHoursModification(a.id)}>{t("worker.acceptModificationBtn")}</Btn>
                       </div>
                     </div>
@@ -11334,7 +11850,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
                       {a.employerHoursConfirmedAt ? t("worker.hoursConfirmedBadge") : t("worker.checkoutPendingBadge")}
-                      {!a.employerHoursConfirmedAt && renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "center")}
+                      {!a.employerHoursConfirmedAt && renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "center", "me")}
                     </div>
                   )}
                 </>
@@ -11928,6 +12444,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </div>
                 </>
               )}
+              <ReceivedFeedback items={myReceivedFeedback} />
             </Card>
           </div>
         )}
@@ -12427,6 +12944,35 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       </div>
     )}
 
+    {attendanceRequestTarget && (
+      <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
+        <div {...attendanceRequestDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:460, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
+          <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("attendance.requestTitle")}</h3>
+          <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:12}}>{attendanceRequestTarget.shiftTitle}</p>
+          <p style={{fontSize:13, color: BRAND.textMuted, marginBottom:12}}>
+            {attendanceRequestTarget.kind === "check_out" ? t("attendance.requestCheckOutIntro") : t("attendance.requestCheckInIntro")}
+          </p>
+          <textarea
+            value={attendanceRequestNote}
+            onChange={e => setAttendanceRequestNote(e.target.value)}
+            placeholder={t("attendance.requestNotePlaceholder")}
+            rows={3}
+            style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical", boxSizing: "border-box", marginBottom: 16 }}
+          />
+          <div style={{display:'flex', gap:8}}>
+            <button onClick={() => setAttendanceRequestTarget(null)}
+              style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
+              {t("common.cancel")}
+            </button>
+            <button onClick={sendAttendanceRequest} disabled={sendingAttendanceRequest}
+              style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color: BRAND.onPrimary, border:'none', cursor: sendingAttendanceRequest ? 'not-allowed' : 'pointer', fontWeight:600, opacity: sendingAttendanceRequest ? 0.6 : 1}}>
+              {sendingAttendanceRequest ? "…" : t("attendance.requestSendBtn")}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
     {disputeModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...workerDisputeDialog} style={{background: BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
@@ -12558,13 +13104,25 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </div>
           ))}
 
+          <div style={{ marginBottom: 14 }}>
+            <textarea
+              value={ratingComment}
+              onChange={e => setRatingComment(e.target.value.slice(0, 500))}
+              placeholder={t("rating.commentPlaceholder")}
+              aria-label={t("rating.commentPlaceholder")}
+              rows={3}
+              style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
+            />
+            <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>{t("rating.commentPrivacyHint")}</div>
+          </div>
+
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
             <span style={{fontSize:13, fontWeight:700, color: BRAND.text}}>{t("rating.overallPreview")}</span>
             <span style={{fontSize:16, fontWeight:800, color: BRAND.accent}}>{overall ?? "—"}</span>
           </div>
 
           <div style={{display:'flex', gap:8}}>
-            <button onClick={() => { setRatingModal(null); setRatingForm({}); }}
+            <button onClick={() => { setRatingModal(null); setRatingForm({}); setRatingComment(""); }}
               style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
               {t("common.cancel")}
             </button>
@@ -12578,7 +13136,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       );
     })()}
 
-    <RatingDetailsModal modal={ratingDetailsModal} onClose={() => setRatingDetailsModal(null)} />
+    <RatingDetailsModal modal={ratingDetailsModal} onClose={() => setRatingDetailsModal(null)} about={ratingDetailsModal?.direction === 'worker_to_employer' ? employerAbout[ratingDetailsModal.rateeId] : null} />
 
     {cancellationContractModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
@@ -12659,6 +13217,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [offering, setOffering] = useState(false);
   const [liveEmployerShifts, setLiveEmployerShifts] = useState(null);
   const [employerProfile, setEmployerProfile] = useState(null);
+  // Short "about us" shown to workers on shift pages and the employer's profile.
+  const [companyDescriptionDraft, setCompanyDescriptionDraft] = useState("");
+  const [savingCompanyDescription, setSavingCompanyDescription] = useState(false);
+  const saveCompanyDescription = async () => {
+    if (!user) return;
+    setSavingCompanyDescription(true);
+    const value = companyDescriptionDraft.trim() || null;
+    const { error } = await supabase.from('profiles').update({ company_description: value }).eq('id', user.id);
+    setSavingCompanyDescription(false);
+    if (error) { toast(t('employer.aboutCompanySaveFailed') + error.message, 'error'); return; }
+    setEmployerProfile(prev => prev ? { ...prev, company_description: value } : prev);
+    toast(t('employer.aboutCompanySaved'), 'success');
+  };
   // Profile photo + personal (contact-person) details, moved here from the
   // worker app: an employer's own profile editing belongs in their own
   // console, not behind a worker-app preview. Note the worker "Sedcard"
@@ -12741,6 +13312,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // Account screen -- mirrors WorkerPortal's myReceivedRatings, same RPC,
   // opposite direction. Employer had no self-rating view at all before this.
   const [myEmployerRatings, setMyEmployerRatings] = useState(null);
+  const [myEmployerFeedback, setMyEmployerFeedback] = useState([]);   // comments, private to the rated person
+  useEffect(() => {
+    if (view !== "account" || !user) return;
+    let cancelled = false;
+    supabase.from('ratings').select('comment, overall, created_at')
+      .eq('ratee_id', user.id).eq('direction', 'worker_to_employer').not('comment', 'is', null)
+      .order('created_at', { ascending: false }).limit(20)
+      .then(({ data, error }) => { if (!cancelled) setMyEmployerFeedback(error ? [] : (data ?? [])); });
+    return () => { cancelled = true; };
+  }, [view, user]);
   useEffect(() => {
     if (view !== "account" || !user) return;
     let cancelled = false;
@@ -12757,6 +13338,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const [ratingForm, setRatingForm] = useState({});
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [ratingComment, setRatingComment] = useState("");   // optional private feedback to the rated person
   // application_ids the signed-in employer has already rated (employer_to_worker
   // direction) — hides the Rate button once filed, mirrors the immutable-once-
   // filed convention already used for disputes.
@@ -12996,6 +13578,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         direction: ratingModal.direction,
         aspects: ratingForm,
         overall,
+        comment: ratingComment.trim() || null,
       });
       setSubmittingRating(false);
       if (error) { toast(t('toast.ratingFailed') + error.message, 'error'); return; }
@@ -13003,6 +13586,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       setMyRatedApplicationIds(prev => new Set(prev).add(ratingModal.applicationId));
       setRatingModal(null);
       setRatingForm({});
+      setRatingComment("");
     } catch (err) {
       setSubmittingRating(false);
       toast(t('toast.ratingFailed') + (err?.message ?? ''), 'error');
@@ -13094,6 +13678,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       id: s.id,
       title: displayProtectedText(s.title),
       startAt: s.start_at,
+      endAt: s.end_at,
       occurrences: s.occurrences ?? [],
       isMultiDay: (s.occurrences ?? []).length > 1,
       date: formatShiftDate(s.start_at) || 'TBA',
@@ -13164,7 +13749,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     if (!user) { setEmployerProfile(null); setEmployerProfileLoaded(false); return; }
     setEmployerProfileLoaded(false);
-    supabase.from('profiles').select('full_name, reliability_score, ssm_number, ssm_document_path, employer_verification_status').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('full_name, reliability_score, ssm_number, ssm_document_path, employer_verification_status, company_description').eq('id', user.id).maybeSingle()
       .then(({ data, error }) => {
         if (!active) return;
         setEmployerProfile(error ? null : (data ?? null));
@@ -13174,6 +13759,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             companyName: data.full_name || user.user_metadata?.full_name || "",
             ssmNumber: data.ssm_number || "",
           });
+          setCompanyDescriptionDraft(data.company_description || "");
         }
       });
     return () => { active = false; };
@@ -13204,7 +13790,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (shiftIds.length === 0) { setRecentActivity([]); return; }
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, shift_id, checked_out_at, employer_hours_confirmed_at, employer_hours_disputed, employer_proposed_hours, worker:profiles!applications_worker_id_profiles_fkey(full_name)')
+      .select('id, wage_ask, status, applied_at, shift_id, worker_signed_at, no_show_at, checked_in_at, checked_out_at, employer_hours_confirmed_at, employer_hours_disputed, employer_proposed_hours, hours_resubmitted, worker:profiles!applications_worker_id_profiles_fkey(full_name)')
       .in('shift_id', shiftIds)
       .order('applied_at', { ascending: false })
       .then(({ data, error }) => {
@@ -13216,14 +13802,26 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         // without opening each one. "waiting" is the worker's move, shown
         // separately so it is not mistaken for something this side owes.
         const open = {};
+        const shiftById = Object.fromEntries((liveEmployerShifts ?? []).map(sh => [sh.id, sh]));
         rows.forEach(a => {
           counts[a.shift_id] = (counts[a.shift_id] || 0) + 1;
           bidSums[a.shift_id] = (bidSums[a.shift_id] || 0) + Number(a.wage_ask ?? 0);
-          const o = open[a.shift_id] || (open[a.shift_id] = { bids: 0, hours: 0, waiting: 0 });
+          const o = open[a.shift_id] || (open[a.shift_id] = { bids: 0, hours: 0, waiting: 0, attendance: 0 });
+          // Attendance nobody has settled: no check-in after the shift ended, or
+          // no check-out once it ended and no proposal is already in flight.
+          const sh = shiftById[a.shift_id];
+          const endsAt = sh ? shiftLastEndsAt(sh.occurrences, sh.endAt) : null;
+          if (endsAt && endsAt.getTime() < Date.now() && a.status === 'accepted' && a.worker_signed_at && sh.status !== 'cancelled') {
+            if (!a.checked_in_at && !a.no_show_at) o.attendance += 1;
+            else if (a.checked_in_at && !a.checked_out_at && a.employer_proposed_hours == null && !a.hours_resubmitted) o.attendance += 1;
+          }
           if (a.status === 'pending' || a.status === 'shortlisted') o.bids += 1;
           if (a.status === 'accepted' && a.checked_out_at && !a.employer_hours_confirmed_at) {
             if (a.employer_hours_disputed || a.employer_proposed_hours != null) o.waiting += 1;
             else o.hours += 1;
+          } else if (a.status === 'accepted' && a.checked_in_at && !a.checked_out_at && a.hours_resubmitted) {
+            // Worker rejected the proposal and owes a resubmission.
+            o.waiting += 1;
           }
         });
         setLiveEmployerShifts(prev => (prev ?? []).map(s => ({
@@ -13233,6 +13831,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           openBids: open[s.id]?.bids ?? 0,
           openHours: open[s.id]?.hours ?? 0,
           openWaiting: open[s.id]?.waiting ?? 0,
+          openAttendance: open[s.id]?.attendance ?? 0,
         })));
         setRecentActivity(rows.slice(0, 5).map(a => ({
           kind: a.status === 'accepted' ? 'accepted' : a.status === 'rejected' ? 'declined' : 'bid',
@@ -13507,6 +14106,78 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [hoursActionValue, setHoursActionValue] = useState("");
   const [hoursActionNote, setHoursActionNote] = useState("");
   const [submittingHoursAction, setSubmittingHoursAction] = useState(false);
+
+  // ── Attendance recovery, employer side: workers who missed check-in/out ask
+  // to be fixed; the employer checks them in, declines, or submits their hours
+  // (which the worker must still accept). Only PENDING requests matter here.
+  const [attendanceReqs, setAttendanceReqs] = useState({});   // `${applicationId}:${kind}` -> pending request
+  const attendanceApplicantIds = (liveApplicants ?? []).filter(a => a.status === 'accepted').map(a => a.id).join(',');
+  const loadAttendanceReqs = useCallback(async () => {
+    if (!attendanceApplicantIds) { setAttendanceReqs({}); return; }
+    const { data, error } = await supabase
+      .from('attendance_requests')
+      .select('id, application_id, kind, note, created_at')
+      .in('application_id', attendanceApplicantIds.split(','))
+      .eq('status', 'pending');
+    if (error) return;
+    const map = {};
+    (data ?? []).forEach(r => { map[`${r.application_id}:${r.kind}`] = r; });
+    setAttendanceReqs(map);
+  }, [attendanceApplicantIds]);
+  useEffect(() => { loadAttendanceReqs(); }, [loadAttendanceReqs]);
+
+  // One inline form serves both: { applicationId, mode: 'decline' | 'submit_hours', requestId? }
+  const [attendanceActionTarget, setAttendanceActionTarget] = useState(null);
+  const [attendanceActionValue, setAttendanceActionValue] = useState("");
+  const [attendanceActionNote, setAttendanceActionNote] = useState("");
+  const [submittingAttendanceAction, setSubmittingAttendanceAction] = useState(false);
+
+  const closeAttendanceAction = () => { setAttendanceActionTarget(null); setAttendanceActionValue(""); setAttendanceActionNote(""); };
+
+  const checkInWorkerOnBehalf = async (a) => {
+    setSubmittingAttendanceAction(true);
+    const { error } = await supabase.rpc('employer_check_in_worker', { p_application_id: a.id, p_note: null });
+    setSubmittingAttendanceAction(false);
+    if (error) { toast(error.message, 'error'); return; }
+    setLiveApplicants(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, checkedInAt: selectedShift?.startAt ?? new Date().toISOString(), noShowAt: null, noShowNote: null } : x));
+    toast(t('attendance.toastCheckedIn'), 'success');
+    loadAttendanceReqs();
+  };
+
+  const declineAttendanceRequest = async () => {
+    if (!attendanceActionTarget?.requestId) return;
+    setSubmittingAttendanceAction(true);
+    const { error } = await supabase.rpc('employer_decline_attendance_request', { p_request_id: attendanceActionTarget.requestId, p_note: attendanceActionNote.trim() || null });
+    setSubmittingAttendanceAction(false);
+    if (error) { toast(error.message, 'error'); return; }
+    closeAttendanceAction();
+    toast(t('attendance.toastDeclined'), 'success');
+    loadAttendanceReqs();
+  };
+
+  const submitHoursForWorker = async () => {
+    if (!attendanceActionTarget) return;
+    setSubmittingAttendanceAction(true);
+    const { error } = await supabase.rpc('employer_submit_hours_for_worker', {
+      p_application_id: attendanceActionTarget.applicationId, p_hours: Number(attendanceActionValue), p_note: attendanceActionNote.trim() || null,
+    });
+    setSubmittingAttendanceAction(false);
+    if (error) { toast(error.message, 'error'); return; }
+    const id = attendanceActionTarget.applicationId;
+    setLiveApplicants(prev => (prev ?? []).map(x => x.id === id ? { ...x, employerProposedHours: Number(attendanceActionValue), employerProposedNote: attendanceActionNote.trim() || null } : x));
+    closeAttendanceAction();
+    toast(t('attendance.toastHoursSubmitted'), 'success');
+    loadAttendanceReqs();
+  };
+
+  const undoNoShow = async (a) => {
+    setSubmittingAttendanceAction(true);
+    const { error } = await supabase.rpc('employer_undo_no_show', { p_application_id: a.id });
+    setSubmittingAttendanceAction(false);
+    if (error) { toast(error.message, 'error'); return; }
+    setLiveApplicants(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, noShowAt: null, noShowNote: null } : x));
+    toast(t('attendance.toastNoShowUndone'), 'success');
+  };
 
   const proposeHoursModification = async (applicationId, hours, note) => {
     setSubmittingHoursAction(true);
@@ -14367,6 +15038,104 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // measure 4.2 and 4.0 against a dark and light surface respectively. The
   // dogfood sweep never caught them because no QA account has ever been in the
   // no-show, expired or awaiting-response state.
+  // What the employer still owes an accepted worker's attendance, judged from
+  // the shift's real start/end. Nothing shows during a normal shift: the code
+  // is the ordinary path. This appears once someone has missed it.
+  const renderAttendanceControls = (a, action) => {
+    if (action !== "accepted" || !a.workerSignedAt || selectedShift.status === "cancelled") return null;
+    const startsAt = selectedShift.startAt ? new Date(selectedShift.startAt).getTime() : null;
+    const endsAtDate = shiftLastEndsAt(selectedShift.occurrences, selectedShift.endAt);
+    const now = Date.now();
+    const started = startsAt != null && startsAt <= now;
+    const ended = endsAtDate != null && endsAtDate.getTime() < now;
+    const windowEndsMs = endsAtDate ? endsAtDate.getTime() + CHECKOUT_WINDOW_MS : null;
+    const windowClosed = windowEndsMs != null && now > windowEndsMs;
+    const inReq = attendanceReqs[`${a.id}:check_in`];
+    const outReq = attendanceReqs[`${a.id}:check_out`];
+    const box = { marginTop: 6, padding: "6px 10px", borderRadius: 8, background: BRAND.amberLight, color: BRAND.onAmberLight, fontSize: 11 };
+    const inputStyle = { width: "100%", padding: "6px 8px", borderRadius: 6, border: `1px solid ${BRAND.border}`, fontSize: 12, marginTop: 4, color: BRAND.text, background: BRAND.input, boxSizing: "border-box", fontFamily: "inherit" };
+    const formOpen = (mode) => attendanceActionTarget?.applicationId === a.id && attendanceActionTarget.mode === mode;
+
+    if (a.noShowAt) {
+      return (
+        <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
+          <Btn size="xs" variant="secondary" disabled={submittingAttendanceAction} onClick={() => undoNoShow(a)}>{t("attendance.employerUndoNoShowBtn")}</Btn>
+        </div>
+      );
+    }
+
+    if (!a.checkedInAt && started && (inReq || ended)) {
+      return (
+        <div style={box} onClick={e => e.stopPropagation()}>
+          <div style={{ fontWeight: 700 }}>{inReq ? t("attendance.employerRequestCheckIn") : t("attendance.employerNotCheckedIn")}</div>
+          <HoursNote label={t("hours.workerNoteLabel")} text={inReq?.note} tone="them" />
+          {formOpen("decline") ? (
+            <div>
+              <input value={attendanceActionNote} onChange={e => setAttendanceActionNote(e.target.value)} placeholder={t("attendance.employerDeclineNotePlaceholder")} style={inputStyle} />
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <Btn size="xs" variant="danger" disabled={submittingAttendanceAction} onClick={declineAttendanceRequest}>{t("attendance.employerConfirmDeclineBtn")}</Btn>
+                <Btn size="xs" variant="secondary" onClick={closeAttendanceAction}>{t("common.cancel")}</Btn>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+              <Btn size="xs" variant="success" disabled={submittingAttendanceAction} onClick={() => checkInWorkerOnBehalf(a)}>{t("attendance.employerCheckInBehalfBtn")}</Btn>
+              {inReq && <Btn size="xs" variant="secondary" onClick={() => { setAttendanceActionNote(""); setAttendanceActionTarget({ applicationId: a.id, mode: "decline", requestId: inReq.id }); }}>{t("attendance.employerDeclineBtn")}</Btn>}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (a.employerProposedHours != null && !a.checkedOutAt) {
+      return (
+        <div style={box}>
+          <div style={{ fontWeight: 700 }}>{t("attendance.employerOnBehalfPending").replace("{hours}", a.employerProposedHours)}</div>
+          <HoursNote label={t("hours.yourNoteLabel")} text={a.employerProposedNote} tone="me" />
+        </div>
+      );
+    }
+
+    if (a.checkedInAt && !a.checkedOutAt && ended && !a.hoursResubmitted) {
+      if (!windowClosed && !outReq) {
+        const iso = new Date(windowEndsMs).toISOString();
+        const when = `${formatShiftDate(iso, { day: "numeric", month: "short" })}, ${formatShiftTime(iso)}`;
+        return <div style={{ marginTop: 6, fontSize: 11, color: BRAND.textMuted }}>{t("attendance.employerAwaitingCheckout").replace("{when}", when)}</div>;
+      }
+      return (
+        <div style={box} onClick={e => e.stopPropagation()}>
+          <div style={{ fontWeight: 700 }}>{outReq ? t("attendance.employerRequestCheckOut") : t("attendance.employerNotCheckedOut")}</div>
+          <HoursNote label={t("hours.workerNoteLabel")} text={outReq?.note} tone="them" />
+          {formOpen("submit_hours") ? (
+            <div>
+              <input type="number" step="0.5" min="0" value={attendanceActionValue} onChange={e => setAttendanceActionValue(e.target.value)} placeholder={t("attendance.employerHoursPlaceholder")} style={inputStyle} />
+              <input value={attendanceActionNote} onChange={e => setAttendanceActionNote(e.target.value)} placeholder={t("attendance.employerNotePlaceholder")} style={inputStyle} />
+              <div style={{ marginTop: 4, opacity: 0.85 }}>{t("attendance.employerSubmitHoursHint")}</div>
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <Btn size="xs" variant="success" disabled={submittingAttendanceAction || !attendanceActionValue || Number(attendanceActionValue) <= 0} onClick={submitHoursForWorker}>{t("attendance.employerSubmitHoursConfirmBtn")}</Btn>
+                <Btn size="xs" variant="secondary" onClick={closeAttendanceAction}>{t("common.cancel")}</Btn>
+              </div>
+            </div>
+          ) : formOpen("decline") ? (
+            <div>
+              <input value={attendanceActionNote} onChange={e => setAttendanceActionNote(e.target.value)} placeholder={t("attendance.employerDeclineNotePlaceholder")} style={inputStyle} />
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <Btn size="xs" variant="danger" disabled={submittingAttendanceAction} onClick={declineAttendanceRequest}>{t("attendance.employerConfirmDeclineBtn")}</Btn>
+                <Btn size="xs" variant="secondary" onClick={closeAttendanceAction}>{t("common.cancel")}</Btn>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+              <Btn size="xs" variant="success" onClick={() => { setAttendanceActionValue(""); setAttendanceActionNote(""); setAttendanceActionTarget({ applicationId: a.id, mode: "submit_hours" }); }}>{t("attendance.employerSubmitHoursBtn")}</Btn>
+              {outReq && <Btn size="xs" variant="secondary" onClick={() => { setAttendanceActionNote(""); setAttendanceActionTarget({ applicationId: a.id, mode: "decline", requestId: outReq.id }); }}>{t("attendance.employerDeclineBtn")}</Btn>}
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
   const applicantActions = (a, action, isSelectable) => (
     <>
       {isSelectable && !bulkSelectMode && (
@@ -14413,23 +15182,20 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           )}
         </div>
       )}
+      {renderAttendanceControls(a, action)}
       {action === "accepted" && a.checkedOutAt && (
         <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: BRAND.grayLight, fontSize: 11 }}>
           <div style={{ color: BRAND.text, fontWeight: 600 }}>
             {t("employer.reportedHoursPrefix")}{a.workerReportedHours}h
           </div>
-          {a.workerCheckoutNote && (
-            <div style={{ color: BRAND.textMuted, marginTop: 2, overflowWrap: "anywhere" }}>
-              <span style={{ fontWeight: 600 }}>{t("hours.workerNoteLabel")}</span> {a.workerCheckoutNote}
-            </div>
-          )}
+          <HoursNote label={t("hours.workerNoteLabel")} text={a.workerCheckoutNote} tone="them" />
           {a.employerHoursConfirmedAt && (
             <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
           )}
           {a.employerHoursDisputed && (
             <div style={{ color: BRAND.redOnSurface, fontWeight: 600, marginTop: 2 }}>
               {t("employer.hoursDisputedLabel")}
-              {a.employerHoursDisputeNote && <div style={{ fontWeight: 400, color: BRAND.textMuted, overflowWrap: "anywhere" }}><span style={{ fontWeight: 600 }}>{t("hours.yourNoteLabel")}</span> {a.employerHoursDisputeNote}</div>}
+              <HoursNote label={t("hours.yourNoteLabel")} text={a.employerHoursDisputeNote} tone="me" />
             </div>
           )}
           {/* Awaiting the worker's response to a pending proposal -- no
@@ -14437,7 +15203,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           {a.employerProposedHours != null && (
             <div style={{ marginTop: 6, padding: "6px 8px", borderRadius: 6, background: BRAND.amberLight, color: BRAND.onAmberLight }}>
               <div style={{ fontWeight: 700 }}>{t("employer.hoursProposedPendingLabel").replace("{hours}", a.employerProposedHours)}</div>
-              {a.employerProposedNote && <div style={{ marginTop: 2 }}>{a.employerProposedNote}</div>}
+              <HoursNote label={t("hours.yourNoteLabel")} text={a.employerProposedNote} tone="me" />
             </div>
           )}
           {!a.employerHoursConfirmedAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
@@ -14471,6 +15237,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             )
           )}
+        </div>
+      )}
+      {/* The worker rejected the proposal and has to check out again -- say so,
+          otherwise the card looks idle between the rejection and the resubmit. */}
+      {action === "accepted" && a.checkedInAt && !a.checkedOutAt && a.hoursResubmitted && (
+        <div style={{ marginTop: 6, padding: "6px 10px", borderRadius: 8, background: BRAND.amberLight, color: BRAND.onAmberLight, fontSize: 11, fontWeight: 600 }}>
+          {t("employer.hoursAwaitingResubmit")}
         </div>
       )}
     </>
@@ -14659,11 +15432,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       const bids = live ? (s.openBids ?? 0) : 0;
                       const hours = s.openHours ?? 0;
                       const waiting = s.openWaiting ?? 0;
+                      const attendance = s.openAttendance ?? 0;
                       const toRate = pendingWorkerRatings.filter(x => x.shiftId === s.id && !myRatedApplicationIds.has(x.id)).length;
-                      if (bids + hours + waiting + toRate === 0) return null;
+                      if (bids + hours + waiting + attendance + toRate === 0) return null;
                       return (
                         <div style={{ marginTop: 10, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                           {bids > 0 && <Badge color="amber">{t("employer.actionBidsToReview", { count: bids })}</Badge>}
+                          {attendance > 0 && <Badge color="amber">{t("employer.actionAttendance", { count: attendance })}</Badge>}
                           {hours > 0 && <Badge color="amber">{t("employer.actionHoursToConfirm", { count: hours })}</Badge>}
                           {toRate > 0 && <Badge color="amber">{t("employer.actionToRate", { count: toRate })}</Badge>}
                           {waiting > 0 && <Badge color="gray">{t("employer.actionWaitingOnWorker", { count: waiting })}</Badge>}
@@ -15648,6 +16423,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>{t("employer.profilePhotoHint")}</div>
               </div>
             </Card>
+            <Card style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("employer.aboutCompanyTitle")}</div>
+              <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 10 }}>{t("employer.aboutCompanyHint")}</div>
+              <textarea
+                value={companyDescriptionDraft}
+                onChange={e => setCompanyDescriptionDraft(e.target.value.slice(0, 500))}
+                placeholder={t("employer.aboutCompanyPlaceholder")}
+                aria-label={t("employer.aboutCompanyTitle")}
+                rows={4}
+                style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
+                <span style={{ fontSize: 11, color: BRAND.textMuted }}>{companyDescriptionDraft.length}/500</span>
+                <Btn size="sm" onClick={saveCompanyDescription}
+                  disabled={savingCompanyDescription || companyDescriptionDraft.trim() === (employerProfile?.company_description || "")}>
+                  {savingCompanyDescription ? "…" : t("employer.aboutCompanySaveBtn")}
+                </Btn>
+              </div>
+            </Card>
             {/* Mirrors WorkerPortal's own "Recent Ratings" card -- same RPC
                 (get_ratee_ratings), opposite direction. Employer had no
                 self-rating view of any kind before this. */}
@@ -15677,6 +16471,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   </div>
                 </>
               )}
+              <ReceivedFeedback items={myEmployerFeedback} />
             </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, gap: 12 }}>
@@ -16176,13 +16971,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             ))}
 
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
+            <div style={{ marginBottom: 14 }}>
+            <textarea
+              value={ratingComment}
+              onChange={e => setRatingComment(e.target.value.slice(0, 500))}
+              placeholder={t("rating.commentPlaceholder")}
+              aria-label={t("rating.commentPlaceholder")}
+              rows={3}
+              style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 10, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
+            />
+            <div style={{ fontSize: 11, color: BRAND.textMuted, marginTop: 4 }}>{t("rating.commentPrivacyHint")}</div>
+          </div>
+
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
               <span style={{fontSize:13, fontWeight:700, color: BRAND.text}}>{t("rating.overallPreview")}</span>
               <span style={{fontSize:16, fontWeight:800, color: BRAND.accent}}>{overall ?? "—"}</span>
             </div>
 
             <div style={{display:'flex', gap:8}}>
-              <button onClick={() => { setRatingModal(null); setRatingForm({}); }}
+              <button onClick={() => { setRatingModal(null); setRatingForm({}); setRatingComment(""); }}
                 style={{flex:1, padding:'10px', borderRadius:8, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
                 {t("common.cancel")}
               </button>
@@ -16554,6 +17361,12 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [disputeMessageInput, setDisputeMessageInput] = useState("");
   const [sendingDisputeMessage, setSendingDisputeMessage] = useState(false);
   const [disputeSenderNames, setDisputeSenderNames] = useState({});
+  // Final say on an attendance dispute: settles the record itself, not just
+  // the ticket. Outcome + hours + note go to admin_apply_attendance_correction.
+  const [rulingOutcome, setRulingOutcome] = useState("grant_attendance");
+  const [rulingHours, setRulingHours] = useState("");
+  const [rulingNote, setRulingNote] = useState("");
+  const [applyingRuling, setApplyingRuling] = useState(false);
 
   // Load the shift's chat history when the investigate panel opens. Same
   // room worker+employer already share (messages, recipient_id null) --
@@ -16597,6 +17410,23 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (error) { toast(t('admin.disputeChatSendFailed') + error.message, 'error'); return; }
     setDisputeMessageInput('');
     setDisputeMessages(prev => (prev ?? []).some(m => m.id === data.id) ? prev : [...(prev ?? []), data]);
+  };
+
+  const applyAttendanceRuling = async () => {
+    if (!disputeDetailFor) return;
+    setApplyingRuling(true);
+    const { error } = await supabase.rpc("admin_apply_attendance_correction", {
+      p_dispute_id: disputeDetailFor.id,
+      p_outcome: rulingOutcome,
+      p_hours: rulingOutcome === "grant_attendance" ? Number(rulingHours) : null,
+      p_note: rulingNote.trim() || null,
+    });
+    setApplyingRuling(false);
+    if (error) { toast(error.message, "error"); return; }
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeDetailFor.id ? { ...d, status: "resolved" } : d));
+    setDisputeDetailFor(null);
+    setRulingHours(""); setRulingNote(""); setRulingOutcome("grant_attendance");
+    toast(t("admin.rulingApplied"), "success");
   };
 
   const markDisputeUnderReview = async (disputeId) => {
@@ -16761,7 +17591,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setDisputesQueue(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, worker_signed_at, employer_signed_at, shift_id, shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at))")
+        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, checked_in_method, checked_out_method, worker_reported_hours, no_show_at, no_show_note, employer_hours_confirmed_at, worker_signed_at, employer_signed_at, shift_id, shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at))")
         .order("created_at", { ascending: false });
       if (error) { setDisputesQueue([]); return; }
       setDisputesQueue(data || []);
@@ -17287,6 +18117,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   [t("admin.disputeWageAsk"), disputeDetailFor.application?.wage_ask != null ? toCurrency(disputeDetailFor.application.wage_ask) : t("admin.disputeNotRecorded")],
                   [t("admin.disputeCheckedIn"), disputeDetailFor.application?.checked_in_at ? new Date(disputeDetailFor.application.checked_in_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
                   [t("admin.disputeCheckedOut"), disputeDetailFor.application?.checked_out_at ? new Date(disputeDetailFor.application.checked_out_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeCheckedInBy"), disputeDetailFor.application?.checked_in_method ? t(`admin.method.${disputeDetailFor.application.checked_in_method}`) : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeCheckedOutBy"), disputeDetailFor.application?.checked_out_method ? t(`admin.method.${disputeDetailFor.application.checked_out_method}`) : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeReportedHours"), disputeDetailFor.application?.worker_reported_hours != null ? `${disputeDetailFor.application.worker_reported_hours}h${disputeDetailFor.application.employer_hours_confirmed_at ? " ✓" : ""}` : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeNoShow"), disputeDetailFor.application?.no_show_at ? `${new Date(disputeDetailFor.application.no_show_at).toLocaleString("en-MY")}${disputeDetailFor.application.no_show_note ? ` — ${disputeDetailFor.application.no_show_note}` : ""}` : "—"],
                   [t("admin.disputeWorkerSigned"), disputeDetailFor.application?.worker_signed_at ? new Date(disputeDetailFor.application.worker_signed_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
                   [t("admin.disputeEmployerSigned"), disputeDetailFor.application?.employer_signed_at ? new Date(disputeDetailFor.application.employer_signed_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
                 ].map(([label, value]) => (
@@ -17296,6 +18130,33 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                 ))}
               </div>
+
+              {/* Attendance ruling -- the only thing on this panel that changes
+                  the underlying record (check-in/out, hours, no-show mark, and
+                  through them the payout). Closes the dispute. */}
+              {(disputeDetailFor.status === "open" || disputeDetailFor.status === "under_review") && (
+                <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: 12, padding: 14, marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("admin.rulingTitle")}</div>
+                  <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{t("admin.rulingHint")}</div>
+                  <Select
+                    label={t("admin.rulingOutcomeLabel")}
+                    value={rulingOutcome}
+                    onChange={e => setRulingOutcome(e.target.value)}
+                    options={[
+                      { value: "grant_attendance", label: t("admin.rulingGrant") },
+                      { value: "confirm_no_show", label: t("admin.rulingConfirmNoShow") },
+                      { value: "reverse_no_show", label: t("admin.rulingReverseNoShow") },
+                    ]}
+                  />
+                  {rulingOutcome === "grant_attendance" && (
+                    <input type="number" step="0.25" min="0" value={rulingHours} onChange={e => setRulingHours(e.target.value)} placeholder={t("admin.rulingHoursLabel")}
+                      style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${BRAND.border}`, fontSize: 14, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, marginBottom: 10 }} />
+                  )}
+                  <textarea value={rulingNote} onChange={e => setRulingNote(e.target.value)} placeholder={t("admin.rulingNoteLabel")} rows={2}
+                    style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 10, border: `1.5px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical", marginBottom: 10 }} />
+                  <Btn size="sm" onClick={applyAttendanceRuling} disabled={applyingRuling || (rulingOutcome === "grant_attendance" && (!rulingHours || Number(rulingHours) <= 0))}>{t("admin.rulingApplyBtn")}</Btn>
+                </div>
+              )}
 
               {/* Discuss -- the SAME group chat room worker+employer already
                   share for this shift (messages, recipient_id null). Admin
