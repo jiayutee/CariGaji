@@ -1425,6 +1425,10 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "Why are you proposing a different number?",
     "employer.modifyHoursSubmitBtn": "Send proposal",
     "employer.hoursProposedPendingLabel": "You proposed {hours}h — waiting for the worker",
+    "employer.actionBidsToReview": "{count} bid(s) to review",
+    "employer.actionHoursToConfirm": "{count} timesheet(s) to confirm",
+    "employer.actionToRate": "{count} worker(s) to rate",
+    "employer.actionWaitingOnWorker": "{count} waiting on worker",
     "employer.toastHoursModifyProposed": "Proposal sent to the worker.",
     "employer.toastModifyHoursFailed": "Failed to send proposal: ",
     "employer.toastHoursConfirmed": "Hours confirmed.",
@@ -2733,6 +2737,10 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "Kenapa anda mencadangkan angka yang berbeza?",
     "employer.modifyHoursSubmitBtn": "Hantar cadangan",
     "employer.hoursProposedPendingLabel": "Anda mencadangkan {hours}j — menunggu respons pekerja",
+    "employer.actionBidsToReview": "{count} bida untuk disemak",
+    "employer.actionHoursToConfirm": "{count} lembaran waktu untuk disahkan",
+    "employer.actionToRate": "{count} pekerja untuk dinilai",
+    "employer.actionWaitingOnWorker": "{count} menunggu pekerja",
     "employer.toastHoursModifyProposed": "Cadangan dihantar kepada pekerja.",
     "employer.toastModifyHoursFailed": "Gagal menghantar cadangan: ",
     "employer.toastHoursConfirmed": "Jam disahkan.",
@@ -4040,6 +4048,10 @@ const TRANSLATIONS = {
     "employer.modifyHoursNotePlaceholder": "为什么提出不同的时数？",
     "employer.modifyHoursSubmitBtn": "发送提议",
     "employer.hoursProposedPendingLabel": "您提议了 {hours} 小时 — 等待员工回应",
+    "employer.actionBidsToReview": "{count} 个报价待审核",
+    "employer.actionHoursToConfirm": "{count} 份工时待确认",
+    "employer.actionToRate": "{count} 位员工待评价",
+    "employer.actionWaitingOnWorker": "{count} 项等待员工回应",
     "employer.toastHoursModifyProposed": "提议已发送给员工。",
     "employer.toastModifyHoursFailed": "发送提议失败：",
     "employer.toastHoursConfirmed": "工时已确认。",
@@ -13164,7 +13176,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (shiftIds.length === 0) { setRecentActivity([]); return; }
     supabase
       .from('applications')
-      .select('id, wage_ask, status, applied_at, shift_id, worker:profiles!applications_worker_id_profiles_fkey(full_name)')
+      .select('id, wage_ask, status, applied_at, shift_id, checked_out_at, employer_hours_confirmed_at, employer_hours_disputed, employer_proposed_hours, worker:profiles!applications_worker_id_profiles_fkey(full_name)')
       .in('shift_id', shiftIds)
       .order('applied_at', { ascending: false })
       .then(({ data, error }) => {
@@ -13172,14 +13184,27 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         const rows = data ?? [];
         const counts = {};
         const bidSums = {};
+        // What the employer still has to DO per shift, so the list can say so
+        // without opening each one. "waiting" is the worker's move, shown
+        // separately so it is not mistaken for something this side owes.
+        const open = {};
         rows.forEach(a => {
           counts[a.shift_id] = (counts[a.shift_id] || 0) + 1;
           bidSums[a.shift_id] = (bidSums[a.shift_id] || 0) + Number(a.wage_ask ?? 0);
+          const o = open[a.shift_id] || (open[a.shift_id] = { bids: 0, hours: 0, waiting: 0 });
+          if (a.status === 'pending' || a.status === 'shortlisted') o.bids += 1;
+          if (a.status === 'accepted' && a.checked_out_at && !a.employer_hours_confirmed_at) {
+            if (a.employer_hours_disputed || a.employer_proposed_hours != null) o.waiting += 1;
+            else o.hours += 1;
+          }
         });
         setLiveEmployerShifts(prev => (prev ?? []).map(s => ({
           ...s,
           applicants: counts[s.id] || 0,
           avgBid: counts[s.id] ? bidSums[s.id] / counts[s.id] : 0,
+          openBids: open[s.id]?.bids ?? 0,
+          openHours: open[s.id]?.hours ?? 0,
+          openWaiting: open[s.id]?.waiting ?? 0,
         })));
         setRecentActivity(rows.slice(0, 5).map(a => ({
           kind: a.status === 'accepted' ? 'accepted' : a.status === 'rejected' ? 'declined' : 'bid',
@@ -13189,8 +13214,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         })));
       });
     return () => { active = false; };
+    // Re-read when the employer lands back on the list: confirming hours or
+    // deciding a bid inside a shift changes what is still open on it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveEmployerShifts === null ? null : liveEmployerShifts.map(s => s.id).join(',')]);
+  }, [liveEmployerShifts === null ? null : liveEmployerShifts.map(s => s.id).join(','), view === "shifts" && !selectedShift]);
 
   // Keep the open shift-detail view (selectedShift) in sync with background
   // updates to liveEmployerShifts — e.g. the applicant/avg-bid counts above
@@ -14589,6 +14616,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         </div>
                   </div>
                 </div>
+                    {(() => {
+                      if (s.status === "cancelled") return null;
+                      const live = s.status === "open" || s.status === "closed";
+                      const bids = live ? (s.openBids ?? 0) : 0;
+                      const hours = s.openHours ?? 0;
+                      const waiting = s.openWaiting ?? 0;
+                      const toRate = pendingWorkerRatings.filter(x => x.shiftId === s.id && !myRatedApplicationIds.has(x.id)).length;
+                      if (bids + hours + waiting + toRate === 0) return null;
+                      return (
+                        <div style={{ marginTop: 10, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                          {bids > 0 && <Badge color="amber">{t("employer.actionBidsToReview", { count: bids })}</Badge>}
+                          {hours > 0 && <Badge color="amber">{t("employer.actionHoursToConfirm", { count: hours })}</Badge>}
+                          {toRate > 0 && <Badge color="amber">{t("employer.actionToRate", { count: toRate })}</Badge>}
+                          {waiting > 0 && <Badge color="gray">{t("employer.actionWaitingOnWorker", { count: waiting })}</Badge>}
+                        </div>
+                      );
+                    })()}
                     <div style={{ marginTop: 12, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardPositionsNeeded').replace('{count}', s.headcount)}</span>
                       <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t('employer.listCardFilled').replace('{count}', s.filled)}</span>

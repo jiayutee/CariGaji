@@ -246,3 +246,26 @@ RULE for me: after setting a control file, verify the ROUTINE honours it —
 don't just verify the file's contents. I checked `cat state.txt` returned
 `paused` and reported the loop paused. It wasn't. The check that mattered was
 whether the next cycle actually stopped.
+
+## 2026-09-19 — a self-test that swallows setup errors proves nothing; guard triggers need the trusted-write flag
+
+MISTAKE: the hours-negotiation RPCs (20260914) shipped with a green self-test and
+were broken. `applications_guard_attendance_columns` (20260726b) silently reverts
+checked_out_at / worker_reported_hours / employer_hours_confirmed_at unless the
+RPC first does `set_config('app.attendance_trusted_write','true',true)`. Reject
+could not clear checked_out_at (worker locked out of resubmitting); accept would
+have confirmed nothing and paid nothing. The self-test never ran its assertions:
+its setup used `occurrences '[]'` (rejected by shifts_occurrences_nonempty) and
+random UUID users, and a catch-all downgraded that error to a warning.
+
+RULE: before writing an RPC that UPDATEs a table, list its BEFORE UPDATE triggers
+(`grep -n "before update on public.<table>" supabase/migrations/*.sql`) and read
+what each one reverts. Copy the flag-setting idiom from the sibling RPCs.
+
+RULE: a rollback self-test may tolerate SETUP failure only if it says loudly that
+assertions did NOT run, and it must use real ids + a valid row shape (check the
+table's CHECK constraints). After setup succeeds, every failure must raise.
+
+RULE for me: for anything that moves money or attendance state, exercise it live
+through the real REST/RPC path with the QA accounts (real JWT, real triggers)
+before declaring it done. That is what found this within minutes.
