@@ -157,10 +157,10 @@ begin
         'end_at', (now() + interval '4 hours')));
 
       insert into public.shifts (employer_id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, status, requirements, occurrences)
-      values (v_employer, 'ZZ-TRUSTED-WRITE selftest 1', 'x', 'Other', 'KL', now() - interval '1 hour', now() + interval '4 hours', 10, 20, 1, 'open', '', v_occ)
+      values (v_employer, 'ZZ-TRUSTED-WRITE selftest 1', 'x', 'Other', 'KL', now() - interval '1 hour', now() + interval '4 hours', 10, 20, 1, 'open', '[]'::jsonb, v_occ)
       returning id into v_shift1;
       insert into public.shifts (employer_id, title, description, category, location, start_at, end_at, wage_min, wage_max, headcount, status, requirements, occurrences)
-      values (v_employer, 'ZZ-TRUSTED-WRITE selftest 2', 'x', 'Other', 'KL', now() - interval '1 hour', now() + interval '4 hours', 10, 20, 1, 'open', '', v_occ)
+      values (v_employer, 'ZZ-TRUSTED-WRITE selftest 2', 'x', 'Other', 'KL', now() - interval '1 hour', now() + interval '4 hours', 10, 20, 1, 'open', '[]'::jsonb, v_occ)
       returning id into v_shift2;
 
       insert into public.applications (shift_id, worker_id, wage_ask, status, worker_signed_at, checked_in_at, checked_out_at, worker_reported_hours)

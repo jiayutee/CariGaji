@@ -198,3 +198,37 @@ already routes this class of question to a lawyer).
 - [x] Chat: incoming bubbles had a fill and no edge (grayLight #F9FAFB on #FFFFFF
       = 1.05:1), so only the sender's blue bubble looked like a bubble. Added a
       1px border in all three chat copies. Light edge 1.24:1, dark 1.34:1.
+
+## 2026-09-19 — Attendance windows, missed check-in/out, reminders
+
+Owner ask: no check-in after the shift ends; missed check-in -> notify, talk to
+employer, employer can check in on their behalf, else dispute. Check-out only
+within 48h of shift end, reminder right after the shift and every 8h, then the
+employer submits hours on their behalf, else dispute. "Think holistically."
+
+Findings (live DB, 2026-09-19): worker_check_in has NO time window at all (the
+2h-before/2h-after window in 20260725d was dropped by the 20260726b rewrite);
+employer_mark_no_show exists but nothing reverses it; no scheduler (pg_cron
+available, not installed); notifications are localised client-side by
+notif.<type>.title/body + params, DB title/body is the English fallback.
+
+- [x] DB: check-in window [start-2h, last end]; check-out window end+48h
+      (bypassed once a proposal has been rejected); methods recorded
+      (code/employer/admin), attendance_requests table, notify_safe helper
+- [x] RPCs: worker_request_attendance, employer_check_in_worker,
+      employer_decline_attendance_request, employer_submit_hours_for_worker,
+      employer_undo_no_show, admin_apply_attendance_correction
+- [x] Reminders: send_attendance_reminders() + pg_cron every 10 min
+- [x] Worker UI: missed check-in / window closed / request pending / declined /
+      no-show states; employer-submitted hours proposal
+- [x] Employer UI: check in on behalf, decline, submit hours for worker, undo
+      no-show; shift-list badge
+- [x] Admin UI: attendance ruling inside the dispute panel
+- [x] Live-verify every path with the QA accounts (self-reviewed; no separate reviewer agent run)
+
+- Review 2026-09-19: DB applied via Supabase MCP (20260915 + cron); strict self-test
+  passed; real-JWT REST pass proved grants/RLS. UI written (worker/employer/admin +
+  95 i18n keys, all 3x). NOT yet deployed: DB rules are live, UI catches up on push.
+- Open policy question: employer never confirms submitted hours. Reminders +
+  worker escalation exist; auto-confirm after N days deliberately NOT built
+  (it pays without the employer's consent) -- owner's call.

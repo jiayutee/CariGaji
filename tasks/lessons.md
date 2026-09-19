@@ -269,3 +269,18 @@ table's CHECK constraints). After setup succeeds, every failure must raise.
 RULE for me: for anything that moves money or attendance state, exercise it live
 through the real REST/RPC path with the QA accounts (real JWT, real triggers)
 before declaring it done. That is what found this within minutes.
+
+## 2026-09-19 (later) — run self-tests where failure is LOUD
+
+The 20260914c/d rollback self-tests silently skipped their own assertions
+because their setup used `requirements ''` (that column is jsonb: use
+`'[]'::jsonb`), and a tolerated setup error just prints a warning.
+
+RULE: run the self-test through the Supabase MCP `execute_sql` and end it with
+`raise exception 'SELFTEST PASSED ...'`. A failure or a broken setup comes back
+as a real error, and a pass is an unmistakable message, so "it ran and passed"
+is provable rather than assumed. `tasks/attendance_selftest.sql` is the pattern.
+
+RULE: a DO-block self-test runs as the DB owner, so it proves logic, not grants
+or RLS. Follow it with a REST pass using real user JWTs (QA accounts) for the
+permission and row-visibility questions.
