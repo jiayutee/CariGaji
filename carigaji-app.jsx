@@ -9018,11 +9018,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const settingsHelpDialog = useDialog(settingsHelpOpen, () => setSettingsHelpOpen(false), { label: t("help.title") });
   const [settingsOpenFaq, setSettingsOpenFaq] = useState(null);
   const [workerShiftsDone, setWorkerShiftsDone] = useState(null);
-  const [tab, setTab] = useState("discover");
+  const [tab, setTab] = useState(() => parseWorkerRoute(initialRouteSegments("worker")).tab ?? "discover");
   // Profile is now two sub-tabs rather than two bottom-nav tabs. Everything that
   // used to live under `tab === "settings"` renders under the Account sub-tab;
   // nothing was deleted, it is one tap deeper.
-  const [profileTab, setProfileTab] = useState("profile");
+  const [profileTab, setProfileTab] = useState(() => parseWorkerRoute(initialRouteSegments("worker")).profileTab);
 
   // "unsupported" | "denied" | "on" | "off". Read from the browser rather than
   // stored: the user can revoke permission in site settings at any time, and a
@@ -9037,24 +9037,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const [showTnC, setShowTnC] = useState(false);
   const [selectedShift, setSelectedShift] = useState(null);
 
-  // Mirror the open shift into the address bar so it can be copied, bookmarked
-  // and shared. replaceState, never pushState: on mobile BackGestureManager
-  // owns the history stack, and pushing entries here would fight its sentinels
-  // for control of the back swipe.
-  //
-  // `armed` exists for one case: arriving ON a shift URL. The first run happens
-  // before the shift has loaded, when selectedShift is still null -- rewriting
-  // to the base path there would erase the very link the visitor followed.
-  const urlSyncArmed = useRef(false);
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (selectedShift?.id) urlSyncArmed.current = true;
-    if (!urlSyncArmed.current) return;
-    const target = selectedShift?.id ? shiftToPath(selectedShift.id, language) : withLang(language, []);
-    if (!samePath(target, window.location.pathname)) {
-      window.history.replaceState(window.history.state, "", target);
-    }
-  }, [selectedShift?.id]);
 
   const shareShift = async () => {
     if (!selectedShift?.id || typeof window === "undefined") return;
@@ -9442,6 +9424,44 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       toast(t('toast.ratingFailed') + (err?.message ?? ''), 'error');
     }
   };
+
+  // ── Addresses for every page (see usePortalRoute). Ids that arrive in the
+  // address (an application, a chat room) resolve once their lists have loaded.
+  const [routeShift, setRouteShift] = useState(null);   // { id, n } -- n so the same shift can be re-requested
+  const [pendingApplicationId, setPendingApplicationId] = useState(() => parseWorkerRoute(initialRouteSegments("worker")).applicationId);
+  const [pendingChatShiftId, setPendingChatShiftId] = useState(() => parseWorkerRoute(initialRouteSegments("worker")).chatShiftId);
+  useEffect(() => {
+    if (!pendingApplicationId || !liveApplications) return;
+    const found = liveApplications.find(a => a.id === pendingApplicationId);
+    if (found) setSelectedApplication(found);
+    setPendingApplicationId(null);
+  }, [pendingApplicationId, liveApplications]);
+  useEffect(() => {
+    if (!pendingChatShiftId) return undefined;
+    const conv = chatConversations.find(c => c.shiftId === pendingChatShiftId);
+    if (conv) { setActiveChatShift(conv); setPendingChatShiftId(null); return undefined; }
+    const timer = setTimeout(() => setPendingChatShiftId(null), 8000);
+    return () => clearTimeout(timer);
+  }, [pendingChatShiftId, chatConversations]);
+  usePortalRoute({
+    portal: "worker",
+    segments: buildWorkerSegments({ tab, profileTab, shiftId: selectedShift?.id ?? null, applicationId: selectedApplication?.id ?? null, chatShiftId: activeChatShift?.shiftId ?? null }),
+    parse: parseWorkerRoute,
+    apply: (r) => {
+      if (r.shiftId) {
+        setSelectedApplication(null);
+        if (selectedShift?.id !== r.shiftId) setRouteShift({ id: r.shiftId, n: Date.now() });
+        return;
+      }
+      setSelectedShift(null); setRouteShift(null); setOpenShiftId(null);
+      setTab(r.tab);
+      if (r.tab === "profile") setProfileTab(r.profileTab);
+      setPendingApplicationId(r.applicationId);
+      if (!r.applicationId) setSelectedApplication(null);
+      setPendingChatShiftId(r.chatShiftId);
+      if (!r.chatShiftId) { setActiveChatShift(null); setChatMessages([]); }
+    },
+  });
 
   // Mobile back-gesture support: register a handler that closes the topmost
   // open thing and reports whether it handled the gesture. Reassigned every
@@ -10009,7 +10029,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     // room. Both need the same thing -- an id turned into the detail view --
     // so they share one loader rather than each carrying its own copy of this
     // query and its 30-line row mapping.
-    const wantedShiftId = deepLinkShift?.shiftId || openShiftId || linkShiftId;
+    const wantedShiftId = deepLinkShift?.shiftId || openShiftId || routeShift?.id || linkShiftId;
     if (!wantedShiftId) return undefined;
     // Where the user lands when they CLOSE the detail. A tapped notification or
     // a chat shortcut is about a shift they already bid on, so My Bids is
@@ -10064,7 +10084,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         setTab(closeTab);
       });
     return () => { active = false; };
-  }, [deepLinkShift, openShiftId, linkShiftId]);
+  }, [deepLinkShift, openShiftId, routeShift, linkShiftId]);
 
   useEffect(() => {
     let active = true;
@@ -13192,7 +13212,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null, onUserUpdated = () => {}, onOpenSupportChat = openMailtoSupport }) => {
   const toast = useToast();
   const { t } = useLanguage();
-  const [view, setView] = useState("dashboard");
+  const [view, setView] = useState(() => parseEmployerRoute(initialRouteSegments("employer")).view);
   const [selectedShift, setSelectedShift] = useState(null);
   const [liveApplicants, setLiveApplicants] = useState(null);
   const [postStep, setPostStep] = useState(1);
@@ -13434,6 +13454,33 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   }, [activeChatShift?.shiftId]);
   // Set by the chat room's "View shift" shortcut; see the deep-link loader.
   const [openShiftId, setOpenShiftId] = useState(null);
+  // ── Addresses for every page (see usePortalRoute).
+  const [routeShift, setRouteShift] = useState(() => {
+    const id = parseEmployerRoute(initialRouteSegments("employer")).shiftId;
+    return id ? { id, n: 0 } : null;
+  });
+  const [pendingChatShiftId, setPendingChatShiftId] = useState(() => parseEmployerRoute(initialRouteSegments("employer")).chatShiftId);
+  useEffect(() => {
+    if (!pendingChatShiftId) return undefined;
+    const conv = chatConversations.find(c => c.shiftId === pendingChatShiftId);
+    if (conv) { setActiveChatShift(conv); setPendingChatShiftId(null); return undefined; }
+    const timer = setTimeout(() => setPendingChatShiftId(null), 8000);
+    return () => clearTimeout(timer);
+  }, [pendingChatShiftId, chatConversations]);
+  usePortalRoute({
+    portal: "employer",
+    segments: buildEmployerSegments({ view, shiftId: selectedShift?.id ?? null, chatShiftId: activeChatShift?.shiftId ?? null }),
+    parse: parseEmployerRoute,
+    apply: (r) => {
+      setView(r.view);
+      if (r.view === "shifts") {
+        if (r.shiftId) { if (selectedShift?.id !== r.shiftId) setRouteShift({ id: r.shiftId, n: Date.now() }); }
+        else { setSelectedShift(null); setRouteShift(null); setOpenShiftId(null); }
+      }
+      setPendingChatShiftId(r.chatShiftId);
+      if (r.view === "chat" && !r.chatShiftId) { setActiveChatShift(null); setChatMessages([]); }
+    },
+  });
   const { unreadRooms, refreshUnreadChat, roomPreviews, previewSenderNames, unreadRoomIds } = useUnreadChatRooms(user);
   // Same control as the worker console. An employer waiting on a bid or a
   // cancellation needs the phone to buzz just as much as a worker does, and
@@ -13708,7 +13755,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // Deep link from a clicked notification (e.g. "new bid received").
   useEffect(() => {
     // Shared by tapped notifications and the chat room's "View shift" shortcut.
-    const wantedShiftId = deepLinkShift?.shiftId || openShiftId;
+    const wantedShiftId = deepLinkShift?.shiftId || openShiftId || routeShift?.id;
     if (!wantedShiftId || !user) return undefined;
     let active = true;
     supabase
@@ -13723,6 +13770,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           id: s.id,
           title: displayProtectedText(s.title),
           startAt: s.start_at,
+          endAt: s.end_at,
           occurrences: s.occurrences ?? [],
           isMultiDay: (s.occurrences ?? []).length > 1,
           date: formatShiftDate(s.start_at) || 'TBA',
@@ -13740,7 +13788,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         setView('shifts');
       });
     return () => { active = false; };
-  }, [deepLinkShift, user, openShiftId]);
+  }, [deepLinkShift, user, openShiftId, routeShift]);
 
   // Employer's own profile (real name + reliability score for the dashboard
   // greeting/stats — replaces the old hardcoded "Grand Hyatt KL" demo copy).
@@ -13858,6 +13906,16 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   }, [liveEmployerShifts]);
 
   // Start a fresh shift post (clears any edit state + form).
+  // guardPosting() only runs on the buttons. Arriving straight on the post-shift
+  // or bulk-upload address must not sidestep the same gate.
+  useEffect(() => {
+    if ((view === "postshift" || view === "bulkupload") && employerProfileLoaded && !employerVerified) {
+      toast(t('employer.postingLockedToast'), 'info');
+      setView('dashboard');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, employerProfileLoaded, employerVerified]);
+
   const beginNewShift = () => {
     if (!guardPosting()) return;
     setEditingShiftId(null);
@@ -17304,7 +17362,8 @@ const ADMIN_SIDEBAR_ACTIVE_BG = "rgba(232,56,13,0.15)";  // brand tint, on dark 
 const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
-  const [view, setView] = useState("overview");
+  const [view, setView] = useState(() => parseAdminRoute(initialRouteSegments("admin")).view);
+  usePortalRoute({ portal: "admin", segments: buildAdminSegments({ view }), parse: parseAdminRoute, apply: (r) => setView(r.view) });
   // kycActions/flagActions were local-only "decisions" for the two mock queues;
   // both are gone now, and neither ever reached the database.
   const [livePayoutQueue, setLivePayoutQueue] = useState(null);
@@ -19697,6 +19756,23 @@ const readRememberedPortal = () => {
     return Object.prototype.hasOwnProperty.call(PORTAL_PATHS, v) ? v : null;
   } catch { return null; }
 };
+// A signed-out visitor who follows a link to an employer page is sent to the
+// public landing page (there is nothing to show them). Remember where they were
+// going so that signing in as the right kind of account takes them there
+// instead of to the console's front door. Short-lived on purpose.
+const RETURN_TO_KEY = "carigaji-return-to";
+const stashReturnTo = (path) => {
+  try { window.sessionStorage.setItem(RETURN_TO_KEY, `${Date.now()}|${path}`); } catch { /* private mode */ }
+};
+const takeReturnTo = () => {
+  try {
+    const raw = window.sessionStorage.getItem(RETURN_TO_KEY);
+    window.sessionStorage.removeItem(RETURN_TO_KEY);
+    if (!raw) return null;
+    const [at, ...rest] = raw.split("|");
+    return Date.now() - Number(at) < 30 * 60 * 1000 ? rest.join("|") : null;
+  } catch { return null; }
+};
 const forgetRememberedPortal = () => {
   try { window.sessionStorage.removeItem(PORTAL_SESSION_KEY); } catch { /* private mode */ }
 };
@@ -19774,6 +19850,175 @@ const samePath = (a, b) => (a.replace(/\/+$/, "") || "/") === (b.replace(/\/+$/,
 const backTrapActive = () =>
   typeof window !== "undefined" && window.innerWidth < MOBILE_BREAKPOINT;
 
+// ─── IN-PORTAL ROUTES ─────────────────────────────────────────────────────────
+// Every page has its own address, not just every portal:
+//   /en                       Discover            /en/employer/shifts/<id>   one shift
+//   /en/shift/<id>            one shift           /en/employer/post-shift    post a shift
+//   /en/my-bids[/<id>]        My Bids             /en/admin/disputes         admin disputes
+//   /en/chat[/<shiftId>]      Chat                ... and so on, per the tables below
+//   /en/profile[/account]     Profile
+// The app's own state stays the source of truth; the address FOLLOWS it. On the
+// way in the address seeds that state (refresh, bookmark, shared link). On
+// desktop, Back/Forward walk between pages. On mobile the address is only ever
+// replaced, never pushed, because BackGestureManager owns the history stack
+// there -- see setPortal above for why pushing would fight its sentinels.
+const WORKER_ROUTES = { discover: [], applications: ["my-bids"], chat: ["chat"], earnings: ["earnings"], profile: ["profile"] };
+const EMPLOYER_ROUTES = { dashboard: [], shifts: ["shifts"], postshift: ["post-shift"], bulkupload: ["bulk-upload"], chat: ["chat"], billing: ["billing"], account: ["account"] };
+const ADMIN_ROUTES = { overview: [], kycqueue: ["kyc"], employerqueue: ["employers"], disputes: ["disputes"], reports: ["reports"], flags: ["flags"], payouts: ["payouts"], deposits: ["deposits"], config: ["config"] };
+
+const decodeSeg = (v) => { try { return decodeURIComponent(v); } catch { return v; } };
+
+// The segments AFTER base, language and portal prefix.
+const portalRouteSegments = (pathname, portal) => {
+  const segs = splitLangPath(pathname).rest.filter(Boolean);
+  if (portal === "employer" || portal === "admin") return segs[0] === portal ? segs.slice(1) : [];
+  return segs;
+};
+const initialRouteSegments = (portal) =>
+  typeof window === "undefined" ? [] : portalRouteSegments(window.location.pathname, portal);
+const routeKeyFromSegment = (table, seg) =>
+  seg ? (Object.keys(table).find(k => table[k][0] === seg) ?? null) : null;
+
+const parseWorkerRoute = (segs) => {
+  if (segs[0] === SHIFT_PATH_SEG && segs[1]) return { tab: null, shiftId: decodeSeg(segs[1]), profileTab: "profile", applicationId: null, chatShiftId: null };
+  const tab = routeKeyFromSegment(WORKER_ROUTES, segs[0]) ?? "discover";
+  return {
+    tab, shiftId: null,
+    profileTab: tab === "profile" && segs[1] === "account" ? "account" : "profile",
+    applicationId: tab === "applications" && segs[1] ? decodeSeg(segs[1]) : null,
+    chatShiftId: tab === "chat" && segs[1] ? decodeSeg(segs[1]) : null,
+  };
+};
+const buildWorkerSegments = ({ tab, profileTab, shiftId, applicationId, chatShiftId }) => {
+  if (shiftId) return [SHIFT_PATH_SEG, encodeURIComponent(shiftId)];
+  const base = WORKER_ROUTES[tab] ?? [tab];
+  if (tab === "applications" && applicationId) return [...base, encodeURIComponent(applicationId)];
+  if (tab === "chat" && chatShiftId) return [...base, encodeURIComponent(chatShiftId)];
+  if (tab === "profile" && profileTab === "account") return [...base, "account"];
+  return base;
+};
+
+const parseEmployerRoute = (segs) => {
+  const view = routeKeyFromSegment(EMPLOYER_ROUTES, segs[0]) ?? "dashboard";
+  return {
+    view,
+    shiftId: view === "shifts" && segs[1] ? decodeSeg(segs[1]) : null,
+    chatShiftId: view === "chat" && segs[1] ? decodeSeg(segs[1]) : null,
+  };
+};
+const buildEmployerSegments = ({ view, shiftId, chatShiftId }) => {
+  const base = EMPLOYER_ROUTES[view] ?? [view];
+  if (view === "shifts" && shiftId) return [...base, encodeURIComponent(shiftId)];
+  if (view === "chat" && chatShiftId) return [...base, encodeURIComponent(chatShiftId)];
+  return base;
+};
+
+const parseAdminRoute = (segs) => ({ view: routeKeyFromSegment(ADMIN_ROUTES, segs[0]) ?? "overview" });
+const buildAdminSegments = ({ view }) => ADMIN_ROUTES[view] ?? [view];
+
+// History bookkeeping. `carigajiIdx` marks entries this layer created, and
+// routePaths remembers the path at each index, so that navigating back to the
+// page you just came from (an in-app "Back" button) can be a real history.back()
+// instead of pushing a duplicate entry that makes the browser's Back button
+// appear to do nothing.
+const routePaths = [];
+const routeNavigate = (target, replace) => {
+  const st = window.history.state || {};
+  const idx = Number.isInteger(st.carigajiIdx) ? st.carigajiIdx : 0;
+  if (replace) {
+    routePaths[idx] = target;
+    window.history.replaceState({ ...st, carigajiIdx: idx }, "", target);
+    return;
+  }
+  if (idx > 0 && routePaths[idx - 1] && samePath(routePaths[idx - 1], target)) {
+    window.history.back();
+    return;
+  }
+  routePaths[idx] = window.location.pathname;
+  routePaths[idx + 1] = target;
+  window.history.pushState({ carigajiIdx: idx + 1 }, "", target);
+};
+
+// Keep the address bar in step with a portal's navigation state, and apply the
+// address back onto that state on Back/Forward.
+//   segments  where the state says we are (array, after the portal prefix)
+//   parse     address segments -> a route object
+//   apply     route object -> the portal's setters
+const usePortalRoute = ({ portal, segments, parse, apply }) => {
+  const key = segments.join("/");
+  const applyRef = useRef(apply);
+  applyRef.current = apply;
+  const parseRef = useRef(parse);
+  parseRef.current = parse;
+  const segmentsRef = useRef(segments);
+  segmentsRef.current = segments;
+  const fromPop = useRef(false);
+  const initialKey = useRef(key);
+  // Until the user has touched the page, any address write is the app settling
+  // the address they arrived on (adding the language prefix, redirecting a
+  // signed-out visitor off a members-only page) -- a replacement, never a new
+  // history entry the user did not ask for.
+  const userActed = useRef(false);
+  useEffect(() => {
+    const mark = () => { userActed.current = true; };
+    window.addEventListener("pointerdown", mark, { capture: true, once: true });
+    window.addEventListener("keydown", mark, { capture: true, once: true });
+    return () => {
+      window.removeEventListener("pointerdown", mark, { capture: true });
+      window.removeEventListener("keydown", mark, { capture: true });
+    };
+  }, []);
+  // Arriving ON an address whose page still has to load (a shift, an
+  // application, a chat room) means state does not match it yet. Writing the
+  // address from that not-yet-caught-up state would erase the very link the
+  // visitor followed, so hold until state catches up -- or the user navigates
+  // elsewhere, or a few seconds pass (a page that will never load, e.g. a
+  // deleted shift, then settles on the address for what is actually shown).
+  const hold = useRef(null);
+  if (hold.current === null) hold.current = { key: initialRouteSegments(portal).join("/"), released: false };
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => { hold.current.released = true; setTick(n => n + 1); }, 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!hold.current.released) {
+      if (key === hold.current.key || key !== initialKey.current) hold.current.released = true;
+      else return;
+    }
+    const lang = langFromPath(window.location.pathname) || readLanguagePreference();
+    const target = withLang(lang, [portal === "worker" ? null : portal, ...segments]);
+    if (samePath(target, window.location.pathname)) return;
+    const replace = backTrapActive() || fromPop.current || !userActed.current;
+    fromPop.current = false;
+    routeNavigate(target, replace);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, tick]);
+
+  useEffect(() => {
+    const onPop = () => {
+      if (portalFromPath(window.location.pathname) !== portal) return;   // root is swapping portals
+      if (backTrapActive()) {
+        // Mobile: BackGestureManager owns Back and decides what it closes; the
+        // history entry a back gesture lands on carries whatever address was
+        // current when it was pushed, so put back the address of the page the
+        // screen is actually showing.
+        const lang = langFromPath(window.location.pathname) || readLanguagePreference();
+        const target = withLang(lang, [portal === "worker" ? null : portal, ...segmentsRef.current]);
+        if (!samePath(target, window.location.pathname)) window.history.replaceState(window.history.state, "", target);
+        return;
+      }
+      fromPop.current = true;
+      hold.current.released = true;
+      applyRef.current(parseRef.current(portalRouteSegments(window.location.pathname, portal)));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [portal]);
+};
+
 // ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function CariGaji() {
   const [portal, setPortalState] = useState(() =>
@@ -19807,7 +20052,12 @@ export default function CariGaji() {
       // Outside the provider, so read the same two sources it does: the URL
       // first, then the stored preference.
       const target = portalToPath(next, langFromPath(window.location.pathname) || readLanguagePreference());
-      if (!samePath(target, window.location.pathname)) {
+      // An address already inside the target portal (/en/my-bids for worker,
+      // /en/employer/shifts/<id> for employer) is more specific than the
+      // portal root and must survive: the role-based landing below runs on
+      // every session restore, so rewriting it here would send a refresh on any
+      // inner page back to the portal's front door.
+      if (portalFromPath(window.location.pathname) !== next && !samePath(target, window.location.pathname)) {
         // state marker lets popstate tell OUR entries apart from the
         // BackGestureManager sentinels that share this history stack.
         const method = replace || backTrapActive() ? "replaceState" : "pushState";
@@ -19839,8 +20089,12 @@ export default function CariGaji() {
         // when they were pushed, i.e. stale. Reading `portal` off them would
         // spuriously switch portals mid-gesture. Re-assert the URL from the
         // portal we're actually showing instead.
-        const target = portalToPath(portalRef.current, langFromPath(window.location.pathname) || readLanguagePreference());
-        if (!samePath(target, window.location.pathname)) {
+        // Only when the address belongs to a DIFFERENT portal (a stale sentinel).
+        // An address inside the portal we are showing -- /en/my-bids -- is the
+        // page we are on, and rewriting it to the portal root would leave the
+        // address bar wrong after every back gesture.
+        if (portalFromPath(window.location.pathname) !== portalRef.current) {
+          const target = portalToPath(portalRef.current, langFromPath(window.location.pathname) || readLanguagePreference());
           window.history.replaceState({ carigajiPortal: portalRef.current }, "", target);
         }
         return;
@@ -20086,7 +20340,10 @@ export default function CariGaji() {
   // every refresh. /admin needs no equivalent -- AdminAccessRequired already
   // covers both the signed-out and wrong-role cases.
   useEffect(() => {
-    if (authResolved && !user && portal === "employer") setPortal("worker", { replace: true });
+    if (authResolved && !user && portal === "employer") {
+      stashReturnTo(window.location.pathname);
+      setPortal("worker", { replace: true });
+    }
   }, [authResolved, user, portal, setPortal]);
 
   // Basic analytics: one page_view per app mount.
@@ -20157,7 +20414,15 @@ export default function CariGaji() {
 
           // Unchanged from before: a shift deep link keeps its address, so the
           // link someone shared still points at the shift after it opens.
-          if (target === 'worker' && onShiftLink) setPortalState('worker');
+          const returnTo = takeReturnTo();
+          if (returnTo && target !== 'worker' && portalFromPath(returnTo) === target) {
+            // Signed in as the right kind of account after following a deep
+            // link: restore the address BEFORE the portal mounts, because the
+            // portal seeds its page from the address at mount.
+            window.history.replaceState(window.history.state, "", returnTo);
+            rememberPortal(target);
+            setPortalState(target);
+          } else if (target === 'worker' && onShiftLink) setPortalState('worker');
           else setPortal(target, { replace: true });
         }
 
