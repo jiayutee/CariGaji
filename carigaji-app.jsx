@@ -212,10 +212,24 @@ const SHIFT_LANGUAGES = ["Bahasa Melayu", "English", "Mandarin", "Tamil", "Other
 // migration's launch rate: zero, to get employers posting.
 const PLATFORM_FEE_PCT = 0;
 
-// Worker Sedcard qualifications — reuses the same real-world labels already
-// defined for the employer's (currently unwired) "required documents"
-// checkboxes on the Post Shift form, so the two sides speak the same
-// vocabulary, plus one addition relevant to Warehouse/Logistics shifts.
+// Documents an employer can require on a shift (Post Shift step 2). Stored as
+// value codes in shifts.requirements.documents, next to requirements.special,
+// so no schema change -- and codes, not labels, so they translate on read.
+const SHIFT_REQUIRED_DOCUMENTS = [
+  { value: "ic_passport", labelKey: "employer.docIcPassport" },
+  { value: "food_handler", labelKey: "employer.docFoodHandler" },
+  { value: "first_aid", labelKey: "employer.docFirstAid" },
+  { value: "driving_license", labelKey: "employer.docDrivingLicense" },
+];
+const shiftRequiredDocuments = (requirements) =>
+  Array.isArray(requirements?.documents)
+    ? requirements.documents.filter(v => SHIFT_REQUIRED_DOCUMENTS.some(d => d.value === v))
+    : [];
+
+// Worker Sedcard qualifications — reuses the same real-world labels as the
+// employer's "required documents" checkboxes on the Post Shift form, so the
+// two sides speak the same vocabulary, plus one addition relevant to
+// Warehouse/Logistics shifts.
 const SEDCARD_QUALIFICATIONS = [
   { value: "food_handler", labelKey: "employer.docFoodHandler" },
   { value: "first_aid", labelKey: "employer.docFirstAid" },
@@ -9977,6 +9991,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           dress: displayProtectedText(s.dress_code || ''),
           languageRequirements: s.language_requirements || [],
           specialRequirements: displayProtectedText(s.requirements?.special || ''),
+          requiredDocuments: shiftRequiredDocuments(s.requirements),
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
           endTime: shiftHHMM(s.end_at),
@@ -10076,6 +10091,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           dress: displayProtectedText(s.dress_code || ''),
           languageRequirements: s.language_requirements || [],
           specialRequirements: displayProtectedText(s.requirements?.special || ''),
+          requiredDocuments: shiftRequiredDocuments(s.requirements),
           stipend: Number(s.transport_allowance) || 0,
           startTime: shiftHHMM(s.start_at),
           endTime: shiftHHMM(s.end_at),
@@ -11112,6 +11128,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 ? [t("shiftDetail.applicationDeadline"), new Date(selectedShift.applicationsCloseAt).toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })]
                 : null,
               selectedShift.specialRequirements ? [t("employer.specialRequirementsLabel"), selectedShift.specialRequirements] : null,
+              selectedShift.requiredDocuments?.length > 0 ? [t("employer.requiredDocumentsLabel"), SHIFT_REQUIRED_DOCUMENTS.filter(d => selectedShift.requiredDocuments.includes(d.value)).map(d => t(d.labelKey)).join(", ")] : null,
               selectedShift.reliabilityScore != null ? [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`] : null,
             ].filter(Boolean).map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
@@ -13219,7 +13236,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
   const [closingApplications, setClosingApplications] = useState(false);
-  const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "", applicationsCloseAt: "" });
+  const [form, setForm] = useState({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "KLCC, KL City Centre", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "", requiredDocuments: [], applicationsCloseAt: "" });
   // Bulk shift upload (CSV) — separate from the single-shift `form` above.
   const [bulkUploadStep, setBulkUploadStep] = useState(1); // 1=upload, 2=review/fix, 3=publish
   const [bulkGuideOpen, setBulkGuideOpen] = useState(false);
@@ -13920,7 +13937,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!guardPosting()) return;
     setEditingShiftId(null);
     setSelectedShift(null);
-    setForm({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "" });
+    setForm({ title: "", category: "F&B", occurrences: [{ date: "", start: "", end: "" }], isMultiDay: false, wageMin: "", wageMax: "", headcount: 1, dress: "", location: "", addressVisibility: "public", offersTransportAllowance: false, transportAllowance: "", description: "", languageRequirements: [], specialRequirements: "", requiredDocuments: [] });
     setView("postshift");
     setPostStep(1);
   };
@@ -14101,6 +14118,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       transportAllowance: transportAmt > 0 ? String(transportAmt) : '',
       languageRequirements: data.language_requirements || [],
       specialRequirements: data.requirements?.special || '',
+      requiredDocuments: shiftRequiredDocuments(data.requirements),
       applicationsCloseAt,
     });
     setEditingShiftId(shiftId);
@@ -16006,9 +16024,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   </div>
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.requiredDocumentsLabel")}</label>
-                    {[t("employer.docIcPassport"), t("employer.docFoodHandler"), t("employer.docFirstAid"), t("employer.docDrivingLicense")].map(doc => (
-                      <label key={doc} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13, color: BRAND.text }}>
-                        <input type="checkbox" /> {doc}
+                    {SHIFT_REQUIRED_DOCUMENTS.map(doc => (
+                      <label key={doc.value} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer", fontSize: 13, color: BRAND.text }}>
+                        <input
+                          type="checkbox"
+                          checked={form.requiredDocuments.includes(doc.value)}
+                          onChange={e => setForm(f => ({
+                            ...f,
+                            requiredDocuments: e.target.checked
+                              ? [...f.requiredDocuments, doc.value]
+                              : f.requiredDocuments.filter(v => v !== doc.value),
+                          }))}
+                        /> {t(doc.labelKey)}
                       </label>
                     ))}
                   </div>
@@ -16053,6 +16080,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     [t("employer.labelDressCode"), form.dress || t("employer.dressCodeNone")],
                     [t("employer.reviewLabelLanguages"), form.languageRequirements.length > 0 ? form.languageRequirements.join(", ") : t("employer.reviewNotSet")],
                     [t("employer.specialRequirementsLabel"), form.specialRequirements || t("employer.reviewNotSet")],
+                    [t("employer.requiredDocumentsLabel"), form.requiredDocuments.length > 0 ? SHIFT_REQUIRED_DOCUMENTS.filter(d => form.requiredDocuments.includes(d.value)).map(d => t(d.labelKey)).join(", ") : t("employer.reviewNotSet")],
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}`, fontSize: 13 }}>
                       <span style={{ color: BRAND.textMuted, flexShrink: 0 }}>{k}</span>
@@ -16140,7 +16168,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         // applies when the column is omitted from the insert/update
                         // entirely), which was silently failing every post/edit of a
                         // shift with no special requirements filled in.
-                        requirements: form.specialRequirements.trim() ? { special: form.specialRequirements.trim() } : {},
+                        requirements: {
+                          ...(form.specialRequirements.trim() ? { special: form.specialRequirements.trim() } : {}),
+                          ...(form.requiredDocuments.length > 0 ? { documents: form.requiredDocuments } : {}),
+                        },
                       };
                       let error;
                       if (editingShiftId) {
@@ -17362,6 +17393,17 @@ const ADMIN_SIDEBAR_ACTIVE_BG = "rgba(232,56,13,0.15)";  // brand tint, on dark 
 const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
+  // Live rate from platform_fee_pct(); null until it loads (or if it fails),
+  // so the Config screen never shows the fallback constant as if it were real.
+  const [platformFeePct, setPlatformFeePct] = useState(null);
+  useEffect(() => {
+    let active = true;
+    supabase.rpc('platform_fee_pct').then(({ data, error }) => {
+      if (!active || error || data == null) return;
+      setPlatformFeePct(Number(data));
+    });
+    return () => { active = false; };
+  }, []);
   const [view, setView] = useState(() => parseAdminRoute(initialRouteSegments("admin")).view);
   usePortalRoute({ portal: "admin", segments: buildAdminSegments({ view }), parse: parseAdminRoute, apply: (r) => setView(r.view) });
   // kycActions/flagActions were local-only "decisions" for the two mock queues;
@@ -17766,7 +17808,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     const { data: files, error: listError } = await supabase.storage
       .from("kyc-documents")
       .list(userId, { limit: 20 });
-    if (listError) { addToast("Could not load documents.", "error"); return; }
+    if (listError) { toast("Could not load documents.", "error"); return; }
     if (!files?.length) { setKycSignedUrls(prev => ({ ...prev, [userId]: {} })); return; }
     const urls = {};
     await Promise.all(files.map(async (file) => {
@@ -17781,18 +17823,18 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
   const approveKyc = async (userId, level = "Standard") => {
     const { error } = await supabase.from("profiles").update({ kyc_level: level }).eq("id", userId);
-    if (error) { addToast(`Failed to approve KYC: ${error.message}`, "error"); return; }
+    if (error) { toast(`Failed to approve KYC: ${error.message}`, "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
     setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
-    addToast(`KYC approved — level set to ${level}`, "success");
+    toast(`KYC approved — level set to ${level}`, "success");
   };
 
   const rejectKyc = async (userId) => {
     const { error } = await supabase.from("profiles").update({ kyc_level: "Basic" }).eq("id", userId);
-    if (error) { addToast(`Failed to reject KYC: ${error.message}`, "error"); return; }
+    if (error) { toast(`Failed to reject KYC: ${error.message}`, "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
     setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
-    addToast("KYC rejected — user reset to Basic", "info");
+    toast("KYC rejected — user reset to Basic", "info");
   };
 
   const resolveDispute = async (disputeId) => {
@@ -18520,34 +18562,26 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
         )}
 
         {view === "config" && (
-          <div style={{ maxWidth: 520 }}>
+          // Read-only on purpose. This screen used to show editable fields and a
+          // "Save Configuration" button that saved nothing (fixed values,
+          // no-op onChange, a success toast) -- and half the rules it listed
+          // (wage floor, transport bands, 4h worker late-cancel) don't exist
+          // anywhere. Only rules actually enforced are listed, with where each
+          // lives, until a real settings table exists to edit them.
+          <div style={{ maxWidth: 560 }}>
             <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.configTitle")}</div>
-            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Global rules — changes apply immediately</div>
-            <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Bid rules</div>
-              <Input label="Max bid multiplier (% of employer wage_max)" type="number" value="150" onChange={() => {}} />
-              <Input label="Minimum wage floor (RM/hour)" type="number" value="5" onChange={() => {}} />
-            </Card>
-            <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Cancellation windows</div>
-              <Input label="Employer cancellation fee threshold (hours before shift)" type="number" value="24" onChange={() => {}} />
-              <Input label="Worker late-cancel threshold (hours before shift)" type="number" value="4" onChange={() => {}} />
-            </Card>
-            <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Transport allowance bands (RM)</div>
-              {[["0–5 km", "0"], ["5–15 km", "5"], ["15–30 km", "10"], ["30–50 km", "18"], [">50 km", "25"]].map(([band, val]) => (
-                <div key={band} style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 10 }}>
-                  <span style={{ fontSize: 13, color: BRAND.text, minWidth: 80 }}>{band}</span>
-                  <input type="number" defaultValue={val} style={{ width: 80, padding: "6px 10px", borderRadius: 8, border: `1px solid ${BRAND.border}`, fontSize: 13, fontFamily: "inherit" }} />
-                  <span style={{ fontSize: 12, color: BRAND.textMuted }}>RM</span>
-                </div>
-              ))}
-            </Card>
-            <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 14 }}>Platform fee</div>
-              <Input label="Platform fee (% of gross shift cost)" type="number" value="15" onChange={() => {}} />
-            </Card>
-            <Btn onClick={() => toast("Configuration saved and applied globally", "success")} style={{ width: "100%", justifyContent: "center" }}>Save Configuration</Btn>
+            <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>Rules currently in force. These are set in code and database migrations, so changing one needs a release.</div>
+            {[
+              ["Platform fee", platformFeePct == null ? "Loading…" : `${+(platformFeePct * 100).toFixed(2)}% on top of the wage, paid by the employer`, "platform_fee_pct() in Postgres. Each shift keeps the rate in force when it was posted."],
+              ["Highest rate a worker can ask", "150% of the employer's max hourly wage", "Checked in the app when a worker applies."],
+              ["Late cancellation by employer", "Under 24 hours before start: the worker chooses a 50% payout, or shows up for 100%", "Cancellation triggers in Postgres."],
+            ].map(([label, value, source]) => (
+              <Card key={label} style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 14, color: BRAND.text, marginBottom: 6 }}>{value}</div>
+                <div style={{ fontSize: 12, color: BRAND.textMuted }}>{source}</div>
+              </Card>
+            ))}
           </div>
         )}
       </div>
