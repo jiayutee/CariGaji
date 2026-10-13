@@ -1388,6 +1388,13 @@ const TRANSLATIONS = {
     "admin.confirmHoldNote": "Reason (saved to the payout log)",
     "admin.confirmHoldBtn": "Hold",
     "admin.payoutNoActions": "No actions",
+    "admin.updateNoRows": "Nothing was saved. This account may not have permission to change that record.",
+    "admin.rejectReasonLabel": "Reason (they will see this)",
+    "admin.rejectReasonPlaceholderKyc": "e.g. The photo of your MyKad is blurry. Please upload a clearer one.",
+    "admin.rejectReasonPlaceholderEmployer": "e.g. The SSM number doesn't match the company name on ssm-einfo.my.",
+    "profile.kycRejectedTitle": "Your ID check wasn't approved",
+    "profile.kycRejectedReason": "Reason: {reason} Upload your documents again to retry.",
+    "employer.verifyRejectedReason": "Reason: {reason} Update your company details to resubmit.",
     "admin.unnamedWorker": "Unnamed worker",
     "admin.reportStatusUnsaved": "Status change not saved yet",
     "admin.rulingApplied": "Ruling applied and dispute closed",
@@ -6039,7 +6046,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
 };
 
 // ─── WORKER PORTAL ───────────────────────────────────────────────────────────
-const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, themePreference = "system", setThemePreference = () => {}, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, linkShiftId = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
+const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = null, themePreference = "system", setThemePreference = () => {}, onRequireAuth = () => {}, onUserUpdated = () => {}, homeSignal = 0, kycLevel = null, kycRejectionReason = null, onOpenKycUpload = () => {}, backHandlerRef = null, deepLinkShift = null, linkShiftId = null, onOpenSupportChat = openMailtoSupport, onOpenIssueReport = () => {} }) => {
   const toast = useToast();
   const { t, language, setLanguage } = useLanguage();
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -9744,8 +9751,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               // viewer themselves, which would read as an instruction to the
               // employer rather than a demonstration of the worker experience.
               <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
-                <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.onAmberLight, marginBottom: 4 }}>{t("profile.completeKycTitle")}</div>
-                <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, marginBottom: 12, lineHeight: 1.5 }}>{t("profile.completeKycHint")}</div>
+                <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.onAmberLight, marginBottom: 4 }}>{kycRejectionReason ? t("profile.kycRejectedTitle") : t("profile.completeKycTitle")}</div>
+                <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, marginBottom: 12, lineHeight: 1.5 }}>
+                  {kycRejectionReason ? t("profile.kycRejectedReason", { reason: kycRejectionReason }) : t("profile.completeKycHint")}
+                </div>
                 <Btn size="sm" onClick={onOpenKycUpload}>{t("profile.completeKycBtn")}</Btn>
               </Card>
             )}
@@ -12176,6 +12185,9 @@ export default function App() {
   const [introSeenAt, setIntroSeenAt] = useState(undefined);
   const [introSaving, setIntroSaving] = useState(false);
   const [profileKycLevel, setProfileKycLevel] = useState(null);
+  // Why an admin last rejected this worker's ID check (20261014). Shown only
+  // while they're back at Basic, i.e. until they resubmit.
+  const [profileKycRejection, setProfileKycRejection] = useState(null);
   // Worker reopening just the KYC-upload part of the details modal later,
   // via the Profile-tab "complete verification" banner.
   const [kycUploadOpen, setKycUploadOpen] = useState(false);
@@ -12383,7 +12395,7 @@ export default function App() {
   useEffect(() => {
     if (!user) { setUserRole(null); setTncAcceptedAt(undefined); setDetailsCompletedAt(undefined); setIntroSeenAt(undefined); setProfileKycLevel(null); return; }
     let active = true;
-    supabase.from('profiles').select('role, tnc_accepted_at, full_name, details_completed_at, intro_seen_at, kyc_level, avatar_url').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('role, tnc_accepted_at, full_name, details_completed_at, intro_seen_at, kyc_level, kyc_rejection_reason, avatar_url').eq('id', user.id).maybeSingle()
       .then(({ data }) => {
         if (!active) return;
         // Email-confirmation signups have no profiles row until the details
@@ -12398,6 +12410,7 @@ export default function App() {
         setDetailsCompletedAt(data?.details_completed_at ?? null);
         setIntroSeenAt(data?.intro_seen_at ?? null);
         setProfileKycLevel(data?.kyc_level ?? null);
+        setProfileKycRejection(data?.kyc_rejection_reason ?? null);
         // Role-based landing portal. Guarded on "which account was last
         // routed" rather than firing on every profile load: without this it
         // re-ran on each fetch and would now yank the URL back, fighting the
@@ -12657,7 +12670,7 @@ export default function App() {
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} themePreference={themePreference} setThemePreference={setThemePreference} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} linkShiftId={portal === "worker" ? linkShiftId : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
+          {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} themePreference={themePreference} setThemePreference={setThemePreference} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} kycRejectionReason={profileKycRejection} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} linkShiftId={portal === "worker" ? linkShiftId : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
           {portal === "employer" && <Suspense fallback={<PortalLoading />}><EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} /></Suspense>}
           {portal === "admin" && (
             isAdmin

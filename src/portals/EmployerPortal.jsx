@@ -1031,7 +1031,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     if (!user) { setEmployerProfile(null); setEmployerProfileLoaded(false); return; }
     setEmployerProfileLoaded(false);
-    supabase.from('profiles').select('full_name, reliability_score, ssm_number, ssm_document_path, employer_verification_status, company_description').eq('id', user.id).maybeSingle()
+    supabase.from('profiles').select('full_name, reliability_score, ssm_number, ssm_document_path, employer_verification_status, employer_rejection_reason, company_description').eq('id', user.id).maybeSingle()
       .then(({ data, error }) => {
         if (!active) return;
         setEmployerProfile(error ? null : (data ?? null));
@@ -2696,7 +2696,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
                 <div style={{ fontSize: FS.meta, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, lineHeight: 1.6 }}>
                   {verificationStatus === 'rejected'
-                    ? t("employer.verifyRejectedBody")
+                    ? (employerProfile?.employer_rejection_reason
+                        ? t("employer.verifyRejectedReason", { reason: employerProfile.employer_rejection_reason })
+                        : t("employer.verifyRejectedBody"))
                     : verificationStatus === 'pending_review'
                       ? t("employer.verifyPendingBody")
                       : t("employer.verifyUnverifiedBody")}

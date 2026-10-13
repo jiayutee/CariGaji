@@ -365,10 +365,14 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       body: t(verifying ? "admin.confirmVerifyEmployerBody" : "admin.confirmRejectEmployerBody"),
       confirmLabel: t(verifying ? "admin.confirmVerifyBtn" : "admin.confirmRejectBtn"),
       tone: verifying ? "success" : "danger",
+      ...(verifying ? {} : { note: { label: t("admin.rejectReasonLabel"), placeholder: t("admin.rejectReasonPlaceholderEmployer"), required: true } }),
     });
     if (!ok) return;
-    const { error } = await supabase.from("profiles").update({ employer_verification_status: status }).eq("id", userId);
+    const { data: saved, error } = await supabase.from("profiles").update({ employer_verification_status: status, employer_rejection_reason: verifying ? null : ok.note }).eq("id", userId).select("id");
     if (error) { toast(`Failed to update: ${error.message}`, "error"); return; }
+    // RLS turns a write it doesn't allow into "0 rows, no error". That hid a
+    // missing admin policy for months (20261014b), so say so instead.
+    if (!saved?.length) { toast(t("admin.updateNoRows"), "error"); return; }
     setEmployerQueue(prev => (prev ?? []).filter(u => u.id !== userId));
     refreshNavCounts();
     toast(status === "verified" ? "Employer verified." : "Employer verification rejected.", "success");
@@ -466,14 +470,16 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       note: { label: t("admin.confirmHoldNote"), required: true },
     });
     if (!ok) return;
-    const { error } = await supabase
+    const { data: saved, error } = await supabase
       .from("payout_item")
       .update({ status: nextStatus })
-      .eq("id", item.id);
+      .eq("id", item.id)
+      .select("id");
     if (error) {
       setPayoutMessage(`Failed to update payout item: ${error.message}`);
       return;
     }
+    if (!saved?.length) { toast(t("admin.updateNoRows"), "error"); return; }
 
     await supabase.from("payout_audit").insert({
       payout_item_id: item.id,
@@ -538,8 +544,9 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       tone: "success",
     });
     if (!ok) return;
-    const { error } = await supabase.from("profiles").update({ kyc_level: level }).eq("id", userId);
+    const { data: saved, error } = await supabase.from("profiles").update({ kyc_level: level, kyc_rejection_reason: null }).eq("id", userId).select("id");
     if (error) { toast(`Failed to approve KYC: ${error.message}`, "error"); return; }
+    if (!saved?.length) { toast(t("admin.updateNoRows"), "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
     setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
     refreshNavCounts();
@@ -553,10 +560,12 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       body: t("admin.confirmRejectKycBody"),
       confirmLabel: t("admin.confirmRejectBtn"),
       tone: "danger",
+      note: { label: t("admin.rejectReasonLabel"), placeholder: t("admin.rejectReasonPlaceholderKyc"), required: true },
     });
     if (!ok) return;
-    const { error } = await supabase.from("profiles").update({ kyc_level: "Basic" }).eq("id", userId);
+    const { data: saved, error } = await supabase.from("profiles").update({ kyc_level: "Basic", kyc_rejection_reason: ok.note }).eq("id", userId).select("id");
     if (error) { toast(`Failed to reject KYC: ${error.message}`, "error"); return; }
+    if (!saved?.length) { toast(t("admin.updateNoRows"), "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
     setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
     refreshNavCounts();
