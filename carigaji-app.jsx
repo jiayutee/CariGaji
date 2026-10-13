@@ -607,7 +607,7 @@ const TRANSLATIONS = {
     "common.placeBid": "Apply →",
     "common.signInToBid": "Sign in to apply →",
     "toast.avatarUpdated": "Profile picture updated.",
-    "toast.ratingSubmitted": "✅ Rating submitted.",
+    "toast.ratingSubmitted": "Rating submitted.",
     "toast.ratingFailed": "Failed to submit rating: ",
     "toast.avatarUpdateFailed": "Could not update photo: ",
     "toast.sendFailed": "Failed to send: ",
@@ -621,9 +621,9 @@ const TRANSLATIONS = {
     "toast.sampleShiftBidInfo": "This is a sample shift. Apply to a live shift to send an application.",
     "toast.applicationFailed": "Failed to submit application: ",
     "toast.signFailed": "Failed to sign: ",
-    "toast.contractSigned": "✅ Contract signed! You can now chat with your employer.",
-    "toast.cancellationContractSigned": "✅ Cancellation contract signed — your 50% payout is on its way.",
-    "toast.showUpProofSubmitted": "✅ Proof submitted — your full payout is on its way.",
+    "toast.contractSigned": "Contract signed! You can now chat with your employer.",
+    "toast.cancellationContractSigned": "Cancellation contract signed — your 50% payout is on its way.",
+    "toast.showUpProofSubmitted": "Proof submitted — your full payout is on its way.",
     "toast.showUpProofFailed": "Failed to submit proof: ",
     "toast.updateFailed": "Update failed: ",
     "toast.escrowTopupUnavailable": "Adding funds isn’t available yet — coming with FPX/DuitNow integration.",
@@ -636,7 +636,7 @@ const TRANSLATIONS = {
     "toast.applicationDeadlineAfterStart": "Application deadline must be before the shift starts.",
     "toast.postShiftFailed": "Failed to post shift: ",
     "toast.shiftPublished": "Shift published! Workers will start applying shortly.",
-    "toast.contractSent": "✅ Contract sent to worker for signature!",
+    "toast.contractSent": "Contract sent to worker for signature!",
     "chat.signInTitle": "Sign in to view messages",
     "chat.signInHint": "Messages with employers appear here once you're signed in and have an accepted application.",
     "chat.title": "Chat",
@@ -685,15 +685,15 @@ const TRANSLATIONS = {
     "shiftDetail.transportAllowance": "Transport Allowance",
     "shiftDetail.title": "Shift Details",
     "shiftDetail.aboutRole": "About this role",
-    "shiftDetail.location": "📍 Location",
-    "shiftDetail.date": "🗓 Date",
-    "shiftDetail.time": "⏰ Time",
-    "shiftDetail.dressCode": "👗 Dress Code",
-    "shiftDetail.languagesRequired": "🗣️ Languages Required",
-    "shiftDetail.headcount": "👥 Headcount",
-    "shiftDetail.applicationDeadline": "⏳ Applications close",
+    "shiftDetail.location": "Location",
+    "shiftDetail.date": "Date",
+    "shiftDetail.time": "Time",
+    "shiftDetail.dressCode": "Dress Code",
+    "shiftDetail.languagesRequired": "Languages Required",
+    "shiftDetail.headcount": "Headcount",
+    "shiftDetail.applicationDeadline": "Applications close",
     "shiftDetail.workersNeeded": "workers needed",
-    "shiftDetail.employerScore": "🏢 Employer Score",
+    "shiftDetail.employerScore": "Employer Score",
     "shiftDetail.employerScoreSignInToView": "Sign in to view this employer's reliability score.",
     "shiftDetail.locationNote": "Exact address revealed once your application is accepted.",
     "shiftDetail.employerReliability": "Employer Reliability",
@@ -703,10 +703,10 @@ const TRANSLATIONS = {
     "shiftDetail.dressCodeNone": "None specified",
     "shiftDetail.notApplicable": "N/A",
     "shiftDetail.yourBid": "Your rate",
-    "myBids.transportAllowanceRow": "🚌 Transport allowance",
-    "myBids.employerLabel": "🏢 Employer",
-    "myBids.employerRangeRow": "💰 Employer range",
-    "myBids.shortlistedBanner": "🎉 You've been shortlisted! Open chat to discuss and receive your offer.",
+    "myBids.transportAllowanceRow": "Transport allowance",
+    "myBids.employerLabel": "Employer",
+    "myBids.employerRangeRow": "Employer range",
+    "myBids.shortlistedBanner": "You've been shortlisted! Open chat to discuss and receive your offer.",
     "myBids.loadingBids": "Loading your shifts…",
     "myBids.noBidsYet": "No shifts yet",
     "myBids.loadingBidsHint": "Hang tight while we fetch your shifts.",
@@ -715,8 +715,8 @@ const TRANSLATIONS = {
     "myBids.sectionUpcoming": "Upcoming",
     "myBids.sectionWaiting": "Waiting to hear back",
     "myBids.pastToggle": "Past shifts · {n}",
-    "myBids.employerDecidesByPrefix": "⏳ Employer decides by ",
-    "myBids.respondByPrefix": "🎉 Respond by ",
+    "myBids.employerDecidesByPrefix": "Employer decides by ",
+    "myBids.respondByPrefix": "Respond by ",
     "myBids.pillShiftCancelled": "Shift Cancelled",
     "myBids.pillConfirmNow": "Reply to offer",
     "myBids.pillShortlisted": "Shortlisted",
@@ -732,8 +732,8 @@ const TRANSLATIONS = {
     "worker.previewModeBlocked": "Preview only — switch to a worker account to actually do this.",
     "worker.roleLoading": "One moment — still loading your account.",
     "worker.previewModeBidBtn": "Preview — can't submit",
-    "myBids.signContractBtn": "✍️ Sign Contract",
-    "myBids.contractSignedBadge": "✅ Contract signed",
+    "myBids.signContractBtn": "Sign Contract",
+    "myBids.contractSignedBadge": "Contract signed",
     "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
     "myBids.lateCancellationTitle": "This shift was cancelled less than 24 hours before it started",
     "myBids.lateCancellationBody": "Choose to sign a 50% cancellation payout now, or show up in person and submit a photo for 100% of your agreed wage.",
@@ -744,7 +744,7 @@ const TRANSLATIONS = {
     "myBids.cancellationChose50": "You chose the 50% cancellation payout. It's on its way.",
     "myBids.cancellationProofSubmitted": "Proof submitted — your full payout is on its way.",
     "myBids.cancellationAwaitingProof": "You chose to show up — take a photo at the location to claim your full payout.",
-    "myBids.selectedNotice": "🎉 You've got an offer! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.",
+    "myBids.selectedNotice": "You've got an offer! Confirm or decline before the deadline above — if you don't respond in time, the offer is automatically released back to the employer.",
     "myBids.viewContractTermsBtn": "View contract terms",
     "myBids.hideContractTermsBtn": "Hide contract terms",
     "myBids.offerExpiredNotice": "This offer expired because it wasn't confirmed in time.",
@@ -906,7 +906,7 @@ const TRANSLATIONS = {
     "profile.kycBasic": "Basic (Phone/Email)",
     "profile.kycStandard": "Standard (MyKad + Selfie)",
     "profile.kycAdvanced": "Advanced (Certifications)",
-    "profile.verified": "✓ Verified",
+    "profile.verified": "Verified",
     "profile.reliabilityScoreLabel": "Reliability Score: ",
     "profile.reliabilityExcellent": "Excellent — top 15% of workers 🏆",
     "profile.reliabilityGood": "Good standing — keep it up 👍",
@@ -937,7 +937,7 @@ const TRANSLATIONS = {
     "profile.noRatingsHint": "Ratings from employers will appear here after you complete shifts.",
     "auth.registerTitle": "Register",
     "auth.registerSubtitle": "Create your account and complete your profile and KYC details.",
-    "auth.employerFreeTrial": "🎁 Your first 2 months are free — the platform fee only starts 2 months after you post your first shift.",
+    "auth.employerFreeTrial": "Your first 2 months are free — the platform fee only starts 2 months after you post your first shift.",
     "auth.resetTitle": "Reset password",
     "auth.resetSubtitle": "We will send a password reset email to your inbox.",
     "auth.sendResetEmail": "Send reset email",
@@ -975,7 +975,7 @@ const TRANSLATIONS = {
     "auth.uploadFrontHelper": "Upload a photo or PDF of the front side.",
     "auth.uploadBackHelper": "Upload a photo or PDF of the back side.",
     "auth.ocrChecking": "Checking the ID number on your photo…",
-    "auth.ocrMatch": "✓ The identity number on your photo matches what you entered.",
+    "auth.ocrMatch": "The identity number on your photo matches what you entered.",
     "auth.ocrMismatchTitle": "We couldn't match the ID number on your photo to what you typed.",
     "auth.ocrMismatchHint": "This usually means one of:",
     "auth.ocrMismatchReason1": "the photo is blurry or the number isn't fully visible,",
@@ -1397,7 +1397,7 @@ const TRANSLATIONS = {
     "landing.sectionWorkerSubtitle": "Find a shift, set your rate, get paid",
     "landing.sectionEmployerTitle": "Hiring instead?",
     "landing.sectionEmployerSubtitle": "How posting a shift works for employers",
-    "landing.employerFreeTrial": "🎁 First 2 months free. The clock starts when you post your first shift, not when you sign up — and any shift posted while it is running stays free, even if it pays out later.",
+    "landing.employerFreeTrial": "First 2 months free. The clock starts when you post your first shift, not when you sign up — and any shift posted while it is running stays free, even if it pays out later.",
     "landing.trustIdTitle": "Workers are ID-verified",
     "landing.trustIdBody": "MyKad or passport checked against a selfie before higher-paying shifts unlock.",
     "landing.trustSsmTitle": "Employers are business-verified",
@@ -1427,7 +1427,7 @@ const TRANSLATIONS = {
     "landing.sampleSealLine1": "SSM",
     "landing.sampleSealLine2": "Verified",
     "landing.sampleSealLine3": "Employer",
-    "landing.sampleFundedBadge": "✓ Pay shown",
+    "landing.sampleFundedBadge": "Pay shown",
     "discover.filterCity": "City",
     "discover.anyCity": "Any city",
     "discover.filterAreaPlaceholder": "Area e.g. Bukit Bintang",
@@ -1439,8 +1439,8 @@ const TRANSLATIONS = {
     "discover.filterMaxPay": "Max Pay (RM/hr)",
     "discover.filterStartsAfter": "Starts after",
     "discover.filterEndsBy": "Ends by",
-    "discover.highBookingChance": "🔥 High booking chance",
-    "discover.weekendsOnly": "📅 Weekends only",
+    "discover.highBookingChance": "High booking chance",
+    "discover.weekendsOnly": "Weekends only",
     "filters.clearAll": "Clear all",
     "discover.loadingShifts": "Loading shifts…",
     "discover.loadingShiftsHint": "Hang tight while we fetch open shifts.",
@@ -1451,7 +1451,7 @@ const TRANSLATIONS = {
     "worker.checkinTitle": "Shift check-in",
     "worker.checkinCodeSubtitle": "Ask your employer for today's 6-digit check-in code and enter it below. The code changes every 30 seconds.",
     "worker.submitCheckin": "Check in",
-    "worker.checkedInBadge": "✓ Checked in",
+    "worker.checkedInBadge": "Checked in",
     "worker.checkOutBtn": "Check Out",
     "worker.checkoutTitle": "Shift checkout",
     "worker.checkoutSubtitle": "Report the hours you actually worked. Your employer will confirm or dispute this before payout.",
@@ -1461,7 +1461,7 @@ const TRANSLATIONS = {
     "worker.submitCheckout": "Submit checkout",
     "worker.resubmitCheckout": "Resubmit hours",
     "worker.checkoutPendingBadge": "Checkout submitted — awaiting confirmation",
-    "worker.hoursConfirmedBadge": "✓ Hours confirmed",
+    "worker.hoursConfirmedBadge": "Hours confirmed",
     "worker.hoursDisputedBadge": "Employer disputed your hours",
     "worker.employerProposedLabel": "Employer proposed {hours}h",
     "worker.resubmitTitle": "Resubmit your hours",
@@ -1473,7 +1473,7 @@ const TRANSLATIONS = {
     "employer.checkinCodeRotateHint": "Show this to workers at the venue. It changes every 30 seconds — read it fresh each time.",
     "employer.checkinCodeRefreshBtn": "Refresh now",
     "employer.reportedHoursPrefix": "Reported: ",
-    "employer.hoursConfirmedLabel": "✓ Hours confirmed",
+    "employer.hoursConfirmedLabel": "Hours confirmed",
     "employer.hoursDisputedLabel": "Hours disputed",
     "employer.confirmHoursBtn": "Confirm",
     "employer.disputeHoursBtn": "Dispute",
@@ -1693,10 +1693,10 @@ const TRANSLATIONS = {
     "employer.awaitingResponse": "Offer sent",
     "employer.shortlistBtn": "Shortlist",
     "employer.selectBtn": "Send offer",
-    "employer.waitingOnWorker": "⏳ Waiting on worker",
-    "employer.confirmedStatus": "✓ Confirmed",
-    "employer.notSelected": "✗ Not selected",
-    "employer.offerExpiredStatus": "⏱ Offer expired",
+    "employer.waitingOnWorker": "Waiting on worker",
+    "employer.confirmedStatus": "Confirmed",
+    "employer.notSelected": "Not selected",
+    "employer.offerExpiredStatus": "Offer expired",
     "employer.pillPending": "Pending",
     "employer.pillShortlisted": "Shortlisted",
     "employer.pillAccepted": "Accepted",
@@ -1763,6 +1763,8 @@ const TRANSLATIONS = {
     "employer.shiftStatusClosed": "Closed",
     "employer.shiftStatusCompleted": "Completed",
     "employer.shiftStatusCancelled": "Cancelled",
+    "employer.shiftStatusFilled": "Filled",
+    "employer.shiftStatusDraft": "Draft",
     "employer.profileHistoryScopeNote": "For privacy, this only shows the worker's history with your own shifts, verified KYC level, and platform-wide reliability/rating scores.",
     "employer.verifiedBadge": "Verified",
     "employer.verifiedBadgeTitle": "SSM verification approved — you can post shifts.",
@@ -1775,7 +1777,7 @@ const TRANSLATIONS = {
     "auth.ssmFormatHint": "Enter a valid SSM number (12 digits, or up to 8 digits with a letter suffix).",
     "employer.ssmCertLabel": "SSM certificate (recommended)",
     "employer.ssmCertHint": "Upload your SSM registration certificate (image or PDF). Our team compares it with the official registry during review — submissions with a certificate are verified faster.",
-    "employer.ssmCertOnFile": "✓ Certificate on file — uploading a new one replaces it for review.",
+    "employer.ssmCertOnFile": "Certificate on file — uploading a new one replaces it for review.",
     "employer.ssmCertUploadFailed": "Certificate upload failed: ",
     "employer.postShiftUnverifiedHint": "Posting is locked until your company is verified. Submit your SSM number (and ideally your SSM certificate) under Account → Company Details, then wait for admin review — you'll be notified once verified.",
     "auth.employerVerifyNote": "Your company details will be reviewed by our team. You can sign in right away, but posting shifts unlocks once verification is complete.",
@@ -1911,7 +1913,7 @@ const TRANSLATIONS = {
     "auth.selectCountry": "Select country",
     "auth.searchCountryPlaceholder": "Search by name or code...",
     "auth.enterYourPassword": "Enter your password",
-    "contract.workerTitle": "📄 Your Employment Contract",
+    "contract.workerTitle": "Your Employment Contract",
     "contract.readCarefully": "Please read carefully before signing.",
     "contract.agreementHeading": "CariGaji Platform — Shift Work Agreement",
     "contract.printBtn": "Print / Save as PDF",
@@ -1932,14 +1934,14 @@ const TRANSLATIONS = {
     "contract.workerClause6": "CariGaji acts as a marketplace intermediary and is not your employer.",
     "contract.workerClause7": "Governed by Malaysian law including the Employment Act 1955.",
     "contract.workerClause8": "I confirm that I am in good health and fit to attend and perform this shift on the scheduled date (binding confirmation).",
-    "contract.cancellationTitle": "📄 Cancellation Payout Contract",
+    "contract.cancellationTitle": "Cancellation Payout Contract",
     "contract.cancellationHeading": "CariGaji Platform — Shift Cancellation Agreement",
     "contract.cancellationClause1": "The employer cancelled this shift less than 24 hours before it was due to start.",
     "contract.cancellationClause2": "By signing, you accept a one-time payout of 50% of your agreed wage for this shift, and release the employer from any further obligation for it.",
     "contract.cancellationClause3": "You will not attend the shift location for this engagement.",
     "contract.cancellationClause4": "This payout is processed the same way as your other CariGaji earnings — see your Earnings tab for status.",
-    "contract.signBtn": "✍️ I have read and agree — Sign",
-    "contract.employerTitle": "📄 Employment Contract",
+    "contract.signBtn": "I have read and agree — Sign",
+    "contract.employerTitle": "Employment Contract",
     "contract.employerSubtitle": "Auto-generated when an application is accepted. Both parties must sign.",
     "contract.enteredBetween": "This agreement is entered into between:",
     "contract.employerOnFile": "(your business name on file)",
@@ -2043,7 +2045,7 @@ const TRANSLATIONS = {
     "common.placeBid": "Mohon →",
     "common.signInToBid": "Log Masuk untuk Memohon →",
     "toast.avatarUpdated": "Gambar profil dikemas kini.",
-    "toast.ratingSubmitted": "✅ Penilaian dihantar.",
+    "toast.ratingSubmitted": "Penilaian dihantar.",
     "toast.ratingFailed": "Gagal menghantar penilaian: ",
     "toast.avatarUpdateFailed": "Gagal kemas kini gambar: ",
     "toast.sendFailed": "Gagal hantar: ",
@@ -2057,9 +2059,9 @@ const TRANSLATIONS = {
     "toast.sampleShiftBidInfo": "Ini syif contoh sahaja. Mohon syif sebenar untuk menghantar permohonan.",
     "toast.applicationFailed": "Gagal hantar permohonan: ",
     "toast.signFailed": "Gagal tandatangan: ",
-    "toast.contractSigned": "✅ Kontrak ditandatangani! Anda kini boleh berbual dengan majikan.",
-    "toast.cancellationContractSigned": "✅ Kontrak pembatalan ditandatangani — bayaran 50% anda sedang diproses.",
-    "toast.showUpProofSubmitted": "✅ Bukti dihantar — bayaran penuh anda sedang diproses.",
+    "toast.contractSigned": "Kontrak ditandatangani! Anda kini boleh berbual dengan majikan.",
+    "toast.cancellationContractSigned": "Kontrak pembatalan ditandatangani — bayaran 50% anda sedang diproses.",
+    "toast.showUpProofSubmitted": "Bukti dihantar — bayaran penuh anda sedang diproses.",
     "toast.showUpProofFailed": "Gagal menghantar bukti: ",
     "toast.updateFailed": "Gagal kemas kini: ",
     "toast.escrowTopupUnavailable": "Tambah dana belum tersedia — akan datang dengan integrasi FPX/DuitNow.",
@@ -2072,7 +2074,7 @@ const TRANSLATIONS = {
     "toast.applicationDeadlineAfterStart": "Tarikh akhir permohonan mesti sebelum syif bermula.",
     "toast.postShiftFailed": "Gagal siarkan syif: ",
     "toast.shiftPublished": "Syif disiarkan! Pekerja akan mula memohon tidak lama lagi.",
-    "toast.contractSent": "✅ Kontrak dihantar kepada pekerja untuk tandatangan!",
+    "toast.contractSent": "Kontrak dihantar kepada pekerja untuk tandatangan!",
     "chat.signInTitle": "Log masuk untuk lihat mesej",
     "chat.signInHint": "Mesej dengan majikan akan muncul di sini setelah anda log masuk dan permohonan anda diterima.",
     "chat.title": "Sembang",
@@ -2121,15 +2123,15 @@ const TRANSLATIONS = {
     "shiftDetail.transportAllowance": "Elaun Pengangkutan",
     "shiftDetail.title": "Butiran Syif",
     "shiftDetail.aboutRole": "Tentang peranan ini",
-    "shiftDetail.location": "📍 Lokasi",
-    "shiftDetail.date": "🗓 Tarikh",
-    "shiftDetail.time": "⏰ Masa",
-    "shiftDetail.dressCode": "👗 Kod Pakaian",
-    "shiftDetail.languagesRequired": "🗣️ Bahasa Diperlukan",
-    "shiftDetail.headcount": "👥 Bilangan Pekerja",
-    "shiftDetail.applicationDeadline": "⏳ Permohonan ditutup",
+    "shiftDetail.location": "Lokasi",
+    "shiftDetail.date": "Tarikh",
+    "shiftDetail.time": "Masa",
+    "shiftDetail.dressCode": "Kod Pakaian",
+    "shiftDetail.languagesRequired": "Bahasa Diperlukan",
+    "shiftDetail.headcount": "Bilangan Pekerja",
+    "shiftDetail.applicationDeadline": "Permohonan ditutup",
     "shiftDetail.workersNeeded": "pekerja diperlukan",
-    "shiftDetail.employerScore": "🏢 Skor Majikan",
+    "shiftDetail.employerScore": "Skor Majikan",
     "shiftDetail.employerScoreSignInToView": "Log masuk untuk melihat skor kebolehpercayaan majikan ini.",
     "shiftDetail.locationNote": "Alamat sebenar akan didedahkan setelah permohonan anda diterima.",
     "shiftDetail.employerReliability": "Kebolehpercayaan Majikan",
@@ -2139,10 +2141,10 @@ const TRANSLATIONS = {
     "shiftDetail.dressCodeNone": "Tiada dinyatakan",
     "shiftDetail.notApplicable": "T/B",
     "shiftDetail.yourBid": "Kadar anda",
-    "myBids.transportAllowanceRow": "🚌 Elaun pengangkutan",
-    "myBids.employerLabel": "🏢 Majikan",
-    "myBids.employerRangeRow": "💰 Julat majikan",
-    "myBids.shortlistedBanner": "🎉 Anda telah disenarai pendek! Buka sembang untuk berbincang dan terima tawaran anda.",
+    "myBids.transportAllowanceRow": "Elaun pengangkutan",
+    "myBids.employerLabel": "Majikan",
+    "myBids.employerRangeRow": "Julat majikan",
+    "myBids.shortlistedBanner": "Anda telah disenarai pendek! Buka sembang untuk berbincang dan terima tawaran anda.",
     "myBids.loadingBids": "Memuatkan syif anda…",
     "myBids.noBidsYet": "Belum ada syif",
     "myBids.loadingBidsHint": "Tunggu sebentar semasa kami dapatkan syif anda.",
@@ -2151,8 +2153,8 @@ const TRANSLATIONS = {
     "myBids.sectionUpcoming": "Akan datang",
     "myBids.sectionWaiting": "Menunggu maklum balas",
     "myBids.pastToggle": "Syif lepas · {n}",
-    "myBids.employerDecidesByPrefix": "⏳ Majikan membuat keputusan menjelang ",
-    "myBids.respondByPrefix": "🎉 Respons menjelang ",
+    "myBids.employerDecidesByPrefix": "Majikan membuat keputusan menjelang ",
+    "myBids.respondByPrefix": "Respons menjelang ",
     "myBids.pillShiftCancelled": "Syif Dibatalkan",
     "myBids.pillConfirmNow": "Balas tawaran",
     "myBids.pillShortlisted": "Disenarai pendek",
@@ -2168,8 +2170,8 @@ const TRANSLATIONS = {
     "worker.previewModeBlocked": "Pratonton sahaja — tukar kepada akaun pekerja untuk benar-benar melakukan ini.",
     "worker.roleLoading": "Sekejap — akaun anda masih dimuatkan.",
     "worker.previewModeBidBtn": "Pratonton — tidak boleh hantar",
-    "myBids.signContractBtn": "✍️ Tandatangan Kontrak",
-    "myBids.contractSignedBadge": "✅ Kontrak ditandatangani",
+    "myBids.signContractBtn": "Tandatangan Kontrak",
+    "myBids.contractSignedBadge": "Kontrak ditandatangani",
     "myBids.shiftCancelledNotice": "Syif ini telah dibatalkan oleh majikan. Tiada tindakan lanjut diperlukan.",
     "myBids.lateCancellationTitle": "Syif ini dibatalkan kurang daripada 24 jam sebelum ia bermula",
     "myBids.lateCancellationBody": "Pilih untuk menandatangani bayaran pembatalan 50% sekarang, atau hadir secara peribadi dan hantar foto untuk 100% daripada gaji yang dipersetujui.",
@@ -2180,7 +2182,7 @@ const TRANSLATIONS = {
     "myBids.cancellationChose50": "Anda memilih bayaran pembatalan 50%. Ia sedang diproses.",
     "myBids.cancellationProofSubmitted": "Bukti dihantar — bayaran penuh anda sedang diproses.",
     "myBids.cancellationAwaitingProof": "Anda memilih untuk hadir — ambil foto di lokasi untuk menuntut bayaran penuh anda.",
-    "myBids.selectedNotice": "🎉 Anda menerima tawaran! Sahkan atau tolak sebelum tarikh akhir di atas — jika anda tidak bertindak balas tepat pada masanya, tawaran akan dilepaskan secara automatik kembali kepada majikan.",
+    "myBids.selectedNotice": "Anda menerima tawaran! Sahkan atau tolak sebelum tarikh akhir di atas — jika anda tidak bertindak balas tepat pada masanya, tawaran akan dilepaskan secara automatik kembali kepada majikan.",
     "myBids.viewContractTermsBtn": "Lihat terma kontrak",
     "myBids.hideContractTermsBtn": "Sembunyikan terma kontrak",
     "myBids.offerExpiredNotice": "Tawaran ini telah tamat tempoh kerana tidak disahkan tepat pada masanya.",
@@ -2342,7 +2344,7 @@ const TRANSLATIONS = {
     "profile.kycBasic": "Asas (Telefon/E-mel)",
     "profile.kycStandard": "Standard (MyKad + Selfie)",
     "profile.kycAdvanced": "Lanjutan (Sijil)",
-    "profile.verified": "✓ Disahkan",
+    "profile.verified": "Disahkan",
     "profile.reliabilityScoreLabel": "Skor Kebolehpercayaan: ",
     "profile.reliabilityExcellent": "Cemerlang — 15% teratas pekerja 🏆",
     "profile.reliabilityGood": "Kedudukan baik — teruskan begini 👍",
@@ -2373,7 +2375,7 @@ const TRANSLATIONS = {
     "profile.noRatingsHint": "Penilaian daripada majikan akan dipaparkan di sini selepas anda menyelesaikan syif.",
     "auth.registerTitle": "Daftar",
     "auth.registerSubtitle": "Cipta akaun anda dan lengkapkan profil serta butiran KYC anda.",
-    "auth.employerFreeTrial": "🎁 Dua bulan pertama anda percuma — yuran platform hanya bermula 2 bulan selepas anda siarkan syif pertama.",
+    "auth.employerFreeTrial": "Dua bulan pertama anda percuma — yuran platform hanya bermula 2 bulan selepas anda siarkan syif pertama.",
     "auth.resetTitle": "Tetapkan semula kata laluan",
     "auth.resetSubtitle": "Kami akan menghantar e-mel tetapan semula kata laluan ke peti masuk anda.",
     "auth.sendResetEmail": "Hantar e-mel tetapan semula",
@@ -2411,7 +2413,7 @@ const TRANSLATIONS = {
     "auth.uploadFrontHelper": "Muat naik gambar atau PDF bahagian hadapan.",
     "auth.uploadBackHelper": "Muat naik gambar atau PDF bahagian belakang.",
     "auth.ocrChecking": "Menyemak nombor ID pada gambar anda…",
-    "auth.ocrMatch": "✓ Nombor identiti pada gambar anda sepadan dengan yang anda masukkan.",
+    "auth.ocrMatch": "Nombor identiti pada gambar anda sepadan dengan yang anda masukkan.",
     "auth.ocrMismatchTitle": "Kami tidak dapat memadankan nombor ID pada gambar anda dengan yang anda taip.",
     "auth.ocrMismatchHint": "Ini biasanya bermaksud salah satu daripada:",
     "auth.ocrMismatchReason1": "gambar kabur atau nombor tidak kelihatan sepenuhnya,",
@@ -2825,7 +2827,7 @@ const TRANSLATIONS = {
     "landing.sectionWorkerSubtitle": "Cari syif, tetapkan kadar anda, dapatkan bayaran",
     "landing.sectionEmployerTitle": "Mengupah pula?",
     "landing.sectionEmployerSubtitle": "Cara menyiarkan syif untuk majikan",
-    "landing.employerFreeTrial": "🎁 Dua bulan pertama percuma. Kiraan bermula apabila anda siarkan syif pertama, bukan semasa mendaftar — dan mana-mana syif yang disiarkan dalam tempoh itu kekal percuma walaupun dibayar kemudian.",
+    "landing.employerFreeTrial": "Dua bulan pertama percuma. Kiraan bermula apabila anda siarkan syif pertama, bukan semasa mendaftar — dan mana-mana syif yang disiarkan dalam tempoh itu kekal percuma walaupun dibayar kemudian.",
     "landing.trustIdTitle": "Pekerja disahkan identiti",
     "landing.trustIdBody": "MyKad atau pasport disemak dengan swafoto sebelum syif berbayar tinggi dibuka.",
     "landing.trustSsmTitle": "Majikan disahkan perniagaan",
@@ -2855,7 +2857,7 @@ const TRANSLATIONS = {
     "landing.sampleSealLine1": "SSM",
     "landing.sampleSealLine2": "Disahkan",
     "landing.sampleSealLine3": "Majikan",
-    "landing.sampleFundedBadge": "✓ Gaji dinyatakan",
+    "landing.sampleFundedBadge": "Gaji dinyatakan",
     "discover.filterCity": "Bandar",
     "discover.anyCity": "Mana-mana bandar",
     "discover.filterAreaPlaceholder": "Kawasan cth. Bukit Bintang",
@@ -2867,8 +2869,8 @@ const TRANSLATIONS = {
     "discover.filterMaxPay": "Gaji Maks (RM/jam)",
     "discover.filterStartsAfter": "Bermula selepas",
     "discover.filterEndsBy": "Berakhir sebelum",
-    "discover.highBookingChance": "🔥 Peluang tempahan tinggi",
-    "discover.weekendsOnly": "📅 Hujung minggu sahaja",
+    "discover.highBookingChance": "Peluang tempahan tinggi",
+    "discover.weekendsOnly": "Hujung minggu sahaja",
     "filters.clearAll": "Kosongkan semua",
     "discover.loadingShifts": "Memuatkan syif…",
     "discover.loadingShiftsHint": "Tunggu sebentar semasa kami dapatkan syif terbuka.",
@@ -2879,7 +2881,7 @@ const TRANSLATIONS = {
     "worker.checkinTitle": "Daftar masuk syif",
     "worker.checkinCodeSubtitle": "Minta kod daftar masuk 6-digit hari ini daripada majikan anda dan masukkan di bawah. Kod berubah setiap 30 saat.",
     "worker.submitCheckin": "Daftar masuk",
-    "worker.checkedInBadge": "✓ Telah daftar masuk",
+    "worker.checkedInBadge": "Telah daftar masuk",
     "worker.checkOutBtn": "Daftar Keluar",
     "worker.checkoutTitle": "Daftar keluar syif",
     "worker.checkoutSubtitle": "Laporkan jam yang anda bekerja sebenar. Majikan anda akan mengesahkan atau mempertikaikannya sebelum bayaran.",
@@ -2889,7 +2891,7 @@ const TRANSLATIONS = {
     "worker.submitCheckout": "Hantar daftar keluar",
     "worker.resubmitCheckout": "Hantar semula jam",
     "worker.checkoutPendingBadge": "Daftar keluar dihantar — menunggu pengesahan",
-    "worker.hoursConfirmedBadge": "✓ Jam disahkan",
+    "worker.hoursConfirmedBadge": "Jam disahkan",
     "worker.hoursDisputedBadge": "Majikan mempertikaikan jam anda",
     "worker.employerProposedLabel": "Majikan mencadangkan {hours}j",
     "worker.resubmitTitle": "Hantar semula jam anda",
@@ -2901,7 +2903,7 @@ const TRANSLATIONS = {
     "employer.checkinCodeRotateHint": "Tunjukkan ini kepada pekerja di tempat acara. Ia berubah setiap 30 saat — baca semula setiap kali.",
     "employer.checkinCodeRefreshBtn": "Muat semula sekarang",
     "employer.reportedHoursPrefix": "Dilaporkan: ",
-    "employer.hoursConfirmedLabel": "✓ Jam disahkan",
+    "employer.hoursConfirmedLabel": "Jam disahkan",
     "employer.hoursDisputedLabel": "Jam dipertikaikan",
     "employer.confirmHoursBtn": "Sahkan",
     "employer.disputeHoursBtn": "Pertikai",
@@ -3121,10 +3123,10 @@ const TRANSLATIONS = {
     "employer.awaitingResponse": "Tawaran dihantar",
     "employer.shortlistBtn": "Senarai pendek",
     "employer.selectBtn": "Hantar tawaran",
-    "employer.waitingOnWorker": "⏳ Menunggu pekerja",
-    "employer.confirmedStatus": "✓ Disahkan",
-    "employer.notSelected": "✗ Tidak dipilih",
-    "employer.offerExpiredStatus": "⏱ Tawaran tamat tempoh",
+    "employer.waitingOnWorker": "Menunggu pekerja",
+    "employer.confirmedStatus": "Disahkan",
+    "employer.notSelected": "Tidak dipilih",
+    "employer.offerExpiredStatus": "Tawaran tamat tempoh",
     "employer.pillPending": "Tertunda",
     "employer.pillShortlisted": "Disenarai pendek",
     "employer.pillAccepted": "Diterima",
@@ -3191,6 +3193,8 @@ const TRANSLATIONS = {
     "employer.shiftStatusClosed": "Ditutup",
     "employer.shiftStatusCompleted": "Selesai",
     "employer.shiftStatusCancelled": "Dibatalkan",
+    "employer.shiftStatusFilled": "Penuh",
+    "employer.shiftStatusDraft": "Draf",
     "employer.profileHistoryScopeNote": "Demi privasi, ini hanya menunjukkan sejarah pekerja dengan syif anda sendiri, tahap KYC yang disahkan, dan skor kebolehpercayaan/penilaian seluruh platform.",
     "employer.verifiedBadge": "Disahkan",
     "employer.verifiedBadgeTitle": "Pengesahan SSM diluluskan — anda boleh menyiarkan syif.",
@@ -3203,7 +3207,7 @@ const TRANSLATIONS = {
     "auth.ssmFormatHint": "Masukkan nombor SSM yang sah (12 digit, atau sehingga 8 digit dengan huruf akhiran).",
     "employer.ssmCertLabel": "Sijil SSM (disyorkan)",
     "employer.ssmCertHint": "Muat naik sijil pendaftaran SSM anda (imej atau PDF). Pasukan kami membandingkannya dengan pendaftaran rasmi semasa semakan — penyerahan dengan sijil disahkan lebih cepat.",
-    "employer.ssmCertOnFile": "✓ Sijil telah dimuat naik — muat naik baharu akan menggantikannya untuk semakan.",
+    "employer.ssmCertOnFile": "Sijil telah dimuat naik — muat naik baharu akan menggantikannya untuk semakan.",
     "employer.ssmCertUploadFailed": "Muat naik sijil gagal: ",
     "employer.postShiftUnverifiedHint": "Penyiaran dikunci sehingga syarikat anda disahkan. Hantar nombor SSM anda (dan sebaiknya sijil SSM) di Akaun → Butiran Syarikat, kemudian tunggu semakan admin — anda akan dimaklumkan setelah disahkan.",
     "auth.employerVerifyNote": "Butiran syarikat anda akan disemak oleh pasukan kami. Anda boleh log masuk serta-merta, tetapi penyiaran syif hanya dibuka selepas pengesahan selesai.",
@@ -3339,7 +3343,7 @@ const TRANSLATIONS = {
     "auth.selectCountry": "Pilih negara",
     "auth.searchCountryPlaceholder": "Cari mengikut nama atau kod...",
     "auth.enterYourPassword": "Masukkan kata laluan anda",
-    "contract.workerTitle": "📄 Kontrak Pekerjaan Anda",
+    "contract.workerTitle": "Kontrak Pekerjaan Anda",
     "contract.readCarefully": "Sila baca dengan teliti sebelum menandatangani.",
     "contract.agreementHeading": "Platform CariGaji — Perjanjian Kerja Syif",
     "contract.printBtn": "Cetak / Simpan sebagai PDF",
@@ -3360,14 +3364,14 @@ const TRANSLATIONS = {
     "contract.workerClause6": "CariGaji bertindak sebagai orang tengah pasaran dan bukan majikan anda.",
     "contract.workerClause7": "Tertakluk kepada undang-undang Malaysia termasuk Akta Kerja 1955.",
     "contract.workerClause8": "Saya mengesahkan bahawa saya sihat dan mampu menghadiri serta menjalankan syif ini pada tarikh yang dijadualkan (pengesahan mengikat).",
-    "contract.cancellationTitle": "📄 Kontrak Bayaran Pembatalan",
+    "contract.cancellationTitle": "Kontrak Bayaran Pembatalan",
     "contract.cancellationHeading": "Platform CariGaji — Perjanjian Pembatalan Syif",
     "contract.cancellationClause1": "Majikan membatalkan syif ini kurang daripada 24 jam sebelum ia dijadualkan bermula.",
     "contract.cancellationClause2": "Dengan menandatangani, anda menerima bayaran sekali sahaja sebanyak 50% daripada gaji yang dipersetujui untuk syif ini, dan membebaskan majikan daripada sebarang kewajipan selanjutnya untuknya.",
     "contract.cancellationClause3": "Anda tidak akan hadir di lokasi syif untuk penugasan ini.",
     "contract.cancellationClause4": "Bayaran ini diproses dengan cara yang sama seperti pendapatan CariGaji anda yang lain — lihat tab Pendapatan anda untuk status.",
-    "contract.signBtn": "✍️ Saya telah membaca dan bersetuju — Tandatangan",
-    "contract.employerTitle": "📄 Kontrak Pekerjaan",
+    "contract.signBtn": "Saya telah membaca dan bersetuju — Tandatangan",
+    "contract.employerTitle": "Kontrak Pekerjaan",
     "contract.employerSubtitle": "Dijana secara automatik selepas permohonan diterima. Kedua-dua pihak perlu menandatangani.",
     "contract.enteredBetween": "Perjanjian ini dimeterai antara:",
     "contract.employerOnFile": "(nama perniagaan anda dalam rekod)",
@@ -3471,7 +3475,7 @@ const TRANSLATIONS = {
     "common.placeBid": "申请 →",
     "common.signInToBid": "登入后申请 →",
     "toast.avatarUpdated": "头像已更新。",
-    "toast.ratingSubmitted": "✅ 评分已提交。",
+    "toast.ratingSubmitted": "评分已提交。",
     "toast.ratingFailed": "提交评分失败：",
     "toast.avatarUpdateFailed": "无法更新头像：",
     "toast.sendFailed": "发送失败：",
@@ -3485,9 +3489,9 @@ const TRANSLATIONS = {
     "toast.sampleShiftBidInfo": "这是一个示例班次。请申请正式班次。",
     "toast.applicationFailed": "提交申请失败：",
     "toast.signFailed": "签署失败：",
-    "toast.contractSigned": "✅ 合同已签署！您现在可以与雇主聊天了。",
-    "toast.cancellationContractSigned": "✅ 取消合同已签署 — 您的 50% 赔偿款项即将发放。",
-    "toast.showUpProofSubmitted": "✅ 证明已提交 — 您的全额薪资即将发放。",
+    "toast.contractSigned": "合同已签署！您现在可以与雇主聊天了。",
+    "toast.cancellationContractSigned": "取消合同已签署 — 您的 50% 赔偿款项即将发放。",
+    "toast.showUpProofSubmitted": "证明已提交 — 您的全额薪资即将发放。",
     "toast.showUpProofFailed": "提交证明失败：",
     "toast.updateFailed": "更新失败：",
     "toast.escrowTopupUnavailable": "暂时无法充值 — 此功能将随 FPX/DuitNow 整合推出。",
@@ -3500,7 +3504,7 @@ const TRANSLATIONS = {
     "toast.applicationDeadlineAfterStart": "申请截止时间必须早于班次开始时间。",
     "toast.postShiftFailed": "发布班次失败：",
     "toast.shiftPublished": "班次已发布！员工将陆续开始申请。",
-    "toast.contractSent": "✅ 合同已发送给员工签署！",
+    "toast.contractSent": "合同已发送给员工签署！",
     "chat.signInTitle": "登入以查看消息",
     "chat.signInHint": "登入并有已被接受的申请后，与雇主的消息将显示在这里。",
     "chat.title": "聊天",
@@ -3549,15 +3553,15 @@ const TRANSLATIONS = {
     "shiftDetail.transportAllowance": "交通津贴",
     "shiftDetail.title": "班次详情",
     "shiftDetail.aboutRole": "关于这份工作",
-    "shiftDetail.location": "📍 地点",
-    "shiftDetail.date": "🗓 日期",
-    "shiftDetail.time": "⏰ 时间",
-    "shiftDetail.dressCode": "👗 着装要求",
-    "shiftDetail.languagesRequired": "🗣️ 语言要求",
-    "shiftDetail.headcount": "👥 所需人数",
-    "shiftDetail.applicationDeadline": "⏳ 申请截止",
+    "shiftDetail.location": "地点",
+    "shiftDetail.date": "日期",
+    "shiftDetail.time": "时间",
+    "shiftDetail.dressCode": "着装要求",
+    "shiftDetail.languagesRequired": "语言要求",
+    "shiftDetail.headcount": "所需人数",
+    "shiftDetail.applicationDeadline": "申请截止",
     "shiftDetail.workersNeeded": "名员工",
-    "shiftDetail.employerScore": "🏢 雇主评分",
+    "shiftDetail.employerScore": "雇主评分",
     "shiftDetail.employerScoreSignInToView": "登入后即可查看此雇主的可靠度评分。",
     "shiftDetail.locationNote": "申请被接受后即可查看确切地址。",
     "shiftDetail.employerReliability": "雇主可靠度",
@@ -3567,10 +3571,10 @@ const TRANSLATIONS = {
     "shiftDetail.dressCodeNone": "无特别要求",
     "shiftDetail.notApplicable": "不适用",
     "shiftDetail.yourBid": "你的时薪",
-    "myBids.transportAllowanceRow": "🚌 交通津贴",
-    "myBids.employerLabel": "🏢 雇主",
-    "myBids.employerRangeRow": "💰 雇主薪资范围",
-    "myBids.shortlistedBanner": "🎉 您已入围！打开聊天以讨论详情并接收录用通知。",
+    "myBids.transportAllowanceRow": "交通津贴",
+    "myBids.employerLabel": "雇主",
+    "myBids.employerRangeRow": "雇主薪资范围",
+    "myBids.shortlistedBanner": "您已入围！打开聊天以讨论详情并接收录用通知。",
     "myBids.loadingBids": "正在加载您的班次…",
     "myBids.noBidsYet": "暂无班次",
     "myBids.loadingBidsHint": "请稍候，我们正在获取您的班次。",
@@ -3579,8 +3583,8 @@ const TRANSLATIONS = {
     "myBids.sectionUpcoming": "即将开始",
     "myBids.sectionWaiting": "等待回复",
     "myBids.pastToggle": "过往班次 · {n}",
-    "myBids.employerDecidesByPrefix": "⏳ 雇主将于以下时间前决定：",
-    "myBids.respondByPrefix": "🎉 请于以下时间前回复：",
+    "myBids.employerDecidesByPrefix": "雇主将于以下时间前决定：",
+    "myBids.respondByPrefix": "请于以下时间前回复：",
     "myBids.pillShiftCancelled": "班次已取消",
     "myBids.pillConfirmNow": "回复录用邀请",
     "myBids.pillShortlisted": "已入围",
@@ -3596,8 +3600,8 @@ const TRANSLATIONS = {
     "worker.previewModeBlocked": "仅供预览 — 请切换至员工账户才能实际执行此操作。",
     "worker.roleLoading": "请稍候 — 您的账户仍在加载中。",
     "worker.previewModeBidBtn": "预览 — 无法提交",
-    "myBids.signContractBtn": "✍️ 签署合同",
-    "myBids.contractSignedBadge": "✅ 合同已签署",
+    "myBids.signContractBtn": "签署合同",
+    "myBids.contractSignedBadge": "合同已签署",
     "myBids.shiftCancelledNotice": "此班次已被雇主取消，无需采取其他行动。",
     "myBids.lateCancellationTitle": "此班次在开始前不到 24 小时被取消",
     "myBids.lateCancellationBody": "您可以选择立即签署 50% 的取消赔偿，或亲自到场并提交照片以领取 100% 的约定薪资。",
@@ -3608,7 +3612,7 @@ const TRANSLATIONS = {
     "myBids.cancellationChose50": "您已选择 50% 的取消赔偿，款项即将发放。",
     "myBids.cancellationProofSubmitted": "证明已提交 — 您的全额薪资即将发放。",
     "myBids.cancellationAwaitingProof": "您已选择到场领取 — 请在地点拍照以申领全额薪资。",
-    "myBids.selectedNotice": "🎉 您收到录用邀请！请在上方截止时间前确认或拒绝 — 若未及时回复，此录用邀请将自动释放回雇主。",
+    "myBids.selectedNotice": "您收到录用邀请！请在上方截止时间前确认或拒绝 — 若未及时回复，此录用邀请将自动释放回雇主。",
     "myBids.viewContractTermsBtn": "查看合同条款",
     "myBids.hideContractTermsBtn": "隐藏合同条款",
     "myBids.offerExpiredNotice": "此录用邀请因未在期限内确认而已过期。",
@@ -3770,7 +3774,7 @@ const TRANSLATIONS = {
     "profile.kycBasic": "基础（手机/电邮）",
     "profile.kycStandard": "标准（MyKad + 自拍）",
     "profile.kycAdvanced": "进阶（证书）",
-    "profile.verified": "✓ 已验证",
+    "profile.verified": "已验证",
     "profile.reliabilityScoreLabel": "可靠度评分：",
     "profile.reliabilityExcellent": "优秀 — 位列前 15% 员工 🏆",
     "profile.reliabilityGood": "表现良好 — 继续保持 👍",
@@ -3801,7 +3805,7 @@ const TRANSLATIONS = {
     "profile.noRatingsHint": "完成班次后，雇主的评价将显示在这里。",
     "auth.registerTitle": "注册",
     "auth.registerSubtitle": "创建您的账户并完成个人资料及 KYC 信息。",
-    "auth.employerFreeTrial": "🎁 前两个月免费 — 平台服务费自您发布第一个班次起两个月后才开始收取。",
+    "auth.employerFreeTrial": "前两个月免费 — 平台服务费自您发布第一个班次起两个月后才开始收取。",
     "auth.resetTitle": "重置密码",
     "auth.resetSubtitle": "我们将发送一封密码重置邮件到您的邮箱。",
     "auth.sendResetEmail": "发送重置邮件",
@@ -3839,7 +3843,7 @@ const TRANSLATIONS = {
     "auth.uploadFrontHelper": "上传正面照片或 PDF 文件。",
     "auth.uploadBackHelper": "上传背面照片或 PDF 文件。",
     "auth.ocrChecking": "正在核对您照片上的证件号码…",
-    "auth.ocrMatch": "✓ 您照片上的证件号码与您输入的一致。",
+    "auth.ocrMatch": "您照片上的证件号码与您输入的一致。",
     "auth.ocrMismatchTitle": "我们无法将您照片上的证件号码与您输入的内容匹配。",
     "auth.ocrMismatchHint": "这通常是以下原因之一：",
     "auth.ocrMismatchReason1": "照片模糊或号码未完全显示，",
@@ -4252,7 +4256,7 @@ const TRANSLATIONS = {
     "landing.sectionWorkerSubtitle": "寻找班次、自定时薪、领取工资",
     "landing.sectionEmployerTitle": "想要招聘？",
     "landing.sectionEmployerSubtitle": "雇主发布班次的方式",
-    "landing.employerFreeTrial": "🎁 前两个月免费。计时从您发布第一个班次开始，而非注册当天 — 在此期间发布的班次即使稍后才发放薪资，也一律免费。",
+    "landing.employerFreeTrial": "前两个月免费。计时从您发布第一个班次开始，而非注册当天 — 在此期间发布的班次即使稍后才发放薪资，也一律免费。",
     "landing.trustIdTitle": "员工均经过身份验证",
     "landing.trustIdBody": "在解锁薪资更高的班次前，系统会将 MyKad 或护照与自拍照进行核对。",
     "landing.trustSsmTitle": "雇主均经过企业认证",
@@ -4282,7 +4286,7 @@ const TRANSLATIONS = {
     "landing.sampleSealLine1": "SSM",
     "landing.sampleSealLine2": "认证",
     "landing.sampleSealLine3": "雇主",
-    "landing.sampleFundedBadge": "✓ 薪资公开",
+    "landing.sampleFundedBadge": "薪资公开",
     "discover.filterCity": "城市",
     "discover.anyCity": "所有城市",
     "discover.filterAreaPlaceholder": "地区，例如：武吉免登",
@@ -4294,8 +4298,8 @@ const TRANSLATIONS = {
     "discover.filterMaxPay": "最高薪资（RM/小时）",
     "discover.filterStartsAfter": "开始时间晚于",
     "discover.filterEndsBy": "结束时间早于",
-    "discover.highBookingChance": "🔥 高录用机会",
-    "discover.weekendsOnly": "📅 仅限周末",
+    "discover.highBookingChance": "高录用机会",
+    "discover.weekendsOnly": "仅限周末",
     "filters.clearAll": "清除全部",
     "discover.loadingShifts": "正在加载班次…",
     "discover.loadingShiftsHint": "请稍候，我们正在获取开放中的班次。",
@@ -4306,7 +4310,7 @@ const TRANSLATIONS = {
     "worker.checkinTitle": "班次签到",
     "worker.checkinCodeSubtitle": "向雇主索取今日的 6 位数签到验证码并在下方输入。验证码每 30 秒更新一次。",
     "worker.submitCheckin": "签到",
-    "worker.checkedInBadge": "✓ 已签到",
+    "worker.checkedInBadge": "已签到",
     "worker.checkOutBtn": "签退",
     "worker.checkoutTitle": "班次签退",
     "worker.checkoutSubtitle": "请报告您实际工作的时数。雇主将在发放薪资前确认或提出异议。",
@@ -4316,7 +4320,7 @@ const TRANSLATIONS = {
     "worker.submitCheckout": "提交签退",
     "worker.resubmitCheckout": "重新提交工时",
     "worker.checkoutPendingBadge": "签退已提交 — 等待确认中",
-    "worker.hoursConfirmedBadge": "✓ 工时已确认",
+    "worker.hoursConfirmedBadge": "工时已确认",
     "worker.hoursDisputedBadge": "雇主对您的工时提出异议",
     "worker.employerProposedLabel": "雇主提议了 {hours} 小时",
     "worker.resubmitTitle": "重新提交您的工时",
@@ -4328,7 +4332,7 @@ const TRANSLATIONS = {
     "employer.checkinCodeRotateHint": "将此验证码展示给现场的员工。它每 30 秒更新一次 — 请每次都重新查看。",
     "employer.checkinCodeRefreshBtn": "立即刷新",
     "employer.reportedHoursPrefix": "报告工时：",
-    "employer.hoursConfirmedLabel": "✓ 工时已确认",
+    "employer.hoursConfirmedLabel": "工时已确认",
     "employer.hoursDisputedLabel": "工时有异议",
     "employer.confirmHoursBtn": "确认",
     "employer.disputeHoursBtn": "提出异议",
@@ -4548,10 +4552,10 @@ const TRANSLATIONS = {
     "employer.awaitingResponse": "已发送录用邀请",
     "employer.shortlistBtn": "入围",
     "employer.selectBtn": "发送录用邀请",
-    "employer.waitingOnWorker": "⏳ 等待员工回复",
-    "employer.confirmedStatus": "✓ 已确认",
-    "employer.notSelected": "✗ 未获选",
-    "employer.offerExpiredStatus": "⏱ 录用邀请已过期",
+    "employer.waitingOnWorker": "等待员工回复",
+    "employer.confirmedStatus": "已确认",
+    "employer.notSelected": "未获选",
+    "employer.offerExpiredStatus": "录用邀请已过期",
     "employer.pillPending": "待处理",
     "employer.pillShortlisted": "已入围",
     "employer.pillAccepted": "已接受",
@@ -4618,6 +4622,8 @@ const TRANSLATIONS = {
     "employer.shiftStatusClosed": "已截止",
     "employer.shiftStatusCompleted": "已完成",
     "employer.shiftStatusCancelled": "已取消",
+    "employer.shiftStatusFilled": "已满员",
+    "employer.shiftStatusDraft": "草稿",
     "employer.profileHistoryScopeNote": "出于隐私考虑，此处仅显示该员工与您公司班次的合作记录、已验证的 KYC 等级，以及平台整体的可靠度/评分数据。",
     "employer.verifiedBadge": "已认证",
     "employer.verifiedBadgeTitle": "SSM 认证已通过 — 您可以发布班次。",
@@ -4630,7 +4636,7 @@ const TRANSLATIONS = {
     "auth.ssmFormatHint": "请输入有效的 SSM 号码（12 位数字，或最多 8 位数字加字母后缀）。",
     "employer.ssmCertLabel": "SSM 证书（建议提供）",
     "employer.ssmCertHint": "请上传您的 SSM 注册证书（图片或 PDF）。审核期间，我们的团队会将其与官方注册资料进行比对 — 提供证书可加快审核速度。",
-    "employer.ssmCertOnFile": "✓ 已存档证书 — 上传新证书将取代原有档案供审核。",
+    "employer.ssmCertOnFile": "已存档证书 — 上传新证书将取代原有档案供审核。",
     "employer.ssmCertUploadFailed": "证书上传失败：",
     "employer.postShiftUnverifiedHint": "在贵公司通过验证前，发布功能将保持锁定。请在「账户 → 公司详情」中提交您的 SSM 号码（并建议附上 SSM 证书），然后等待管理员审核 — 审核通过后系统会通知您。",
     "auth.employerVerifyNote": "您的公司详情将由我们的团队审核。您可以立即登入，但发布班次功能须等验证完成后才会解锁。",
@@ -4766,7 +4772,7 @@ const TRANSLATIONS = {
     "auth.selectCountry": "选择国家",
     "auth.searchCountryPlaceholder": "按名称或代码搜索…",
     "auth.enterYourPassword": "请输入您的密码",
-    "contract.workerTitle": "📄 您的雇佣合同",
+    "contract.workerTitle": "您的雇佣合同",
     "contract.readCarefully": "签署前请仔细阅读。",
     "contract.agreementHeading": "CariGaji 平台 — 班次工作协议",
     "contract.printBtn": "打印/另存为 PDF",
@@ -4787,14 +4793,14 @@ const TRANSLATIONS = {
     "contract.workerClause6": "CariGaji 仅作为市场中介平台，并非您的雇主。",
     "contract.workerClause7": "受马来西亚法律（包括 1955 年雇佣法令）管辖。",
     "contract.workerClause8": "我确认本人身体健康，能够在预定日期出席并完成此班次（具约束力的确认）。",
-    "contract.cancellationTitle": "📄 取消赔偿合同",
+    "contract.cancellationTitle": "取消赔偿合同",
     "contract.cancellationHeading": "CariGaji 平台 — 班次取消协议",
     "contract.cancellationClause1": "雇主在此班次开始前不到 24 小时取消了该班次。",
     "contract.cancellationClause2": "签署即表示您接受此班次约定薪资 50% 的一次性赔偿，并解除雇主对此的进一步义务。",
     "contract.cancellationClause3": "您将不会前往班次地点参与此工作。",
     "contract.cancellationClause4": "此赔偿将与您其他的 CariGaji 收入以相同方式处理 — 请查看「收入」标签了解状态。",
-    "contract.signBtn": "✍️ 我已阅读并同意 — 签署",
-    "contract.employerTitle": "📄 雇佣合同",
+    "contract.signBtn": "我已阅读并同意 — 签署",
+    "contract.employerTitle": "雇佣合同",
     "contract.employerSubtitle": "申请被接受后自动生成，双方均须签署。",
     "contract.enteredBetween": "本协议由以下双方签订：",
     "contract.employerOnFile": "（您存档的公司名称）",
@@ -5843,16 +5849,29 @@ const FilterClearAll = ({ show, onClear, t }) => (
   </div>
 );
 
-const Pill = memo(({ label, color }) => (
-  <span style={{
-    display: "inline-block", padding: "3px 10px", borderRadius: 99,
-    fontSize: 12, fontWeight: 600,
-    background: color === "green" ? BRAND.greenLight : color === "red" ? BRAND.redLight : color === "amber" ? BRAND.amberLight : color === "blue" ? BRAND.blueLight : BRAND.grayLight,
-    color: color === "green" ? BRAND.onGreenLight : color === "red" ? BRAND.onRedLight : color === "amber" ? BRAND.onAmberLight : color === "blue" ? BRAND.onBlueLight : BRAND.textMuted,
-  }}>{label}</span>
-));
+const PILL_TONES = {
+  gray: { bg: BRAND.grayLight, text: BRAND.textMuted },
+  green: { bg: BRAND.greenLight, text: BRAND.onGreenLight },
+  red: { bg: BRAND.redLight, text: BRAND.onRedLight },
+  amber: { bg: BRAND.amberLight, text: BRAND.onAmberLight },
+  blue: { bg: BRAND.blueLight, text: BRAND.onBlueLight },
+  orange: { bg: BRAND.accentLight, text: BRAND.onAccentLight },
+  teal: { bg: BRAND.tealLight, text: BRAND.onTealLight },
+};
+// `icon` is an optional Icons component (e.g. from statusTone()), rendered
+// small before the label so the cue doesn't rely on colour alone.
+const Pill = memo(({ label, color, icon: Icon }) => {
+  const c = PILL_TONES[color] || PILL_TONES.gray;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99,
+      fontSize: 12, fontWeight: 600,
+      background: c.bg, color: c.text,
+    }}>{Icon && <span aria-hidden="true" style={{ display: "inline-flex" }}><Icon size={12} /></span>}{label}</span>
+  );
+});
 
-const EmptyState = memo(({ icon = "📭", title, hint }) => (
+const EmptyState = memo(({ icon = <Icons.Inbox size={28} />, title, hint }) => (
   <div style={{
     border: `1px dashed ${BRAND.border}`,
     borderRadius: 14,
@@ -5860,13 +5879,13 @@ const EmptyState = memo(({ icon = "📭", title, hint }) => (
     textAlign: "center",
     background: BRAND.grayLight,
   }}>
-    <div style={{ fontSize: 28, marginBottom: 8 }} aria-hidden="true">{icon}</div>
+    <div style={{ display: "flex", justifyContent: "center", color: BRAND.textMuted, marginBottom: 8 }} aria-hidden="true">{icon}</div>
     <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{title}</div>
     {hint && <div style={{ fontSize: 12, color: BRAND.textMuted, lineHeight: 1.5 }}>{hint}</div>}
   </div>
 ));
 
-const AuthGate = memo(({ onRequireAuth, title, hint, icon = "🔒" }) => {
+const AuthGate = memo(({ onRequireAuth, title, hint, icon = <Icons.Lock size={28} /> }) => {
   const { t } = useLanguage();
   return (
   <div style={{
@@ -6037,7 +6056,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
           <div {...helpDialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
-              <button onClick={() => setHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+              <button onClick={() => setHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
             </div>
             {HELP_FAQS.map((faq, i) => (
               <div key={faq.qKey} style={{ borderBottom: `1px solid ${BRAND.border}`, padding: "10px 0" }}>
@@ -6229,7 +6248,7 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
       <div {...dialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 22, maxWidth: 460, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
           <h3 style={{ fontSize: 17, fontWeight: 800, color: BRAND.text, margin: 0 }}>🐞 {t("issue.title")}</h3>
-          <button onClick={onClose} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+          <button onClick={onClose} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
         </div>
         <p style={{ fontSize: 12.5, color: BRAND.textMuted, lineHeight: 1.5, margin: "0 0 16px" }}>{t("issue.subtitle")}</p>
 
@@ -7448,7 +7467,60 @@ const Icons = {
       <circle cx="12" cy="8" r="1" fill="currentColor" />
     </svg>
   ),
+  Menu: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Lock: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Inbox: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 12h-6l-2 3h-4l-2-3H2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Doc: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14 3v5h5M9 13h6M9 17h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Alert: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Flag: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 22v-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Ban: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.7 5.7l12.6 12.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Eye: ({ size = 18 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
 };
+
+// Small decorative Icons glyph sitting inline before a text label -- the
+// replacement for emoji prefixes that used to live inside translation strings.
+const InlineIcon = ({ icon: I, size = 12 }) => (
+  <span aria-hidden="true" style={{ display: "inline-flex", verticalAlign: "-0.15em", marginRight: 4, flexShrink: 0 }}><I size={size} /></span>
+);
 
 // ---------------------------------------------------------------------------
 // Layout kit
@@ -8504,7 +8576,7 @@ const AuthModal = ({
               as everywhere else. */}
           {view === "register" && form.accountRole === "employer" && authFeePct > 0 && (
             <div style={{ margin: "0 -4px 16px -4px", padding: "12px 14px", borderRadius: 12, ...chipTone("green"), fontSize: 13, fontWeight: 600, lineHeight: 1.5 }}>
-              {translate("auth.employerFreeTrial")}
+              <InlineIcon icon={Icons.Gift} />{translate("auth.employerFreeTrial")}
             </div>
           )}
           {/* Same defect, same fix: the register-errors banner. */}
@@ -8633,16 +8705,72 @@ const DISPUTE_STATUS_LABEL_KEYS = {
 };
 const SHIFT_STATUS_LABEL_KEYS = {
   open: "employer.shiftStatusOpen",
+  filled: "employer.shiftStatusFilled",
   closed: "employer.shiftStatusClosed",
   completed: "employer.shiftStatusCompleted",
   cancelled: "employer.shiftStatusCancelled",
+  draft: "employer.shiftStatusDraft",
 };
 // Generic lookup-map translator: falls back to the raw status if it's ever
 // missing from the map, so an unexpected/future DB value degrades to the
 // raw string instead of throwing or rendering blank.
 const statusLabel = (status, labelKeys, t) => t(labelKeys[status] ?? status);
 const disputeStatusLabel = (status, t) => statusLabel(status, DISPUTE_STATUS_LABEL_KEYS, t);
-const shiftStatusLabel = (status, t) => statusLabel(status, SHIFT_STATUS_LABEL_KEYS, t);
+const shiftStatusLabel = (status, t) => {
+  if (SHIFT_STATUS_LABEL_KEYS[status]) return t(SHIFT_STATUS_LABEL_KEYS[status]);
+  // Unknown/future value: humanise rather than print raw snake_case.
+  const raw = String(status || "").replaceAll("_", " ").trim();
+  return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "—";
+};
+
+// ONE status -> tone map for every worker/employer/admin screen. Owner-approved
+// design language:
+//   blue  = needs action by the viewer   (offer awaiting the worker; applicants
+//           an employer still has to review)
+//   amber = in progress, no action       (shortlisted)
+//   teal  = in progress, on the clock    (checked in -- deliberately NOT the
+//           blue of "Offer sent", which means something else)
+//   green = settled / good               (confirmed, accepted, completed, paid)
+//   gray  = ended normally               (not selected, expired, withdrawn,
+//           cancelled, closed) -- NOT red: nothing went wrong
+//   red   = genuine problem              (dispute, no-show)
+// Same status -> same colour on every screen. The one viewer-dependent case
+// is an application still "pending": work for the employer (blue), just
+// waiting for the worker (gray).
+// kind: "shift" | "application". Display-only pseudo-statuses:
+// application "checked_in" and "shift_cancelled".
+// Returns { color, icon } -- spread straight into <Pill {...statusTone(..)} />.
+const STATUS_TONES = {
+  shift: {
+    open: { color: "blue", icon: null },
+    filled: { color: "green", icon: null },
+    completed: { color: "green", icon: null },
+    closed: { color: "gray", icon: null },
+    cancelled: { color: "gray", icon: null },
+    draft: { color: "gray", icon: null },
+  },
+  application: {
+    offered: { color: "blue", icon: Icons.Clock },
+    pending: { color: "gray", icon: null },
+    shortlisted: { color: "amber", icon: null },
+    checked_in: { color: "teal", icon: Icons.Pin },
+    accepted: { color: "green", icon: Icons.Check },
+    confirmed: { color: "green", icon: Icons.Check },
+    completed: { color: "green", icon: Icons.Check },
+    paid: { color: "green", icon: Icons.Check },
+    rejected: { color: "gray", icon: null },
+    expired: { color: "gray", icon: null },
+    withdrawn: { color: "gray", icon: null },
+    cancelled: { color: "gray", icon: null },
+    shift_cancelled: { color: "gray", icon: null },
+    disputed: { color: "red", icon: Icons.Alert },
+    no_show: { color: "red", icon: Icons.Alert },
+  },
+};
+const statusTone = (kind, status, viewer = "worker") => {
+  if (kind === "application" && status === "pending" && viewer === "employer") return { color: "blue", icon: null };
+  return STATUS_TONES[kind]?.[status] ?? { color: "gray", icon: null };
+};
 
 // Single-series (one worker, one measure: RM earned) bar chart for the
 // Earnings tab. Deliberately plain divs, not SVG or a charting library —
@@ -8816,9 +8944,9 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12 }}>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: 14, color: BRAND.text }}>F&amp;B Server — Corporate Dinner</div>
-                  <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2 }}>📍 Bangsar, Kuala Lumpur</div>
+                  <div style={{ fontSize: 11.5, color: BRAND.textMuted, marginTop: 2 }}><InlineIcon icon={Icons.Pin} size={11} />Bangsar, Kuala Lumpur</div>
                 </div>
-                <span style={{ background: BRAND.greenLight, color: BRAND.onGreenLight, fontSize: 10.5, fontWeight: 800, padding: "3px 8px", borderRadius: 99, whiteSpace: "nowrap" }}>{t("landing.sampleFundedBadge")}</span>
+                <span style={{ background: BRAND.greenLight, color: BRAND.onGreenLight, fontSize: 10.5, fontWeight: 800, padding: "3px 8px", borderRadius: 99, whiteSpace: "nowrap" }}><InlineIcon icon={Icons.Check} size={10} />{t("landing.sampleFundedBadge")}</span>
               </div>
               {[[t("landing.sampleRateLabel"), `RM 16.00${t("landing.sampleRateUnit")}`], [t("landing.sampleLengthLabel"), `6${t("landing.sampleLengthUnit")}`], [t("landing.samplePayLabel"), "RM 96.00"]].map(([k, v]) => (
                 <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, color: BRAND.textMuted, padding: "5px 0" }}>
@@ -8913,7 +9041,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
               stays hidden until the rate is switched on. */}
           {landingFeePct > 0 && (
             <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 10, ...chipTone("green"), fontSize: 12.5, fontWeight: 600 }}>
-              {t("landing.employerFreeTrial")}
+              <InlineIcon icon={Icons.Gift} />{t("landing.employerFreeTrial")}
             </div>
           )}
           <Btn variant="secondary" onClick={() => onRequireAuth("register", "employer")} style={{ marginTop: 14 }}>
@@ -8979,7 +9107,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           BRAND.amber on it measures 2.86:1. Same pairing rule as every other
           *Light surface in this file. */}
       <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: BRAND.onAmberLight, fontWeight: 600, textAlign: "center" }}>
-        👁️ {t("worker.previewModeBanner")}
+        <InlineIcon icon={Icons.Eye} />{t("worker.previewModeBanner")}
       </span>
       <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.(userRole === "employer" ? "employer" : "admin")} style={{ padding: "3px 10px" }}>
         {t("worker.previewModeExitBtn")}
@@ -10723,7 +10851,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       );
     }
     if (a.checkedOutAt && a.employerHoursConfirmedAt) {
-      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.greenOnSurface }}>{t("worker.hoursConfirmedBadge")}</span>;
+      return <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.greenOnSurface }}><InlineIcon icon={Icons.Check} />{t("worker.hoursConfirmedBadge")}</span>;
     }
     if (a.checkedOutAt) {
       return (
@@ -10897,7 +11025,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <Avatar name={profileName} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
           <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text, marginTop: 10 }}>{profileName}</div>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 6 }}>
-            <span style={{ color: BRAND.accent, fontSize: 14 }}>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span>
+            <span style={{ color: BRAND.accent, fontSize: 14 }}><InlineIcon icon={Icons.Star} />{(profileStats.rating ?? 0).toFixed(1)}</span>
             <Badge color="teal">{t("profile.shiftsDoneBadge").replace("{count}", workerShiftsDone ?? 0)}</Badge>
           </div>
         </div>
@@ -11076,7 +11204,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 employer can see exactly what a worker sees. */}
             {previewMode && (
               <div style={{ background: BRAND.amberLight, border: `1px solid ${BRAND.amber}`, borderRadius: 10, padding: "10px 12px", marginBottom: 12, fontSize: 12, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
-                👁️ {t("worker.previewModeBlocked")}
+                <InlineIcon icon={Icons.Eye} />{t("worker.previewModeBlocked")}
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
@@ -11237,7 +11365,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <span style={{ fontSize: 13, color: BRAND.textMuted, width: 130, flexShrink: 0 }}>{k}</span>
                 <span style={{ fontSize: 13, color: BRAND.text, fontWeight: 500 }}>
                   {v}
-                  {note && <span style={{ display: "block", fontSize: 11, color: BRAND.textMuted, fontWeight: 400, marginTop: 2 }}>🔒 {note}</span>}
+                  {note && <span style={{ display: "block", fontSize: 11, color: BRAND.textMuted, fontWeight: 400, marginTop: 2 }}><InlineIcon icon={Icons.Lock} size={11} />{note}</span>}
                 </span>
               </div>
             ))}
@@ -11454,7 +11582,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ padding: isMobile ? "8px 12px 12px" : "8px 20px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
               {filtered.length === 0 && (
                 <EmptyState
-                  icon="🔍"
+                  icon={<Icons.Search size={28} />}
                   // Three different situations, three messages: still loading,
                   // nothing posted at all, or the filters hide everything.
                   title={liveShifts === null ? t("discover.loadingShifts") : liveShifts.length === 0 ? t("discover.noOpenShifts") : t("discover.noShiftsMatch")}
@@ -11570,7 +11698,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         {tab === "applications" && !user && (
           <AuthGate
             onRequireAuth={onRequireAuth}
-            icon="📄"
+            icon={<Icons.Doc size={28} />}
             title={t("myBids.signInTitle")}
             hint={t("myBids.signInHint")}
           />
@@ -11595,17 +11723,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       would otherwise be invisible until they opened the bid. */}
                   {reconfirmState(a) && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.amberLight, fontSize: 11, fontWeight: 700, color: "#92400E", marginBottom: 8 }}>
-                      ⚠️ {t("reconfirm.cta")}
+                      <InlineIcon icon={Icons.Alert} />{t("reconfirm.cta")}
                     </div>
                   )}
                   {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.grayLight, fontSize: 11, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>
-                      {t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.shiftStartAt)}
+                      <Icons.Clock size={12} />{t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.shiftStartAt)}
                     </div>
                   )}
                   {a.status === "offered" && a.offerExpiresAt && (
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: 99, background: BRAND.blueLight, fontSize: 11, fontWeight: 600, color: BRAND.blue, marginBottom: 8 }}>
-                      {t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}
+                      <Icons.Clock size={12} />{t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}
                     </div>
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -11626,7 +11754,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </div>
                     <Pill
                       label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
-                      color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
+                      {...statusTone("application", a.shiftStatus === "cancelled" ? "shift_cancelled" : a.status)}
                     />
                   </div>
                   {/* This was a vertical dotted timeline copied from the
@@ -11686,7 +11814,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </div>
                   {a.status === "shortlisted" && (
                     <div style={{ marginTop: 12, padding: "8px 12px", background: BRAND.amberLight, borderRadius: 8, fontSize: 12, color: BRAND.onAmberLight }}>
-                      {t("myBids.shortlistedBanner")}
+                      <InlineIcon icon={Icons.Star} />{t("myBids.shortlistedBanner")}
                     </div>
                   )}
                   {a.status === 'accepted' && !a.workerSignedAt && a.shiftStatus !== 'cancelled' && (
@@ -11694,12 +11822,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         ...a, applicationId: a.id, employerName: a.employer,
                       }); }}
                       style={{marginTop:6, padding:'6px 14px', borderRadius:6, background: BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600}}>
-                      {t("myBids.signContractBtn")}
+                      <InlineIcon icon={Icons.Edit} />{t("myBids.signContractBtn")}
                     </button>
                   )}
                   {a.status === 'accepted' && a.workerSignedAt && (
                     <div style={{display:'flex', alignItems:'center', gap:8, marginTop:4}}>
-                      <span style={{fontSize:11, color: BRAND.greenOnSurface}}>{t("myBids.contractSignedBadge")}</span>
+                      <span style={{fontSize:11, color: BRAND.greenOnSurface}}><InlineIcon icon={Icons.Check} />{t("myBids.contractSignedBadge")}</span>
                       <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                           ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                         }); }}
@@ -11726,7 +11854,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {unrated.length > 0 && (
               <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 12, padding: 14, marginBottom: 14 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
-                  ⭐ {t("rating.promptTitle", { count: unrated.length })}
+                  <InlineIcon icon={Icons.Star} />{t("rating.promptTitle", { count: unrated.length })}
                 </div>
                 <div style={{ fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
                   {t("rating.promptBody", { shift: unrated[0].shiftTitle })}
@@ -11740,7 +11868,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {(liveApplications ?? []).length === 0 && (
                 <EmptyState
-                  icon="📄"
+                  icon={<Icons.Doc size={28} />}
                   title={liveApplications === null ? t("myBids.loadingBids") : t("myBids.noBidsYet")}
                   hint={liveApplications === null ? t("myBids.loadingBidsHint") : t("myBids.noBidsHint")}
                 />
@@ -11815,7 +11943,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 borderRadius: 12, padding: 14, marginBottom: 14,
               }}>
                 <div style={{ fontSize: 13.5, fontWeight: 800, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, marginBottom: 6 }}>
-                  ⚠️ {t("reconfirm.heading")}
+                  <InlineIcon icon={Icons.Alert} />{t("reconfirm.heading")}
                 </div>
                 <div style={{ fontSize: 12.5, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
                   {t("reconfirm.body", {
@@ -11842,19 +11970,19 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {a.status === "pending" && a.shiftStartAt && a.shiftStatus !== "cancelled" && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.grayLight, fontSize: 12, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>
-                {t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.shiftStartAt)}
+                <Icons.Clock size={12} />{t("myBids.employerDecidesByPrefix")}{formatShiftDate(a.shiftStartAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.shiftStartAt)}
               </div>
             )}
             {a.status === "offered" && a.offerExpiresAt && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 99, background: BRAND.blueLight, fontSize: 12, fontWeight: 600, color: BRAND.blue, marginBottom: 10 }}>
-                {t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.offerExpiresAt)}
+                <Icons.Clock size={12} />{t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.offerExpiresAt)}
               </div>
             )}
             <div style={{ fontSize: 20, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill
                 label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
-                color={a.shiftStatus === "cancelled" ? "red" : a.status === "offered" ? "blue" : a.status === "shortlisted" ? "amber" : a.status === "accepted" ? "green" : (a.status === "expired" || a.status === "rejected") ? "red" : "gray"}
+                {...statusTone("application", a.shiftStatus === "cancelled" ? "shift_cancelled" : a.status)}
               />
               {a.shiftCategory && <Badge color="amber">{shiftCategoryLabel(a.shiftCategory, t)}</Badge>}
             </div>
@@ -11870,7 +11998,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   {t("myBids.lateCancellationBody")}
                 </div>
                 <div style={{ fontSize: 11, color: BRAND.textMuted, marginBottom: 12 }}>
-                  {t("myBids.respondByPrefix")}{new Date(a.cancellationChoiceDeadline).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', timeZone: MY_TIMEZONE })}, {new Date(a.cancellationChoiceDeadline).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', timeZone: MY_TIMEZONE })}
+                  <InlineIcon icon={Icons.Clock} />{t("myBids.respondByPrefix")}{new Date(a.cancellationChoiceDeadline).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', timeZone: MY_TIMEZONE })}, {new Date(a.cancellationChoiceDeadline).toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit', timeZone: MY_TIMEZONE })}
                 </div>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
                   <Btn variant="secondary" style={{ flex: 1, justifyContent: "center" }}
@@ -11903,7 +12031,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {a.status === "offered" && a.shiftStatus !== "cancelled" && (
               <div style={{ padding: "10px 14px", background: BRAND.blueLight, borderRadius: 10, fontSize: 12, color: BRAND.blue, marginBottom: 16 }}>
-                <div>{t("myBids.selectedNotice")}</div>
+                <div><InlineIcon icon={Icons.Star} />{t("myBids.selectedNotice")}</div>
                 <button
                   onClick={() => setContractPreviewOpenIds(prev => { const next = new Set(prev); next.has(a.id) ? next.delete(a.id) : next.add(a.id); return next; })}
                   style={{ background: "none", border: "none", padding: 0, marginTop: 8, cursor: "pointer", fontSize: 12, fontWeight: 700, color: BRAND.blue, textDecoration: "underline" }}
@@ -11968,7 +12096,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </Card>
             {a.status === "shortlisted" && (
               <div style={{ padding: "10px 14px", background: BRAND.amberLight, borderRadius: 10, fontSize: 12, color: BRAND.onAmberLight, marginBottom: 16 }}>
-                {t("myBids.shortlistedBanner")}
+                <InlineIcon icon={Icons.Star} />{t("myBids.shortlistedBanner")}
               </div>
             )}
             <div style={{ display: "flex", gap: 10 }}>
@@ -11991,7 +12119,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 </>
               )}
               {a.status === "accepted" && !a.workerSignedAt && a.shiftStatus !== "cancelled" && (
-                <Btn onClick={() => setWorkerContractModal({ ...a, applicationId: a.id, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}>{t("myBids.signContractBtn")}</Btn>
+                <Btn onClick={() => setWorkerContractModal({ ...a, applicationId: a.id, employerName: a.employer })} style={{ flex: 1, justifyContent: "center" }}><InlineIcon icon={Icons.Edit} />{t("myBids.signContractBtn")}</Btn>
               )}
               {/* Deliberately available whether or not the contract is signed,
                   and never gated on employer approval -- a worker who cannot
@@ -12041,7 +12169,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                   {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
-                      {a.employerHoursConfirmedAt ? t("worker.hoursConfirmedBadge") : t("worker.checkoutPendingBadge")}
+                      {a.employerHoursConfirmedAt ? <span><InlineIcon icon={Icons.Check} />{t("worker.hoursConfirmedBadge")}</span> : t("worker.checkoutPendingBadge")}
                       {!a.employerHoursConfirmedAt && renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "center", "me")}
                     </div>
                   )}
@@ -12071,7 +12199,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         {tab === 'chat' && !user && (
           <AuthGate
             onRequireAuth={onRequireAuth}
-            icon="💬"
+            icon={<Icons.Chat size={28} />}
             title={t("chat.signInTitle")}
             hint={t("chat.signInHint")}
           />
@@ -12357,7 +12485,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         {tab === "earnings" && !user && (
           <AuthGate
             onRequireAuth={onRequireAuth}
-            icon="💸"
+            icon={<Icons.Wallet size={28} />}
             title={t("earnings.signInTitle")}
             hint={t("earnings.signInHint")}
           />
@@ -12410,7 +12538,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </>
             ) : payoutRows.length === 0 ? (
               <EmptyState
-                icon="💸"
+                icon={<Icons.Wallet size={28} />}
                 title={t("earnings.noPayoutsTitle")}
                 hint={t("earnings.noPayoutsHint")}
               />
@@ -12493,7 +12621,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         {tab === "profile" && !user && (
           <AuthGate
             onRequireAuth={onRequireAuth}
-            icon="👤"
+            icon={<Icons.User size={28} />}
             title={t("profile.signInTitle")}
             hint={t("profile.signInHint")}
           />
@@ -12571,12 +12699,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               )}
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
                 <Badge color="teal">{t("profile.standardKyc")}</Badge>
-                <Badge color="green">🛡️ {profileStats.reliability_score}/100 {t("profile.reliabilitySuffix")}</Badge>
+                <Badge color="green"><InlineIcon icon={Icons.Shield} />{profileStats.reliability_score}/100 {t("profile.reliabilitySuffix")}</Badge>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label={t("profile.shiftsDone")} value={workerShiftsDone ?? "—"} color={BRAND.primaryOnSurface} />
-              <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span>⭐ {(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
+              <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span><InlineIcon icon={Icons.Star} />{(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
               <Stat label={t("profile.strikes")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
               <Stat label={t("profile.onTimeRate")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
             </div>
@@ -12598,7 +12726,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {[{ tier: t("profile.kycBasic"), status: "verified" }, { tier: t("profile.kycStandard"), status: "verified" }, { tier: t("profile.kycAdvanced"), status: "not started" }].map((v, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? `1px solid ${BRAND.border}` : "none" }}>
                   <span style={{ fontSize: 13, color: BRAND.text }}>{v.tier}</span>
-                  <Pill label={v.status === "verified" ? t("profile.verified") : "—"} color={v.status === "verified" ? "green" : "gray"} />
+                  <Pill label={v.status === "verified" ? t("profile.verified") : "—"} color={v.status === "verified" ? "green" : "gray"} icon={v.status === "verified" ? Icons.Check : null} />
                 </div>
               ))}
             </Card>
@@ -12614,7 +12742,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
               {myReceivedRatings === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
               {myReceivedRatings && myReceivedRatings.length === 0 && (
-                <EmptyState icon="⭐" title={t("profile.noRatingsTitle")} hint={t("profile.noRatingsHint")} />
+                <EmptyState icon={<Icons.Star size={28} />} title={t("profile.noRatingsTitle")} hint={t("profile.noRatingsHint")} />
               )}
               {myReceivedRatings && myReceivedRatings.length > 0 && (
                 <>
@@ -12758,7 +12886,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <div {...settingsHelpDialog} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>❓ {t("help.title")}</h3>
-                    <button onClick={() => setSettingsHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+                    <button onClick={() => setSettingsHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
                   </div>
                   {HELP_FAQS.map((faq, i) => (
                     <div key={faq.qKey} style={{ borderBottom: `1px solid ${BRAND.border}`, padding: "10px 0" }}>
@@ -12783,7 +12911,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
                 <AuthGate
                   onRequireAuth={onRequireAuth}
-                  icon="🏦"
+                  icon={<Icons.Bank size={28} />}
                   title={t("settings.bankingSignInTitle")}
                   hint={t("settings.bankingSignInHint")}
                 />
@@ -13037,7 +13165,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {workerContractModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...workerContractDialog} style={{background: BRAND.surfaceElevated, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-          <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("contract.workerTitle")}</h3>
+          <h3 style={{fontSize:18, fontWeight:700, color: BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.workerTitle")}</h3>
           <p style={{fontSize:12, color: BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
 
           {(() => {
@@ -13128,7 +13256,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 setWorkerContractModal(null);
               }}
                 style={{flex:2, padding:'10px', borderRadius:8, background: BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-                {t("contract.signBtn")}
+                <InlineIcon icon={Icons.Edit} />{t("contract.signBtn")}
               </button>
             )}
           </div>
@@ -13226,7 +13354,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:4}}>
             <h3 style={{fontSize:18, fontWeight:800, color: BRAND.text, margin:0}}>{t("slip.title")}</h3>
             <button onClick={() => setSlipPayout(null)} aria-label={t("common.close")}
-              style={{border:'none', background:'none', cursor:'pointer', color: BRAND.textMuted, fontFamily:'inherit', fontSize:18, lineHeight:1, padding:0}}>×</button>
+              style={{border:'none', background:'none', cursor:'pointer', color: BRAND.textMuted, fontFamily:'inherit', fontSize:18, lineHeight:1, padding:0}}><Icons.Close size={18} /></button>
           </div>
           <p style={{fontSize:12, color: BRAND.textMuted, margin:'0 0 16px', lineHeight:1.5}}>{t("slip.subtitle")}</p>
 
@@ -13333,7 +13461,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {cancellationContractModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...cancellationDialog} style={{background:BRAND.surface, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-          <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}>{t("contract.cancellationTitle")}</h3>
+          <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.cancellationTitle")}</h3>
           <p style={{fontSize:12, color:BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
 
           <div style={{background:BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:BRAND.text, marginBottom:16}}>
@@ -13370,7 +13498,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               setCancellationContractModal(null);
             }}
               style={{flex:2, padding:'10px', borderRadius:8, background:BRAND.primary, color:'#fff', border:'none', cursor:'pointer', fontWeight:600}}>
-              {t("contract.signBtn")}
+              <InlineIcon icon={Icons.Edit} />{t("contract.signBtn")}
             </button>
           </div>
         </div>
@@ -15181,7 +15309,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <div style={{ fontSize: 11, color: BRAND.textMuted, fontWeight: 500 }}>{t("employer.tagline")}</div>
         </div>
         {compact && (
-          <button onClick={() => setSidebarOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1, padding: 4 }}>×</button>
+          <button onClick={() => setSidebarOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1, padding: 4 }}><Icons.Close size={18} /></button>
         )}
       </div>
       {navItems.map(n => (
@@ -15244,7 +15372,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             title={t("employer.awaitingReconfirmHint")}
             style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 7px", borderRadius: 99, background: BRAND.amberLight, fontSize: 10.5, fontWeight: 700, color: BRAND.onAmberLight }}
           >
-            ⚠️ {t("employer.awaitingReconfirm")}
+            <InlineIcon icon={Icons.Alert} />{t("employer.awaitingReconfirm")}
           </div>
         )}
       </div>
@@ -15272,7 +15400,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           action === 'withdrawn' ? t("employer.pillWithdrawn") :
           t("employer.pillPending")
         }
-        color={isCheckedIn ? "blue" : action === "accepted" ? "green" : action === "shortlisted" ? "amber" : action === "offered" ? "blue" : (action === "rejected" || action === "expired") ? "red" : "gray"}
+        {...statusTone("application", isCheckedIn ? "checked_in" : action, "employer")}
       />
       {action === 'offered' && a.offerExpiresAt && (
         <div style={{ fontSize: 10, color: BRAND.textMuted, marginTop: 2 }}>by {formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short' })}, {formatShiftTime(a.offerExpiresAt)}</div>
@@ -15393,10 +15521,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
         </div>
       )}
-      {action === "offered" && <span style={{ fontSize: 12, color: BRAND.primaryOnSurface }}>{t("employer.waitingOnWorker")}</span>}
+      {action === "offered" && <span style={{ fontSize: 12, color: BRAND.primaryOnSurface }}><InlineIcon icon={Icons.Clock} />{t("employer.waitingOnWorker")}</span>}
       {action === "accepted" && selectedShift.status !== "completed" && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12, color: BRAND.greenOnSurface }}>{t("employer.confirmedStatus")}</span>
+          <span style={{ fontSize: 12, color: BRAND.greenOnSurface }}><InlineIcon icon={Icons.Check} />{t("employer.confirmedStatus")}</span>
           <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
           {/* Only once the shift has actually started, and only for someone who
               never checked in -- the same preconditions employer_mark_no_show
@@ -15415,8 +15543,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           )}
         </div>
       )}
-      {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.redOnSurface }}>{t("employer.notSelected")}</span>}
-      {action === "expired" && <span style={{ fontSize: 12, color: BRAND.redOnSurface }}>{t("employer.offerExpiredStatus")}</span>}
+      {action === "rejected" && <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("employer.notSelected")}</span>}
+      {action === "expired" && <span style={{ fontSize: 12, color: BRAND.textMuted }}>{t("employer.offerExpiredStatus")}</span>}
       {action === "accepted" && selectedShift.status === "completed" && (
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           <Btn size="xs" variant="secondary" onClick={() => setViewContractModal(a)}>{t("employer.viewContractBtn")}</Btn>
@@ -15438,7 +15566,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           </div>
           <HoursNote label={t("hours.workerNoteLabel")} text={a.workerCheckoutNote} tone="them" />
           {a.employerHoursConfirmedAt && (
-            <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}>{t("employer.hoursConfirmedLabel")}</div>
+            <div style={{ color: BRAND.greenOnSurface, fontWeight: 600, marginTop: 2 }}><InlineIcon icon={Icons.Check} />{t("employer.hoursConfirmedLabel")}</div>
           )}
           {a.employerHoursDisputed && (
             <div style={{ color: BRAND.redOnSurface, fontWeight: 600, marginTop: 2 }}>
@@ -15512,7 +15640,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         <>
           {/* Mobile top bar: hamburger toggle instead of a permanently-expanded sidebar */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: `1px solid ${BRAND.border}`, background: BRAND.surface, flexShrink: 0 }}>
-            <button onClick={() => setSidebarOpen(true)} aria-label={t("employer.openMenu")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.text, padding: 4, lineHeight: 1 }}>☰</button>
+            <button onClick={() => setSidebarOpen(true)} aria-label={t("employer.openMenu")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.text, padding: 4, lineHeight: 1, display: "inline-flex" }}><Icons.Menu size={20} /></button>
             <div style={{ fontWeight: 800, fontSize: 15, color: BRAND.text }}>{navItems.find(n => n.id === view)?.label || "CariGaji"}</div>
           </div>
           {sidebarOpen && createPortal(
@@ -15594,7 +15722,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             {unrated.length > 0 && (
               <Card style={{ marginBottom: 20, border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
                 <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
-                  ⭐ {t("employer.ratePromptTitle", { count: unrated.length })}
+                  <InlineIcon icon={Icons.Star} />{t("employer.ratePromptTitle", { count: unrated.length })}
                 </div>
                 <div style={{ fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
                   {t("employer.ratePromptBody", { name: unrated[0].workerName, shift: unrated[0].shiftTitle })}
@@ -15636,7 +15764,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.activeShiftsHeading")}</div>
                 {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").length === 0 && (
                   <EmptyState
-                    icon="📋"
+                    icon={<Icons.List size={28} />}
                     title={liveEmployerShifts === null ? t("employer.loadingShifts") : t("employer.noActiveShifts")}
                     hint={liveEmployerShifts === null ? t("employer.loadingShiftsHint") : t("employer.noActiveShiftsHint")}
                   />
@@ -15648,7 +15776,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.text, marginBottom: 4 }}>{s.title}</div>
                         <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.isMultiDay ? formatOccurrencesSummary(s.occurrences) : `${s.date} · ${s.time}`}</div>
                       </div>
-                      <Pill label={shiftStatusLabel(s.status, t)} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
+                      <Pill label={shiftStatusLabel(s.status, t)} {...statusTone("shift", s.status)} />
                     </div>
                     <div style={{ marginTop: 12 }}>
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
@@ -15700,7 +15828,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             </div>
             {(liveEmployerShifts ?? []).length === 0 && (
               <EmptyState
-                icon="📋"
+                icon={<Icons.List size={28} />}
                 title={liveEmployerShifts === null ? t("employer.loadingShifts") : t("employer.noShiftsPostedYet")}
                 hint={liveEmployerShifts === null ? t("employer.loadingShiftsHint") : t("employer.noShiftsPostedYetHint")}
               />
@@ -15711,7 +15839,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
                       <span style={{ fontWeight: 700, fontSize: 15, color: BRAND.text }}>{s.title}</span>
-                      <Pill label={shiftStatusLabel(s.status, t)} color={s.status === "open" ? "blue" : s.status === "completed" ? "green" : "gray"} />
+                      <Pill label={shiftStatusLabel(s.status, t)} {...statusTone("shift", s.status)} />
                     </div>
                     <div style={{ fontSize: 12, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
                   </div>
@@ -15825,7 +15953,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, marginBottom: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <Pill label={shiftStatusLabel(selectedShift.status, t)} color={selectedShift.status === "open" ? "blue" : selectedShift.status === "closed" ? "amber" : selectedShift.status === "completed" ? "green" : selectedShift.status === "cancelled" ? "red" : "gray"} />
+              <Pill label={shiftStatusLabel(selectedShift.status, t)} {...statusTone("shift", selectedShift.status)} />
               <span style={{ fontSize: 14, color: BRAND.textMuted }}>{selectedShift.isMultiDay ? formatOccurrencesSummary(selectedShift.occurrences) : selectedShift.date}</span>
             </div>
             {(() => {
@@ -15917,7 +16045,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             )}
             {(liveApplicants ?? []).length === 0 && (
               <EmptyState
-                icon="👥"
+                icon={<Icons.Users size={28} />}
                 title={liveApplicants === null ? t("employer.loadingApplicants") : t("employer.noApplicantsYet")}
                 hint={liveApplicants === null ? t("employer.loadingApplicantsHint") : t("employer.noApplicantsHint")}
               />
@@ -15980,7 +16108,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 no applicants when it has six would be a lie the UI told. */}
             {(liveApplicants ?? []).length > 0 && visibleApplicants.length === 0 && (
               <EmptyState
-                icon="🔍"
+                icon={<Icons.Search size={28} />}
                 title={t("employer.noneMatchFilter")}
                 hint={t("employer.noneMatchFilterHint")}
               />
@@ -16145,7 +16273,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                             disabled={form.occurrences.length <= 1}
                             aria-label={t("employer.removeDay")}
                             style={{ width: 36, height: 36, borderRadius: 8, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: form.occurrences.length <= 1 ? BRAND.textMuted : BRAND.red, cursor: form.occurrences.length <= 1 ? "not-allowed" : "pointer", fontSize: 16, opacity: form.occurrences.length <= 1 ? 0.4 : 1 }}
-                          >×</button>
+                          ><Icons.Close size={18} /></button>
                         )}
                       </div>
                     ))}
@@ -16755,7 +16883,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <div style={{ fontSize: 14, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
               {myEmployerRatings === null && <div style={{ fontSize: 12, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
               {myEmployerRatings && myEmployerRatings.length === 0 && (
-                <EmptyState icon="⭐" title={t("profile.noRatingsTitle")} hint={t("employer.noRatingsHint")} />
+                <EmptyState icon={<Icons.Star size={28} />} title={t("profile.noRatingsTitle")} hint={t("employer.noRatingsHint")} />
               )}
               {myEmployerRatings && myEmployerRatings.length > 0 && (
                 <>
@@ -16856,7 +16984,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   style={{ fontSize: 12 }}
                 />
                 {employerProfile?.ssm_document_path && !employerCompanyForm.ssmCertFile && (
-                  <div style={{ fontSize: 11, color: BRAND.greenOnSurface, marginTop: 6 }}>{t("employer.ssmCertOnFile")}</div>
+                  <div style={{ fontSize: 11, color: BRAND.greenOnSurface, marginTop: 6 }}><InlineIcon icon={Icons.Check} />{t("employer.ssmCertOnFile")}</div>
                 )}
               </label>
               {companyDetailsMessage && <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 10 }}>{companyDetailsMessage}</div>}
@@ -17180,7 +17308,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {contractModal && (
         <div style={{position:'fixed', inset:0, background:BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
           <div {...contractDialog} style={{background:BRAND.surfaceElevated, borderRadius:16, padding:24, maxWidth:480, width:'100%', maxHeight:'80vh', overflowY:'auto'}}>
-            <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}>{t("contract.employerTitle")}</h3>
+            <h3 style={{fontSize:18, fontWeight:700, color:BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.employerTitle")}</h3>
             <p style={{fontSize:12, color:BRAND.textMuted, marginBottom:16}}>{t("contract.employerSubtitle")}</p>
             <div style={{background:BRAND.grayLight, borderRadius:8, padding:16, fontSize:13, lineHeight:1.8, color:BRAND.text, marginBottom:16}}>
               <p><strong>{t("contract.agreementHeading")}</strong></p>
@@ -17462,7 +17590,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <div style={{ fontSize:12, fontWeight:600, color: BRAND.text }}>{displayProtectedText(h.shift?.title ?? 'Shift')}</div>
                   <div style={{ fontSize:11, color: BRAND.textMuted }}>{formatShiftDate(h.shift?.start_at)}</div>
                 </div>
-                <Pill label={h.shift?.status === 'completed' && h.status === 'accepted' ? t("employer.historyCompleted") : h.status} color={h.status === 'accepted' ? 'green' : (h.status === 'rejected' || h.status === 'expired') ? 'red' : 'gray'} />
+                <Pill label={h.shift?.status === 'completed' && h.status === 'accepted' ? t("employer.historyCompleted") : h.status} {...statusTone("application", h.shift?.status === 'completed' && h.status === 'accepted' ? "completed" : h.status, "employer")} />
               </div>
             ))}
             <div style={{ fontSize:11, color: BRAND.textMuted, marginTop:10, marginBottom:14 }}>{t("employer.profileHistoryScopeNote")}</div>
@@ -18163,7 +18291,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div style={{ fontSize: 11, color: ADMIN_SIDEBAR_DIM, fontWeight: 500 }}>Admin Dashboard</div>
         </div>
         {compact && (
-          <button onClick={() => setSidebarOpen(false)} aria-label="Close admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_MUTED, lineHeight: 1, padding: 4 }}>×</button>
+          <button onClick={() => setSidebarOpen(false)} aria-label="Close admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_MUTED, lineHeight: 1, padding: 4 }}><Icons.Close size={18} /></button>
         )}
       </div>
       {navItems.map(n => {
@@ -18210,7 +18338,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               hamburger. Eight stacked full-width buttons otherwise pushed every
               actual metric below the fold. */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: BRAND.dark, flexShrink: 0 }}>
-            <button onClick={() => setSidebarOpen(true)} aria-label="Open admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_ON_DARK, padding: 4, lineHeight: 1 }}>☰</button>
+            <button onClick={() => setSidebarOpen(true)} aria-label="Open admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: ADMIN_SIDEBAR_ON_DARK, padding: 4, lineHeight: 1, display: "inline-flex" }}><Icons.Menu size={20} /></button>
             <div style={{ fontWeight: 800, fontSize: 15, color: ADMIN_SIDEBAR_ON_DARK }}>{navItems.find(n => n.id === view)?.label || "Admin"}</div>
           </div>
           {sidebarOpen && createPortal(
@@ -18317,7 +18445,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <div style={{ color: BRAND.textMuted, padding: 16 }}>Loading...</div>
             )}
             {kycQueue?.length === 0 && (
-              <div style={{ color: BRAND.textMuted, padding: 16 }}>✅ No pending KYC submissions.</div>
+              <div style={{ color: BRAND.textMuted, padding: 16 }}><InlineIcon icon={Icons.Check} size={14} />No pending KYC submissions.</div>
             )}
 
             {kycQueue?.map(worker => (
@@ -18356,7 +18484,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       Object.entries(kycSignedUrls[worker.id]).map(([filename, url]) => (
                         <a key={filename} href={url} target="_blank" rel="noopener noreferrer"
                           style={{ fontSize: 12, color: BRAND.primaryOnSurface, textDecoration: "underline" }}>
-                          📄 {filename}
+                          <InlineIcon icon={Icons.Doc} />{filename}
                         </a>
                       ))
                     )}
@@ -18377,7 +18505,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <div style={{ color: BRAND.textMuted, padding: 16 }}>Loading...</div>
             )}
             {employerQueue?.length === 0 && (
-              <div style={{ color: BRAND.textMuted, padding: 16 }}>✅ No employers awaiting verification.</div>
+              <div style={{ color: BRAND.textMuted, padding: 16 }}><InlineIcon icon={Icons.Check} size={14} />No employers awaiting verification.</div>
             )}
             {employerQueue?.map(emp => (
               <Card key={emp.id} style={{ marginBottom: 14 }}>
@@ -18467,7 +18595,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     </div>
                   ) : (
                     <div style={{ padding: "8px 12px", borderRadius: 8, background: d.status === "resolved" ? BRAND.greenLight : BRAND.grayLight, fontSize: 13, fontWeight: 600, color: d.status === "resolved" ? "#065F46" : BRAND.textMuted }}>
-                      {d.status === "resolved" ? `✓ ${t("admin.disputeResolve")}` : `✕ ${t("admin.disputeDismiss")}`}
+                      {d.status === "resolved" ? <><InlineIcon icon={Icons.Check} />{t("admin.disputeResolve")}</> : <><InlineIcon icon={Icons.Close} />{t("admin.disputeDismiss")}</>}
                       {d.resolved_at ? ` — ${new Date(d.resolved_at).toLocaleDateString("en-MY")}` : ""}
                     </div>
                   )}
@@ -18489,7 +18617,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div {...disputeDetailDialog} onClick={e => e.stopPropagation()} style={{ background: BRAND.surface, borderRadius: 16, padding: 24, maxWidth: 560, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
                 <h3 style={{ fontSize: 18, fontWeight: 700, color: BRAND.text, margin: 0 }}>{t("admin.disputeInvestigateTitle")}</h3>
-                <button onClick={() => setDisputeDetailFor(null)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
+                <button onClick={() => setDisputeDetailFor(null)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 20, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
               </div>
 
               {/* Evidence -- read-only, no mutation. Same data every worker/
@@ -18506,7 +18634,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   [t("admin.disputeCheckedOut"), disputeDetailFor.application?.checked_out_at ? new Date(disputeDetailFor.application.checked_out_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
                   [t("admin.disputeCheckedInBy"), disputeDetailFor.application?.checked_in_method ? t(`admin.method.${disputeDetailFor.application.checked_in_method}`) : t("admin.disputeNotRecorded")],
                   [t("admin.disputeCheckedOutBy"), disputeDetailFor.application?.checked_out_method ? t(`admin.method.${disputeDetailFor.application.checked_out_method}`) : t("admin.disputeNotRecorded")],
-                  [t("admin.disputeReportedHours"), disputeDetailFor.application?.worker_reported_hours != null ? `${disputeDetailFor.application.worker_reported_hours}h${disputeDetailFor.application.employer_hours_confirmed_at ? " ✓" : ""}` : t("admin.disputeNotRecorded")],
+                  [t("admin.disputeReportedHours"), disputeDetailFor.application?.worker_reported_hours != null ? `${disputeDetailFor.application.worker_reported_hours}h${disputeDetailFor.application.employer_hours_confirmed_at ? ` · ${t("employer.confirmedStatus")}` : ""}` : t("admin.disputeNotRecorded")],
                   [t("admin.disputeNoShow"), disputeDetailFor.application?.no_show_at ? `${new Date(disputeDetailFor.application.no_show_at).toLocaleString("en-MY")}${disputeDetailFor.application.no_show_note ? ` — ${disputeDetailFor.application.no_show_note}` : ""}` : "—"],
                   [t("admin.disputeWorkerSigned"), disputeDetailFor.application?.worker_signed_at ? new Date(disputeDetailFor.application.worker_signed_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
                   [t("admin.disputeEmployerSigned"), disputeDetailFor.application?.employer_signed_at ? new Date(disputeDetailFor.application.employer_signed_at).toLocaleString("en-MY") : t("admin.disputeNotRecorded")],
@@ -18639,7 +18767,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.flagsTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("admin.flagsCount").replace("{n}", FLAGS.length)}</div>
             <EmptyState
-              icon="🚩"
+              icon={<Icons.Flag size={28} />}
               title={t("admin.flagsEmptyTitle")}
               hint={t("admin.flagsEmptyHint")}
             />
@@ -19061,7 +19189,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
             aria-label={t("supportChat.close")}
             title={t("supportChat.close")}
             style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 18, color: BRAND.textMuted, width: 28, height: 28, borderRadius: 6, lineHeight: 1 }}
-          >×</button>
+          ><Icons.Close size={18} /></button>
         </div>
       </div>
 
@@ -19517,7 +19645,7 @@ const AdminAccessRequired = ({ user, onBack }) => {
   const { t } = useLanguage();
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
-      <div style={{ fontSize: 40 }} aria-hidden="true">🚫</div>
+      <div style={{ display: "flex", color: BRAND.textMuted }} aria-hidden="true"><Icons.Ban size={40} /></div>
       <div style={{ fontSize: 18, fontWeight: 800, color: BRAND.text }}>{t("admin.accessRequiredTitle")}</div>
       <div style={{ fontSize: 13, color: BRAND.textMuted, maxWidth: 320 }}>
         {user ? t("admin.notAdminHint") : t("admin.signInHint")}
@@ -19893,7 +20021,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
                 <div style={{ fontSize: 12, color: BRAND.textMuted, marginBottom: 12 }}>{t("auth.ocrChecking")}</div>
               )}
               {idOcr.status === "match" && (
-                <div style={{ fontSize: 12, color: BRAND.greenOnSurface, fontWeight: 600, marginBottom: 12 }}>{t("auth.ocrMatch")}</div>
+                <div style={{ fontSize: 12, color: BRAND.greenOnSurface, fontWeight: 600, marginBottom: 12 }}><InlineIcon icon={Icons.Check} />{t("auth.ocrMatch")}</div>
               )}
               {idOcr.status === "mismatch" && (
                 <div style={{ fontSize: 12, color: "#B45309", marginBottom: 12 }}>
