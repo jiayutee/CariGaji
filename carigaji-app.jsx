@@ -20911,7 +20911,9 @@ export default function CariGaji() {
           const onShiftLink = Boolean(shiftIdFromPath(window.location.pathname));
 
           // Where to land, in order of authority:
-          //   1. an explicit portal in the URL  -- /en/admin, /en/employer
+          //   1. an explicit portal in the URL  -- /en/admin, /en/employer,
+          //      or any worker page past the front door (/en/my-shifts,
+          //      /en/shift/<id>)
           //   2. the portal this tab was last in -- survives a refresh
           //   3. the account's role default      -- first visit in a new tab
           //
@@ -20920,10 +20922,15 @@ export default function CariGaji() {
           // admin straight back to /admin however deep into worker view they
           // were. The role default is right for someone arriving fresh and
           // wrong for someone resuming; the remembered portal is what tells
-          // those two apart, since the address alone cannot (worker's path is
-          // the empty string).
+          // those two apart, since the bare worker address (/en) cannot.
+          //
+          // An inner worker page CAN: an admin who follows /en/my-shifts and
+          // signs in (which comes back to that same address) asked for that
+          // page, and a signed-out visit has no remembered portal to say so.
           const urlPortal = portalFromPath(window.location.pathname);
-          const explicitInUrl = urlPortal === 'admin' || urlPortal === 'employer';
+          const workerRoute = parseWorkerRoute(portalRouteSegments(window.location.pathname, 'worker'));
+          const explicitInUrl = urlPortal === 'admin' || urlPortal === 'employer'
+            || (urlPortal === 'worker' && (Boolean(workerRoute.shiftId) || workerRoute.tab !== 'discover'));
           const roleDefault = isAdminAccount ? 'admin' : role === 'employer' ? 'employer' : 'worker';
           const target = explicitInUrl ? urlPortal : (readRememberedPortal() || roleDefault);
 
