@@ -1321,6 +1321,7 @@ export default {
     "auth.oauthDivider": "或",
     "auth.oauthConnector": "使用 {provider} {label}",
     "auth.iWantTo": "我想要…",
+    "auth.haveAccountSignIn": "已有账户？登录",
     "auth.roleWorkerTitle": "寻找班次工作",
     "auth.roleWorkerHint": "浏览并申请班次",
     "auth.roleEmployerTitle": "招聘员工",

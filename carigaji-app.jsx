@@ -45,7 +45,18 @@ const MY_TIMEZONE = "Asia/Kuala_Lumpur";
 const APP_BUILD_ID = `${import.meta.env.MODE ?? "unknown"}-${import.meta.env.VITE_BUILD_SHA ?? "local"}`;
 
 export const formatShiftTime = (iso) => iso ? new Date(iso).toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit", timeZone: MY_TIMEZONE }) : "";
-export const formatShiftDate = (iso, opts = {}) => iso ? new Date(iso).toLocaleDateString("en-MY", { ...opts, timeZone: MY_TIMEZONE }) : "";
+// Default reads "Tue, 1 Dec" (year added only when it isn't this year):
+// "01/12/2026" was ambiguous between 1 Dec and 12 Jan. Callers that pass
+// their own options keep exactly the format they asked for.
+export const formatShiftDate = (iso, opts = {}) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const sameYear = d.toLocaleDateString("en-CA", { year: "numeric", timeZone: MY_TIMEZONE }) === new Date().toLocaleDateString("en-CA", { year: "numeric", timeZone: MY_TIMEZONE });
+  const fmt = Object.keys(opts).length ? opts : { weekday: "short", day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }) };
+  return d.toLocaleDateString("en-MY", { ...fmt, timeZone: MY_TIMEZONE });
+};
+// YYYY-MM-DD in Malaysia time: for filtering/comparing, never for display.
+const shiftDateISO = (iso) => iso ? new Date(iso).toLocaleDateString("en-CA", { timeZone: MY_TIMEZONE }) : "";
 // 24h "HH:MM" in Malaysia time, for time-of-day filtering/sorting (not display).
 const shiftHHMM = (iso) => {
   if (!iso) return "";
@@ -1729,6 +1740,7 @@ const TRANSLATIONS = {
     "auth.oauthDivider": "or",
     "auth.oauthConnector": "{label} with {provider}",
     "auth.iWantTo": "I want to…",
+    "auth.haveAccountSignIn": "Already have an account? Sign in",
     "auth.roleWorkerTitle": "Find shift work",
     "auth.roleWorkerHint": "Browse and apply for shifts",
     "auth.roleEmployerTitle": "Hire workers",
@@ -5606,8 +5618,11 @@ const AuthModal = ({
                       // the wage-rate picker's earlier contrast bug.
                       background: form.accountRole === opt.value ? BRAND.primary : BRAND.surface,
                     }}>
-                      <input type="radio" name="accountRole" value={opt.value} checked={form.accountRole === opt.value} onChange={() => onChange("accountRole", opt.value)} style={{ marginRight: 6 }} />
-                      <span style={{ fontSize: FS.meta, fontWeight: 700, color: form.accountRole === opt.value ? "#fff" : BRAND.text }}>{opt.title}</span>
+                      <input type="radio" name="accountRole" value={opt.value} checked={form.accountRole === opt.value} onChange={() => onChange("accountRole", opt.value)} style={{ marginRight: 6, accentColor: form.accountRole === opt.value ? BRAND.onSolid : BRAND.primary }} />
+                      {/* accentColor: the browser draws a checked radio in the
+                          primary blue, which vanished on this card's primary-blue
+                          selected fill, so the chosen option looked unticked. */}
+                      <span style={{ fontSize: FS.meta, fontWeight: 700, color: form.accountRole === opt.value ? BRAND.onSolid : BRAND.text }}>{opt.title}</span>
                       <div style={{ fontSize: FS.meta, color: form.accountRole === opt.value ? "rgba(255,255,255,0.85)" : BRAND.textMuted, marginLeft: 20 }}>{opt.hint}</div>
                     </label>
                   ))}
@@ -5626,7 +5641,9 @@ const AuthModal = ({
                 </>
               )}
               <Input label={translate("auth.emailAddressReq")} type="email" placeholder="name@example.com" value={form.email} onChange={e => onChange("email", e.target.value)} error={fieldError("email")} />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Side by side only when there is room: at phone width the two
+                  halves clipped their placeholders under the eye icon. */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", columnGap: 12 }}>
                 <PasswordInput label={translate("auth.passwordReq")} placeholder={translate("auth.createPassword")} value={form.password} onChange={e => onChange("password", e.target.value)} error={fieldError("password")} />
                 <PasswordInput label={translate("auth.confirmPasswordReq")} placeholder={translate("auth.retypePassword")} value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} error={fieldError("confirmPassword")} />
               </div>
@@ -5636,10 +5653,12 @@ const AuthModal = ({
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
                 {translate("auth.quickSignupHint")}
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <Btn variant="secondary" type="button" onClick={() => onViewChange("signin")} style={{ flex: 1, justifyContent: "center" }}>{translate("common.back")}</Btn>
-                <Btn type="submit" disabled={loading} style={{ flex: 1, justifyContent: "center" }}>{copy.action}</Btn>
-              </div>
+              {/* One primary action. The old "Back" beside it was really
+                  "go to sign in", so it is now labelled as that. */}
+              <Btn type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{copy.action}</Btn>
+              <button type="button" onClick={() => onViewChange("signin")} style={{ display: "block", width: "100%", minHeight: 44, marginTop: 6, background: "none", border: "none", color: BRAND.primaryOnSurface, fontSize: FS.body, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
+                {translate("auth.haveAccountSignIn")}
+              </button>
               <SocialAuthButtons onOAuth={onOAuth} label={translate("common.signUp")} />
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 4, textAlign: "center" }}>
                 {translate("auth.socialSignupHint")}
@@ -7159,6 +7178,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // display string and cannot be compared against the clock.
           endAt: s.end_at ?? null,
           date: formatShiftDate(s.start_at),
+          dateISO: shiftDateISO(s.start_at),
         })));
       })
       .catch(() => { if (active) setLiveShifts([]); });
@@ -7256,6 +7276,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           startTime: shiftHHMM(s.start_at),
           endTime: shiftHHMM(s.end_at),
           date: formatShiftDate(s.start_at),
+          dateISO: shiftDateISO(s.start_at),
         });
         setTab(closeTab);
       });
@@ -7506,12 +7527,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (filterCat !== 'All') s = s.filter(x => x.category === filterCat);
     if (filterCity) s = s.filter(x => resolveCity(x.location) === filterCity);
     if (filterArea) s = s.filter(x => x.location.toLowerCase().includes(filterArea.toLowerCase()));
-    if (filterDate) s = s.filter(x => x.date === filterDate);
+    // dateISO, not date: date is display text ("Tue, 1 Dec") and never
+    // equalled the picker's YYYY-MM-DD, so this filter matched nothing.
+    if (filterDate) s = s.filter(x => x.dateISO === filterDate);
     if (filterDuration) s = s.filter(x => x.hours <= Number(filterDuration));
     if (filterPayMin) s = s.filter(x => x.wageMin >= Number(filterPayMin));
     if (filterPayMax) s = s.filter(x => x.wageMax <= Number(filterPayMax));
     if (filterHighBooking) s = s.filter(x => x.headcount > 0 && (x.headcount - (x.filled || 0)) / x.headcount > 0.5);
-    if (filterWeekend) s = s.filter(x => x.date && [0, 6].includes(new Date(x.date + 'T00:00:00').getDay()));
+    if (filterWeekend) s = s.filter(x => x.dateISO && [0, 6].includes(new Date(x.dateISO + 'T00:00:00').getDay()));
     if (filterTimeStart) s = s.filter(x => x.startTime && x.startTime >= filterTimeStart);
     if (filterTimeEnd) s = s.filter(x => x.endTime && x.endTime <= filterTimeEnd);
     return s;

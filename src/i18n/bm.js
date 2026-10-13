@@ -1322,6 +1322,7 @@ export default {
     "auth.oauthDivider": "atau",
     "auth.oauthConnector": "{label} dengan {provider}",
     "auth.iWantTo": "Saya mahu…",
+    "auth.haveAccountSignIn": "Sudah ada akaun? Log masuk",
     "auth.roleWorkerTitle": "Cari kerja syif",
     "auth.roleWorkerHint": "Semak imbas dan mohon syif",
     "auth.roleEmployerTitle": "Ambil pekerja",
