@@ -711,6 +711,10 @@ const TRANSLATIONS = {
     "myBids.noBidsYet": "No bids yet",
     "myBids.loadingBidsHint": "Hang tight while we fetch your bids.",
     "myBids.noBidsHint": "Head to Discover and place a bid on a shift to see it here.",
+    "myBids.sectionNeedsYou": "Needs you",
+    "myBids.sectionUpcoming": "Upcoming",
+    "myBids.sectionWaiting": "Waiting to hear back",
+    "myBids.pastToggle": "Past shifts · {n}",
     "myBids.employerDecidesByPrefix": "⏳ Employer decides by ",
     "myBids.respondByPrefix": "🎉 Respond by ",
     "myBids.pillShiftCancelled": "Shift Cancelled",
@@ -808,6 +812,10 @@ const TRANSLATIONS = {
     "admin.reportsTitle": "Issue Reports",
     "admin.reportsCount": "{n} report{s} total",
     "admin.reportsEmpty": "No issue reports yet.",
+    "admin.reportsNoneOpen": "No open reports.",
+    "admin.disputesNoneOpen": "No open disputes.",
+    "admin.showClosed": "Show closed ({n})",
+    "admin.hideClosed": "Hide closed",
     "admin.reportStatusNew": "New",
     "admin.reportStatusInvestigating": "Investigating",
     "admin.reportStatusResolved": "Resolved",
@@ -1552,6 +1560,9 @@ const TRANSLATIONS = {
     "employer.actionHoursToConfirm": "{count} timesheet(s) to confirm",
     "employer.actionToRate": "{count} worker(s) to rate",
     "employer.actionWaitingOnWorker": "{count} waiting on worker",
+    "employer.needsYouTitle": "Needs you",
+    "employer.needsYouAllCaughtUp": "You're all caught up.",
+    "employer.needsYouOpenBtn": "Open shift",
     "employer.toastHoursModifyProposed": "Proposal sent to the worker.",
     "employer.toastModifyHoursFailed": "Failed to send proposal: ",
     "employer.toastHoursConfirmed": "Hours confirmed.",
@@ -2136,6 +2147,10 @@ const TRANSLATIONS = {
     "myBids.noBidsYet": "Belum ada tawaran",
     "myBids.loadingBidsHint": "Tunggu sebentar semasa kami dapatkan tawaran anda.",
     "myBids.noBidsHint": "Pergi ke Terokai dan buat tawaran pada syif untuk lihat di sini.",
+    "myBids.sectionNeedsYou": "Perlu tindakan anda",
+    "myBids.sectionUpcoming": "Akan datang",
+    "myBids.sectionWaiting": "Menunggu maklum balas",
+    "myBids.pastToggle": "Syif lepas · {n}",
     "myBids.employerDecidesByPrefix": "⏳ Majikan membuat keputusan menjelang ",
     "myBids.respondByPrefix": "🎉 Respons menjelang ",
     "myBids.pillShiftCancelled": "Syif Dibatalkan",
@@ -2233,6 +2248,10 @@ const TRANSLATIONS = {
     "admin.reportsTitle": "Laporan Isu",
     "admin.reportsCount": "{n} laporan jumlah",
     "admin.reportsEmpty": "Belum ada laporan isu.",
+    "admin.reportsNoneOpen": "Tiada laporan terbuka.",
+    "admin.disputesNoneOpen": "Tiada pertikaian terbuka.",
+    "admin.showClosed": "Tunjuk yang ditutup ({n})",
+    "admin.hideClosed": "Sembunyikan yang ditutup",
     "admin.reportStatusNew": "Baharu",
     "admin.reportStatusInvestigating": "Sedang disiasat",
     "admin.reportStatusResolved": "Selesai",
@@ -2969,6 +2988,9 @@ const TRANSLATIONS = {
     "employer.actionHoursToConfirm": "{count} lembaran waktu untuk disahkan",
     "employer.actionToRate": "{count} pekerja untuk dinilai",
     "employer.actionWaitingOnWorker": "{count} menunggu pekerja",
+    "employer.needsYouTitle": "Perlu tindakan anda",
+    "employer.needsYouAllCaughtUp": "Semua sudah selesai.",
+    "employer.needsYouOpenBtn": "Buka syif",
     "employer.toastHoursModifyProposed": "Cadangan dihantar kepada pekerja.",
     "employer.toastModifyHoursFailed": "Gagal menghantar cadangan: ",
     "employer.toastHoursConfirmed": "Jam disahkan.",
@@ -3553,6 +3575,10 @@ const TRANSLATIONS = {
     "myBids.noBidsYet": "暂无出价",
     "myBids.loadingBidsHint": "请稍候，我们正在获取您的出价。",
     "myBids.noBidsHint": "前往「发现」页面，对班次出价后即可在此查看。",
+    "myBids.sectionNeedsYou": "待你处理",
+    "myBids.sectionUpcoming": "即将开始",
+    "myBids.sectionWaiting": "等待回复",
+    "myBids.pastToggle": "过往班次 · {n}",
     "myBids.employerDecidesByPrefix": "⏳ 雇主将于以下时间前决定：",
     "myBids.respondByPrefix": "🎉 请于以下时间前回复：",
     "myBids.pillShiftCancelled": "班次已取消",
@@ -3650,6 +3676,10 @@ const TRANSLATIONS = {
     "admin.reportsTitle": "问题报告",
     "admin.reportsCount": "共 {n} 份报告",
     "admin.reportsEmpty": "暂无问题报告。",
+    "admin.reportsNoneOpen": "暂无未处理的报告。",
+    "admin.disputesNoneOpen": "暂无未处理的申诉。",
+    "admin.showClosed": "显示已关闭 ({n})",
+    "admin.hideClosed": "隐藏已关闭",
     "admin.reportStatusNew": "新",
     "admin.reportStatusInvestigating": "调查中",
     "admin.reportStatusResolved": "已处理",
@@ -4385,6 +4415,9 @@ const TRANSLATIONS = {
     "employer.actionHoursToConfirm": "{count} 份工时待确认",
     "employer.actionToRate": "{count} 位员工待评价",
     "employer.actionWaitingOnWorker": "{count} 项等待员工回应",
+    "employer.needsYouTitle": "待你处理",
+    "employer.needsYouAllCaughtUp": "暂无待办事项。",
+    "employer.needsYouOpenBtn": "打开班次",
     "employer.toastHoursModifyProposed": "提议已发送给员工。",
     "employer.toastModifyHoursFailed": "发送提议失败：",
     "employer.toastHoursConfirmed": "工时已确认。",
@@ -9154,6 +9187,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // ids so multiple offer cards can each toggle independently.
   const [contractPreviewOpenIds, setContractPreviewOpenIds] = useState(() => new Set());
   const [liveApplications, setLiveApplications] = useState(null);
+  // My Bids keeps finished bids folded away by default: they are history, and
+  // left open they push the bids that still need something below the fold.
+  const [showPastBids, setShowPastBids] = useState(false);
   // Worker's own display name, for the contract's "Worker:" party line (was
   // just a generic "You" before — mirrors the employer's own-profile fetch).
   const [workerOwnName, setWorkerOwnName] = useState(null);
@@ -10449,6 +10485,70 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     ? (user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split("@")[0] || "Your account")
     : "";
 
+  // What (if anything) has gone wrong with this worker's attendance, judged from
+  // the shift's real end time. null = the ordinary check-in / check-out flow.
+  // Declared above navItems (not beside renderCheckState) because bidSection
+  // below needs it, and the nav badge is computed from bidSection at render.
+  const attendanceIssue = (a) => {
+    if (a.status !== "accepted" || !a.workerSignedAt || a.shiftStatus === "cancelled") return null;
+    if (a.noShowAt) return "noShow";
+    const endsAt = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt);
+    if (!endsAt) return null;
+    const now = Date.now();
+    if (!a.checkedInAt) return now > endsAt.getTime() ? "missedCheckIn" : null;
+    if (!a.checkedOutAt && a.employerProposedHours == null && !a.hoursResubmitted && now > endsAt.getTime() + CHECKOUT_WINDOW_MS) return "checkoutClosed";
+    return null;
+  };
+
+  // Which My Bids section a bid belongs in, and the moment that orders it
+  // within that section. One function rather than four separate filters, so a
+  // bid can never land in two sections (or in none), and so the nav badge
+  // counts exactly what the "Needs you" section shows.
+  //
+  // "needs" mirrors every place the card or the bid detail renders an action
+  // the WORKER owes, usually against a deadline: confirm/decline an offer,
+  // re-accept changed terms, sign the contract, pick a late-cancellation
+  // option, check in once the shift is under way, check out once it is over,
+  // answer an employer's hours proposal or dispute, or chase a missed
+  // attendance. If one of those render conditions changes, change this too.
+  // `due` is that deadline where one exists, otherwise the shift start/end.
+  const bidSection = (a) => {
+    const now = Date.now();
+    const ms = (v) => (v ? new Date(v).getTime() : null);
+    const start = ms(a.shiftStartAt);
+    const endsAt = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt)?.getTime() ?? null;
+    const at = (key, due) => ({ key, due: due ?? start ?? Infinity });
+    const live = a.shiftStatus !== "cancelled";
+    if (!live && a.cancellationChoiceDeadline && !a.cancellationChoice) return at("needs", ms(a.cancellationChoiceDeadline));
+    if (live && a.status === "offered") return at("needs", ms(a.offerExpiresAt));
+    if (live && a.status === "accepted") {
+      const reconfirm = reconfirmState(a);
+      if (reconfirm && !reconfirm.expired) return at("needs", reconfirm.deadline);
+      if (!a.workerSignedAt) return at("needs", start);
+      const issue = attendanceIssue(a);
+      if (issue) {
+        // Once the worker has asked the employer to fix it, the next move is
+        // the employer's -- it stops being something this worker owes.
+        const kind = issue === "checkoutClosed" ? "check_out" : "check_in";
+        return attendanceRequests[`${a.id}:${kind}`]?.status === "pending" ? at("waiting", start) : at("needs", endsAt);
+      }
+      if (a.checkedInAt && a.employerProposedHours != null) return at("needs", endsAt);
+      if (a.employerHoursDisputed) return at("needs", endsAt);
+      // Only while the shift is running: once it has ended, attendanceIssue
+      // above owns the recovery path, and an old missed shift must not sit
+      // in Needs you forever.
+      if (!a.checkedInAt && start != null && now >= start && (endsAt == null || now <= endsAt)) return at("needs", endsAt);
+      if (a.checkedInAt && !a.checkedOutAt && endsAt != null && now > endsAt) return at("needs", endsAt + CHECKOUT_WINDOW_MS);
+      // Checked out, hours not yet confirmed: the employer owes the next step.
+      if (a.checkedOutAt && !a.employerHoursConfirmedAt) return at("waiting", start);
+      if (a.shiftStatus !== "completed" && (endsAt == null || now <= endsAt)) return at("upcoming", start);
+      return at("past", start);
+    }
+    if (live && a.shiftStatus !== "completed" && (a.status === "pending" || a.status === "shortlisted")) return at("waiting", start);
+    return at("past", start);
+  };
+  const needsYouBidCount = (liveApplications ?? []).filter(a => bidSection(a).key === "needs").length;
+
   // Five tabs, not six. Settings folded into Profile as a Profile | Account
   // pair -- the same split the reference app uses -- which buys every remaining
   // tab enough width for a legible label instead of six 9px ones.
@@ -10459,7 +10559,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     { id: "signin", label: t("common.signIn"), icon: <Icons.User size={20} /> },
   ] : [
     { id: "discover", label: t("nav.discover"), icon: <Icons.Search size={20} /> },
-    { id: "applications", label: t("nav.myBids"), icon: <Icons.List size={20} /> },
+    { id: "applications", label: t("nav.myBids"), icon: <Icons.List size={20} />, badge: needsYouBidCount },
     { id: "chat", label: t("nav.chat"), icon: <Icons.Chat size={20} />, badge: unreadRooms },
     { id: "earnings", label: t("nav.earnings"), icon: <Icons.Money size={20} /> },
     {
@@ -10543,19 +10643,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // checked in" through the full worker-report → employer-confirm/dispute
   // cycle. Shared by the My Bids list card and the shift-detail view so the
   // two don't drift.
-  // What (if anything) has gone wrong with this worker's attendance, judged from
-  // the shift's real end time. null = the ordinary check-in / check-out flow.
-  const attendanceIssue = (a) => {
-    if (a.status !== "accepted" || !a.workerSignedAt || a.shiftStatus === "cancelled") return null;
-    if (a.noShowAt) return "noShow";
-    const endsAt = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt);
-    if (!endsAt) return null;
-    const now = Date.now();
-    if (!a.checkedInAt) return now > endsAt.getTime() ? "missedCheckIn" : null;
-    if (!a.checkedOutAt && a.employerProposedHours == null && !a.hoursResubmitted && now > endsAt.getTime() + CHECKOUT_WINDOW_MS) return "checkoutClosed";
-    return null;
-  };
-
   const checkoutDeadlineHint = (a, align) => {
     if (a.checkedOutAt || a.hoursResubmitted) return null;
     const endsAt = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt);
@@ -11498,33 +11585,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           const unrated = (liveApplications ?? []).filter(
             a => a.status === "accepted" && a.shiftStatus === "completed" && a.employerId && !myRatedApplicationIds.has(a.id)
           );
-          return (
-          <div>
-            <ScreenTitle isMobile={isMobile}>{t("nav.myBids")}</ScreenTitle>
-            {unrated.length > 0 && (
-              <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 12, padding: 14, marginBottom: 14 }}>
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
-                  ⭐ {t("rating.promptTitle", { count: unrated.length })}
-                </div>
-                <div style={{ fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
-                  {t("rating.promptBody", { shift: unrated[0].shiftTitle })}
-                </div>
-                <Btn onClick={() => { setRatingForm({}); setRatingModal({ applicationId: unrated[0].id, shiftTitle: unrated[0].shiftTitle, rateeId: unrated[0].employerId, direction: 'worker_to_employer' }); }}
-                     style={{ padding: "9px 16px" }}>
-                  {t("rating.promptCta")}
-                </Btn>
-              </div>
-            )}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {(liveApplications ?? []).length === 0 && (
-                <EmptyState
-                  icon="📄"
-                  title={liveApplications === null ? t("myBids.loadingBids") : t("myBids.noBidsYet")}
-                  hint={liveApplications === null ? t("myBids.loadingBidsHint") : t("myBids.noBidsHint")}
-                />
-              )}
-              {(liveApplications ?? []).map(a => (
-                <Card key={a.id} onClick={() => setSelectedApplication(a)} hover>
+          // The card itself is unchanged; only where it sits moved. Needs-you
+          // cards get the primary border so the one section that wants
+          // something from the worker reads differently at a glance.
+          const renderBidCard = (a, needsYou) => (
+                <Card key={a.id} onClick={() => setSelectedApplication(a)} hover style={needsYou ? { border: `1.5px solid ${BRAND.primary}` } : undefined}>
                   {/* Surfaced in the list, not just the detail view: a booking
                       on hold is the one thing a worker must act on, and it
                       would otherwise be invisible until they opened the bid. */}
@@ -11654,7 +11719,80 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     )
                   )}
                 </Card>
-              ))}
+          );
+          return (
+          <div>
+            <ScreenTitle isMobile={isMobile}>{t("nav.myBids")}</ScreenTitle>
+            {unrated.length > 0 && (
+              <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
+                  ⭐ {t("rating.promptTitle", { count: unrated.length })}
+                </div>
+                <div style={{ fontSize: 12.5, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
+                  {t("rating.promptBody", { shift: unrated[0].shiftTitle })}
+                </div>
+                <Btn onClick={() => { setRatingForm({}); setRatingModal({ applicationId: unrated[0].id, shiftTitle: unrated[0].shiftTitle, rateeId: unrated[0].employerId, direction: 'worker_to_employer' }); }}
+                     style={{ padding: "9px 16px" }}>
+                  {t("rating.promptCta")}
+                </Btn>
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {(liveApplications ?? []).length === 0 && (
+                <EmptyState
+                  icon="📄"
+                  title={liveApplications === null ? t("myBids.loadingBids") : t("myBids.noBidsYet")}
+                  hint={liveApplications === null ? t("myBids.loadingBidsHint") : t("myBids.noBidsHint")}
+                />
+              )}
+              {(() => {
+                const groups = { needs: [], upcoming: [], waiting: [], past: [] };
+                (liveApplications ?? []).forEach(a => { const s = bidSection(a); groups[s.key].push({ a, due: s.due }); });
+                // Soonest first everywhere a date is still ahead; Past is the
+                // one place the most recent matters most, so it runs newest first.
+                ["needs", "upcoming", "waiting"].forEach(k => groups[k].sort((x, y) => x.due - y.due));
+                const pastKey = (x) => (x.due === Infinity ? -Infinity : x.due);
+                groups.past.sort((x, y) => pastKey(y) - pastKey(x));
+                const heading = (label, count, color) => (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    <span style={{ ...TYPE.section, color: BRAND.text }}>{label}</span>
+                    <Badge color={color}>{count}</Badge>
+                  </div>
+                );
+                return (
+                  <>
+                    {[
+                      ["needs", t("myBids.sectionNeedsYou"), "blue"],
+                      ["upcoming", t("myBids.sectionUpcoming"), "green"],
+                      ["waiting", t("myBids.sectionWaiting"), "gray"],
+                    ].map(([key, label, color]) => groups[key].length > 0 && (
+                      <Fragment key={key}>
+                        {heading(label, groups[key].length, color)}
+                        {groups[key].map(({ a }) => renderBidCard(a, key === "needs"))}
+                      </Fragment>
+                    ))}
+                    {groups.past.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowPastBids(v => !v)}
+                        aria-expanded={showPastBids}
+                        style={{
+                          width: "100%", minHeight: 44, marginTop: 6, padding: "10px 16px",
+                          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+                          background: BRAND.surface, border: `1px solid ${BRAND.border}`, borderRadius: 12,
+                          color: BRAND.text, cursor: "pointer", fontFamily: "inherit", ...TYPE.cardTitle,
+                        }}
+                      >
+                        <span>{t("myBids.pastToggle", { n: groups.past.length })}</span>
+                        <span aria-hidden="true" style={{ display: "flex", color: BRAND.textMuted, transform: showPastBids ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
+                          <Icons.ChevronDown size={16} />
+                        </span>
+                      </button>
+                    )}
+                    {showPastBids && groups.past.map(({ a }) => renderBidCard(a, false))}
+                  </>
+                );
+              })()}
             </div>
           </div>
           );
@@ -14893,6 +15031,23 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     { id: "account", label: t("employerNav.account") },
   ];
 
+  // What the employer still owes on one shift, per kind. Shared by the Shifts
+  // list's amber to-do badges and the dashboard's "Needs you" card, so the two
+  // can never disagree about what is outstanding. null for a cancelled shift:
+  // nothing on it is actionable any more. Bids only count while the shift is
+  // still taking them; `waiting` is the worker's move, never the employer's.
+  const shiftTodos = (s) => {
+    if (s.status === "cancelled") return null;
+    const live = s.status === "open" || s.status === "closed";
+    return {
+      bids: live ? (s.openBids ?? 0) : 0,
+      attendance: s.openAttendance ?? 0,
+      hours: s.openHours ?? 0,
+      toRate: pendingWorkerRatings.filter(x => x.shiftId === s.id && !myRatedApplicationIds.has(x.id)).length,
+      waiting: s.openWaiting ?? 0,
+    };
+  };
+
   const handleApplicantAction = async (id, action) => {
     if (!['shortlisted', 'rejected'].includes(action)) return;
     const { error } = await supabase
@@ -15381,10 +15536,59 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
         {view === "dashboard" && (() => {
           const unrated = pendingWorkerRatings.filter(x => !myRatedApplicationIds.has(x.id));
+          // Every outstanding to-do across every shift, one row each, so the
+          // employer lands on what needs them instead of opening shifts one by
+          // one. Ordered by how badly a delay hurts: attendance blocks pay,
+          // then hours (pay again), then bids (the soonest shift first, since
+          // it fills or doesn't), then ratings, which never expire.
+          const NEEDS_YOU_KINDS = [
+            { kind: "attendance", labelKey: "employer.actionAttendance" },
+            { kind: "hours", labelKey: "employer.actionHoursToConfirm" },
+            { kind: "bids", labelKey: "employer.actionBidsToReview" },
+            { kind: "toRate", labelKey: "employer.actionToRate" },
+          ];
+          const shiftStart = (s) => (s.startAt ? new Date(s.startAt).getTime() : Infinity);
+          const needsYouRows = NEEDS_YOU_KINDS.flatMap(({ kind, labelKey }, rank) =>
+            (liveEmployerShifts ?? [])
+              .map(s => ({ s, count: shiftTodos(s)?.[kind] ?? 0 }))
+              .filter(r => r.count > 0)
+              .sort((x, y) => shiftStart(x.s) - shiftStart(y.s))
+              .map(r => ({ ...r, kind, labelKey, rank }))
+          );
+          // Per-shift counts arrive from a second query after the shift list;
+          // until then every count reads 0, which would flash "all caught up".
+          const needsYouLoaded = liveEmployerShifts !== null && liveEmployerShifts.every(s => s.openBids !== undefined);
           return (
           <div>
             <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("employer.dashboardTitle")}</div>
             <div style={{ fontSize: 14, color: BRAND.textMuted, marginBottom: 24 }}>{t("employer.goodMorning")}{employerProfile?.full_name || user?.user_metadata?.full_name || "there"}</div>
+            {needsYouLoaded && (
+              <Card style={{ marginBottom: 20, ...(needsYouRows.length > 0 ? { border: `1.5px solid ${BRAND.primary}` } : {}) }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: needsYouRows.length > 0 ? 4 : 0 }}>
+                  <span style={{ ...TYPE.section, color: BRAND.text }}>{t("employer.needsYouTitle")}</span>
+                  {needsYouRows.length > 0 && <Badge color="blue">{needsYouRows.length}</Badge>}
+                </div>
+                {needsYouRows.length === 0 && (
+                  <div style={{ ...TYPE.body, color: BRAND.textMuted, marginTop: 4 }}>{t("employer.needsYouAllCaughtUp")}</div>
+                )}
+                {needsYouRows.map(({ s, count, kind, labelKey }, i) => (
+                  <div key={`${kind}:${s.id}`} style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "12px 0",
+                    borderBottom: i < needsYouRows.length - 1 ? `1px solid ${BRAND.border}` : "none",
+                  }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ ...TYPE.cardTitle, color: BRAND.text }}>{t(labelKey, { count })}</div>
+                      <div style={{ fontSize: 12.5, color: BRAND.textMuted, marginTop: 2, overflowWrap: "anywhere" }}>
+                        {s.title} · {s.isMultiDay ? formatOccurrencesSummary(s.occurrences) : s.date}
+                      </div>
+                    </div>
+                    <Btn size="sm" onClick={() => { setSelectedShift(s); setView("shifts"); }} style={{ flexShrink: 0 }}>
+                      {t("employer.needsYouOpenBtn")}
+                    </Btn>
+                  </div>
+                ))}
+              </Card>
+            )}
             {/* On the dashboard, not buried in a finished shift's applicant
                 pool -- this is the first screen an employer sees. */}
             {unrated.length > 0 && (
@@ -15427,7 +15631,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
               <Stat label={t("employer.statReliability")} value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "2fr 1fr", gap: 16 }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 16, color: BRAND.text, marginBottom: 12 }}>{t("employer.activeShiftsHeading")}</div>
                 {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").length === 0 && (
@@ -15520,13 +15724,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   </div>
                 </div>
                     {(() => {
-                      if (s.status === "cancelled") return null;
-                      const live = s.status === "open" || s.status === "closed";
-                      const bids = live ? (s.openBids ?? 0) : 0;
-                      const hours = s.openHours ?? 0;
-                      const waiting = s.openWaiting ?? 0;
-                      const attendance = s.openAttendance ?? 0;
-                      const toRate = pendingWorkerRatings.filter(x => x.shiftId === s.id && !myRatedApplicationIds.has(x.id)).length;
+                      const todos = shiftTodos(s);
+                      if (!todos) return null;
+                      const { bids, hours, waiting, attendance, toRate } = todos;
                       if (bids + hours + waiting + attendance + toRate === 0) return null;
                       return (
                         <div style={{ marginTop: 10, display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
@@ -17436,6 +17636,38 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const [overviewStats, setOverviewStats] = useState(null);
   const [disputesQueue, setDisputesQueue] = useState(null);
   const [issueReportsQueue, setIssueReportsQueue] = useState(null);
+  // Open-item counts for the sidebar. Each queue's list only loads when its
+  // own tab (or Overview) opens, and the payout list is capped at 30 rows, so
+  // none of them can be counted from what is already in memory. Instead one
+  // head-only count per queue, using the same filter that queue's tab uses,
+  // fetched on mount and again after any action that can close an item.
+  const [navCounts, setNavCounts] = useState({});
+  const refreshNavCounts = useCallback(async () => {
+    if (!supabase) return;
+    const head = { count: "exact", head: true };
+    const [kyc, employers, disputes, reports, payouts] = await Promise.all([
+      supabase.from("profiles").select("id", head).eq("kyc_level", "pending_review"),
+      supabase.from("profiles").select("id", head).eq("employer_verification_status", "pending_review"),
+      supabase.from("disputes").select("id", head).in("status", ["open", "under_review"]),
+      supabase.from("issue_reports").select("id", head).in("status", ["new", "investigating"]),
+      supabase.from("payout_item").select("id", head).in("status", ["queued", "ready", "scheduled"]),
+    ]);
+    // A failed count shows no chip rather than a wrong number.
+    setNavCounts({
+      kycqueue: kyc.error ? 0 : (kyc.count ?? 0),
+      employerqueue: employers.error ? 0 : (employers.count ?? 0),
+      disputes: disputes.error ? 0 : (disputes.count ?? 0),
+      reports: reports.error ? 0 : (reports.count ?? 0),
+      payouts: payouts.error ? 0 : (payouts.count ?? 0),
+    });
+  }, []);
+  useEffect(() => { refreshNavCounts(); }, [refreshNavCounts]);
+  // Disputes and Issue Reports lead with what is still open; closed items are
+  // history and stay one tap away rather than mixed in by date.
+  const [showClosedDisputes, setShowClosedDisputes] = useState(false);
+  const [showClosedReports, setShowClosedReports] = useState(false);
+  const isOpenDispute = (d) => d.status === "open" || d.status === "under_review";
+  const isOpenReport = (r) => r.status === "new" || r.status === "investigating";
   const ISSUE_STATUS_LABEL_KEYS = {
     new: "admin.reportStatusNew",
     investigating: "admin.reportStatusInvestigating",
@@ -17470,6 +17702,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setSavingIssueReport(null);
     if (error) { toast(`${t("admin.reportSaveFailed")}${error.message}`, "error"); return; }
     setIssueReportsQueue(prev => (prev ?? []).map(r => r.id === reportId ? { ...r, ...patch } : r));
+    refreshNavCounts();
     toast(t("admin.reportSaved"), "success");
   };
   // Dispute currently open in the investigate/discuss panel, or null.
@@ -17544,6 +17777,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeDetailFor.id ? { ...d, status: "resolved" } : d));
     setDisputeDetailFor(null);
     setRulingHours(""); setRulingNote(""); setRulingOutcome("grant_attendance");
+    refreshNavCounts();
     toast(t("admin.rulingApplied"), "success");
   };
 
@@ -17700,6 +17934,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     const { error } = await supabase.from("profiles").update({ employer_verification_status: status }).eq("id", userId);
     if (error) { toast(`Failed to update: ${error.message}`, "error"); return; }
     setEmployerQueue(prev => (prev ?? []).filter(u => u.id !== userId));
+    refreshNavCounts();
     toast(status === "verified" ? "Employer verified." : "Employer verification rejected.", "success");
   };
 
@@ -17801,6 +18036,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
     setPayoutMessage(`Payout ${item.id} moved to ${nextStatus}.`);
     await loadPayoutQueue();
+    refreshNavCounts();
   };
 
   const runScheduler = async () => {
@@ -17814,6 +18050,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       const result = await runInternalPayoutScheduling(supabase);
       setPayoutMessage(`Scheduler completed. Created ${result.created}, ready ${result.ready}, held ${result.held}.`);
       await loadPayoutQueue();
+      refreshNavCounts();
     } catch (error) {
       setPayoutMessage(error.message);
     }
@@ -17843,6 +18080,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (error) { toast(`Failed to approve KYC: ${error.message}`, "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
     setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
+    refreshNavCounts();
     toast(`KYC approved — level set to ${level}`, "success");
   };
 
@@ -17851,6 +18089,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (error) { toast(`Failed to reject KYC: ${error.message}`, "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
     setKycSignedUrls(prev => { const next = { ...prev }; delete next[userId]; return next; });
+    refreshNavCounts();
     toast("KYC rejected — user reset to Basic", "info");
   };
 
@@ -17861,6 +18100,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       .eq("id", disputeId);
     if (error) { toast(`${t("admin.disputeResolveFailed")}${error.message}`, "error"); return; }
     setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt } : d));
+    refreshNavCounts();
     toast(t("admin.disputeResolved"), "success");
   };
 
@@ -17911,6 +18151,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       .eq("id", disputeId);
     if (error) { toast(`${t("admin.disputeDismissFailed")}${error.message}`, "error"); return; }
     setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "dismissed", resolved_at: resolvedAt } : d));
+    refreshNavCounts();
     toast(t("admin.disputeDismissed"), "info");
   };
 
@@ -17934,7 +18175,18 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             color: view === key ? BRAND.primary : ADMIN_SIDEBAR_MUTED,
             border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 600, fontSize: 13,
             borderLeft: view === key ? `3px solid ${BRAND.primary}` : "3px solid transparent",
-          }}>{n.label}</button>
+          }}>
+            {n.label}
+            {/* Same chip as the employer/worker unread badges. Capped at 99+
+                rather than 9+: an operator triaging a queue needs the size. */}
+            {navCounts[key] > 0 && (
+              <span style={{
+                marginLeft: 8, minWidth: 16, height: 16, padding: "0 4px", borderRadius: 99,
+                background: BRAND.red, color: ADMIN_SIDEBAR_ON_DARK, fontSize: 10, fontWeight: 700,
+                display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
+              }}>{navCounts[key] > 99 ? "99+" : navCounts[key]}</span>
+            )}
+          </button>
         );
       })}
       <div style={{ padding: "24px 20px 0", marginTop: 16, borderTop: `1px solid ${ADMIN_SIDEBAR_RULE}` }}>
@@ -18028,7 +18280,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </div>
                 {disputesQueue === null && <div style={{ fontSize: 13, color: BRAND.textMuted }}>Loading…</div>}
                 {disputesQueue?.length === 0 && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.disputesEmptyState")}</div>}
-                {disputesQueue?.slice(0, 3).map(d => (
+                {disputesQueue?.length > 0 && !disputesQueue.some(isOpenDispute) && <div style={{ fontSize: 13, color: BRAND.textMuted }}>{t("admin.disputesNoneOpen")}</div>}
+                {/* "Active" means open: a resolved dispute in this card read as
+                    one still waiting on someone. */}
+                {disputesQueue?.filter(isOpenDispute).slice(0, 3).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ fontSize: 13, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "Shift")} – {t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther")}</div>
                     <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
@@ -18170,7 +18425,14 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             {disputesQueue?.length === 0 && (
               <div style={{ color: BRAND.textMuted, padding: 16 }}>{t("admin.disputesEmptyState")}</div>
             )}
-            {disputesQueue?.map(d => {
+            {disputesQueue?.length > 0 && !disputesQueue.some(isOpenDispute) && (
+              <div style={{ color: BRAND.textMuted, padding: "0 0 16px" }}>{t("admin.disputesNoneOpen")}</div>
+            )}
+            {/* Open first; filter keeps the newest-first order within each half. */}
+            {disputesQueue && [
+              ...disputesQueue.filter(isOpenDispute),
+              ...(showClosedDisputes ? disputesQueue.filter(d => !isOpenDispute(d)) : []),
+            ].map(d => {
               const categoryLabel = t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther");
               const isPending = d.status === "open" || d.status === "under_review";
               return (
@@ -18212,6 +18474,13 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </Card>
               );
             })}
+            {disputesQueue?.some(d => !isOpenDispute(d)) && (
+              <Btn variant="secondary" aria-expanded={showClosedDisputes} onClick={() => setShowClosedDisputes(v => !v)} style={{ width: "100%", minHeight: 44 }}>
+                {showClosedDisputes
+                  ? t("admin.hideClosed")
+                  : t("admin.showClosed", { n: disputesQueue.filter(d => !isOpenDispute(d)).length })}
+              </Btn>
+            )}
           </div>
         )}
 
@@ -18317,7 +18586,15 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             {issueReportsQueue?.length === 0 && (
               <div style={{ color: BRAND.textMuted, padding: 16 }}>{t("admin.reportsEmpty")}</div>
             )}
-            {issueReportsQueue?.map(r => (
+            {issueReportsQueue?.length > 0 && !issueReportsQueue.some(isOpenReport) && (
+              <div style={{ color: BRAND.textMuted, padding: "0 0 16px" }}>{t("admin.reportsNoneOpen")}</div>
+            )}
+            {/* Open first; Array.prototype.filter keeps the newest-first order
+                within each half. */}
+            {issueReportsQueue && [
+              ...issueReportsQueue.filter(isOpenReport),
+              ...(showClosedReports ? issueReportsQueue.filter(r => !isOpenReport(r)) : []),
+            ].map(r => (
               <Card key={r.id} style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
                   <Badge color={r.severity === "blocking" ? "red" : r.severity === "normal" ? "amber" : "gray"}>{t(`issue.sev.${r.severity}`)}</Badge>
@@ -18347,6 +18624,13 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <Btn size="sm" onClick={() => saveIssueReport(r.id, r.status)} disabled={savingIssueReport === r.id}>{t("admin.reportSave")}</Btn>
               </Card>
             ))}
+            {issueReportsQueue?.some(r => !isOpenReport(r)) && (
+              <Btn variant="secondary" aria-expanded={showClosedReports} onClick={() => setShowClosedReports(v => !v)} style={{ width: "100%", minHeight: 44 }}>
+                {showClosedReports
+                  ? t("admin.hideClosed")
+                  : t("admin.showClosed", { n: issueReportsQueue.filter(r => !isOpenReport(r)).length })}
+              </Btn>
+            )}
           </div>
         )}
 
