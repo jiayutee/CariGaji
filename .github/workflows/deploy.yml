@@ -9,6 +9,15 @@ permissions:
   pages: write
   id-token: write
 
+# One deploy at a time. Two runs for the same push (seen 2026-10-13) both tried
+# to publish to gh-pages; one was rejected as non-fast-forward and showed red
+# even though the site was fine. Queued, not cancelled: a run already
+# publishing is never interrupted halfway, and a waiting run builds its own
+# checkout, so the newest commit is always what ends up live.
+concurrency:
+  group: deploy-gh-pages
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
