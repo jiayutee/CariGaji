@@ -1438,6 +1438,8 @@ const TRANSLATIONS = {
     "discover.loadingShiftsHint": "Hang tight while we fetch open shifts.",
     "discover.noShiftsMatch": "No shifts match right now",
     "discover.noShiftsMatchHint": "Try widening your filters, or check back soon — new shifts are posted regularly.",
+    "discover.noOpenShifts": "No open shifts right now",
+    "discover.noOpenShiftsHint": "New shifts appear here as soon as employers post them. Check back soon.",
     "worker.checkinTitle": "Shift check-in",
     "worker.checkinCodeSubtitle": "Ask your employer for today's 6-digit check-in code and enter it below. The code changes every 30 seconds.",
     "worker.submitCheckin": "Check in",
@@ -2853,6 +2855,8 @@ const TRANSLATIONS = {
     "discover.loadingShiftsHint": "Tunggu sebentar semasa kami dapatkan syif terbuka.",
     "discover.noShiftsMatch": "Tiada syif sepadan buat masa ini",
     "discover.noShiftsMatchHint": "Cuba luaskan penapis anda, atau semak semula tidak lama lagi — syif baharu disiarkan secara berkala.",
+    "discover.noOpenShifts": "Tiada syif terbuka buat masa ini",
+    "discover.noOpenShiftsHint": "Syif baharu akan muncul di sini sebaik sahaja majikan menyiarkannya. Semak semula tidak lama lagi.",
     "worker.checkinTitle": "Daftar masuk syif",
     "worker.checkinCodeSubtitle": "Minta kod daftar masuk 6-digit hari ini daripada majikan anda dan masukkan di bawah. Kod berubah setiap 30 saat.",
     "worker.submitCheckin": "Daftar masuk",
@@ -4267,6 +4271,8 @@ const TRANSLATIONS = {
     "discover.loadingShiftsHint": "请稍候，我们正在获取开放中的班次。",
     "discover.noShiftsMatch": "目前没有符合条件的班次",
     "discover.noShiftsMatchHint": "请尝试放宽筛选条件，或稍后再来查看 — 新班次会定期发布。",
+    "discover.noOpenShifts": "目前没有开放中的班次",
+    "discover.noOpenShiftsHint": "雇主发布新班次后会立即显示在这里，请稍后再来查看。",
     "worker.checkinTitle": "班次签到",
     "worker.checkinCodeSubtitle": "向雇主索取今日的 6 位数签到验证码并在下方输入。验证码每 30 秒更新一次。",
     "worker.submitCheckin": "签到",
@@ -11362,8 +11368,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {filtered.length === 0 && (
                 <EmptyState
                   icon="🔍"
-                  title={liveShifts === null ? t("discover.loadingShifts") : t("discover.noShiftsMatch")}
-                  hint={liveShifts === null ? t("discover.loadingShiftsHint") : t("discover.noShiftsMatchHint")}
+                  // Three different situations, three messages: still loading,
+                  // nothing posted at all, or the filters hide everything.
+                  title={liveShifts === null ? t("discover.loadingShifts") : liveShifts.length === 0 ? t("discover.noOpenShifts") : t("discover.noShiftsMatch")}
+                  hint={liveShifts === null ? t("discover.loadingShiftsHint") : liveShifts.length === 0 ? t("discover.noOpenShiftsHint") : t("discover.noShiftsMatchHint")}
                 />
               )}
               {filtered.map(s => (
