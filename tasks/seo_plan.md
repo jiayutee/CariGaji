@@ -14,7 +14,7 @@ hypotheses to check in Search Console / Keyword Planner, not measured facts.
 | Every route serves the same shell, and the new routing added `/en/my-shifts` (was `/en/my-bids`, still redirects), `/en/chat`, `/en/employer/...`, `/en/admin/...` | These private pages must not be indexed. **Do first.** |
 | One 1 MB JavaScript file loads everything (employer + admin code included) even for a visitor on the landing page | Slow first load on phones hurts both ranking and bounce. |
 | "CariGaji" is hard-coded ~116 times in the app, plus `index.html`, `manifest.json`, service worker, 4 edge functions, scripts | Renaming today means a find-and-replace across the repo, and search signals would be lost with it. |
-| ~~Demo and QA shifts (Demo Staff, "REAPPLY probe") appear in the public feed~~ **Half done (2026-10-13, `fa95d3b`):** QA/test accounts carry `profiles.is_test_account` and RLS hides their shifts from anon and real users, so anything built on the anon key (the edge Worker, sitemaps) never sees them. **Demo Staff shifts are still public on purpose** (they are the intended demo feed), so they still need excluding from Google. Today all Demo Staff shifts are `completed`, so the live feed is empty. | Publishing job markup for fake jobs is a Google spam-policy violation (manual-action risk). Demo shifts must still be excluded from anything we send to Google. |
+| ~~Demo and QA shifts (Demo Staff, "REAPPLY probe") appear in the public feed~~ **Half done (2026-10-13, `fa95d3b`):** QA/test accounts carry `profiles.is_test_account` and RLS hides their shifts from anon and real users, so anything built on the anon key (the edge Worker, sitemaps) never sees them. **Demo Staff shifts are still public on purpose** (they are the intended demo feed); since `20261013c` the account carries `profiles.is_demo_account`, readable signed-out via `is_demo_account(employer_id)`, so the Worker can skip them. The exclusion itself lands with the Worker. Today all Demo Staff shifts are `completed`, so the live feed is empty. | Publishing job markup for fake jobs is a Google spam-policy violation (manual-action risk). Demo shifts must still be excluded from anything we send to Google. |
 
 ## 2. Who we are trying to catch
 
@@ -108,9 +108,10 @@ Google accepts), `directApply`, `identifier`.
 Rules we must respect or risk a manual action:
 - **Only real, open, current jobs.** QA/test shifts are already excluded at the database level
   (`is_test_account` + RLS, 20261013); the Worker must use the anon key so it inherits that.
-  Demo Staff shifts are still public, so they need their own exclusion from markup and
-  sitemaps: a second flag in the same pattern (e.g. `profiles.is_demo_account`, visible but
-  never indexed, emitted with `noindex` and no `JobPosting`), rather than a title match.
+  Demo Staff shifts stay public but must never be indexed: the account carries
+  `profiles.is_demo_account` (20261013c). The Worker calls `is_demo_account(employer_id)`
+  (anon can't read profiles directly) and, when true, emits `noindex`, no `JobPosting`,
+  and leaves the shift out of the sitemap.
 - Marked-up content must match what a visitor sees (pay range, place, time).
 - Remove the markup and return 410 (or a clear "no longer available" page with `noindex`) when
   a shift is filled, ended or deleted. Shifts are short-lived, so this is the norm, not an edge case.
@@ -165,7 +166,7 @@ Targets to set after the first 30 days of real data, not before.
 
 | Phase | What | Depends on | Size |
 |---|---|---|---|
-| **0. Now** (no domain needed) | `brand.config.json` + Vite plugin + `{brand}` in strings + CI literal check; real title/description/canonical/OG in `index.html`; `noindex` for private routes and for temporary hosts; `robots.txt`; exclude Demo Staff shifts via a flag (QA already hidden, `fa95d3b`) | nothing | M |
+| **0. Now** (no domain needed) | `brand.config.json` + Vite plugin + `{brand}` in strings + CI literal check; real title/description/canonical/OG in `index.html`; `noindex` for private routes and for temporary hosts; `robots.txt`; Demo Staff flag in place (`is_demo_account`, 20261013c) and QA already hidden (`fa95d3b`); the Worker applies the exclusion | nothing | M |
 | **1. Cutover** | Cloudflare (real 200s), `SITE_URL`, hreflang, `WebSite`/`Organization` markup, Search Console + Bing verification | name and domain final | M |
 | **2. Shifts get indexed** | Worker: shift head + `JobPosting` + crawler HTML + live sitemap; per-shift OG image | phase 1 | L |
 | **3. Hubs and content** | Hub pages, thin-page rule, evergreen guides (en/bm/zh), breadcrumbs, internal links, Indexing API | phase 2, supply of shifts | L |
@@ -180,6 +181,6 @@ the established job boards is a months-to-years effort and should not be the fir
 
 1. **Domain:** hold until the name is final? (recommended). Until then, temporary hosts stay `noindex`.
 2. **Cities to launch hubs for**, and whether to hold hubs until there are real shifts.
-3. **Demo shifts:** QA/probe shifts are now hidden everywhere public (2026-10-13). Still open: keep Demo Staff shifts visible to visitors but never indexed (recommended), or hide them publicly too?
+3. ~~**Demo shifts**~~ Decided 2026-10-13: QA/probe shifts hidden everywhere public; Demo Staff shifts stay visible to visitors but are never indexed (`is_demo_account`).
 4. **Who writes the Malay and Chinese guides** (native copy is worth much more than translation).
 5. **Employer-facing search** ("hire part-timers Malaysia"): same plan later, or out of scope?
