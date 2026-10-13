@@ -11359,7 +11359,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
             <Stat label={t("shiftDetail.shiftDuration")} value={formatDurationHours(selectedShift.hours)} sub={selectedShift.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", selectedShift.occurrences.length) : selectedShift.date} color={BRAND.text} />
             <Stat label={t("shiftDetail.estimatedGross")} value={`RM${(((selectedShift.wageMin + selectedShift.wageMax) / 2) * selectedShift.hours).toFixed(2)}`} sub={t("shiftDetail.atAvgRate")} tooltip={t("shiftDetail.estimatedGrossTooltip").replace("{min}", selectedShift.wageMin).replace("{max}", selectedShift.wageMax)} color={BRAND.green} />
-            <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
+            <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : "—"} sub={selectedShift.stipend > 0 ? undefined : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
           {selectedShift.description && (
             <Card style={{ marginBottom: 16 }}>
