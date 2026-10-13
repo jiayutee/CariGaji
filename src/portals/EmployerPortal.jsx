@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from "react";
 import { supabase } from "../lib/supabase.js";
 import { createPortal } from "react-dom";
-import { Avatar, BRAND, Badge, Btn, CHECKOUT_WINDOW_MS, Card, DISPUTE_CATEGORIES, EmptyState, FS, FileInput, FilterClearAll, FilterPanel, FilterToggle, HoursNote, Icons, InlineIcon, Input, MALAYSIAN_BANK_OPTIONS, OPEN_COOKIE_PREFS_EVENT, PLATFORM_FEE_PCT, Pill, Progress, RADIUS, RATING_ASPECTS, RatingDetailsModal, ReceivedFeedback, SEDCARD_QUALIFICATIONS, SHIFT_CATEGORIES, SHIFT_LANGUAGES, SHIFT_REQUIRED_DOCUMENTS, SITE, Select, StarInput, StarRating, Stat, TYPE, Z, bankVerificationLabel, buildContractRows, chatDayKey, chatDayLabel, chatFullTimestamp, chatPreviewLine, decodeSeg, disablePushNotifications, displayProtectedText, disputeStatusLabel, enablePushNotifications, formatOccurrenceLine, formatOccurrencesSummary, formatShiftDate, formatShiftTime, getAvatarUrl, hasTranslation, hoursUntilShift, initialRouteSegments, mapPayoutPillColor, mapVerificationPillColor, openContractPrintWindow, openMailtoSupport, payoutHoldReasonLabel, payoutStatusLabel, readChatSeen, readPushStatus, reconfirmState, renderContractRowsJSX, routeKeyFromSegment, sanitizeBulkTextValue, shiftCategoryLabel, shiftLastEndsAt, shiftRequiredDocuments, sortConversationsByRecent, statusTone, toCurrency, totalOccurrenceHours, uploadAvatarFile, uploadKycFile, useDialog, useLanguage, usePortalRoute, useToast, useUnreadChatRooms, validateMalaysianBankAccount, writeChatSeen } from "../../carigaji-app.jsx";
+import { Avatar, BRAND, Badge, Btn, CHECKOUT_WINDOW_MS, Card, DISPUTE_CATEGORIES, EmptyState, FS, FileInput, FilterClearAll, FilterPanel, FilterToggle, HoursNote, Icons, InlineIcon, Input, MALAYSIAN_BANK_OPTIONS, OPEN_COOKIE_PREFS_EVENT, PLATFORM_FEE_PCT, Pill, Progress, RADIUS, RATING_ASPECTS, RatingDetailsModal, ReceivedFeedback, SEDCARD_QUALIFICATIONS, SHIFT_CATEGORIES, SHIFT_LANGUAGES, SHIFT_REQUIRED_DOCUMENTS, SITE, Select, StarInput, StarRating, Stat, TYPE, Z, bankVerificationLabel, buildContractRows, chatDayKey, chatDayLabel, chatFullTimestamp, chatPreviewLine, decodeSeg, disablePushNotifications, displayProtectedText, disputeStatusLabel, enablePushNotifications, formatOccurrenceLine, formatOccurrencesSummary, formatShiftDate, formatShiftTime, getAvatarUrl, hasTranslation, hoursUntilShift, initialRouteSegments, mapPayoutPillColor, mapVerificationPillColor, openContractPrintWindow, openMailtoSupport, payoutHoldReasonLabel, payoutStatusLabel, readChatSeen, readPushStatus, reconfirmState, renderContractRowsJSX, routeKeyFromSegment, sanitizeBulkTextValue, shiftCategoryLabel, shiftLastEndsAt, shiftRequiredDocuments, sortConversationsByRecent, statusTone, toCurrency, totalOccurrenceHours, uploadAvatarFile, uploadKycFile, useDialog, useLanguage, usePortalRoute, useConfirm, useToast, useUnreadChatRooms, validateMalaysianBankAccount, writeChatSeen } from "../../carigaji-app.jsx";
 
 // Validates the Post Shift wizard's occurrence rows before advancing past
 // step 1. Returns a reason code (mapped to a translated toast message by the
@@ -427,6 +427,12 @@ const shiftStatusLabel = (status, t) => {
 // ─── EMPLOYER PORTAL ─────────────────────────────────────────────────────────
 const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandlerRef = null, deepLinkShift = null, onUserUpdated = () => {}, onOpenSupportChat = openMailtoSupport }) => {
   const toast = useToast();
+  // Shared confirmation step (see useConfirm in carigaji-app.jsx). Replaces
+  // window.confirm, and guards Reject, which used to apply on one tap.
+  const [confirm, confirmDialog] = useConfirm();
+  // Post a shift, step 1: required fields are checked on Next and shown under
+  // the field, instead of a toast on step 3 for a title left blank on step 1.
+  const [postErrors, setPostErrors] = useState({});
   const { t } = useLanguage();
   const [view, setView] = useState(() => parseEmployerRoute(initialRouteSegments("employer")).view);
   const [selectedShift, setSelectedShift] = useState(null);
@@ -1352,9 +1358,25 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   // this has no payout side effects and existing applicants are untouched;
   // it only flips the shift out of 'open' so the applications_worker_insert
   // RLS policy (which requires shift.status = 'open') blocks new bids.
-  const handleCloseApplicationsClick = () => {
-    if (!window.confirm(t('employer.confirmCloseApplications').replace('{title}', selectedShift.title))) return;
+  const handleCloseApplicationsClick = async () => {
+    const ok = await confirm({
+      title: t('employer.closeApplicationsBtn'),
+      body: t('employer.confirmCloseApplications').replace('{title}', selectedShift.title),
+      confirmLabel: t('employer.closeApplicationsBtn'),
+      tone: 'primary',
+    });
+    if (!ok) return;
     doCloseApplications(selectedShift.id);
+  };
+
+  const confirmRejectApplicant = async (a) => {
+    const ok = await confirm({
+      title: t('employer.confirmRejectTitle', { name: a.name || a.workerName || t('employer.thisApplicant') }),
+      body: t('employer.confirmRejectBody'),
+      confirmLabel: t('common.reject'),
+      tone: 'danger',
+    });
+    if (ok) handleApplicantAction(a.id, 'rejected');
   };
 
   const doCloseApplications = async (shiftId) => {
@@ -2448,7 +2470,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {action !== "shortlisted" && <Btn size="xs" variant="secondary" onClick={() => handleApplicantAction(a.id, "shortlisted")}>{t("employer.shortlistBtn")}</Btn>}
           <Btn size="xs" variant="success" disabled={offering || openSlotsRemaining() === 0} onClick={() => makeOffer([a.id])}>{t("employer.selectBtn")}</Btn>
-          <Btn size="xs" variant="danger" onClick={() => handleApplicantAction(a.id, "rejected")}>{t("common.reject")}</Btn>
+          <Btn size="xs" variant="danger" onClick={() => confirmRejectApplicant(a)}>{t("common.reject")}</Btn>
         </div>
       )}
       {action === "offered" && <span style={{ fontSize: FS.meta, color: BRAND.primaryOnSurface }}><InlineIcon icon={Icons.Clock} />{t("employer.waitingOnWorker")}</span>}
@@ -2566,6 +2588,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   );
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%", fontFamily: "inherit" }}>
+      {confirmDialog}
       {compact ? (
         <>
           {/* Mobile top bar: hamburger toggle instead of a permanently-expanded sidebar */}
@@ -3159,7 +3182,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <Card>
               {postStep === 1 && (
                 <div>
-                  <Input label={t("employer.fieldShiftTitle")} placeholder={t("employer.shiftTitlePlaceholder")} value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                  <Input label={`${t("employer.fieldShiftTitle")} *`} placeholder={t("employer.shiftTitlePlaceholder")} value={form.title} error={Boolean(postErrors.title)} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setPostErrors(pe => ({ ...pe, title: false })); }} />
+                  {postErrors.title && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.red, fontWeight: 600, marginTop: -8, marginBottom: 12 }}>{t("employer.errTitleRequired")}</div>}
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.fieldJobDescription")}</label>
                     <textarea
@@ -3170,7 +3194,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     />
                   </div>
                   <Select label={t("employer.labelCategory")} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: shiftCategoryLabel(v, t) }))} />
-                  <LocationAutocomplete label={t("employer.labelLocation")} value={form.location} onChange={val => setForm(f => ({ ...f, location: val }))} />
+                  <LocationAutocomplete label={`${t("employer.labelLocation")} *`} value={form.location} error={Boolean(postErrors.location)} onChange={val => { setForm(f => ({ ...f, location: val })); setPostErrors(pe => ({ ...pe, location: false })); }} />
+                  {postErrors.location && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.red, fontWeight: 600, marginTop: -8, marginBottom: 12 }}>{t("employer.errLocationRequired")}</div>}
                   <div style={{marginTop:8, marginBottom:16}}>
                     <div style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:4}}>{t("employer.addressVisibilityLabel")}</div>
                     <div style={{display:'flex', gap:12}}>
@@ -3277,6 +3302,12 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     </div>
                   </div>
                   <Btn onClick={() => {
+                    const missing = { title: !form.title.trim(), location: !(form.location || "").trim() };
+                    if (missing.title || missing.location) {
+                      setPostErrors(missing);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      return;
+                    }
                     const reason = validateOccurrences(form.occurrences);
                     if (reason === 'empty' || reason === 'incomplete') { toast(t('toast.shiftFieldsRequired'), 'error'); return; }
                     if (reason === 'pastDate') { toast(t('toast.scheduleDatePast'), 'error'); return; }
