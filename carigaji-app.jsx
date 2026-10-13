@@ -658,7 +658,8 @@ const TRANSLATIONS = {
     "admin.reportSave": "Save",
     "admin.reportSaved": "Saved.",
     "admin.reportSaveFailed": "Failed to save: ",
-    "admin.statNewReports": "New reports",
+    "admin.statNewReports": "Open reports",
+    "admin.statPayoutsToRelease": "Payouts to release",
     "admin.overviewTitle": "Platform Overview",
     "admin.kycQueueTitle": "KYC Review Queue",
     "admin.employerQueueTitle": "Employer Verification Queue",
@@ -9706,8 +9707,6 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label={t("profile.shiftsDone")} value={workerShiftsDone ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span><InlineIcon icon={Icons.Star} />{(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
-              <Stat label={t("profile.strikes")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
-              <Stat label={t("profile.onTimeRate")} value={t("common.comingSoon")} sub={t("profile.notTrackedYet")} color={BRAND.textMuted} />
             </div>
             {kycLevel === "Basic" && !previewMode && (
               // Worker deferred their KYC document uploads during progressive
@@ -12635,7 +12634,12 @@ export default function App() {
           {portal === "admin" && (
             isAdmin
               ? <Suspense fallback={<PortalLoading />}><AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} /></Suspense>
-              : <AdminAccessRequired user={user} onBack={() => setPortal("worker")} />
+              // While the session is still being restored `user` is null, so
+              // a signed-in admin reloading /admin briefly saw "Admin access
+              // required" and a Sign in button. Wait for auth to settle first.
+              : !authResolved
+                ? <PortalLoading />
+                : <AdminAccessRequired user={user} onBack={() => setPortal("worker")} />
           )}
         </div>
       </div>

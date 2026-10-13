@@ -380,7 +380,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setDisputesQueue(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, checked_in_method, checked_out_method, worker_reported_hours, no_show_at, no_show_note, employer_hours_confirmed_at, worker_signed_at, employer_signed_at, shift_id, shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at))")
+        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, checked_in_method, checked_out_method, worker_reported_hours, no_show_at, no_show_note, employer_hours_confirmed_at, worker_signed_at, employer_signed_at, shift_id, worker:profiles!applications_worker_id_profiles_fkey(full_name), shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at, employer:profiles(full_name)))")
         .order("created_at", { ascending: false });
       if (error) { setDisputesQueue([]); return; }
       setDisputesQueue(data || []);
@@ -728,18 +728,21 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div>
             <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 4 }}>{t("admin.overviewTitle")}</div>
             <div style={{ fontSize: FS.body, color: BRAND.textMuted, marginBottom: 24 }}>Klang Valley — Live metrics</div>
-            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
-              <Stat label="Pending KYC" value={kycQueue?.length ?? "—"} color={BRAND.amber} />
-              <Stat label="Open disputes" value={disputesQueue?.filter(d => d.status === "open" || d.status === "under_review").length ?? "—"} color={BRAND.red} />
-              <Stat label={t("admin.statNewReports")} value={issueReportsQueue?.filter(r => r.status === "new").length ?? "—"} color={issueReportsQueue?.some(r => r.status === "new" && r.severity === "blocking") ? BRAND.red : BRAND.amber} />
-              <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
+            {/* Row 1: what is waiting on an admin, counted exactly like the
+                sidebar chips (refreshNavCounts) so the two never disagree.
+                Row 2: how the platform is doing. */}
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 12 }}>
+              <Stat label="Pending KYC" value={navCounts.kycqueue ?? "—"} color={BRAND.amber} />
+              <Stat label="Open disputes" value={navCounts.disputes ?? "—"} color={BRAND.red} />
+              <Stat label={t("admin.statNewReports")} value={navCounts.reports ?? "—"} color={issueReportsQueue?.some(r => r.status === "new" && r.severity === "blocking") ? BRAND.red : BRAND.amber} />
+              <Stat label={t("admin.statPayoutsToRelease")} value={navCounts.payouts ?? "—"} color={BRAND.greenOnSurface} />
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
+            <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
+              <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
+              <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
+              <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label="Registered workers" value={overviewStats?.activeWorkers ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label="Registered employers" value={overviewStats?.registeredEmployers ?? "—"} color={BRAND.primaryOnSurface} />
-              <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primaryOnSurface} />
-              <Stat label="Payout queue" value="Coming soon" sub="Escrow/payout not built yet" color={BRAND.textMuted} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 16 }}>
               <Card>
@@ -818,9 +821,11 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text }}>{worker.full_name || "Unnamed user"}</div>
-                    <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{worker.id}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>
-                      Submitted: {new Date(worker.created_at).toLocaleDateString("en-MY")}
+                      {/* There is no "documents submitted at" column; created_at is
+                          when the account was made, so say that rather than
+                          passing it off as the submission time. */}
+                      Joined: {new Date(worker.created_at).toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })}
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -878,7 +883,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text }}>{emp.full_name || "Unnamed company"}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.text, marginTop: 4 }}>SSM: <strong>{emp.ssm_number || "—"}</strong></div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>
-                      Registered: {new Date(emp.created_at).toLocaleDateString("en-MY")} · {emp.id}
+                      Registered: {new Date(emp.created_at).toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })}
                     </div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 6, lineHeight: 1.5 }}>
                       Check the SSM number against the official registry (ssm-einfo.my) before verifying — the number alone proves nothing.
@@ -940,7 +945,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                     <div><div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Shift</div><div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "—")}</div></div>
-                    <div><div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Application ID</div><div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{d.application?.id ?? "—"}</div></div>
+                    <div><div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Worker</div><div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{d.application?.worker?.full_name || "—"}</div></div>
+                    <div><div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Employer</div><div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{d.application?.shift?.employer?.full_name || "—"}</div></div>
                   </div>
                   <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.6, marginBottom: 12, whiteSpace: "pre-wrap" }}>{d.description}</div>
                   {d.admin_notes && (
