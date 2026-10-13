@@ -232,3 +232,41 @@ notif.<type>.title/body + params, DB title/body is the English fallback.
 - Open policy question: employer never confirms submitted hours. Reminders +
   worker escalation exist; auto-confirm after N days deliberately NOT built
   (it pays without the employer's consent) -- owner's call.
+
+## 2026-09-21 — Search visibility plan (workers finding short shifts / minijobs)
+Plan only, full text in tasks/seo_plan.md. Name is not final, so the plan makes the brand a
+single config value and keeps every ranking signal brand-independent.
+- [ ] Phase 0 (needs nothing): brand.config.json + {brand} strings + CI literal check;
+      real title/description/canonical/OG; noindex private routes + temp hosts; robots.txt;
+      hide demo/QA shifts from search
+- [ ] Phase 1: Cloudflare cutover (real 200s) once name/domain are final
+- [ ] Phase 2: edge Worker (shift head + JobPosting + live sitemap)
+- [ ] Phase 3: hub pages + evergreen guides en/bm/zh + Indexing API
+- [ ] Phase 4: split bundle by portal (speed)
+
+## 2026-10-13 — Top 5 UX fixes from the design review
+Review canvas: https://claude.ai/artifact/Wk11g2hCJ3FVrKxpZrwU7E. Owner decisions: test-account
+flag, copy + URL rename (with redirect), FULL token sweep, commit + push each fix separately.
+Orchestrator already paused (state.txt = paused).
+- [x] 1. Browse first: "Find a shift near you" scrolls to the feed (no Register); signed-out
+      header shows no role badge; signed-out nav shows Discover only + Sign in
+- [x] 2. Test data: profiles.is_test_account (migration), mark the 4 +qa accounts, Discover
+      excludes their shifts; real empty state for an empty feed
+- [x] 4. "Needs you": worker My Bids grouped (Needs you / Upcoming / Waiting / Past);
+      employer dashboard action list; admin sidebar counts + open-first lists
+- [x] 3. One vocabulary (en/ms/zh): Apply · Your rate · Applicants · Send offer / Offer sent ·
+      My shifts; /en/my-bids → /en/my-shifts with redirect; code identifiers unchanged
+- [x] 5. Tokens: one shared status map, icons not emoji, all literal fontSize → TYPE scale
+      (13 px floor), radii → 8/12/999
+Each: vite build + pre-commit + browser check (signed-out live; signed-in paths need owner).
+Review (2026-10-13): shipped as fc59aee (1), fa95d3b (2, migration applied + checked per role),
+c4a2c4b (4), 5786755 (3), 8820b9d + a21dafb (5). Build + route-check (87/87) + signed-out browser
+checks passed for each; signed-in screens (worker My shifts, employer dashboard, admin) not yet
+clicked through -- needs an owner sign-in. Follow-ups: signed-out deep links fall back to Discover
+(task chip raised); SQL notification fallback text still says "bid"; 130/150px label columns and
+"4 pos · 0 applied" wrap at 13px; a few #fff on solid fills → BRAND.onSolid; SSM stamp overlaps
+"Pay shown" on the landing sample card.
+Follow-ups done 2026-10-13: 4baa482 (DB notification/rate-cap text, migration 20261013b applied +
+checked), 3c51a03 (seal overlap, flexible label columns, two-line pos/applied, tooltip size,
+#fff -> BRAND.onSolid). Deep-link fallback is being fixed in its own session. Still open:
+signed-in click-through by owner. Transport tile fixed (see git log).
