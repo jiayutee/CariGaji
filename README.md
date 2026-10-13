@@ -45,13 +45,17 @@ for the reasoning.
 
 ## Architecture
 
-- **`carigaji-app.jsx`** — the entire client, one file, ~18k lines. It is one
-  file on purpose: the whole app is legible to a single reader and to a single
-  agent context, and there is no module graph to reason about when changing a
-  screen. The cost is that it is large; the mitigation is that shared UI lives in
-  a small set of primitives near the top (`Card`, `Btn`, `Badge`, `Pill`,
-  `Avatar`, `Stat`, `FilterToggle`, …) that screens are expected to reuse rather
-  than re-style.
+- **`carigaji-app.jsx`** — the client's shared code and the **worker** portal,
+  ~15k lines. Shared UI lives in a small set of primitives near the top (`Card`,
+  `Btn`, `Badge`, `Pill`, `Avatar`, `Stat`, `FilterToggle`, …) that screens are
+  expected to reuse rather than re-style.
+- **`src/portals/EmployerPortal.jsx`, `src/portals/AdminPortal.jsx`** — the
+  employer and admin consoles, split out so a visitor who never opens one never
+  downloads it (they are loaded with `lazy()` from the main file). They import
+  everything shared from `carigaji-app.jsx`, so **a new shared helper used by a
+  portal needs an `export` in the main file**; `npm run check:undef` catches a
+  name that was forgotten. Edit employer screens in `EmployerPortal.jsx` and
+  admin screens in `AdminPortal.jsx`, not in the main file.
 - **Three portals** — worker, employer, admin — chosen by URL and role.
 - **Supabase** for Postgres, auth, storage and realtime. Row-level security is
   the authorization boundary; the client holds no privileged key.
@@ -82,7 +86,10 @@ never appear here.
 | `npm run build` | production build into `dist/` |
 | `npm run preview` | serve the built bundle |
 | `npm run test:payout-rules` | payout-date rules (weekends, federal holidays) |
-| `node scripts/design-check/token-lint.mjs` | flags hardcoded colours where a theme token exists |
+| `node scripts/design-check/token-lint.mjs` | flags hardcoded colours where a theme token exists (scans the main file and `src/portals/`) |
+| `npm run check:undef` | every name used is declared or imported, in the main file and each portal |
+| `npm run check:routes` | every page address builds and parses back, in every language |
+| `npm run check:brand` | rename rehearsal: a build under a made-up name has no trace of the real one |
 
 `scripts/design-check/contrast-sweep.js` is pasted into the browser console (or
 evaluated by an agent) and measures every rendered text/background pair against
@@ -112,7 +119,8 @@ One-off operational scripts live in `tasks/` and are also run by hand.
 ## Repo layout
 
 ```
-carigaji-app.jsx        the client
+carigaji-app.jsx        shared client code + the worker portal
+src/portals/            employer and admin portals (lazy-loaded)
 src/lib/                supabase client, theme tokens
 supabase/migrations/    schema, RLS, triggers, RPCs
 scripts/design-check/   token lint + contrast sweep

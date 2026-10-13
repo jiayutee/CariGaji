@@ -13,11 +13,24 @@ const between = (a, b) => {
   return src.slice(i, j);
 };
 
-const prelude =
+// Portal route tables live next to their portal (src/portals/*.jsx); read them
+// from there so this check follows the code if it moves again.
+const portalSrc = (name) => readFileSync(new URL(`../src/portals/${name}.jsx`, import.meta.url), "utf8");
+const betweenIn = (text, a, b) => {
+  const i = text.indexOf(a);
+  const j = text.indexOf(b, i);
+  if (i < 0 || j < 0) throw new Error(`markers not found: ${a} .. ${b}`);
+  return text.slice(i, j);
+};
+// `export` is stripped: these slices are evaluated as plain function bodies.
+const prelude = (
   "const APP_BASE='/CariGaji';const SHIFT_PATH_SEG='shift';const LANG_CODES=['en','bm','ch'];const DEFAULT_LANG='en';\n" +
   between("const splitLangPath = (pathname", "const langFromPath") +
   between("const withLang = (lang, segments)", "const portalToPath") +
-  between("const WORKER_ROUTES", "// History bookkeeping.");
+  between("const WORKER_ROUTES", "// History bookkeeping.") +
+  betweenIn(portalSrc("AdminPortal"), "const ADMIN_ROUTES", "export default") +
+  betweenIn(portalSrc("EmployerPortal"), "const EMPLOYER_ROUTES", "export default")
+).replace(/^export /gm, "");
 
 const tests = `
 let n = 0, failed = 0;

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-commit gate: reject commits that break the JSX parse of carigaji-app.jsx.
+# Pre-commit gate: reject commits that break the JSX parse of carigaji-app.jsx or a portal module.
 # The single-file app has broken the GitHub Pages build before via JSX slips;
 # this catches them locally before they reach main → auto-deploy.
 
@@ -14,19 +14,26 @@ HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAIN_REPO_ROOT="$(cd "$HOOK_DIR/../.." && pwd)"
 
 # Only run when the app file is staged.
-if git diff --cached --name-only | grep -q "carigaji-app.jsx"; then
+if git diff --cached --name-only | grep -qE "carigaji-app.jsx|src/portals/.*\.jsx"; then
     echo "pre-commit: checking carigaji-app.jsx syntax…"
     ESBUILD="$MAIN_REPO_ROOT/node_modules/.bin/esbuild"
     if [ ! -x "$ESBUILD" ]; then
         ESBUILD="npx --no-install esbuild"
     fi
-    if ! $ESBUILD "$APP" --bundle=false --platform=browser >/dev/null 2>/tmp/carigaji-esbuild-err; then
-        echo "❌ pre-commit BLOCKED: carigaji-app.jsx failed to parse:"
+    # esbuild takes one input without an outdir, so check each file in turn.
+    PARSE_OK=1
+    : > /tmp/carigaji-esbuild-err
+    for f in "$APP" "$REPO_ROOT"/src/portals/*.jsx; do
+        [ -f "$f" ] || continue
+        $ESBUILD "$f" --bundle=false --platform=browser --loader:.jsx=jsx >/dev/null 2>>/tmp/carigaji-esbuild-err || PARSE_OK=0
+    done
+    if [ "$PARSE_OK" != "1" ]; then
+        echo "❌ pre-commit BLOCKED: the app or a portal module failed to parse:"
         cat /tmp/carigaji-esbuild-err
         echo ""
         echo "Fix the syntax error above, or bypass intentionally with --no-verify."
         exit 1
     fi
-    echo "✅ pre-commit: carigaji-app.jsx parses cleanly."
+    echo "✅ pre-commit: the app and its portal modules parse cleanly."
 fi
 exit 0

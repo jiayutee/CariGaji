@@ -16,11 +16,25 @@
 // Run:  node scripts/design-check/token-lint.mjs
 // Exits 1 if anything is found, so it can gate a commit later if wanted.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const FILE = 'carigaji-app.jsx';
-const src = readFileSync(FILE, 'utf8');
+// The app is one main file plus lazily loaded portal modules (src/portals/).
+// Scanned as one text so every rule and baseline key behaves exactly as it did
+// when this was a single file; findings are mapped back to the real file below.
+const FILES = ['carigaji-app.jsx', ...(existsSync('src/portals') ? readdirSync('src/portals').filter(f => f.endsWith('.jsx')).sort().map(f => `src/portals/${f}`) : [])];
+const parts = FILES.map(f => readFileSync(f, 'utf8'));
+const src = parts.join('\n');
+const FILE = FILES[0];
+const fileLine = (line) => {
+  let offset = 0;
+  for (let i = 0; i < FILES.length; i++) {
+    const n = parts[i].split('\n').length;
+    if (line <= offset + n) return `${FILES[i]}:${line - offset}`;
+    offset += n;
+  }
+  return `${FILE}:${line}`;
+};
 
 // Fixed-light surfaces and the text colour each one expects.
 const FIXED_LIGHT = {
@@ -205,7 +219,7 @@ if (!fresh.length) {
 }
 console.log(`token-lint: ${fresh.length} NEW finding(s) — ${JSON.stringify(byRule)}\n`);
 for (const f of fresh.sort((a, b) => a.line - b.line)) {
-  console.log(`  ${FILE}:${f.line}  [${f.rule}]  ${f.detail}`);
+  console.log(`  ${fileLine(f.line)}  [${f.rule}]  ${f.detail}`);
 }
 console.log(`\n(${accepted.size} pre-existing finding(s) suppressed by ${BASELINE})`);
 process.exit(1);

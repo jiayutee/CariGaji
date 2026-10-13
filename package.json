@@ -10,7 +10,8 @@
     "test:payout-rules": "node scripts/validate-payout-dates.mjs",
     "mcp:auth": "node scripts/get-mcp-token.mjs",
     "check:brand": "node scripts/brand-check.mjs",
-    "check:routes": "node scripts/route-check.mjs"
+    "check:routes": "node scripts/route-check.mjs",
+    "check:undef": "node scripts/undef-check.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",

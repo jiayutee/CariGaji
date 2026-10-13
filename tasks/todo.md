@@ -249,7 +249,11 @@ single config value and keeps every ranking signal brand-independent.
 - [ ] Phase 1: Cloudflare cutover (real 200s) once name/domain are final
 - [ ] Phase 2: edge Worker (shift head + JobPosting + live sitemap)
 - [ ] Phase 3: hub pages + evergreen guides en/bm/zh + Indexing API
-- [ ] Phase 4: split bundle by portal (speed)
+- [x] Phase 4 (2026-10-13): employer and admin portals split into src/portals/ and lazy-loaded
+      (main chunk 1,027 -> 816 kB, 265 -> 220 kB gzip; employer 160 kB and admin 54 kB on demand).
+      Stale-tab safe (reloads once on a missing chunk). Guards: check:undef, parse gate and
+      pre-commit now cover src/portals. NOT done: lazy-load bm/zh translations (~15% of the main
+      chunk), font/image preload, Core Web Vitals baseline (needs the live domain).
 
 ## 2026-10-13 — Top 5 UX fixes from the design review
 Review canvas: https://claude.ai/artifact/Wk11g2hCJ3FVrKxpZrwU7E. Owner decisions: test-account

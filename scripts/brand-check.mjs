@@ -48,7 +48,7 @@ if (hits.length) { failed++; console.error(`FAIL: "${current}" survives a build 
 else console.log(`ok: a build renamed to "${fake}" contains no trace of "${current}"`);
 
 // ---- 2. source guard (non-comment lines of shipped client files) ---------------
-const files = ["index.html", "carigaji-app.jsx", "src/main.jsx", "public/service-worker.js",
+const files = ["index.html", "carigaji-app.jsx", "src/main.jsx", "public/service-worker.js", "src/portals/AdminPortal.jsx", "src/portals/EmployerPortal.jsx",
   "supabase/functions/send-notification-email/index.ts", "supabase/functions/send-push/index.ts", "supabase/functions/support-chat/index.ts"];
 const bad = [];
 for (const f of files) {
