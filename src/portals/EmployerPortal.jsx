@@ -938,7 +938,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     // a real failure shows "No shifts posted yet" rather than spinning
     // forever on "Loading shifts…".
     if (error) { console.error('liveEmployerShifts load failed:', error.message); setLiveEmployerShifts([]); return; }
-    setLiveEmployerShifts((data ?? []).map(s => ({
+    const freshShifts = (data ?? []).map(s => ({
       id: s.id,
       title: displayProtectedText(s.title),
       startAt: s.start_at,
@@ -964,7 +964,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       transportAllowance: Number(s.transport_allowance ?? 0),
       description: displayProtectedText(s.description || ''),
       applicationsCloseAt: s.applications_close_at,
-    })));
+    }));
+    // The app replaces the `user` object on every auth event, which recreates this
+    // loader and refetches. The applicant counts and open-item badges come from a
+    // separate query keyed on the shift ids, which have not changed, so it would not
+    // run again and every card would fall back to "Applied 0". Carry over what is
+    // already known for shifts that are still here.
+    setLiveEmployerShifts(prev => freshShifts.map(s => {
+      const known = (prev ?? []).find(p => p.id === s.id);
+      return known
+        ? { ...s, applicants: known.applicants, avgBid: known.avgBid, openBids: known.openBids, openHours: known.openHours, openWaiting: known.openWaiting, openAttendance: known.openAttendance }
+        : s;
+    }));
   }, [user]);
 
   useEffect(() => { loadEmployerShifts(); }, [loadEmployerShifts]);
