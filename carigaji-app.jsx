@@ -8755,7 +8755,10 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
             </h1>
             <p style={{ fontSize: isMobile ? 13.5 : 15.5, color: BRAND.textMuted, lineHeight: 1.6, maxWidth: 480, margin: "0 0 20px" }}>{t("landing.subhead")}</p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-              <Btn onClick={() => onRequireAuth("register")}>{t("landing.ctaFindShift")}</Btn>
+              {/* Scrolls to the feed rather than opening Register: browsing is
+                  free (the line right below says so), and an account is only
+                  asked for when the visitor actually bids. */}
+              <Btn onClick={() => document.getElementById("open-shifts")?.scrollIntoView({ behavior: "smooth", block: "start" })}>{t("landing.ctaFindShift")}</Btn>
               <Btn variant="secondary" onClick={() => onRequireAuth("register", "employer")}>{t("landing.ctaPostShift")}</Btn>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: 12, color: BRAND.textMuted }}>
@@ -10443,7 +10446,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Five tabs, not six. Settings folded into Profile as a Profile | Account
   // pair -- the same split the reference app uses -- which buys every remaining
   // tab enough width for a legible label instead of six 9px ones.
-  const navItems = [
+  // Signed out, the other four tabs only lead to a sign-in wall, so the bar
+  // offers just what a visitor can do: browse, or sign in.
+  const navItems = !user ? [
+    { id: "discover", label: t("nav.discover"), icon: <Icons.Search size={20} /> },
+    { id: "signin", label: t("common.signIn"), icon: <Icons.User size={20} /> },
+  ] : [
     { id: "discover", label: t("nav.discover"), icon: <Icons.Search size={20} /> },
     { id: "applications", label: t("nav.myBids"), icon: <Icons.List size={20} /> },
     { id: "chat", label: t("nav.chat"), icon: <Icons.Chat size={20} />, badge: unreadRooms },
@@ -10462,6 +10470,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   ];
 
   const handleWorkerNavClick = (nextTab) => {
+    if (nextTab === "signin") { onRequireAuth("signin"); return; }
     setShowQR(false);
     setShowBidModal(false);
     setSelectedShift(null);
@@ -11229,7 +11238,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {!user && (
               <DiscoverLandingHero t={t} isMobile={isMobile} onRequireAuth={onRequireAuth} />
             )}
-            <div style={{ padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
+            <div id="open-shifts" style={{ scrollMarginTop: 72, padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
               <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 800, color: BRAND.text, marginBottom: 2 }}>
                 {user ? t("discover.welcomeBack").replace("{name}", workerOwnName || user.email?.split("@")[0] || "") : t("discover.browseHeading")}
               </div>
@@ -20639,7 +20648,7 @@ export default function CariGaji() {
         }}>
           <AppBrandHeader onClick={() => { setPortal("worker"); setHomeSignal(s => s + 1); }} isMobile={isMobile} />
           <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 12, minWidth: 0 }}>
-            {!isMobile && (
+            {!isMobile && user && (
               <Badge color={portal === "worker" ? "green" : portal === "employer" ? "blue" : "amber"}>
                 {cfg.label}
               </Badge>
