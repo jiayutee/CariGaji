@@ -11,7 +11,8 @@
     "mcp:auth": "node scripts/get-mcp-token.mjs",
     "check:brand": "node scripts/brand-check.mjs",
     "check:routes": "node scripts/route-check.mjs",
-    "check:undef": "node scripts/undef-check.mjs"
+    "check:undef": "node scripts/undef-check.mjs",
+    "check:i18n": "node scripts/i18n-check.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",

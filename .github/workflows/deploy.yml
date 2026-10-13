@@ -48,7 +48,7 @@ jobs:
           npx esbuild carigaji-app.jsx --bundle=false --platform=browser > /dev/null
           for f in src/portals/*.jsx; do npx esbuild "$f" --bundle=false --platform=browser --loader:.jsx=jsx > /dev/null; done
 
-      - name: Static checks (names, routes, brand)
+      - name: Static checks (names, languages, routes, brand)
         # undef-check: every name the app and each lazily loaded portal uses is
         # declared or imported (a miss would only fail when someone opens that
         # portal). route-check: every page address builds and parses back. brand-check:
@@ -56,6 +56,7 @@ jobs:
         # one, so a rename is a one-file change.
         run: |
           node scripts/undef-check.mjs
+          node scripts/i18n-check.mjs
           node scripts/route-check.mjs
           node scripts/brand-check.mjs
 

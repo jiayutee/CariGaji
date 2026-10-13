@@ -61,8 +61,10 @@ for the reasoning.
   the authorization boundary; the client holds no privileged key.
 - **Vite** build, deployed to **Cloudflare Workers** static assets with
   `not_found_handling: "single-page-application"` so client-routed paths resolve.
-- **Three languages** — `en` / `bm` / `zh`, in one `TRANSLATIONS` map with
-  enforced key parity.
+- **Three languages** — `en` / `bm` / `ch`. English is the `TRANSLATIONS` map in
+  `carigaji-app.jsx` (the fallback for any missing key); Malay and Chinese live in
+  `src/i18n/bm.js` and `ch.js` and load on demand. Add a string to all three;
+  `npm run check:i18n` enforces matching keys and `{placeholders}`.
 
 ---
 
@@ -87,6 +89,7 @@ never appear here.
 | `npm run preview` | serve the built bundle |
 | `npm run test:payout-rules` | payout-date rules (weekends, federal holidays) |
 | `node scripts/design-check/token-lint.mjs` | flags hardcoded colours where a theme token exists (scans the main file and `src/portals/`) |
+| `npm run check:i18n` | en, bm and ch have the same keys and `{placeholders}` |
 | `npm run check:undef` | every name used is declared or imported, in the main file and each portal |
 | `npm run check:routes` | every page address builds and parses back, in every language |
 | `npm run check:brand` | rename rehearsal: a build under a made-up name has no trace of the real one |
@@ -121,6 +124,7 @@ One-off operational scripts live in `tasks/` and are also run by hand.
 ```
 carigaji-app.jsx        shared client code + the worker portal
 src/portals/            employer and admin portals (lazy-loaded)
+src/i18n/               Malay and Chinese text (lazy-loaded; English is in the main file)
 src/lib/                supabase client, theme tokens
 supabase/migrations/    schema, RLS, triggers, RPCs
 scripts/design-check/   token lint + contrast sweep
