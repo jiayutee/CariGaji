@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase.js";
 import { runInternalPayoutScheduling } from "../lib/payouts/scheduler.js";
 import { createPortal } from "react-dom";
-import { BRAND, Badge, Btn, Card, DISPUTE_CATEGORIES, EmptyState, FS, Icons, InlineIcon, KYC_BUCKET, Pill, RADIUS, SITE, Select, Stat, TYPE, Z, displayProtectedText, disputeStatusLabel, initialRouteSegments, mapPayoutPillColor, payoutHoldReasonLabel, payoutStatusLabel, routeKeyFromSegment, toCurrency, useDialog, useLanguage, usePortalRoute, useToast } from "../../carigaji-app.jsx";
+import { BRAND, Badge, Btn, Card, DISPUTE_CATEGORIES, EmptyState, FS, Icons, InlineIcon, KYC_BUCKET, Pill, RADIUS, SITE, Select, Stat, TYPE, Z, displayProtectedText, disputeStatusLabel, initialRouteSegments, mapPayoutPillColor, payoutHoldReasonLabel, payoutStatusLabel, routeKeyFromSegment, toCurrency, useDialog, useLanguage, usePortalRoute, useConfirm, useToast } from "../../carigaji-app.jsx";
 
 // ─── ADMIN PORTAL ─────────────────────────────────────────────────────────────
 // The admin sidebar is always dark -- BRAND.dark in light mode and dark mode
@@ -20,6 +20,13 @@ const ADMIN_SIDEBAR_ACTIVE_BG = "rgba(232,56,13,0.15)";  // brand tint, on dark 
 const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   const toast = useToast();
   const { t } = useLanguage();
+  // Every action here changes someone's money, access or record. Each one asks
+  // first (see useConfirm), and the ones the other side would want explained
+  // take a note that is written somewhere a person can read it later.
+  const [confirm, confirmDialog] = useConfirm();
+  // Issue-report status picked in the dropdown but not saved yet. The select
+  // used to write on change, so a mis-tap silently re-filed a report.
+  const [issueStatusDrafts, setIssueStatusDrafts] = useState({});
   // Live rate from platform_fee_pct(); null until it loads (or if it fails),
   // so the Config screen never shows the fallback constant as if it were real.
   const [platformFeePct, setPlatformFeePct] = useState(null);
@@ -112,6 +119,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setSavingIssueReport(null);
     if (error) { toast(`${t("admin.reportSaveFailed")}${error.message}`, "error"); return; }
     setIssueReportsQueue(prev => (prev ?? []).map(r => r.id === reportId ? { ...r, ...patch } : r));
+    setIssueStatusDrafts(prev => { const next = { ...prev }; delete next[reportId]; return next; });
     refreshNavCounts();
     toast(t("admin.reportSaved"), "success");
   };
@@ -175,6 +183,15 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
   const applyAttendanceRuling = async () => {
     if (!disputeDetailFor) return;
+    const ok = await confirm({
+      title: t("admin.confirmRulingTitle"),
+      body: rulingOutcome === "grant_attendance" ? t("admin.confirmRulingGrant", { hours: rulingHours })
+        : rulingOutcome === "confirm_no_show" ? t("admin.confirmRulingNoShow")
+        : t("admin.confirmRulingReverse"),
+      confirmLabel: t("admin.rulingApplyBtn"),
+      tone: rulingOutcome === "confirm_no_show" ? "danger" : "primary",
+    });
+    if (!ok) return;
     setApplyingRuling(true);
     const { error } = await supabase.rpc("admin_apply_attendance_correction", {
       p_dispute_id: disputeDetailFor.id,
@@ -340,7 +357,16 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     })();
   }, [view]);
 
-  const setEmployerVerification = async (userId, status) => {
+  const setEmployerVerification = async (emp, status) => {
+    const userId = emp.id;
+    const verifying = status === "verified";
+    const ok = await confirm({
+      title: t(verifying ? "admin.confirmVerifyEmployerTitle" : "admin.confirmRejectEmployerTitle", { name: emp.full_name || "Unnamed company" }),
+      body: t(verifying ? "admin.confirmVerifyEmployerBody" : "admin.confirmRejectEmployerBody"),
+      confirmLabel: t(verifying ? "admin.confirmVerifyBtn" : "admin.confirmRejectBtn"),
+      tone: verifying ? "success" : "danger",
+    });
+    if (!ok) return;
     const { error } = await supabase.from("profiles").update({ employer_verification_status: status }).eq("id", userId);
     if (error) { toast(`Failed to update: ${error.message}`, "error"); return; }
     setEmployerQueue(prev => (prev ?? []).filter(u => u.id !== userId));
@@ -424,6 +450,22 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   }, [view]);
 
   const updatePayoutStatus = async (item, nextStatus) => {
+    const name = (item.worker_id && payoutQueueWorkerNames[item.worker_id]) || t("admin.unnamedWorker");
+    const amount = toCurrency(item.amount);
+    const releasing = nextStatus === "processed_internal";
+    const ok = await confirm(releasing ? {
+      title: t("admin.confirmReleaseTitle", { amount, name }),
+      body: t("admin.confirmReleaseBody"),
+      confirmLabel: t("admin.confirmReleaseBtn"),
+      tone: "success",
+    } : {
+      title: t("admin.confirmHoldTitle", { amount, name }),
+      body: t("admin.confirmHoldBody"),
+      confirmLabel: t("admin.confirmHoldBtn"),
+      tone: "danger",
+      note: { label: t("admin.confirmHoldNote"), required: true },
+    });
+    if (!ok) return;
     const { error } = await supabase
       .from("payout_item")
       .update({ status: nextStatus })
@@ -440,7 +482,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       action: "manual_status_update",
       from_status: item.status,
       to_status: nextStatus,
-      notes: "Admin action from payout queue",
+      notes: ok.note || "Admin action from payout queue",
       metadata_json: { source: "admin_portal" },
     });
 
@@ -485,7 +527,17 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     setKycSignedUrls(prev => ({ ...prev, [userId]: urls }));
   };
 
-  const approveKyc = async (userId, level = "Standard") => {
+  const approveKyc = async (worker, level = "Standard") => {
+    const userId = worker.id;
+    const docsOpened = Boolean(kycSignedUrls[userId]);
+    const ok = await confirm({
+      title: t("admin.confirmApproveKycTitle", { name: worker.full_name || "Unnamed user", level }),
+      body: [level === "Advanced" ? t("admin.confirmApproveAdvancedBody") : t("admin.confirmApproveStandardBody"),
+             docsOpened ? null : t("admin.confirmDocsNotOpened")].filter(Boolean).join("\n\n"),
+      confirmLabel: t("admin.confirmApproveBtn"),
+      tone: "success",
+    });
+    if (!ok) return;
     const { error } = await supabase.from("profiles").update({ kyc_level: level }).eq("id", userId);
     if (error) { toast(`Failed to approve KYC: ${error.message}`, "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
@@ -494,7 +546,15 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     toast(`KYC approved — level set to ${level}`, "success");
   };
 
-  const rejectKyc = async (userId) => {
+  const rejectKyc = async (worker) => {
+    const userId = worker.id;
+    const ok = await confirm({
+      title: t("admin.confirmRejectKycTitle", { name: worker.full_name || "Unnamed user" }),
+      body: t("admin.confirmRejectKycBody"),
+      confirmLabel: t("admin.confirmRejectBtn"),
+      tone: "danger",
+    });
+    if (!ok) return;
     const { error } = await supabase.from("profiles").update({ kyc_level: "Basic" }).eq("id", userId);
     if (error) { toast(`Failed to reject KYC: ${error.message}`, "error"); return; }
     setKycQueue(prev => prev.filter(u => u.id !== userId));
@@ -503,13 +563,24 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     toast("KYC rejected — user reset to Basic", "info");
   };
 
-  const resolveDispute = async (disputeId) => {
+  const withAdminNote = (existing, note) => (note ? (existing ? `${existing}\n${note}` : note) : existing ?? null);
+  const resolveDispute = async (dispute) => {
+    const disputeId = dispute.id;
+    const ok = await confirm({
+      title: t("admin.confirmResolveTitle"),
+      body: t("admin.confirmResolveBody"),
+      confirmLabel: t("admin.disputeResolve"),
+      tone: "success",
+      note: { label: t("admin.confirmResolveNote") },
+    });
+    if (!ok) return;
     const resolvedAt = new Date().toISOString();
+    const adminNotes = withAdminNote(dispute.admin_notes, ok.note);
     const { error } = await supabase.from("disputes")
-      .update({ status: "resolved", resolved_by: user?.id ?? null, resolved_at: resolvedAt })
+      .update({ status: "resolved", resolved_by: user?.id ?? null, resolved_at: resolvedAt, admin_notes: adminNotes })
       .eq("id", disputeId);
     if (error) { toast(`${t("admin.disputeResolveFailed")}${error.message}`, "error"); return; }
-    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt } : d));
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt, admin_notes: adminNotes } : d));
     refreshNavCounts();
     toast(t("admin.disputeResolved"), "success");
   };
@@ -554,13 +625,23 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     toast(t("admin.depositRecorded", { amount: amount.toFixed(2), name: depositTarget.full_name }), "success");
   };
 
-  const dismissDispute = async (disputeId) => {
+  const dismissDispute = async (dispute) => {
+    const disputeId = dispute.id;
+    const ok = await confirm({
+      title: t("admin.confirmDismissTitle"),
+      body: t("admin.confirmDismissBody"),
+      confirmLabel: t("admin.disputeDismiss"),
+      tone: "danger",
+      note: { label: t("admin.confirmDismissNote"), required: true },
+    });
+    if (!ok) return;
     const resolvedAt = new Date().toISOString();
+    const adminNotes = withAdminNote(dispute.admin_notes, ok.note);
     const { error } = await supabase.from("disputes")
-      .update({ status: "dismissed", resolved_by: user?.id ?? null, resolved_at: resolvedAt })
+      .update({ status: "dismissed", resolved_by: user?.id ?? null, resolved_at: resolvedAt, admin_notes: adminNotes })
       .eq("id", disputeId);
     if (error) { toast(`${t("admin.disputeDismissFailed")}${error.message}`, "error"); return; }
-    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "dismissed", resolved_at: resolvedAt } : d));
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "dismissed", resolved_at: resolvedAt, admin_notes: adminNotes } : d));
     refreshNavCounts();
     toast(t("admin.disputeDismissed"), "info");
   };
@@ -614,6 +695,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
   return (
     <div style={{ display: "flex", flexDirection: compact ? "column" : "row", height: "100%" }}>
+      {confirmDialog}
       {compact ? (
         <>
           {/* Mobile: a top bar naming the current section, with the nav behind a
@@ -745,13 +827,13 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <Btn size="sm" variant="secondary" onClick={() => loadKycDocuments(worker.id)}>
                       View Docs
                     </Btn>
-                    <Btn size="sm" variant="success" onClick={() => approveKyc(worker.id, "Standard")}>
+                    <Btn size="sm" variant="success" onClick={() => approveKyc(worker, "Standard")}>
                       Approve Standard
                     </Btn>
-                    <Btn size="sm" variant="success" onClick={() => approveKyc(worker.id, "Advanced")}>
+                    <Btn size="sm" variant="success" onClick={() => approveKyc(worker, "Advanced")}>
                       Approve Advanced
                     </Btn>
-                    <Btn size="sm" variant="danger" onClick={() => rejectKyc(worker.id)}>
+                    <Btn size="sm" variant="danger" onClick={() => rejectKyc(worker)}>
                       Reject
                     </Btn>
                   </div>
@@ -813,10 +895,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         View certificate
                       </Btn>
                     )}
-                    <Btn size="sm" variant="success" onClick={() => setEmployerVerification(emp.id, "verified")}>
+                    <Btn size="sm" variant="success" onClick={() => setEmployerVerification(emp, "verified")}>
                       Verify
                     </Btn>
-                    <Btn size="sm" variant="danger" onClick={() => setEmployerVerification(emp.id, "rejected")}>
+                    <Btn size="sm" variant="danger" onClick={() => setEmployerVerification(emp, "rejected")}>
                       Reject
                     </Btn>
                   </div>
@@ -872,8 +954,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       {d.status === "open" && (
                         <Btn size="sm" variant="secondary" onClick={() => markDisputeUnderReview(d.id)}>{t("admin.disputeMarkUnderReview")}</Btn>
                       )}
-                      <Btn size="sm" variant="success" onClick={() => resolveDispute(d.id)}>{t("admin.disputeResolve")}</Btn>
-                      <Btn size="sm" variant="secondary" onClick={() => dismissDispute(d.id)}>{t("admin.disputeDismiss")}</Btn>
+                      <Btn size="sm" variant="success" onClick={() => resolveDispute(d)}>{t("admin.disputeResolve")}</Btn>
+                      <Btn size="sm" variant="secondary" onClick={() => dismissDispute(d)}>{t("admin.disputeDismiss")}</Btn>
                     </div>
                   ) : (
                     <div style={{ padding: "8px 12px", borderRadius: RADIUS.control, background: d.status === "resolved" ? BRAND.greenLight : BRAND.grayLight, fontSize: FS.meta, fontWeight: 600, color: d.status === "resolved" ? "#065F46" : BRAND.textMuted }}>
@@ -1018,8 +1100,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 </div>
                 <Select
                   label=""
-                  value={r.status}
-                  onChange={e => saveIssueReport(r.id, e.target.value)}
+                  value={issueStatusDrafts[r.id] ?? r.status}
+                  onChange={e => setIssueStatusDrafts(prev => ({ ...prev, [r.id]: e.target.value }))}
                   options={Object.keys(ISSUE_STATUS_LABEL_KEYS).map(s => ({ value: s, label: t(ISSUE_STATUS_LABEL_KEYS[s]) }))}
                   style={{ marginBottom: 10 }}
                 />
@@ -1031,7 +1113,10 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   rows={2}
                   style={{ width: "100%", padding: "8px 12px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, fontSize: FS.meta, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical", marginBottom: 8 }}
                 />
-                <Btn size="sm" onClick={() => saveIssueReport(r.id, r.status)} disabled={savingIssueReport === r.id}>{t("admin.reportSave")}</Btn>
+                {issueStatusDrafts[r.id] !== undefined && issueStatusDrafts[r.id] !== r.status && (
+                  <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, marginBottom: 6 }}>{t("admin.reportStatusUnsaved")}</div>
+                )}
+                <Btn size="sm" onClick={() => saveIssueReport(r.id, issueStatusDrafts[r.id] ?? r.status)} disabled={savingIssueReport === r.id}>{t("admin.reportSave")}</Btn>
               </Card>
             ))}
             {issueReportsQueue?.some(r => !isOpenReport(r)) && (
@@ -1258,10 +1343,19 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         )}
                       </td>
                       <td style={{ padding: "10px 12px" }}>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <Btn size="xs" variant="success" onClick={() => updatePayoutStatus(p, "processed_internal")}>Release</Btn>
-                          <Btn size="xs" variant="secondary" onClick={() => updatePayoutStatus(p, "held")}>Hold</Btn>
-                        </div>
+                        {/* Release: anything not yet paid out (held included).
+                            Hold: only what is still on its way. Paid or failed
+                            rows have nothing left to do from here. */}
+                        {["queued", "ready", "scheduled", "held"].includes(p.status) ? (
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <Btn size="sm" variant="success" onClick={() => updatePayoutStatus(p, "processed_internal")}>{t("admin.confirmReleaseBtn")}</Btn>
+                            {p.status !== "held" && (
+                              <Btn size="sm" variant="secondary" onClick={() => updatePayoutStatus(p, "held")}>{t("admin.confirmHoldBtn")}</Btn>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("admin.payoutNoActions")}</span>
+                        )}
                       </td>
                     </tr>
                   ))}

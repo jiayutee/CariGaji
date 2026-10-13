@@ -1334,6 +1334,41 @@ const TRANSLATIONS = {
     "admin.rulingHoursLabel": "Hours to pay",
     "admin.rulingNoteLabel": "Note to both parties",
     "admin.rulingApplyBtn": "Apply ruling",
+    "confirm.optional": "optional",
+    "confirm.noteRequired": "Add a reason to continue.",
+    "admin.confirmApproveKycTitle": "Approve {name} as {level}?",
+    "admin.confirmApproveStandardBody": "They'll be able to apply to every shift.",
+    "admin.confirmApproveAdvancedBody": "They'll also be able to apply to shifts that need extra documents. Only choose this if you've checked those documents.",
+    "admin.confirmDocsNotOpened": "You haven't opened their documents yet.",
+    "admin.confirmApproveBtn": "Approve",
+    "admin.confirmRejectKycTitle": "Reject {name}'s ID check?",
+    "admin.confirmRejectKycBody": "Their ID level goes back to Basic, so they can't apply for shifts until they send their documents again. They aren't told why.",
+    "admin.confirmRejectBtn": "Reject",
+    "admin.confirmVerifyEmployerTitle": "Verify {name}?",
+    "admin.confirmVerifyEmployerBody": "They'll be able to post shifts straight away. Check the SSM number on ssm-einfo.my first.",
+    "admin.confirmVerifyBtn": "Verify",
+    "admin.confirmRejectEmployerTitle": "Reject {name}'s company registration?",
+    "admin.confirmRejectEmployerBody": "They can't post shifts until they submit their registration again. They aren't told why.",
+    "admin.confirmResolveTitle": "Close this dispute as resolved?",
+    "admin.confirmResolveBody": "This only closes the case. It doesn't change attendance or pay. Use Investigate, then Apply ruling, for that.",
+    "admin.confirmResolveNote": "Note for the record",
+    "admin.confirmDismissTitle": "Dismiss this dispute?",
+    "admin.confirmDismissBody": "The case closes with no change to attendance or pay.",
+    "admin.confirmDismissNote": "Reason",
+    "admin.confirmRulingTitle": "Apply this ruling?",
+    "admin.confirmRulingGrant": "Records attendance with {hours} hours, which sets the worker's pay for this shift. The dispute closes and both sides are notified.",
+    "admin.confirmRulingNoShow": "Confirms the no-show, so the worker isn't paid for this shift. The dispute closes and both sides are notified.",
+    "admin.confirmRulingReverse": "Reverses the no-show and restores the worker's record. The dispute closes and both sides are notified.",
+    "admin.confirmReleaseTitle": "Release {amount} to {name}?",
+    "admin.confirmReleaseBody": "Marks this payout as paid. Only do this after the bank transfer has gone out. It can't be undone here.",
+    "admin.confirmReleaseBtn": "Release",
+    "admin.confirmHoldTitle": "Hold {amount} for {name}?",
+    "admin.confirmHoldBody": "The payout stops until someone releases it.",
+    "admin.confirmHoldNote": "Reason (saved to the payout log)",
+    "admin.confirmHoldBtn": "Hold",
+    "admin.payoutNoActions": "No actions",
+    "admin.unnamedWorker": "Unnamed worker",
+    "admin.reportStatusUnsaved": "Status change not saved yet",
     "admin.rulingApplied": "Ruling applied and dispute closed",
     "admin.disputeCheckedInBy": "Check-in method",
     "admin.disputeCheckedOutBy": "Check-out method",
@@ -3379,6 +3414,68 @@ export const useDialog = (open, onClose, { labelledBy, label } = {}) => {
     ...(!labelledBy && label ? { "aria-label": label } : {}),
     tabIndex: -1,
   };
+};
+
+// One confirmation step for anything that changes someone's money, access or
+// record and can't be taken back from the same screen. Before this, admin
+// approve/reject/verify/release/hold/ruling all ran on a single click, and the
+// two places that did ask used different mechanisms (window.confirm vs an
+// inline panel). Promise-based so a handler reads top to bottom:
+//
+//   const [confirm, confirmDialog] = useConfirm();
+//   const res = await confirm({ title, body, confirmLabel, tone: "danger",
+//                               note: { label, required: true } });
+//   if (!res) return;            // cancelled
+//   ... res.note ...             // trimmed text, "" when no note was asked for
+//
+// Render {confirmDialog} once in the component. Built on useDialog, so Escape,
+// focus trap and the accessible name come for free.
+export const useConfirm = () => {
+  const { t } = useLanguage();
+  const [req, setReq] = useState(null);         // { title, body, confirmLabel, tone, note, resolve }
+  const [note, setNote] = useState("");
+  const close = (result) => { req?.resolve(result); setReq(null); setNote(""); };
+  const dialog = useDialog(Boolean(req), () => close(null), { label: req?.title });
+  const confirm = useCallback((opts) => new Promise((resolve) => {
+    setNote("");
+    setReq({ ...opts, resolve });
+  }), []);
+  const noteMissing = Boolean(req?.note?.required) && !note.trim();
+  const element = req ? createPortal(
+    <div onClick={() => close(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,20,40,0.55)", zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <div {...dialog} onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 440, background: BRAND.surfaceElevated, borderRadius: RADIUS.card, padding: 22, boxShadow: "0 20px 50px rgba(0,0,0,0.25)", outline: "none" }}>
+        <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 8, lineHeight: 1.3 }}>{req.title}</div>
+        {req.body && <div style={{ fontSize: FS.body, color: BRAND.textMuted, lineHeight: 1.55, marginBottom: 16, whiteSpace: "pre-line" }}>{req.body}</div>}
+        {req.note && (
+          <label style={{ display: "block", marginBottom: 16 }}>
+            <span style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>
+              {req.note.label}{req.note.required ? " *" : ` (${t("confirm.optional")})`}
+            </span>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={req.note.placeholder || ""}
+              rows={3}
+              style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, fontSize: FS.body, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
+            />
+          </label>
+        )}
+        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", flexWrap: "wrap" }}>
+          <Btn variant="secondary" onClick={() => close(null)}>{t("common.cancel")}</Btn>
+          <Btn
+            variant={req.tone === "danger" ? "danger" : req.tone === "success" ? "success" : "primary"}
+            disabled={noteMissing}
+            onClick={() => close({ note: note.trim() })}
+          >
+            {req.confirmLabel}
+          </Btn>
+        </div>
+        {noteMissing && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 8, textAlign: "right" }}>{t("confirm.noteRequired")}</div>}
+      </div>
+    </div>,
+    document.body
+  ) : null;
+  return [confirm, element];
 };
 
 export const useUnreadChatRooms = (user) => {
