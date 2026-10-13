@@ -236,14 +236,16 @@ notif.<type>.title/body + params, DB title/body is the English fallback.
 ## 2026-09-21 — Search visibility plan (workers finding short shifts / minijobs)
 Plan only, full text in tasks/seo_plan.md. Name is not final, so the plan makes the brand a
 single config value and keeps every ranking signal brand-independent.
-- [x] Phase 0 (2026-10-13, uncommitted until owner says push): brand.config.json + build plugin
-      (scripts/brand-plugin.mjs) + {brand}/SITE.name in the app + scripts/brand-check.mjs
-      rename rehearsal; real title/description/OG/hreflang/JSON-LD (only on an indexable
-      build); noindex on temp hosts and private routes; generated robots.txt, sitemap.xml,
-      manifest.json; per-page head; shift pages noindex until employer is confirmed non-demo
-      (is_demo_account). NOT done: edge functions still say the name (4 functions, need a
-      redeploy), og:image (no 1200x630 asset), CI wiring of check:brand.
-      To go live for search: SITE_URL=https://<domain> INDEXABLE=true in the build env.
+- [x] Phase 0 (2026-10-13, live): brand.config.json + build plugin (scripts/brand-plugin.mjs) +
+      {brand}/SITE.name in the app + scripts/brand-check.mjs rename rehearsal (now also scans the
+      3 user-facing edge functions and runs in CI before every build); real title/description/OG/
+      hreflang/JSON-LD/og-image (only on an indexable build); noindex on temp hosts and private
+      routes; generated robots.txt, sitemap.xml, manifest.json; per-page head; shift pages noindex
+      until the employer is confirmed non-demo. Edge functions send-notification-email, send-push,
+      support-chat read the BRAND_NAME secret (fallback annotated brand-ok); redeployed 2026-10-13.
+      telegram-webhook (owner-only bot) deliberately left alone.
+      To go live for search: SITE_URL=https://<domain> INDEXABLE=true in the build env, and
+      `supabase secrets set BRAND_NAME=<name>` if the name changes.
 - [ ] Phase 1: Cloudflare cutover (real 200s) once name/domain are final
 - [ ] Phase 2: edge Worker (shift head + JobPosting + live sitemap)
 - [ ] Phase 3: hub pages + evergreen guides en/bm/zh + Indexing API
