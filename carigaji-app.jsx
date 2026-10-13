@@ -556,6 +556,7 @@ const TRANSLATIONS = {
     "myBids.yourBidPrefix": "Your rate: ",
     "myBids.chatBtn": "Chat →",
     "worker.checkInBtn": "Check In",
+    "worker.checkInOpensAt": "Check-in opens {when}",
     "worker.previewModeBanner": "Preview only — this is how the app looks to workers. You can browse, but not apply or take worker actions.",
     "worker.previewModeExitBtn": "Exit preview",
     "worker.previewModeBlocked": "Preview only — switch to a worker account to actually do this.",
@@ -7629,7 +7630,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (live && a.status === "accepted") {
       const reconfirm = reconfirmState(a);
       if (reconfirm && !reconfirm.expired) return at("needs", reconfirm.deadline);
-      if (!a.workerSignedAt) return at("needs", start);
+      // Unsigned and already over: there is nothing left to sign or attend,
+      // so it is history, not a to-do (it used to sit in Needs you forever).
+      if (!a.workerSignedAt) return endsAt != null && now > endsAt ? at("past", start) : at("needs", start);
       const issue = attendanceIssue(a);
       if (issue) {
         // Once the worker has asked the employer to fix it, the next move is
@@ -7801,6 +7804,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const renderCheckState = (a, stopClick) => {
     const issue = attendanceIssue(a);
     if (issue) return renderAttendanceIssue(a, issue, "right", stopClick);
+    // Check-in only opens 2h before the start (record_check_in, 20260915). A
+    // button weeks early just led to an error; say when it opens instead.
+    const opensAt = a.shiftStartAt ? new Date(a.shiftStartAt).getTime() - 2 * 60 * 60 * 1000 : null;
+    if (!a.checkedInAt && opensAt != null && Date.now() < opensAt) {
+      const when = new Date(opensAt).toLocaleString(language === "bm" ? "ms-MY" : language === "ch" ? "zh-CN" : "en-MY", {
+        timeZone: "Asia/Kuala_Lumpur", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
+      });
+      return <span style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: "right" }}>{t("worker.checkInOpensAt", { when })}</span>;
+    }
     if (!a.checkedInAt) {
       return <Btn size="sm" variant="success" onClick={(e) => { stopClick?.(e); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>;
     }

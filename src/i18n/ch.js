@@ -157,6 +157,7 @@ export default {
     "myBids.yourBidPrefix": "你的时薪：",
     "myBids.chatBtn": "聊天 →",
     "worker.checkInBtn": "签到",
+    "worker.checkInOpensAt": "签到开放时间：{when}",
     "worker.previewModeBanner": "仅供预览 — 这是员工看到的应用界面。您可以浏览，但无法申请或执行员工操作。",
     "worker.previewModeExitBtn": "退出预览",
     "worker.previewModeBlocked": "仅供预览 — 请切换至员工账户才能实际执行此操作。",

@@ -157,6 +157,7 @@ export default {
     "myBids.yourBidPrefix": "Kadar anda: ",
     "myBids.chatBtn": "Sembang →",
     "worker.checkInBtn": "Daftar Masuk",
+    "worker.checkInOpensAt": "Daftar masuk dibuka {when}",
     "worker.previewModeBanner": "Pratonton sahaja — beginilah rupa aplikasi kepada pekerja. Anda boleh melayari, tetapi tidak boleh memohon atau mengambil tindakan pekerja.",
     "worker.previewModeExitBtn": "Keluar pratonton",
     "worker.previewModeBlocked": "Pratonton sahaja — tukar kepada akaun pekerja untuk benar-benar melakukan ini.",
