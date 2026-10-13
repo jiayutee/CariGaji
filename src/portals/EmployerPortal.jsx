@@ -2096,7 +2096,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (s.status === "cancelled") return null;
     const live = s.status === "open" || s.status === "closed";
     return {
-      bids: live ? (s.openBids ?? 0) : 0,
+      // A full shift has nothing to review: Send offer is disabled there, so
+      // counting its pending applicants made a to-do nobody could act on.
+      bids: live && (s.filled ?? 0) < (s.headcount ?? 1) ? (s.openBids ?? 0) : 0,
       attendance: s.openAttendance ?? 0,
       hours: s.openHours ?? 0,
       toRate: pendingWorkerRatings.filter(x => x.shiftId === s.id && !myRatedApplicationIds.has(x.id)).length,

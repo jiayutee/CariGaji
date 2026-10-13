@@ -724,6 +724,9 @@ const TRANSLATIONS = {
     "profile.signInHint": "Your KYC status, reliability score, ratings, and shift history live here once you sign in.",
     "profile.changePhoto": "Change profile picture",
     "profile.standardKyc": "Standard KYC",
+    "profile.basicKycBadge": "Basic KYC",
+    "profile.advancedKycBadge": "Advanced KYC",
+    "profile.kycInReview": "ID check in review",
     "profile.reliabilitySuffix": "Reliability",
     "profile.shiftsDone": "Shifts done",
     "profile.rating": "Rating",
@@ -1399,7 +1402,7 @@ const TRANSLATIONS = {
     "attendance.toastDeclined": "Request declined",
     "attendance.toastHoursSubmitted": "Hours sent to the worker",
     "attendance.toastNoShowUndone": "No-show report withdrawn",
-    "employer.actionAttendance": "{count} attendance to resolve",
+    "employer.actionAttendance": "Resolve attendance ({count})",
     "attendance.requestTitle": "Message the employer",
     "attendance.requestCheckInIntro": "Tell the employer you attended. If they agree, they can check you in on your behalf.",
     "attendance.requestCheckOutIntro": "Tell the employer roughly how long you worked. They can submit your hours for you to accept.",
@@ -1423,10 +1426,10 @@ const TRANSLATIONS = {
     "hours.employerNoteLabel": "Note from the employer",
     "hours.yourNoteLabel": "Your note",
     "hours.workerNoteLabel": "Note from the worker",
-    "employer.actionBidsToReview": "{count} applicant(s) to review",
-    "employer.actionHoursToConfirm": "{count} timesheet(s) to confirm",
-    "employer.actionToRate": "{count} worker(s) to rate",
-    "employer.actionWaitingOnWorker": "{count} waiting on worker",
+    "employer.actionBidsToReview": "Review applicants ({count})",
+    "employer.actionHoursToConfirm": "Confirm timesheets ({count})",
+    "employer.actionToRate": "Rate workers ({count})",
+    "employer.actionWaitingOnWorker": "Waiting on workers ({count})",
     "employer.needsYouTitle": "Needs you",
     "employer.needsYouAllCaughtUp": "You're all caught up.",
     "employer.needsYouOpenBtn": "Open shift",
@@ -9691,7 +9694,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 </button>
               )}
               <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 8, flexWrap: "wrap" }}>
-                <Badge color="teal">{t("profile.standardKyc")}</Badge>
+                {/* From the real kyc_level, not a constant: this badge used to
+                    say "Standard KYC" for everyone, including workers who had
+                    never uploaded anything. */}
+                <Badge color={kycLevel === "Standard" || kycLevel === "Advanced" ? "teal" : kycLevel === "pending_review" ? "amber" : "gray"}>
+                  {kycLevel === "Advanced" ? t("profile.advancedKycBadge") : kycLevel === "Standard" ? t("profile.standardKyc") : kycLevel === "pending_review" ? t("profile.kycInReview") : t("profile.basicKycBadge")}
+                </Badge>
                 <Badge color="green"><InlineIcon icon={Icons.Shield} />{profileStats.reliability_score}/100 {t("profile.reliabilitySuffix")}</Badge>
               </div>
             </div>
@@ -9716,10 +9724,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             <Card style={{ marginBottom: 16 }}>
               <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.kycVerification")}</div>
-              {[{ tier: t("profile.kycBasic"), status: "verified" }, { tier: t("profile.kycStandard"), status: "verified" }, { tier: t("profile.kycAdvanced"), status: "not started" }].map((v, i) => (
+              {[
+                { tier: t("profile.kycBasic"), status: "verified" },
+                { tier: t("profile.kycStandard"), status: kycLevel === "Standard" || kycLevel === "Advanced" ? "verified" : kycLevel === "pending_review" ? "review" : "none" },
+                { tier: t("profile.kycAdvanced"), status: kycLevel === "Advanced" ? "verified" : "none" },
+              ].map((v, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < 2 ? `1px solid ${BRAND.border}` : "none" }}>
                   <span style={{ fontSize: FS.meta, color: BRAND.text }}>{v.tier}</span>
-                  <Pill label={v.status === "verified" ? t("profile.verified") : "—"} color={v.status === "verified" ? "green" : "gray"} icon={v.status === "verified" ? Icons.Check : null} />
+                  <Pill label={v.status === "verified" ? t("profile.verified") : v.status === "review" ? t("profile.kycInReview") : "—"} color={v.status === "verified" ? "green" : v.status === "review" ? "amber" : "gray"} icon={v.status === "verified" ? Icons.Check : null} />
                 </div>
               ))}
             </Card>
