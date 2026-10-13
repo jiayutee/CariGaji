@@ -1,16 +1,23 @@
+// Display name arrives on the registration URL (?name=...) so this file, which is
+// copied verbatim into the build, never carries the product name itself.
+const APP_NAME = new URL(self.location.href).searchParams.get("name") || "Notification";
+
 const CACHE_NAME = "carigaji-cache-v2";
 
 // Every in-app URL this worker builds is resolved against ITS OWN scope rather
 // than a hardcoded prefix, because the same worker has to run on a host that
-// serves the app from "/" and on one that serves it from "/CariGaji/" -- and a
+// serves the app from "/" and on one that serves it from a repo sub-path -- and a
 // push payload cannot know which of the two a given subscription belongs to.
 // Both link shapes are accepted: the bare form ("employer") that send-push now
-// emits, and the legacy absolute form ("/CariGaji/employer") that may still be
+// emits, and the legacy absolute form ("/<repo>/employer") that may still be
 // in flight from an older deployment.
+// "repo/" on a host that serves from a sub-path, nothing on one that serves from "/".
+const scopeSegment = new URL(self.registration.scope).pathname.replace(/^\/+|\/+$/g, "");
+const scopePrefix = scopeSegment ? new RegExp(`^${scopeSegment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/`) : /^$/;
 const appUrl = (link) => {
   const rel = String(link || "")
     .replace(/^\/+/, "")
-    .replace(/^CariGaji\//, "");
+    .replace(scopePrefix, "");
   return new URL(rel, self.registration.scope).href;
 };
 
@@ -81,17 +88,17 @@ self.addEventListener("push", (event) => {
   } catch {
     // A push with a non-JSON body is not worth dropping silently: show
     // something rather than nothing, so the user still knows to look.
-    payload = { title: "CariGaji", body: event.data ? event.data.text() : "" };
+    payload = { title: APP_NAME, body: event.data ? event.data.text() : "" };
   }
 
-  const title = payload.title || "CariGaji";
+  const title = payload.title || APP_NAME;
   const options = {
     body: payload.body || "",
     icon: appUrl("icon-192.png"),
     badge: appUrl("icon-192.png"),
     // Collapse repeats of the same thing: a second push about one application
     // replaces the first in the tray instead of stacking.
-    tag: payload.tag || payload.link || "carigaji",
+    tag: payload.tag || payload.link || "app",
     renotify: true,
     data: { link: payload.link || "" },
   };

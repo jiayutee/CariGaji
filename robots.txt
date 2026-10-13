@@ -1,0 +1,3 @@
+# Not indexable: this build is for a temporary or private host.
+User-agent: *
+Disallow: /
