@@ -10755,9 +10755,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   };
 
   // Logo click in the header bumps homeSignal → return to Discover.
-  const isFirstHome = useRef(true);
+  // Compared against the last value seen, not a "skip the first run" flag:
+  // StrictMode runs mount effects twice, and a flag flipped by the first run
+  // let the second one send every deep link (/en/my-shifts) to Discover.
+  const lastHomeSignal = useRef(homeSignal);
   useEffect(() => {
-    if (isFirstHome.current) { isFirstHome.current = false; return; }
+    if (lastHomeSignal.current === homeSignal) return;
+    lastHomeSignal.current = homeSignal;
     handleWorkerNavClick("discover");
   }, [homeSignal]);
 
