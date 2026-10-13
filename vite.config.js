@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { copyFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
+import { brandPlugin } from "./scripts/brand-plugin.mjs";
 
 // GitHub Pages serves static files only -- it has no rewrite rule, so a deep
 // link like /CariGaji/employer has no file behind it and Pages answers with
@@ -35,7 +36,7 @@ const BASE_PATH = process.env.BASE_PATH || "/";
 
 export default defineConfig({
   base: BASE_PATH,
-  plugins: [react(), spaFallback404()],
+  plugins: [react(), brandPlugin(), spaFallback404()],
   server: {
     port: Number(process.env.PORT) || 5173,
   },

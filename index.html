@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>CariGaji</title>
-    <meta name="description" content="CariGaji worker app" />
+    <title>%BRAND_TITLE%</title>
+    <!--BRAND_HEAD-->
     <link rel="manifest" href="%BASE_URL%manifest.json" />
     <link rel="icon" href="%BASE_URL%icon-192.png" type="image/png" />
     <link rel="apple-touch-icon" href="%BASE_URL%icon-192.png" />
-    <meta name="theme-color" content="#2563EB" />
+    <meta name="theme-color" content="%BRAND_THEME_COLOR%" />
     <!-- iOS standalone: launch full-screen from Home Screen (no Safari chrome) -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="CariGaji" />
+    <meta name="apple-mobile-web-app-title" content="%BRAND_SHORT_NAME%" />
     <style>
       *, *::before, *::after { box-sizing: border-box; }
       * { -webkit-user-select: none; user-select: none; }
@@ -74,6 +74,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- What a crawler (or a browser with scripts off) reads before the app loads. -->
+    <noscript>
+      <h1>Part-time jobs and short shifts in Malaysia</h1>
+      <p>Find part-time jobs, one-day gigs and short shifts across Malaysia: event crew, waiters, promoters, warehouse helpers and more. The pay is shown before you apply, both sides sign a contract at the agreed rate, and you are paid once your hours are confirmed.</p>
+      <p>This site needs JavaScript to browse and apply for shifts.</p>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

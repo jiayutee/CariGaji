@@ -236,9 +236,14 @@ notif.<type>.title/body + params, DB title/body is the English fallback.
 ## 2026-09-21 — Search visibility plan (workers finding short shifts / minijobs)
 Plan only, full text in tasks/seo_plan.md. Name is not final, so the plan makes the brand a
 single config value and keeps every ranking signal brand-independent.
-- [ ] Phase 0 (needs nothing): brand.config.json + {brand} strings + CI literal check;
-      real title/description/canonical/OG; noindex private routes + temp hosts; robots.txt;
-      hide demo/QA shifts from search
+- [x] Phase 0 (2026-10-13, uncommitted until owner says push): brand.config.json + build plugin
+      (scripts/brand-plugin.mjs) + {brand}/SITE.name in the app + scripts/brand-check.mjs
+      rename rehearsal; real title/description/OG/hreflang/JSON-LD (only on an indexable
+      build); noindex on temp hosts and private routes; generated robots.txt, sitemap.xml,
+      manifest.json; per-page head; shift pages noindex until employer is confirmed non-demo
+      (is_demo_account). NOT done: edge functions still say the name (4 functions, need a
+      redeploy), og:image (no 1200x630 asset), CI wiring of check:brand.
+      To go live for search: SITE_URL=https://<domain> INDEXABLE=true in the build env.
 - [ ] Phase 1: Cloudflare cutover (real 200s) once name/domain are final
 - [ ] Phase 2: edge Worker (shift head + JobPosting + live sitemap)
 - [ ] Phase 3: hub pages + evergreen guides en/bm/zh + Indexing API

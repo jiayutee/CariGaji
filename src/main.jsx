@@ -15,7 +15,7 @@ if ("serviceWorker" in navigator) {
     // Base-derived, not hardcoded: the same source has to register correctly
     // whether it was built for a host that serves from / or from /CariGaji/.
     const swBase = import.meta.env.BASE_URL || "/";
-    navigator.serviceWorker.register(`${swBase}service-worker.js`, { scope: swBase }).catch((error) => {
+    navigator.serviceWorker.register(`${swBase}service-worker.js?name=${encodeURIComponent(__BRAND_CONFIG__.name)}`, { scope: swBase }).catch((error) => {
       console.error("Service worker registration failed", error);
     });
   });
@@ -35,7 +35,7 @@ const renderConfigError = (message) => {
       color: themeVars["--cg-text"],
     }}>
       <div style={{ maxWidth: 520, background: themeVars["--cg-surface"], border: `1px solid ${themeVars["--cg-border"]}`, borderRadius: 16, padding: 24, boxShadow: `0 12px 40px ${themeVars["--cg-shadow"]}` }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: 24, lineHeight: 1.2 }}>CariGaji is not configured</h1>
+        <h1 style={{ margin: "0 0 12px", fontSize: 24, lineHeight: 1.2 }}>{__BRAND_CONFIG__.name} is not configured</h1>
         <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: themeVars["--cg-text-muted"] }}>{message}</p>
       </div>
     </div>
@@ -49,15 +49,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   renderConfigError("Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in the build environment, then redeploy.");
 } else {
   import("../carigaji-app.jsx")
-    .then(({ default: CariGaji }) => {
+    .then(({ default: App }) => {
       root.render(
         <React.StrictMode>
-          <CariGaji />
+          <App />
         </React.StrictMode>
       );
     })
     .catch((error) => {
-      console.error("Failed to load CariGaji app", error);
+      console.error("Failed to load the app", error);
       renderConfigError("The app failed to load. Check the browser console for details.");
     });
 }

@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:payout-rules": "node scripts/validate-payout-dates.mjs",
-    "mcp:auth": "node scripts/get-mcp-token.mjs"
+    "mcp:auth": "node scripts/get-mcp-token.mjs",
+    "check:brand": "node scripts/brand-check.mjs",
+    "check:routes": "node scripts/route-check.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
