@@ -19,6 +19,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import webpush from "https://esm.sh/web-push@3.6.7";
 
+const BRAND_NAME = Deno.env.get("BRAND_NAME") ?? "CariGaji"; // brand-ok: fallback until the BRAND_NAME secret is set (supabase secrets set BRAND_NAME=...)
 const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
 // Required by the VAPID spec so a push service can reach the sender if the
@@ -31,7 +32,7 @@ const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
 // pointing at a page we control is honest; naming carigaji.app would claim a
 // domain belonging to someone else. Replace with mailto:support@<real domain>
 // once that exists.
-const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "https://jiayutee.github.io/CariGaji/";  // set this once a real domain exists
+const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? Deno.env.get("SITE_URL") ?? "https://jiayutee.github.io/CariGaji/"; // brand-ok: contact-URL fallback, not a display name  // set this once a real domain exists
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({ skipped: true, reason: "missing user_id/body" }), { status: 200 });
       }
       recipients = [record.user_id];
-      title = record.title || "CariGaji";
+      title = record.title || BRAND_NAME;
       body = record.body;
       link = record.link ? String(record.link).replace(/^\/+/, "") : "";
     }

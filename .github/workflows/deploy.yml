@@ -37,6 +37,14 @@ jobs:
       - name: Syntax gate (esbuild parse)
         run: npx esbuild carigaji-app.jsx --bundle=false --platform=browser > /dev/null
 
+      - name: Route and brand checks
+        # route-check: every page address builds and parses back. brand-check:
+        # a build renamed to a made-up name must contain no trace of the real
+        # one, so a rename is a one-file change.
+        run: |
+          node scripts/route-check.mjs
+          node scripts/brand-check.mjs
+
       - name: Build
         run: npm run build
         env:

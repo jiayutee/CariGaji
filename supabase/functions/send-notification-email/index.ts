@@ -15,8 +15,9 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const BRAND_NAME = Deno.env.get("BRAND_NAME") ?? "CariGaji"; // brand-ok: fallback until the BRAND_NAME secret is set (supabase secrets set BRAND_NAME=...)
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
-const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || "CariGaji <onboarding@resend.dev>";
+const EMAIL_FROM = Deno.env.get("EMAIL_FROM") || `${BRAND_NAME} <onboarding@resend.dev>`;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -25,11 +26,11 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 // Friendlier subject lines per notification type (falls back to the
 // notification's own title if a type isn't listed here).
 const SUBJECTS: Record<string, string> = {
-  shift_offer: "You've been selected for a shift on CariGaji!",
+  shift_offer: `You've been selected for a shift on ${BRAND_NAME}!`,
   offer_declined_or_expired: "Action needed: pick a substitute worker",
-  not_selected: "Update on your CariGaji application",
-  bid_accepted: "Your CariGaji bid was accepted",
-  bid_rejected: "Update on your CariGaji bid",
+  not_selected: `Update on your ${BRAND_NAME} application`,
+  bid_accepted: `Your ${BRAND_NAME} bid was accepted`,
+  bid_rejected: `Update on your ${BRAND_NAME} bid`,
   bid_received: "New applicant for your shift",
   shift_cancelled: "A shift you applied for was cancelled",
 };
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
     }
     const toEmail = userData.user.email;
 
-    const subject = SUBJECTS[type] || title || "CariGaji notification";
+    const subject = SUBJECTS[type] || title || `${BRAND_NAME} notification`;
 
     const resendResp = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -65,10 +66,10 @@ Deno.serve(async (req) => {
         to: [toEmail],
         subject,
         html: `<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-          <h2 style="color:#2563EB;">CariGaji</h2>
+          <h2 style="color:#2563EB;">${BRAND_NAME}</h2>
           <p style="font-size:15px; color:#111827;">${body}</p>
           <p style="font-size:12px; color:#6b7280; margin-top:24px;">
-            You're receiving this because you have an active application or shift on CariGaji.
+            You're receiving this because you have an active application or shift on ${BRAND_NAME}.
           </p>
         </div>`,
       }),
