@@ -1824,7 +1824,7 @@ const TRANSLATIONS = {
     "category.Other": "Other",
     "category.all": "All",
     "discover.perHour": "/hour",
-    "discover.posApplied": "{headcount} pos · {applied} applied",
+    "discover.posApplied": "{headcount} pos\n{applied} applied",
     "earnings.bankStatusPending": "Pending",
     "earnings.bankStatusVerified": "Verified",
     "earnings.bankStatusRejected": "Rejected",
@@ -3254,7 +3254,7 @@ const TRANSLATIONS = {
     "category.Other": "Lain-lain",
     "category.all": "Semua",
     "discover.perHour": "/jam",
-    "discover.posApplied": "{headcount} kekosongan · {applied} memohon",
+    "discover.posApplied": "{headcount} kekosongan\n{applied} memohon",
     "earnings.bankStatusPending": "Menunggu",
     "earnings.bankStatusVerified": "Disahkan",
     "earnings.bankStatusRejected": "Ditolak",
@@ -4683,7 +4683,7 @@ const TRANSLATIONS = {
     "category.Other": "其他",
     "category.all": "全部",
     "discover.perHour": "/小时",
-    "discover.posApplied": "{headcount} 个名额 · {applied} 人申请",
+    "discover.posApplied": "{headcount} 个名额\n{applied} 人申请",
     "earnings.bankStatusPending": "待处理",
     "earnings.bankStatusVerified": "已验证",
     "earnings.bankStatusRejected": "已拒绝",
@@ -5494,11 +5494,11 @@ const Btn = memo(({ children, variant = "primary", onClick, size = "md", style =
     padding: size === "sm" ? "7px 14px" : size === "xs" ? "4px 10px" : "10px 20px",
   };
   const variants = {
-    primary: { background: BRAND.primary, color: "#fff" },
+    primary: { background: BRAND.primary, color: BRAND.onSolid },
     secondary: { background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}` },
     ghost: { background: "transparent", color: BRAND.primaryOnSurface, border: `1px solid ${BRAND.primaryOnSurface}` },
-    danger: { background: BRAND.red, color: "#fff" },
-    success: { background: BRAND.greenDark, color: "#fff" },
+    danger: { background: BRAND.red, color: BRAND.onSolid },
+    success: { background: BRAND.greenDark, color: BRAND.onSolid },
   };
   return (
     <button type={type} onClick={disabled ? undefined : onClick} disabled={disabled} style={{ ...base, ...variants[variant], ...style }}
@@ -5563,7 +5563,7 @@ const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip }) => {
             onClick={() => setOpen(o => !o)}
             aria-expanded={open}
             aria-label={tooltip}
-            style={{ color: BRAND.textMuted, opacity: 0.7, fontSize: FS.meta, background: "none", border: `1px solid ${BRAND.textMuted}`, borderRadius: "50%", width: 15, height: 15, display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1, padding: 0, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+            style={{ color: BRAND.textMuted, opacity: 0.7, fontSize: FS.meta, background: "none", border: `1px solid ${BRAND.textMuted}`, borderRadius: "50%", width: 18, height: 18, display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1, padding: 0, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
           >?</button>
         )}
       </div>
@@ -6963,7 +6963,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
         {unreadTotal > 0 && (
           <span aria-hidden="true" style={{
             position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, padding: "0 3px",
-            borderRadius: RADIUS.pill, background: BRAND.red, color: "#fff", fontSize: FS.micro, fontWeight: 700,
+            borderRadius: RADIUS.pill, background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 700,
             display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
           }}>
             {unreadTotal > 9 ? "9+" : unreadTotal}
@@ -7733,7 +7733,7 @@ const WorkerBottomNav = ({ items, activeId, onSelect, isMobile, style }) => (
             {n.badge > 0 && (
               <span aria-hidden="true" style={{
                 position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
-                borderRadius: RADIUS.pill, background: BRAND.red, color: "#fff", fontSize: FS.micro, fontWeight: 700,
+                borderRadius: RADIUS.pill, background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 700,
                 display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
               }}>{n.badge > 9 ? "9+" : n.badge}</span>
             )}
@@ -8980,11 +8980,13 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
 
           {/* Payslip-style sample shift card */}
           <div style={{ flex: "0 0 auto", width: isMobile ? "100%" : 340, position: "relative" }}>
-            <div style={{ position: "absolute", top: -14, right: 4, width: 66, height: 66, borderRadius: "50%", border: `2px dashed ${BRAND.green}`, background: BRAND.surfaceElevated, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-8deg)", zIndex: 1 }}>
-              <div style={{ textAlign: "center", fontSize: FS.meta, fontWeight: 800, letterSpacing: "0.02em", textTransform: "uppercase", color: BRAND.greenOnSurface, lineHeight: 1.25 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
+            <div style={{ position: "absolute", top: -16, right: 2, width: 76, height: 76, borderRadius: "50%", border: `2px dashed ${BRAND.green}`, background: BRAND.surfaceElevated, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-8deg)", zIndex: 1 }}>
+              <div style={{ textAlign: "center", fontSize: FS.micro, fontWeight: 800, letterSpacing: "0.02em", textTransform: "uppercase", color: BRAND.greenOnSurface, lineHeight: 1.2 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
             </div>
             <div style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.card, boxShadow: `0 12px 32px ${BRAND.shadow}`, padding: 18 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12 }}>
+              {/* paddingRight keeps the "Pay shown" badge out from under the
+                  rotated seal, which overhangs this corner of the card. */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12, paddingRight: 64 }}>
                 <div>
                   <div style={{ fontWeight: 800, fontSize: FS.body, color: BRAND.text }}>F&amp;B Server — Corporate Dinner</div>
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}><InlineIcon icon={Icons.Pin} size={11} />Bangsar, Kuala Lumpur</div>
@@ -11339,7 +11341,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       )}
       <div style={{ flex: 1, overflowY: "auto", paddingBottom: navPadding, display: "flex", flexDirection: "column", minHeight: 0 }}>
         <div style={{ background: `linear-gradient(135deg, ${BRAND.primary}, ${BRAND.primaryDark})`, padding: isMobile ? "32px 16px 16px" : "48px 24px 24px", borderRadius: isMobile ? 0 : `${RADIUS.card}px ${RADIUS.card}px 0 0`, flexShrink: 0 }}>
-          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: RADIUS.control, padding: "6px 12px", cursor: "pointer", fontSize: FS.meta, marginBottom: 12, fontFamily: "inherit" }} aria-label={t("common.back")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
+          <button onClick={() => setSelectedShift(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: BRAND.onSolid, borderRadius: RADIUS.control, padding: "6px 12px", cursor: "pointer", fontSize: FS.meta, marginBottom: 12, fontFamily: "inherit" }} aria-label={t("common.back")}>{Icons.ArrowLeft({ size: 14 })} <span style={{ marginLeft: 8 }}>{t("common.back")}</span></button>
           {/* Share the SHIFT, not the app. Until this existed the only share
               button handed out the current pathname, which meant a friend
               landed on the Discover feed and had to find the shift again. */}
@@ -11349,7 +11351,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Badge color="green">{t("shiftDetail.positions")} {selectedShift.headcount}</Badge>
             <Badge color="blue">{t("shiftDetail.applied")} {selectedShift.totalApplicants}</Badge>
           </div>
-          <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 800, color: "#fff", lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
+          <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 800, color: BRAND.onSolid, lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
           <div style={{ fontSize: isMobile ? FS.meta : FS.body, color: "rgba(255,255,255,0.85)" }}>{selectedShift.employer}</div>
         </div>
         <div style={{ padding: isMobile ? 14 : 20 }}>
@@ -11405,7 +11407,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               selectedShift.reliabilityScore != null ? [t("shiftDetail.employerScore"), `${selectedShift.reliabilityScore}/100`] : null,
             ].filter(Boolean).map(([k, v, note]) => (
               <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: FS.meta, color: BRAND.textMuted, width: 130, flexShrink: 0 }}>{k}</span>
+                <span style={{ fontSize: FS.meta, color: BRAND.textMuted, flex: "0 0 38%", maxWidth: 150 }}>{k}</span>
                 <span style={{ fontSize: FS.meta, color: BRAND.text, fontWeight: 500 }}>
                   {v}
                   {note && <span style={{ display: "block", fontSize: FS.meta, color: BRAND.textMuted, fontWeight: 400, marginTop: 2 }}><InlineIcon icon={Icons.Lock} size={11} />{note}</span>}
@@ -11679,7 +11681,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                             take this muted tone in both themes instead of the
                             OS-dependent, always-full-colour emoji glyph. */}
                         <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", color: BRAND.textMuted }}>{ico}</div>
-                        <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.3 }}>{v}</div>
+                        <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.3, whiteSpace: "pre-line" }}>{v}</div>
                       </div>
                     ))}
                   </div>
@@ -12132,7 +12134,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 [t("shiftDetail.yourBid"), `RM${a.wageBid}/h`],
               ].filter(Boolean).map(([k, v]) => (
                 <div key={k} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontSize: FS.meta, color: BRAND.textMuted, width: 150, flexShrink: 0 }}>{k}</span>
+                  <span style={{ fontSize: FS.meta, color: BRAND.textMuted, flex: "0 0 38%", maxWidth: 160 }}>{k}</span>
                   <span style={{ fontSize: FS.meta, color: BRAND.text, fontWeight: 500 }}>{v}</span>
                 </div>
               ))}
@@ -12715,7 +12717,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     </button>
                     <label style={{
                       position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
-                      borderRadius: "50%", background: BRAND.primary, color: "#fff",
+                      borderRadius: "50%", background: BRAND.primary, color: BRAND.onSolid,
                       display: "flex", alignItems: "center", justifyContent: "center",
                       cursor: avatarUploading ? "wait" : "pointer", fontSize: FS.meta,
                       border: `2px solid ${BRAND.surface}`,
@@ -15369,7 +15371,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           {n.badge > 0 && (
             <span style={{
               marginLeft: 8, minWidth: 16, height: 16, padding: "0 4px", borderRadius: RADIUS.pill,
-              background: BRAND.red, color: "#fff", fontSize: FS.micro, fontWeight: 700,
+              background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 700,
               display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
             }}>{n.badge > 9 ? "9+" : n.badge}</span>
           )}
@@ -16886,7 +16888,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <Avatar name={employerProfile?.full_name || user?.email || "?"} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
                   <label style={{
                     position: "absolute", right: -2, bottom: -2, width: 26, height: 26,
-                    borderRadius: "50%", background: BRAND.primary, color: "#fff",
+                    borderRadius: "50%", background: BRAND.primary, color: BRAND.onSolid,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     cursor: avatarUploading ? "wait" : "pointer", fontSize: FS.meta,
                     border: `2px solid ${BRAND.surface}`,
@@ -19172,7 +19174,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
             background: BRAND.primary, border: "none",
             boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: FS.h3, padding: 0, color: "#fff",
+            fontSize: FS.h3, padding: 0, color: BRAND.onSolid,
           }}
         >
           <span aria-hidden="true" style={{ display: "inline-flex" }}><Icons.Chat size={18} /></span>
@@ -19187,7 +19189,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           position: "fixed", right: 24, bottom: 24, zIndex: Z.sticky,
           display: "flex", alignItems: "center", gap: 8,
           padding: "10px 16px", borderRadius: RADIUS.pill,
-          background: BRAND.primary, border: "none", color: "#fff",
+          background: BRAND.primary, border: "none", color: BRAND.onSolid,
           boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
           fontSize: FS.meta, fontWeight: 700, fontFamily: "inherit",
         }}
@@ -19274,7 +19276,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
               onClick={openMailtoSupport}
               style={{
                 alignSelf: "flex-start", border: "none", borderRadius: RADIUS.control, padding: "6px 12px",
-                background: BRAND.amber, color: "#fff", fontSize: FS.meta, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                background: BRAND.onAmberLight, color: BRAND.onSolid, fontSize: FS.meta, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
               }}
             >
               {t("supportChat.emailSupport")}
@@ -19300,7 +19302,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           disabled={sending || !input.trim()}
           style={{
             padding: "10px 16px", borderRadius: RADIUS.control, border: "none", fontFamily: "inherit",
-            background: BRAND.primary, color: "#fff", fontWeight: 700, fontSize: FS.meta,
+            background: BRAND.primary, color: BRAND.onSolid, fontWeight: 700, fontSize: FS.meta,
             cursor: sending || !input.trim() ? "not-allowed" : "pointer",
             opacity: sending || !input.trim() ? 0.6 : 1,
           }}
@@ -20114,7 +20116,7 @@ const WelcomeIntroModal = ({ open, role, saving, onDone }) => {
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: "center", marginBottom: 18 }}>{t("intro.subtitle")}</div>
         {steps.map((step, i) => (
           <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-            <div style={{ width: 26, height: 26, borderRadius: "50%", background: BRAND.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: BRAND.primary, color: BRAND.onSolid, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
             <div style={{ fontSize: FS.body, color: BRAND.text, lineHeight: 1.6 }}>{step}</div>
           </div>
         ))}
