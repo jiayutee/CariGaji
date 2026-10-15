@@ -4506,7 +4506,9 @@ export const StarRating = ({ value = 0, size = 14, onClick = null, count = null 
   const content = <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>{label}</span></span>;
   if (!onClick) return content;
   return (
-    <span onClick={onClick} role="button" tabIndex={0} style={{ cursor: "pointer" }} onKeyDown={e => { if (e.key === "Enter") onClick(e); }}>
+    // stopPropagation: the stars sit inside clickable cards (applicant card -> worker profile). Without it
+    // one tap opened BOTH, and the profile covered the rating details the person had asked for.
+    <span onClick={e => { e.stopPropagation(); onClick(e); }} role="button" tabIndex={0} style={{ cursor: "pointer", textDecoration: "underline dotted", textUnderlineOffset: 3 }} onKeyDown={e => { if (e.key === "Enter") { e.stopPropagation(); onClick(e); } }}>
       {content}
     </span>
   );
@@ -4559,6 +4561,8 @@ export const RATING_ASPECTS = {
 // null (loading) | [] (empty or the ratings table not migrated yet) |
 // array of { aspects, overall }. Self-contained: reads t() from context
 // directly so callers don't need to prop-drill translate.
+// Sits ONE above ordinary modals: it is opened from inside the worker-profile modal, which is rendered
+// later in the page and, at the same z-index, covered it -- so tapping the rating there seemed to do nothing.
 export const RatingDetailsModal = ({ modal, onClose, about = null }) => {
   const { t } = useLanguage();
   const dialog = useDialog(Boolean(modal), onClose, { label: t("rating.detailsTitle") });
@@ -4572,7 +4576,7 @@ export const RatingDetailsModal = ({ modal, onClose, about = null }) => {
   });
   const overallAvg = list && list.length ? list.reduce((s, r) => s + (r.overall || 0), 0) / list.length : null;
   return (
-    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal + 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div {...dialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 420, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }} onClick={e => e.stopPropagation()}>
         <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("rating.detailsTitle")}</h3>
         {modal.label && <p style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: about ? 8 : 16 }}>{modal.label}</p>}
