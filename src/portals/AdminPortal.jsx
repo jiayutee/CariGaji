@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase.js";
 import { runInternalPayoutScheduling } from "../lib/payouts/scheduler.js";
 import { createPortal } from "react-dom";
-import { BRAND, Badge, Btn, Card, DISPUTE_CATEGORIES, EmptyState, FS, Icons, InlineIcon, KYC_BUCKET, Pill, RADIUS, SITE, Select, Stat, TYPE, Z, displayProtectedText, disputeStatusLabel, initialRouteSegments, mapPayoutPillColor, payoutHoldReasonLabel, payoutStatusLabel, routeKeyFromSegment, toCurrency, useDialog, useLanguage, usePortalRoute, useConfirm, useToast } from "../../carigaji-app.jsx";
+import { BRAND, Badge, Btn, Card, DISPUTES_CHANGED_EVENT, DISPUTE_CATEGORIES, EmptyState, FS, Icons, InlineIcon, KYC_BUCKET, Pill, RADIUS, SITE, Select, Stat, TYPE, Z, displayProtectedText, disputeStatusLabel, initialRouteSegments, mapPayoutPillColor, openDispute, payoutHoldReasonLabel, payoutStatusLabel, routeKeyFromSegment, toCurrency, useDialog, useLanguage, usePortalRoute, useConfirm, useToast } from "../../carigaji-app.jsx";
 
 // ─── ADMIN PORTAL ─────────────────────────────────────────────────────────────
 // The admin sidebar is always dark -- BRAND.dark in light mode and dark mode
@@ -65,7 +65,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     const [kyc, employers, disputes, reports, payouts] = await Promise.all([
       supabase.from("profiles").select("id", head).eq("kyc_level", "pending_review"),
       supabase.from("profiles").select("id", head).eq("employer_verification_status", "pending_review"),
-      supabase.from("disputes").select("id", head).in("status", ["open", "under_review"]),
+      supabase.from("disputes").select("id", head).in("status", ["open", "under_review", "awaiting_info"]),
       supabase.from("issue_reports").select("id", head).in("status", ["new", "investigating"]),
       supabase.from("payout_item").select("id", head).in("status", ["queued", "ready", "scheduled"]),
     ]);
@@ -82,8 +82,9 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
   // Disputes and Issue Reports lead with what is still open; closed items are
   // history and stay one tap away rather than mixed in by date.
   const [showClosedDisputes, setShowClosedDisputes] = useState(false);
+  const [flaggedReviews, setFlaggedReviews] = useState(null);
   const [showClosedReports, setShowClosedReports] = useState(false);
-  const isOpenDispute = (d) => d.status === "open" || d.status === "under_review";
+  const isOpenDispute = (d) => d.status === "open" || d.status === "under_review" || d.status === "awaiting_info";
   const isOpenReport = (r) => r.status === "new" || r.status === "investigating";
   const ISSUE_STATUS_LABEL_KEYS = {
     new: "admin.reportStatusNew",
@@ -378,18 +379,67 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     toast(status === "verified" ? "Employer verified." : "Employer verification rejected.", "success");
   };
 
+  const [disputesReload, setDisputesReload] = useState(0);
+  useEffect(() => {
+    // The conversation modal changes status / posts replies; keep this list in step.
+    const bump = () => { setDisputesReload(n => n + 1); };
+    window.addEventListener(DISPUTES_CHANGED_EVENT, bump);
+    return () => window.removeEventListener(DISPUTES_CHANGED_EVENT, bump);
+  }, []);
   useEffect(() => {
     if (!supabase || (view !== "disputes" && view !== "overview")) return;
     (async () => {
       setDisputesQueue(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, admin_notes, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, checked_in_method, checked_out_method, worker_reported_hours, no_show_at, no_show_note, employer_hours_confirmed_at, worker_signed_at, employer_signed_at, shift_id, worker:profiles!applications_worker_id_profiles_fkey(full_name), shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at, employer:profiles(full_name)))")
+        .select("id, category, description, status, awaiting_role, resolution_note, rating_id, created_at, application:applications(id, worker_id, wage_ask, checked_in_at, checked_out_at, checked_in_method, checked_out_method, worker_reported_hours, no_show_at, no_show_note, employer_hours_confirmed_at, worker_signed_at, employer_signed_at, shift_id, worker:profiles!applications_worker_id_profiles_fkey(full_name), shift:shifts(title, employer_id, wage_min, wage_max, start_at, end_at, employer:profiles(full_name)))")
         .order("created_at", { ascending: false });
       if (error) { setDisputesQueue([]); return; }
       setDisputesQueue(data || []);
     })();
-  }, [view]);
+  }, [view, disputesReload]);
+
+  // Ratings the database flagged as suspicious (repeat lows against one person, a rater whose recent
+  // ratings are all low). They stay visible and counted until a person decides otherwise.
+  useEffect(() => {
+    if (!supabase || view !== "disputes") return undefined;
+    let active = true;
+    (async () => {
+      setFlaggedReviews(null);
+      const { data, error } = await supabase.from("ratings")
+        .select("id, overall, aspects, comment, direction, flagged_reason, created_at, rater_id, ratee_id, application:applications(shift:shifts(title))")
+        .not("flagged_reason", "is", null).is("hidden_at", null)
+        .order("created_at", { ascending: false }).limit(20);
+      if (!active) return;
+      if (error || !data?.length) { setFlaggedReviews([]); return; }
+      const ids = [...new Set(data.flatMap(r => [r.rater_id, r.ratee_id]))];
+      const { data: people } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+      const names = Object.fromEntries((people ?? []).map(p => [p.id, p.full_name]));
+      if (active) setFlaggedReviews(data.map(r => ({ ...r, raterName: names[r.rater_id] || "—", rateeName: names[r.ratee_id] || "—" })));
+    })();
+    return () => { active = false; };
+  }, [view, disputesReload]);
+
+  const hideFlaggedReview = async (r) => {
+    const ok = await confirm({
+      title: t("dispute.hideReviewTitle"),
+      body: t("dispute.hideReviewBody"),
+      confirmLabel: t("dispute.hideReviewBtn"),
+      tone: "danger",
+      note: { label: t("dispute.hideReasonLabel"), required: true },
+    });
+    if (!ok) return;
+    const { error } = await supabase.rpc("admin_set_review_visibility", { p_rating_id: r.id, p_hide: true, p_reason: ok.note });
+    if (error) { toast(`${t("dispute.updateFailed")}${error.message}`, "error"); return; }
+    setFlaggedReviews(prev => (prev ?? []).filter(x => x.id !== r.id));
+    toast(t("dispute.reviewHidden"), "success");
+  };
+  const clearReviewFlag = async (r) => {
+    const { error } = await supabase.rpc("admin_clear_review_flag", { p_rating_id: r.id });
+    if (error) { toast(`${t("dispute.updateFailed")}${error.message}`, "error"); return; }
+    setFlaggedReviews(prev => (prev ?? []).filter(x => x.id !== r.id));
+    toast(t("admin.flagCleared"), "success");
+  };
 
   useEffect(() => {
     if (!supabase || view !== "overview") return;
@@ -572,7 +622,6 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     toast("KYC rejected — user reset to Basic", "info");
   };
 
-  const withAdminNote = (existing, note) => (note ? (existing ? `${existing}\n${note}` : note) : existing ?? null);
   const resolveDispute = async (dispute) => {
     const disputeId = dispute.id;
     const ok = await confirm({
@@ -580,16 +629,15 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       body: t("admin.confirmResolveBody"),
       confirmLabel: t("admin.disputeResolve"),
       tone: "success",
-      note: { label: t("admin.confirmResolveNote") },
+      note: { label: t("admin.confirmResolveNote"), required: true },
     });
     if (!ok) return;
     const resolvedAt = new Date().toISOString();
-    const adminNotes = withAdminNote(dispute.admin_notes, ok.note);
     const { error } = await supabase.from("disputes")
-      .update({ status: "resolved", resolved_by: user?.id ?? null, resolved_at: resolvedAt, admin_notes: adminNotes })
+      .update({ status: "resolved", resolved_by: user?.id ?? null, resolved_at: resolvedAt, resolution_note: ok.note })
       .eq("id", disputeId);
     if (error) { toast(`${t("admin.disputeResolveFailed")}${error.message}`, "error"); return; }
-    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt, admin_notes: adminNotes } : d));
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "resolved", resolved_at: resolvedAt, resolution_note: ok.note } : d));
     refreshNavCounts();
     toast(t("admin.disputeResolved"), "success");
   };
@@ -645,12 +693,11 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     });
     if (!ok) return;
     const resolvedAt = new Date().toISOString();
-    const adminNotes = withAdminNote(dispute.admin_notes, ok.note);
     const { error } = await supabase.from("disputes")
-      .update({ status: "dismissed", resolved_by: user?.id ?? null, resolved_at: resolvedAt, admin_notes: adminNotes })
+      .update({ status: "dismissed", resolved_by: user?.id ?? null, resolved_at: resolvedAt, resolution_note: ok.note })
       .eq("id", disputeId);
     if (error) { toast(`${t("admin.disputeDismissFailed")}${error.message}`, "error"); return; }
-    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "dismissed", resolved_at: resolvedAt, admin_notes: adminNotes } : d));
+    setDisputesQueue(prev => (prev ?? []).map(d => d.id === disputeId ? { ...d, status: "dismissed", resolved_at: resolvedAt, resolution_note: ok.note } : d));
     refreshNavCounts();
     toast(t("admin.disputeDismissed"), "info");
   };
@@ -789,7 +836,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     one still waiting on someone. */}
                 {disputesQueue?.filter(isOpenDispute).slice(0, 3).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
-                    <div style={{ fontSize: FS.meta, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "Shift")} – {t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther")}</div>
+                    <div style={{ fontSize: FS.meta, color: BRAND.text }}>{displayProtectedText(d.application?.shift?.title ?? "Shift")} – {(d.category === "review_report" ? t("dispute.categoryReviewReport") : t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther"))}</div>
                     <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                   </div>
                 ))}
@@ -939,15 +986,15 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               ...disputesQueue.filter(isOpenDispute),
               ...(showClosedDisputes ? disputesQueue.filter(d => !isOpenDispute(d)) : []),
             ].map(d => {
-              const categoryLabel = t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther");
-              const isPending = d.status === "open" || d.status === "under_review";
+              const categoryLabel = (d.category === "review_report" ? t("dispute.categoryReviewReport") : t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther"));
+              const isPending = isOpenDispute(d);
               return (
                 <Card key={d.id} style={{ marginBottom: 14 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                         <span style={{ fontWeight: 800, fontSize: FS.body, color: BRAND.text }}>{categoryLabel}</span>
-                        <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"}>{disputeStatusLabel(d.status, t)}</Badge>
+                        <Badge color={d.status === "under_review" ? "amber" : d.status === "awaiting_info" ? "orange" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"}>{disputeStatusLabel(d.status, t)}</Badge>
                       </div>
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Opened {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     </div>
@@ -958,13 +1005,14 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div><div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Employer</div><div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{d.application?.shift?.employer?.full_name || "—"}</div></div>
                   </div>
                   <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.6, marginBottom: 12, whiteSpace: "pre-wrap" }}>{d.description}</div>
-                  {d.admin_notes && (
+                  {d.resolution_note && (
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12, padding: "8px 12px", background: BRAND.grayLight, borderRadius: RADIUS.control }}>
-                      Admin notes: {d.admin_notes}
+                      {t("admin.noteToBothParties")} {d.resolution_note}
                     </div>
                   )}
                   {isPending ? (
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <Btn size="sm" variant="primary" onClick={() => openDispute(d.id)}><InlineIcon icon={Icons.Chat} />{t("dispute.openConversation")}</Btn>
                       <Btn size="sm" variant="secondary" onClick={() => setDisputeDetailFor(d)}>{t("admin.disputeInvestigate")}</Btn>
                       {d.status === "open" && (
                         <Btn size="sm" variant="secondary" onClick={() => markDisputeUnderReview(d.id)}>{t("admin.disputeMarkUnderReview")}</Btn>
@@ -978,6 +1026,9 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       {d.resolved_at ? ` — ${new Date(d.resolved_at).toLocaleDateString("en-MY")}` : ""}
                     </div>
                   )}
+                  {!isPending && (
+                    <Btn size="xs" variant="secondary" style={{ marginTop: 8 }} onClick={() => openDispute(d.id)}><InlineIcon icon={Icons.Chat} />{t("dispute.openConversation")}</Btn>
+                  )}
                 </Card>
               );
             })}
@@ -987,6 +1038,26 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   ? t("admin.hideClosed")
                   : t("admin.showClosed", { n: disputesQueue.filter(d => !isOpenDispute(d)).length })}
               </Btn>
+            )}
+            {flaggedReviews?.length > 0 && (
+              <div style={{ marginTop: 28 }}>
+                <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("admin.flaggedReviewsTitle")}</div>
+                <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>{t("admin.flaggedReviewsHint")}</div>
+                {flaggedReviews.map(r => (
+                  <Card key={r.id} style={{ marginBottom: 12 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 6 }}>
+                      <Badge color="red">{t(`admin.flag.${r.flagged_reason}`)}</Badge>
+                      <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{r.raterName} → {r.rateeName} · {displayProtectedText(r.application?.shift?.title ?? "—")}</span>
+                    </div>
+                    <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text }}><InlineIcon icon={Icons.Star} />{Number(r.overall).toFixed(1)}</div>
+                    {r.comment && <div style={{ fontSize: FS.meta, color: BRAND.text, marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>“{r.comment}”</div>}
+                    <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                      <Btn size="xs" variant="danger" onClick={() => hideFlaggedReview(r)}>{t("dispute.hideReviewBtn")}</Btn>
+                      <Btn size="xs" variant="secondary" onClick={() => clearReviewFlag(r)}>{t("admin.flagLooksFine")}</Btn>
+                    </div>
+                  </Card>
+                ))}
+              </div>
             )}
           </div>
         )}

@@ -619,6 +619,103 @@ const TRANSLATIONS = {
     "disputes.statusUnderReview": "Under review",
     "disputes.statusResolved": "Resolved",
     "disputes.statusDismissed": "Dismissed",
+    "common.loading": "Loading…",
+    "disputes.statusAwaitingInfo": "Waiting for information",
+    "dispute.categoryReviewReport": "Reported review",
+    "dispute.evidenceUploadFailed": "Your dispute was filed, but these files did not upload: {names}. You can add them in the conversation.",
+    "dispute.statusLineAwaitingMe": "The team needs more information from you. Reply below.",
+    "dispute.viewBtn": "View conversation",
+    "dispute.evidenceTitle": "Photos or PDFs (optional)",
+    "dispute.addEvidence": "Add photos or PDF",
+    "dispute.evidenceHint": "JPG, PNG, WebP or PDF · up to {max} files · 5 MB each. Both people and our team can see them — leave out ID numbers and bank details that are not needed.",
+    "dispute.removeFile": "Remove {name}",
+    "dispute.evidenceBadType": "“{name}” is not a JPG, PNG, WebP or PDF.",
+    "dispute.evidenceTooBig": "“{name}” is over 5 MB.",
+    "dispute.evidenceEmpty": "“{name}” is empty.",
+    "dispute.evidenceTooMany": "You can attach up to {max} files at a time.",
+    "dispute.attachmentOpen": "Open {name}",
+    "rating.new": "New",
+    "rating.newExplainer": "Scores are shown once someone has {n} reviews, so one or two ratings do not define them.",
+    "rating.revealHint": "Ratings are shown to both of you together once you have both rated, or after 7 days — so neither of you can rate in reaction to the other.",
+    "rating.noWrittenComment": "No written comment",
+    "rating.reportedView": "Reported — view",
+    "rating.reportBtn": "Report this review",
+    "rating.reportTitle": "Report this review",
+    "rating.reportExplainer": "Our team will look at this and the reviewer can answer. A review is only hidden if it breaks the rules — abuse, the wrong person, or a revenge rating after a dispute. A low score on its own is not enough.",
+    "rating.reportReasonLabel": "What is wrong with this review?",
+    "rating.reportReasonPlaceholder": "Explain briefly and add anything that shows it, such as photos or messages.",
+    "rating.reportSubmit": "Send report",
+    "rating.reportFailed": "Could not send the report: ",
+    "rating.reportFiled": "Report sent. We will look at it and keep you updated.",
+    "dispute.threadTitle": "Dispute conversation",
+    "dispute.roleWorker": "Worker",
+    "dispute.roleEmployer": "Employer",
+    "dispute.roleTeam": "{brand} team",
+    "dispute.you": "You",
+    "dispute.sendFailed": "Could not send: ",
+    "dispute.evidenceUploadFailedReply": "Your message was sent, but these files did not upload: {names}.",
+    "dispute.updateFailed": "Could not update: ",
+    "dispute.confirmResolveTitle": "Resolve this dispute?",
+    "dispute.confirmDismissTitle": "Dismiss this dispute?",
+    "dispute.confirmCloseBody": "This closes the dispute for both people. Your message is shown to them as the outcome.",
+    "dispute.resolutionNoteLabel": "Outcome message (both people will read it)",
+    "dispute.askedForInfo": "They have been asked for more information.",
+    "dispute.hideReviewTitle": "Hide this review?",
+    "dispute.hideReviewBody": "It stops counting towards the rating and is no longer shown. It stays on record with your reason and can be restored. Both people are told.",
+    "dispute.restoreReviewTitle": "Restore this review?",
+    "dispute.restoreReviewBody": "It counts towards the rating again and is shown again. Both people are told.",
+    "dispute.hideReviewBtn": "Hide review",
+    "dispute.restoreReviewBtn": "Restore review",
+    "dispute.hideReasonLabel": "Why is it being hidden? (kept on record)",
+    "dispute.reviewHidden": "Review hidden.",
+    "dispute.reviewRestored": "Review restored.",
+    "dispute.markedUnderReview": "Marked as under review.",
+    "dispute.reopened": "Dispute reopened.",
+    "dispute.reopen": "Reopen",
+    "dispute.notFound": "This dispute could not be found.",
+    "dispute.statusLineOpen": "Filed. The team will pick it up shortly.",
+    "dispute.statusLineReview": "The team is looking into this.",
+    "dispute.statusLineAwaitingOther": "Waiting for {who} to answer the team.",
+    "dispute.statusLineResolved": "Resolved.",
+    "dispute.statusLineDismissed": "Closed without changes.",
+    "dispute.outcomeLabel": "Outcome",
+    "dispute.reviewReported": "The review being reported",
+    "dispute.reviewIsHidden": "Hidden: {reason}",
+    "dispute.reviewNoLongerShown": "This review is no longer shown.",
+    "dispute.filedLabel": "filed this",
+    "dispute.internalNoteLabel": "Internal note — only the team sees this",
+    "dispute.replyPlaceholder": "Add your side, or answer a question from the team…",
+    "dispute.replyPlaceholderTeam": "Write to both people, or tick “internal note”…",
+    "dispute.replyLabel": "Your reply",
+    "dispute.internalToggle": "Internal note (only the team sees it)",
+    "dispute.sendBtn": "Send",
+    "dispute.closedNotice": "This dispute is closed, so no new messages can be added.",
+    "dispute.askWorker": "Ask worker for info",
+    "dispute.askEmployer": "Ask employer for info",
+    "dispute.openConversation": "Open conversation",
+    "admin.noteToBothParties": "Message to both parties:",
+    "admin.flaggedReviewsTitle": "Flagged reviews",
+    "admin.flaggedReviewsHint": "Unusual ratings the system noticed. They still count until you decide.",
+    "admin.flagLooksFine": "Looks fine",
+    "admin.flagCleared": "Flag cleared.",
+    "admin.flag.repeat_low": "Repeated low rating",
+    "admin.flag.habitually_low": "Rater scores everyone low",
+    "notif.dispute_filed.title": "Dispute filed",
+    "notif.dispute_filed.standard.body": "A dispute was filed about \"{shift_title}\". Open it to add your side and any evidence.",
+    "notif.dispute_filed.review.body": "A review you wrote for \"{shift_title}\" was reported. Open it to add your side.",
+    "notif.dispute_message.title": "New dispute message",
+    "notif.dispute_message.party.body": "The other person added a message to the dispute about \"{shift_title}\".",
+    "notif.dispute_message.admin.body": "Our team replied on the dispute about \"{shift_title}\".",
+    "notif.dispute_status.title": "Dispute update",
+    "notif.dispute_status.awaiting_info.body": "Our team needs more information from you about \"{shift_title}\".",
+    "notif.dispute_status.under_review.body": "The dispute about \"{shift_title}\" is now under review.",
+    "notif.dispute_status.resolved.body": "The dispute about \"{shift_title}\" was resolved. {note}",
+    "notif.dispute_status.dismissed.body": "The dispute about \"{shift_title}\" was closed without changes. {note}",
+    "notif.review_visibility.title": "Review update",
+    "notif.review_visibility.hidden_rater.body": "Your review for \"{shift_title}\" was hidden and no longer counts towards their rating.",
+    "notif.review_visibility.hidden_ratee.body": "A review about you for \"{shift_title}\" was hidden and no longer counts towards your rating.",
+    "notif.review_visibility.restored_rater.body": "Your review for \"{shift_title}\" was restored and counts towards their rating again.",
+    "notif.review_visibility.restored_ratee.body": "A review about you for \"{shift_title}\" was restored and counts towards your rating again.",
     "disputes.resolvedLabel": "Resolved:",
     "disputes.viewShiftChat": "View shift chat",
     "rating.rateBtn": "Rate",
@@ -1386,10 +1483,10 @@ const TRANSLATIONS = {
     "admin.confirmRejectEmployerBody": "They can't post shifts until they submit their registration again. They aren't told why.",
     "admin.confirmResolveTitle": "Close this dispute as resolved?",
     "admin.confirmResolveBody": "This only closes the case. It doesn't change attendance or pay. Use Investigate, then Apply ruling, for that.",
-    "admin.confirmResolveNote": "Note for the record",
+    "admin.confirmResolveNote": "Message to both parties (they will see this)",
     "admin.confirmDismissTitle": "Dismiss this dispute?",
     "admin.confirmDismissBody": "The case closes with no change to attendance or pay.",
-    "admin.confirmDismissNote": "Reason",
+    "admin.confirmDismissNote": "Reason (both parties will see this)",
     "admin.confirmRulingTitle": "Apply this ruling?",
     "admin.confirmRulingGrant": "Records attendance with {hours} hours, which sets the worker's pay for this shift. The dispute closes and both sides are notified.",
     "admin.confirmRulingNoShow": "Confirms the no-show, so the worker isn't paid for this shift. The dispute closes and both sides are notified.",
@@ -2481,23 +2578,298 @@ export const HoursNote = ({ label, text, tone = "them", align = "left" }) => {
   );
 };
 
-// Comments other people left when rating YOU. Private feedback: RLS lets only
-// the rater and the rated person read a rating row, and the public
-// get_ratee_ratings RPC never returns the comment.
-export const ReceivedFeedback = ({ items }) => {
+// Reviews other people left about YOU, with their private comments. Private: RLS lets only the
+// rater and the rated person read a rating row (and the rated person only once it is revealed and
+// not hidden), and the public get_ratee_ratings RPC never returns the comment. Each can be reported:
+// a review that is plainly retaliation, abuse or about the wrong person goes to the team, with
+// evidence, through the same conversation as any dispute.
+export const ReceivedFeedback = ({ items, user = null, role = null }) => {
   const { t } = useLanguage();
+  const [reported, setReported] = useState({});      // rating id -> dispute id
+  const [reporting, setReporting] = useState(null);  // the item being reported
+  const ids = (items || []).map(i => i.id).filter(Boolean).join(",");
+  useEffect(() => {
+    if (!user || !ids) return undefined;
+    let active = true;
+    supabase.from("disputes").select("id, rating_id").in("rating_id", ids.split(",")).then(({ data }) => {
+      if (active) setReported(Object.fromEntries((data ?? []).map(d => [d.rating_id, d.id])));
+    });
+    return () => { active = false; };
+  }, [user, ids]);
   if (!items || items.length === 0) return null;
   return (
     <div style={{ marginTop: 14 }}>
       <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("rating.feedbackReceivedTitle")}</div>
       {items.map((f, i) => (
-        <div key={i} style={{ marginTop: 6, padding: "8px 10px", borderRadius: RADIUS.control, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, fontSize: FS.meta, lineHeight: 1.4, color: BRAND.text, overflowWrap: "anywhere" }}>
+        <div key={f.id ?? i} style={{ marginTop: 6, padding: "8px 10px", borderRadius: RADIUS.control, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, fontSize: FS.meta, lineHeight: 1.4, color: BRAND.text, overflowWrap: "anywhere" }}>
           <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 2 }}>
             <InlineIcon icon={Icons.Star} size={12} />{Number(f.overall).toFixed(1)} · {formatShiftDate(f.created_at, { day: "numeric", month: "short", year: "numeric" })}
+            {f.application?.shift?.title ? ` · ${displayProtectedText(f.application.shift.title)}` : ""}
           </div>
-          {f.comment}
+          {f.comment || <span style={{ color: BRAND.textMuted, fontStyle: "italic" }}>{t("rating.noWrittenComment")}</span>}
+          {user && f.id && (
+            <div style={{ marginTop: 6 }}>
+              {reported[f.id]
+                ? <Btn size="xs" variant="secondary" onClick={() => openDispute(reported[f.id])}><InlineIcon icon={Icons.Flag} />{t("rating.reportedView")}</Btn>
+                : <Btn size="xs" variant="secondary" onClick={() => setReporting(f)}><InlineIcon icon={Icons.Flag} />{t("rating.reportBtn")}</Btn>}
+            </div>
+          )}
         </div>
       ))}
+      {reporting && (
+        <ReportReviewModal
+          review={reporting}
+          user={user}
+          role={role}
+          onClose={() => setReporting(null)}
+          onFiled={(disputeId) => { setReported(prev => ({ ...prev, [reporting.id]: disputeId })); setReporting(null); }}
+        />
+      )}
+    </div>
+  );
+};
+
+// "This review is unfair." A short reason and optional evidence; the reviewer is told and can answer in
+// the conversation. Not a delete button: the team hides a review only if it breaks the rules.
+const ReportReviewModal = ({ review, user, role, onClose, onFiled }) => {
+  const { t } = useLanguage();
+  const toast = useToast();
+  const dialog = useDialog(true, onClose, { label: t("rating.reportTitle") });
+  const [reason, setReason] = useState("");
+  const [files, setFiles] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    if (!reason.trim() || busy) return;
+    setBusy(true);
+    const { data, error } = await supabase.from("disputes").insert({
+      application_id: review.application_id, filed_by: user.id, filed_by_role: role,
+      category: "review_report", description: reason.trim(), rating_id: review.id,
+    }).select("id").single();
+    if (error) { setBusy(false); toast(t("rating.reportFailed") + error.message, "error"); return; }
+    const failed = files.length ? await uploadDisputeEvidence({ disputeId: data.id, files, userId: user.id }) : [];
+    setBusy(false);
+    toast(failed.length ? t("dispute.evidenceUploadFailed", { names: failed.join(", ") }) : t("rating.reportFiled"), failed.length ? "error" : "success");
+    window.dispatchEvent(new Event(DISPUTES_CHANGED_EVENT));
+    onFiled(data.id);
+  };
+  return createPortal(
+    <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
+      <div {...dialog} onClick={e => e.stopPropagation()} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 22, maxWidth: 460, width: "100%", maxHeight: "88vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }}>
+        <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, margin: "0 0 4px" }}>{t("rating.reportTitle")}</h3>
+        <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>
+          <InlineIcon icon={Icons.Star} size={12} />{Number(review.overall).toFixed(1)}{review.application?.shift?.title ? ` · ${displayProtectedText(review.application.shift.title)}` : ""}
+        </div>
+        <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, marginBottom: 12, padding: "8px 10px", background: BRAND.grayLight, borderRadius: RADIUS.control }}>{t("rating.reportExplainer")}</div>
+        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("rating.reportReasonLabel")}</label>
+        <textarea
+          value={reason}
+          onChange={e => setReason(e.target.value.slice(0, 2000))}
+          rows={4}
+          placeholder={t("rating.reportReasonPlaceholder")}
+          style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, fontSize: FS.body, fontFamily: "inherit", marginBottom: 12 }}
+        />
+        <EvidencePicker files={files} onChange={setFiles} disabled={busy} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <Btn variant="secondary" onClick={onClose} style={{ flex: 1, justifyContent: "center" }}>{t("common.cancel")}</Btn>
+          <Btn onClick={submit} disabled={busy || !reason.trim()} style={{ flex: 2, justifyContent: "center" }}>{busy ? "…" : t("rating.reportSubmit")}</Btn>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+// ─── Dispute evidence ────────────────────────────────────────────────────────
+// Photos and PDFs a person attaches when filing a dispute or replying to one. They go
+// to the private `dispute-evidence` bucket (5 MB each, image/PDF only -- enforced by
+// the bucket itself, not just here) and are only ever shown through short-lived
+// signed links to the two parties and the admin team.
+export const DISPUTE_EVIDENCE = {
+  bucket: "dispute-evidence",
+  maxFiles: 5,
+  maxBytes: 5 * 1024 * 1024,
+  types: ["image/jpeg", "image/png", "image/webp", "application/pdf"],
+};
+export const OPEN_DISPUTE_EVENT = "carigaji:open-dispute";
+export const DISPUTES_CHANGED_EVENT = "carigaji:disputes-changed";
+// Any screen can open a dispute's conversation without knowing about the modal;
+// the app root listens for this.
+export const openDispute = (id) => {
+  if (id) window.dispatchEvent(new CustomEvent(OPEN_DISPUTE_EVENT, { detail: { id } }));
+};
+
+const evidenceFileProblem = (file) => {
+  if (!DISPUTE_EVIDENCE.types.includes(file.type)) return "dispute.evidenceBadType";
+  if (file.size === 0) return "dispute.evidenceEmpty";
+  if (file.size > DISPUTE_EVIDENCE.maxBytes) return "dispute.evidenceTooBig";
+  return null;
+};
+
+// Controlled by the parent: `files` in, `onChange(nextFiles)` out.
+export const EvidencePicker = ({ files, onChange, disabled = false, compact = false }) => {
+  const { t } = useLanguage();
+  const [problem, setProblem] = useState(null);
+  const inputRef = useRef(null);
+  const previews = useMemo(() => files.map(f => (f.type.startsWith("image/") ? URL.createObjectURL(f) : null)), [files]);
+  useEffect(() => () => previews.forEach(u => { if (u) URL.revokeObjectURL(u); }), [previews]);
+
+  const add = (e) => {
+    const picked = [...(e.target.files || [])];
+    e.target.value = "";   // so choosing the same file again still fires change
+    const next = [...files];
+    let err = null;
+    for (const f of picked) {
+      const key = evidenceFileProblem(f);
+      if (key) { err = t(key, { name: f.name }); continue; }
+      if (next.length >= DISPUTE_EVIDENCE.maxFiles) { err = t("dispute.evidenceTooMany", { max: DISPUTE_EVIDENCE.maxFiles }); break; }
+      next.push(f);
+    }
+    setProblem(err);
+    onChange(next);
+  };
+
+  return (
+    <div style={{ marginBottom: compact ? 8 : 14 }}>
+      {!compact && <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("dispute.evidenceTitle")}</div>}
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept={DISPUTE_EVIDENCE.types.join(",")}
+        onChange={add}
+        disabled={disabled}
+        aria-label={t("dispute.addEvidence")}
+        style={{ display: "none" }}
+      />
+      <Btn variant="secondary" size="sm" disabled={disabled || files.length >= DISPUTE_EVIDENCE.maxFiles} onClick={() => inputRef.current?.click()}>
+        <InlineIcon icon={Icons.Camera} />{t("dispute.addEvidence")}
+      </Btn>
+      {!compact && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 6, lineHeight: 1.45 }}>{t("dispute.evidenceHint", { max: DISPUTE_EVIDENCE.maxFiles })}</div>}
+      {compact && <span style={{ fontSize: FS.meta, color: BRAND.textMuted, marginLeft: 8 }} title={t("dispute.evidenceHint", { max: DISPUTE_EVIDENCE.maxFiles })}>JPG · PNG · WebP · PDF · 5 MB</span>}
+      {problem && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 6 }}>{problem}</div>}
+      {files.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+          {files.map((f, i) => (
+            <div key={`${f.name}-${i}`} style={{ position: "relative", width: 84, border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.control, overflow: "hidden", background: BRAND.grayLight }}>
+              {previews[i]
+                ? <img src={previews[i]} alt={f.name} style={{ width: 84, height: 64, objectFit: "cover", display: "block" }} />
+                : <div style={{ width: 84, height: 64, display: "flex", alignItems: "center", justifyContent: "center", color: BRAND.textMuted }}><Icons.Doc size={26} /></div>}
+              <div style={{ fontSize: FS.meta, padding: "3px 5px", color: BRAND.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={f.name}>{f.name}</div>
+              <button
+                type="button"
+                onClick={() => { setProblem(null); onChange(files.filter((_, j) => j !== i)); }}
+                aria-label={t("dispute.removeFile", { name: f.name })}
+                disabled={disabled}
+                style={{ position: "absolute", top: 2, right: 2, width: 22, height: 22, borderRadius: "50%", border: "none", background: BRAND.overlay, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+              ><Icons.Close size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Uploads each file, then records it. Returns the names that failed so the caller
+// can say so -- a dispute that was filed must never be reported as failed because
+// one photo did not make it.
+export const uploadDisputeEvidence = async ({ disputeId, files, messageId = null, userId }) => {
+  const failed = [];
+  for (const file of files) {
+    const safe = (file.name.replace(/[^\w.\-]+/g, "_").slice(-80)) || "file";
+    const path = `${disputeId}/${crypto.randomUUID()}-${safe}`;
+    const { error: upErr } = await supabase.storage.from(DISPUTE_EVIDENCE.bucket).upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) { failed.push(file.name); continue; }
+    const { error: rowErr } = await supabase.from("dispute_attachments").insert({
+      dispute_id: disputeId, message_id: messageId, uploader_id: userId, storage_path: path,
+      file_name: file.name.slice(0, 200), mime_type: file.type, size_bytes: file.size,
+    });
+    if (rowErr) failed.push(file.name);
+  }
+  return failed;
+};
+
+// The signed-in person's disputes (RLS already limits this to ones on their own shifts, filed
+// by them or against them). Used on the employer's Account page; the worker's list is inline.
+export const MyDisputesList = ({ user }) => {
+  const { t } = useLanguage();
+  const [rows, setRows] = useState(null);
+  const [reload, setReload] = useState(0);
+  useEffect(() => {
+    const bump = () => setReload(n => n + 1);
+    window.addEventListener(DISPUTES_CHANGED_EVENT, bump);
+    return () => window.removeEventListener(DISPUTES_CHANGED_EVENT, bump);
+  }, []);
+  useEffect(() => {
+    if (!user) return undefined;
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase.from("disputes")
+        .select("id, category, description, status, awaiting_role, created_at, filed_by, application:applications(shift:shifts(title))")
+        .order("created_at", { ascending: false });
+      if (active) setRows(error ? [] : (data || []));
+    })();
+    return () => { active = false; };
+  }, [user, reload]);
+  return (
+    <div>
+      <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
+      {rows === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("common.loading")}</div>}
+      {rows?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("disputes.myDisputesEmpty")}</div>}
+      {rows?.map(d => {
+        const mine = d.filed_by === user.id;
+        const label = d.category === "review_report" ? t("dispute.categoryReviewReport") : t(DISPUTE_CATEGORIES.find(c => c.value === d.category)?.labelKey ?? "dispute.categoryOther");
+        return (
+          <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+              <span style={{ fontWeight: 700, fontSize: FS.meta, color: BRAND.text }}>{label}</span>
+              <Badge color={d.status === "under_review" ? "amber" : d.status === "awaiting_info" ? "orange" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
+              <Badge color={mine ? "blue" : "gray"} size="xs">{mine ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
+            </div>
+            <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
+            <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{d.description}</div>
+            {d.awaiting_role === "employer" && d.status === "awaiting_info" && (
+              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>{t("dispute.statusLineAwaitingMe")}</div>
+            )}
+            <div><Btn size="xs" variant="primary" style={{ marginTop: 6 }} onClick={() => openDispute(d.id)}><InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}</Btn></div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export const DisputeAttachments = ({ items }) => {
+  const { t } = useLanguage();
+  const [urls, setUrls] = useState({});
+  const ids = (items || []).map(i => i.id).join(",");
+  useEffect(() => {
+    if (!items?.length) return undefined;
+    let active = true;
+    supabase.storage.from(DISPUTE_EVIDENCE.bucket).createSignedUrls(items.map(i => i.storage_path), 3600).then(({ data }) => {
+      if (!active || !data) return;
+      const map = {};
+      data.forEach(d => { if (d.path && d.signedUrl) map[d.path] = d.signedUrl; });
+      setUrls(map);
+    });
+    return () => { active = false; };
+  }, [ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!items?.length) return null;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+      {items.map(i => {
+        const url = urls[i.storage_path];
+        const image = i.mime_type.startsWith("image/");
+        return (
+          <a key={i.id} href={url || undefined} target="_blank" rel="noopener noreferrer" aria-label={t("dispute.attachmentOpen", { name: i.file_name })}
+             style={{ width: 96, textDecoration: "none", color: BRAND.text, border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.control, overflow: "hidden", background: BRAND.grayLight, display: "block" }}>
+            {image && url
+              ? <img src={url} alt={i.file_name} style={{ width: 96, height: 72, objectFit: "cover", display: "block" }} />
+              : <div style={{ width: 96, height: 72, display: "flex", alignItems: "center", justifyContent: "center", color: BRAND.textMuted }}><Icons.Doc size={28} /></div>}
+            <div style={{ fontSize: FS.meta, padding: "3px 6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={i.file_name}>{i.file_name}</div>
+          </a>
+        );
+      })}
     </div>
   );
 };
@@ -4096,11 +4468,16 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
 // showing grey stars and a "(0)". Callers that do not have a count pass nothing and
 // get the bare value; a missing/zero value always reads "No ratings yet" (the old
 // default of 4.5 would have shown stars that no one had given).
+// Until someone has this many reviews the score is not shown: one or two ratings say more about
+// a single afternoon than about the person, and a lone bad one would define them.
+export const MIN_REVIEWS_TO_SHOW = 3;
+
 export const StarRating = ({ value = 0, size = 14, onClick = null, count = null }) => {
   const { t } = useLanguage();
   const num = Number(value) || 0;
   const unrated = count === 0 || (count === null && num === 0);
-  const filled = unrated ? 0 : Math.round(num);
+  const isNew = count !== null && count > 0 && count < MIN_REVIEWS_TO_SHOW;
+  const filled = unrated || isNew ? 0 : Math.round(num);
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     stars.push(
@@ -4113,6 +4490,8 @@ export const StarRating = ({ value = 0, size = 14, onClick = null, count = null 
   }
   const label = unrated
     ? t("rating.none")
+    : isNew
+      ? `${t("rating.new")} \u00b7 ${count === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count })}`
     : count === null
       ? num.toFixed(1)
       : `${num.toFixed(1)} \u00b7 ${count === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count })}`;
@@ -4197,7 +4576,15 @@ export const RatingDetailsModal = ({ modal, onClose, about = null }) => {
         )}
         {list === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
         {list && list.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 8 }}>{t("rating.aspectAvgEmpty")}</div>}
-        {list && list.length > 0 && (
+        {list && list.length > 0 && list.length < MIN_REVIEWS_TO_SHOW && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <StarRating value={0} count={list.length} />
+            </div>
+            <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 8, lineHeight: 1.5 }}>{t("rating.newExplainer", { n: MIN_REVIEWS_TO_SHOW })}</div>
+          </>
+        )}
+        {list && list.length >= MIN_REVIEWS_TO_SHOW && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <StarRating value={Number((overallAvg ?? 0).toFixed(1))} count={list.length} />
@@ -5737,6 +6124,7 @@ export const DISPUTE_CATEGORIES = [
 const DISPUTE_STATUS_LABEL_KEYS = {
   open: "disputes.statusOpen",
   under_review: "disputes.statusUnderReview",
+  awaiting_info: "disputes.statusAwaitingInfo",
   resolved: "disputes.statusResolved",
   dismissed: "disputes.statusDismissed",
 };
@@ -6484,7 +6872,17 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // this button lives): confirmed live that without this, a worker could
   // click "File a Dispute" repeatedly and create unlimited duplicate
   // disputes for the same shift, with no client or DB-level guard.
-  const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Set());
+  // Map of application id -> dispute id, for disputes on this application from EITHER side
+  // (a dispute the employer filed against you shows here too -- reply in it instead of filing a second).
+  // Review reports are not counted: they are about one review, not the shift.
+  const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Map());
+  const [disputesReload, setDisputesReload] = useState(0);
+  const [disputeFiles, setDisputeFiles] = useState([]);
+  useEffect(() => {
+    const bump = () => setDisputesReload(n => n + 1);
+    window.addEventListener(DISPUTES_CHANGED_EVENT, bump);
+    return () => window.removeEventListener(DISPUTES_CHANGED_EVENT, bump);
+  }, []);
   const [ratingModal, setRatingModal] = useState(null); // { applicationId, shiftTitle, rateeId, direction }
   const workerRatingDialog = useDialog(Boolean(ratingModal), () => setRatingModal(null), { label: t("rating.modalTitle") });
   const [ratingForm, setRatingForm] = useState({});
@@ -6520,8 +6918,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   useEffect(() => {
     if (tab !== "profile" || !user) return;
     let cancelled = false;
-    supabase.from('ratings').select('comment, overall, created_at')
-      .eq('ratee_id', user.id).eq('direction', 'employer_to_worker').not('comment', 'is', null)
+    supabase.from('ratings').select('id, application_id, comment, overall, created_at, application:applications(shift:shifts(title))')
+      .eq('ratee_id', user.id).eq('direction', 'employer_to_worker')
       .order('created_at', { ascending: false }).limit(20)
       .then(({ data, error }) => { if (!cancelled) setMyReceivedFeedback(error ? [] : (data ?? [])); });
     return () => { cancelled = true; };
@@ -6568,21 +6966,22 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   useEffect(() => {
     let active = true;
     const loadMyDisputedIds = async () => {
-      if (!user) { setMyDisputedApplicationIds(new Set()); return; }
+      if (!user) { setMyDisputedApplicationIds(new Map()); return; }
       try {
         const { data, error } = await supabase
           .from('disputes')
-          .select('application_id')
-          .eq('filed_by', user.id);
+          .select('id, application_id')
+          .neq('category', 'review_report')
+          .order('created_at', { ascending: true });
         if (!active) return;
-        setMyDisputedApplicationIds(error ? new Set() : new Set((data ?? []).map(d => d.application_id)));
+        setMyDisputedApplicationIds(error ? new Map() : new Map((data ?? []).map(d => [d.application_id, d.id])));
       } catch {
-        if (active) setMyDisputedApplicationIds(new Set());
+        if (active) setMyDisputedApplicationIds(new Map());
       }
     };
     loadMyDisputedIds();
     return () => { active = false; };
-  }, [user]);
+  }, [user, disputesReload]);
 
   // Self-service dispute status view (settings tab) — RLS's disputes_owner_read
   // policy already scopes this to disputes where the signed-in worker is the
@@ -6598,13 +6997,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       setMyDisputes(null);
       const { data, error } = await supabase
         .from("disputes")
-        .select("id, category, description, status, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift_id, shift:shifts(id, title, employer_id))")
+        .select("id, category, description, status, awaiting_role, resolution_note, created_at, resolved_at, filed_by, filed_by_role, application:applications(id, worker_id, shift_id, shift:shifts(id, title, employer_id))")
         .order("created_at", { ascending: false });
       if (!active) return;
       setMyDisputes(error ? [] : (data || []));
     })();
     return () => { active = false; };
-  }, [user, tab, profileTab]);
+  }, [user, tab, profileTab, disputesReload]);
 
   // Fetch aggregated ratings for the clicked ratee (any StarRating display) —
   // same 42P01-graceful degradation as above.
@@ -7182,18 +7581,21 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (guardPreview()) return;
     if (!disputeModal || !user || !disputeForm.description.trim()) return;
     setFilingDispute(true);
-    const { error } = await supabase.from('disputes').insert({
+    const { data: filed, error } = await supabase.from('disputes').insert({
       application_id: disputeModal.applicationId,
       filed_by: user.id,
       filed_by_role: 'worker',
       category: disputeForm.category,
       description: disputeForm.description.trim(),
-    });
+    }).select('id').single();
+    if (error) { setFilingDispute(false); toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
+    // The dispute exists now; a photo that fails to upload must not read as a failed filing.
+    const failed = disputeFiles.length ? await uploadDisputeEvidence({ disputeId: filed.id, files: disputeFiles, userId: user.id }) : [];
     setFilingDispute(false);
-    if (error) { toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
-    toast(t('toast.disputeFiled'), 'success');
-    setMyDisputedApplicationIds(prev => new Set(prev).add(disputeModal.applicationId));
+    toast(failed.length ? t('dispute.evidenceUploadFailed', { names: failed.join(', ') }) : t('toast.disputeFiled'), failed.length ? 'error' : 'success');
+    setMyDisputedApplicationIds(prev => new Map(prev).set(disputeModal.applicationId, filed.id));
     setDisputeModal(null);
+    setDisputeFiles([]);
     setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   };
 
@@ -8942,7 +9344,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                   {canFileDispute(a) && (
                     myDisputedApplicationIds.has(a.id) ? (
-                      <span style={{marginTop:8, display:'inline-block', fontSize:FS.meta, fontWeight:600, color: BRAND.textMuted}}>{t("myBids.disputeAlreadyFiledBadge")}</span>
+                      <button onClick={(e) => { e.stopPropagation(); openDispute(myDisputedApplicationIds.get(a.id)); }}
+                        style={{marginTop:8, padding:'6px 14px', borderRadius:RADIUS.control, background: BRAND.blueLight, color: BRAND.onBlueLight, border: `1px solid ${BRAND.blue}`, cursor:'pointer', fontSize:FS.meta, fontWeight:600}}>
+                        <InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}
+                      </button>
                     ) : (
                       <button onClick={(e) => { e.stopPropagation(); setDisputeModal({ applicationId: a.id, shiftTitle: a.shiftTitle }); }}
                         style={{marginTop:8, padding:'6px 14px', borderRadius:RADIUS.control, background: BRAND.grayLight, color: BRAND.text, border: `1px solid ${BRAND.border}`, cursor:'pointer', fontSize:FS.meta, fontWeight:600}}>
@@ -9295,7 +9700,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             )}
             {a.shiftStatus === "completed" && myDisputedApplicationIds.has(a.id) && (
-              <div style={{ marginTop: 10, textAlign: "right", fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted }}>{t("myBids.disputeAlreadyFiledBadge")}</div>
+              <div style={{ marginTop: 10, textAlign: "right" }}>
+                <Btn size="xs" variant="secondary" onClick={() => openDispute(myDisputedApplicationIds.get(a.id))}><InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}</Btn>
+              </div>
             )}
           </div>
           );
@@ -9878,7 +10285,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   </div>
                 </>
               )}
-              <ReceivedFeedback items={myReceivedFeedback} />
+              <ReceivedFeedback items={myReceivedFeedback} user={user} role="worker" />
             </Card>
           </div>
         )}
@@ -10113,11 +10520,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 700, fontSize: FS.meta, color: BRAND.text }}>{categoryLabel}</span>
-                      <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
+                      <Badge color={d.status === "under_review" ? "amber" : d.status === "awaiting_info" ? "orange" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                       <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
                     </div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{d.description}</div>
+                    {d.awaiting_role === "worker" && d.status === "awaiting_info" && <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>{t("dispute.statusLineAwaitingMe")}</div>}
+                    <Btn size="xs" variant="primary" style={{ marginTop: 6, marginRight: 6 }} onClick={() => openDispute(d.id)}><InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}</Btn>
                     <Btn size="xs" variant="secondary" style={{ marginTop: 6 }} onClick={() => { setActiveChatShift({ shiftId: d.application?.shift_id, title: d.application?.shift?.title ?? "", date: "", otherUserLabel: "" }); setTab("chat"); }}>{t("disputes.viewShiftChat")}</Btn>
                     {d.resolved_at && (
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 6 }}>
@@ -10429,8 +10838,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             />
           </div>
 
+          <EvidencePicker files={disputeFiles} onChange={setDisputeFiles} disabled={filingDispute} />
+
           <div style={{display:'flex', gap:8}}>
-            <button onClick={() => { setDisputeModal(null); setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" }); }}
+            <button onClick={() => { setDisputeModal(null); setDisputeFiles([]); setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" }); }}
               style={{flex:1, padding:'10px', borderRadius:RADIUS.control, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
               {t("common.cancel")}
             </button>
@@ -10548,6 +10959,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, fontSize: FS.meta, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
             />
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 4 }}>{t("rating.commentPrivacyHint")}</div>
+            <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.45 }}><InlineIcon icon={Icons.Info} size={12} />{t("rating.revealHint")}</div>
           </div>
 
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
@@ -10623,6 +11035,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
 };
 
 const EmployerPortal = lazyPortal(() => import("./src/portals/EmployerPortal.jsx"));
+const DisputeThreadModal = lazyPortal(() => import("./src/portals/DisputeThread.jsx"));
 
 
   const AdminPortal = lazyPortal(() => import("./src/portals/AdminPortal.jsx"));
@@ -12245,6 +12658,9 @@ export default function App() {
   });
 
   const handleNotificationNavigate = (link) => {
+    // A dispute opens as a conversation over whatever screen is showing.
+    const dispute = /^\/?(worker|employer)\/disputes\/([0-9a-f-]{36})$/i.exec(link || "");
+    if (dispute) { setOpenDisputeId(dispute[2]); return; }
     const match = /^\/?(worker|employer)\/(shifts|applications)\/([^/]+)$/.exec(link || "");
     if (!match) return;
     const [, targetPortal, kind, id] = match;
@@ -12285,6 +12701,13 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [supportChatOpen, setSupportChatOpen] = useState(false);
   const [issueReportOpen, setIssueReportOpen] = useState(false);
+  // The dispute whose conversation is open (any screen can ask for one via openDispute()).
+  const [openDisputeId, setOpenDisputeId] = useState(null);
+  useEffect(() => {
+    const onOpen = (e) => setOpenDisputeId(e.detail?.id ?? null);
+    window.addEventListener(OPEN_DISPUTE_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_DISPUTE_EVENT, onOpen);
+  }, []);
   const [authView, setAuthView] = useState("signin");
   const [authLoading, setAuthLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
@@ -12772,6 +13195,17 @@ export default function App() {
           )}
         </div>
       </div>
+      {openDisputeId && user && (
+        <Suspense fallback={null}>
+          <DisputeThreadModal
+            disputeId={openDisputeId}
+            user={user}
+            isAdmin={isAdmin}
+            onClose={() => { setOpenDisputeId(null); window.dispatchEvent(new Event(DISPUTES_CHANGED_EVENT)); }}
+            onChanged={() => window.dispatchEvent(new Event(DISPUTES_CHANGED_EVENT))}
+          />
+        </Suspense>
+      )}
       <AuthModal
         open={authOpen}
         view={authView}

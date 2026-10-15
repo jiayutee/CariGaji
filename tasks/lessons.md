@@ -284,3 +284,10 @@ is provable rather than assumed. `tasks/attendance_selftest.sql` is the pattern.
 RULE: a DO-block self-test runs as the DB owner, so it proves logic, not grants
 or RLS. Follow it with a REST pass using real user JWTs (QA accounts) for the
 permission and row-visibility questions.
+
+## 2026-10-16 — A "compact" composer ate the whole conversation; and storage can't be cleaned from SQL
+- Mistake: the first dispute thread put a 3-row textarea, a titled file picker with a hint paragraph and a Send button under the messages. In a 600px-high window the conversation had a sliver left. Caught only by taking a screenshot, not by any DOM assertion (all the text was "there").
+- Rule: for any modal with a scrolling body AND a fixed footer, give the body a minimum height and keep the footer to one or two rows; look at it in a short viewport before calling it done.
+- Rule: SQL cannot delete from storage.objects (`storage.protect_delete`). When a feature uploads files, either grant the uploader a delete policy for test cleanup or accept that test files stay until someone purges the bucket in the dashboard — decide before the test, and say so.
+- Rule: when adding a status to a table that other code filters with a hard-coded list (`in ('open','under_review')`), grep every filter and count query for it. `awaiting_info` would have fallen out of the admin's open-disputes count.
+- Rule: `RETURNING` after an INSERT shows the row BEFORE AFTER-triggers ran; read it back with a SELECT when a trigger changes the row (revealed_at looked false until re-read).

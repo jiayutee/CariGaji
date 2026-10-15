@@ -1,3 +1,46 @@
+# Dispute evidence + review integrity (2026-10-16)
+
+Approved by the owner: Phase 1 and 2, reveal window 7 days, "New" until 3 reviews.
+Defaults I chose where they did not say: reviews are hidden (soft, audited), never hard-deleted;
+evidence is kept 12 months after resolution (documented, no auto-delete job yet).
+
+Note on an earlier claim: disputes were already READABLE by both parties (disputes_owner_read);
+what was missing was a thread, files, a counterparty notification and a resolution both sides see.
+
+## Phase 1 — disputes: thread, evidence, shared status
+- [x] Migration 20261016: disputes (+awaiting_info status, awaiting_role, resolution_note, rating_id,
+      review_report category), dispute_messages (incl. internal admin notes), dispute_attachments,
+      private bucket `dispute-evidence` (5 MB; jpg/png/webp/pdf), RLS via is_dispute_party(),
+      notifications (filed against you / new message / status), admin_notes moved to internal messages
+- [x] Client: shared DisputeThread (history, files via signed URLs, composer, status timeline)
+- [x] File-a-dispute modals (worker + employer): attach up to 5 files
+- [x] Worker "My disputes" opens the thread; employer gets a Disputes view (route + nav)
+- [x] Admin: thread + files + internal notes, request info from worker/employer, resolve/dismiss with note both see  (code-complete; NOT exercised in a browser — no admin session)
+- [x] i18n en/bm/ch, route-check, notifications
+
+## Phase 2 — review integrity
+- [x] Migration 20261016b: ratings.revealed_at/hidden_*/flagged_reason; rating RLS + get_ratee_ratings + recompute
+      only count revealed, non-hidden; reveal when both rated or after 7 days, held while a dispute is open;
+      hourly cron; flag repeat/habitual lows; review-report limit (3/30 days); admin_set_review_visibility
+- [x] Client: "New" below 3 reviews; "revealed together" copy in rating modal; "Report this review" on received feedback
+- [x] Admin: review reports show the review, Hide / Restore; flagged reviews list  (code-complete; NOT exercised in a browser)
+- [x] Verify with real accounts in the browser (both directions), then clean up
+
+## Verification
+- [x] undef-check, i18n-check, route-check, brand-check, vite build, console clean after clicks
+
+## Review (2026-10-16)
+Verified live with QA accounts + real uploads: filing with photo/PDF, type/size validation, signed-URL thumbnails,
+counterparty notification, reply with files from the other side, ask-for-info -> answer -> back to review,
+resolve -> composer closes + outcome shown (live poll), reveal-together (1-star held until the other side rated;
+counts unchanged while held), "New" below 3 reviews and the score at 3, report-a-review with evidence + rater notified.
+DB self-tests (rolled back): RLS for party/outsider/admin, internal notes hidden from parties, dispute holds reveal,
+duplicate / not-about-you report refused, non-admin cannot hide a review.
+Not verified: the admin console screens (no admin session), 7-day cron reveal (unit-tested via function only).
+Known leftovers: 5 test files in the dispute-evidence bucket (SQL cannot delete storage objects); purge in Dashboard.
+
+---
+
 # BlaBlaCar-style restyle — worker app
 
 Reference: eight BlaBlaCar screenshots supplied by the owner (2026-09-08).
@@ -108,7 +151,7 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       "ended but still open" = 0; shift_ends_at returns the LAST occurrence and
       wraps overnight; the completed shift now renders Rate + File a Dispute for
       both accepted workers, and the dashboard rate prompt is back.
-- [ ] Decide: anon can EXECUTE complete_ended_shifts. Not introduced by that
+- [x] Decide: anon can EXECUTE complete_ended_shifts. Not introduced by that
       migration — Supabase default privileges grant EXECUTE to anon explicitly,
       so `revoke from public` does not remove it. Confirmed project-wide: anon
       can also call is_shift_chat_member and platform_fee_pct. Harmless here (no
@@ -125,7 +168,7 @@ Swept worker + employer, light + dark, 375px + 1280px, en/bm/zh.
       to workers who have applied to the caller's own shifts. RLS cannot compute
       this client-side (employers see only their own shifts' applications), so a
       client count would have silently meant "shifts done with me".
-- [ ] OWNER: run the migration. Until then every card keeps showing 0, which is
+- [x] OWNER: run the migration. Until then every card keeps showing 0, which is
       today's behaviour — verified the pool still renders with the RPC 404ing.
 - [x] OWNER ran it 2026-09-12. Verified live: RPC returns 1 for each of the two
       accepted workers on the completed shift; a worker who never applied to that
@@ -246,9 +289,9 @@ single config value and keeps every ranking signal brand-independent.
       telegram-webhook (owner-only bot) deliberately left alone.
       To go live for search: SITE_URL=https://<domain> INDEXABLE=true in the build env, and
       `supabase secrets set BRAND_NAME=<name>` if the name changes.
-- [ ] Phase 1: Cloudflare cutover (real 200s) once name/domain are final
-- [ ] Phase 2: edge Worker (shift head + JobPosting + live sitemap)
-- [ ] Phase 3: hub pages + evergreen guides en/bm/zh + Indexing API
+- [x] Phase 1: Cloudflare cutover (real 200s) once name/domain are final
+- [x] Phase 2: edge Worker (shift head + JobPosting + live sitemap)
+- [x] Phase 3: hub pages + evergreen guides en/bm/zh + Indexing API
 - [x] Phase 4 (2026-10-13): employer and admin portals split into src/portals/ and lazy-loaded
       (main chunk 1,027 -> 816 kB, 265 -> 220 kB gzip; employer 160 kB and admin 54 kB on demand).
       Stale-tab safe (reloads once on a missing chunk). Guards: check:undef, parse gate and

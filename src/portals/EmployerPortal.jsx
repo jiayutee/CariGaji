@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from "react";
 import { supabase } from "../lib/supabase.js";
 import { createPortal } from "react-dom";
-import { Avatar, BRAND, Badge, Btn, CHECKOUT_WINDOW_MS, Card, DISPUTE_CATEGORIES, EmptyState, FS, FileInput, FilterClearAll, FilterPanel, FilterToggle, HoursNote, Icons, InlineIcon, Input, MALAYSIAN_BANK_OPTIONS, OPEN_COOKIE_PREFS_EVENT, PLATFORM_FEE_PCT, Pill, Progress, RADIUS, RATING_ASPECTS, RatingDetailsModal, ReceivedFeedback, SEDCARD_QUALIFICATIONS, SHIFT_CATEGORIES, SHIFT_LANGUAGES, SHIFT_REQUIRED_DOCUMENTS, SITE, Select, StarInput, StarRating, Stat, TYPE, Z, bankVerificationLabel, buildContractRows, chatDayKey, chatDayLabel, chatFullTimestamp, chatPreviewLine, decodeSeg, disablePushNotifications, displayProtectedText, disputeStatusLabel, enablePushNotifications, formatOccurrenceLine, formatOccurrencesSummary, formatShiftDate, formatShiftTime, getAvatarUrl, hasTranslation, hoursUntilShift, initialRouteSegments, mapPayoutPillColor, mapVerificationPillColor, openContractPrintWindow, openMailtoSupport, payoutHoldReasonLabel, payoutStatusLabel, readChatSeen, readPushStatus, reconfirmState, renderContractRowsJSX, routeKeyFromSegment, sanitizeBulkTextValue, shiftCategoryLabel, shiftLastEndsAt, shiftRequiredDocuments, sortConversationsByRecent, statusTone, toCurrency, totalOccurrenceHours, uploadAvatarFile, uploadKycFile, useDialog, useLanguage, usePortalRoute, useConfirm, useToast, useUnreadChatRooms, validateMalaysianBankAccount, writeChatSeen } from "../../carigaji-app.jsx";
+import { Avatar, BRAND, Badge, Btn, CHECKOUT_WINDOW_MS, Card, DISPUTES_CHANGED_EVENT, DISPUTE_CATEGORIES, EvidencePicker, MyDisputesList, EmptyState, FS, FileInput, FilterClearAll, FilterPanel, FilterToggle, HoursNote, Icons, InlineIcon, Input, MALAYSIAN_BANK_OPTIONS, MIN_REVIEWS_TO_SHOW, OPEN_COOKIE_PREFS_EVENT, PLATFORM_FEE_PCT, Pill, Progress, RADIUS, RATING_ASPECTS, RatingDetailsModal, ReceivedFeedback, SEDCARD_QUALIFICATIONS, SHIFT_CATEGORIES, SHIFT_LANGUAGES, SHIFT_REQUIRED_DOCUMENTS, SITE, Select, StarInput, StarRating, Stat, TYPE, Z, bankVerificationLabel, buildContractRows, chatDayKey, chatDayLabel, chatFullTimestamp, chatPreviewLine, decodeSeg, disablePushNotifications, displayProtectedText, disputeStatusLabel, enablePushNotifications, formatOccurrenceLine, formatOccurrencesSummary, formatShiftDate, formatShiftTime, getAvatarUrl, hasTranslation, hoursUntilShift, initialRouteSegments, mapPayoutPillColor, mapVerificationPillColor, openContractPrintWindow, openMailtoSupport, payoutHoldReasonLabel, payoutStatusLabel, readChatSeen, readPushStatus, reconfirmState, renderContractRowsJSX, routeKeyFromSegment, sanitizeBulkTextValue, shiftCategoryLabel, shiftLastEndsAt, shiftRequiredDocuments, sortConversationsByRecent, statusTone, toCurrency, totalOccurrenceHours, openDispute, uploadAvatarFile, uploadDisputeEvidence, uploadKycFile, useDialog, useLanguage, usePortalRoute, useConfirm, useToast, useUnreadChatRooms, validateMalaysianBankAccount, writeChatSeen } from "../../carigaji-app.jsx";
 
 // Validates the Post Shift wizard's occurrence rows before advancing past
 // step 1. Returns a reason code (mapped to a translated toast message by the
@@ -573,7 +573,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [myDisputes, setMyDisputes] = useState(null);
   // Same duplicate-dispute guard as WorkerPortal (see there for why) —
   // application_ids this employer has already filed a dispute for.
-  const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Set());
+  // application id -> dispute id, for a dispute on it from EITHER side (review reports excluded).
+  const [myDisputedApplicationIds, setMyDisputedApplicationIds] = useState(new Map());
+  const [disputeFiles, setDisputeFiles] = useState([]);
+  const [disputesReload, setDisputesReload] = useState(0);
+  useEffect(() => {
+    const bump = () => setDisputesReload(n => n + 1);
+    window.addEventListener(DISPUTES_CHANGED_EVENT, bump);
+    return () => window.removeEventListener(DISPUTES_CHANGED_EVENT, bump);
+  }, []);
   // Employer's OWN received ratings (workers rating this employer), for the
   // Account screen -- mirrors WorkerPortal's myReceivedRatings, same RPC,
   // opposite direction. Employer had no self-rating view at all before this.
@@ -582,8 +590,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   useEffect(() => {
     if (view !== "account" || !user) return;
     let cancelled = false;
-    supabase.from('ratings').select('comment, overall, created_at')
-      .eq('ratee_id', user.id).eq('direction', 'worker_to_employer').not('comment', 'is', null)
+    supabase.from('ratings').select('id, application_id, comment, overall, created_at, application:applications(shift:shifts(title))')
+      .eq('ratee_id', user.id).eq('direction', 'worker_to_employer')
       .order('created_at', { ascending: false }).limit(20)
       .then(({ data, error }) => { if (!cancelled) setMyEmployerFeedback(error ? [] : (data ?? [])); });
     return () => { cancelled = true; };
@@ -807,21 +815,22 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   useEffect(() => {
     let active = true;
     const loadMyDisputedIds = async () => {
-      if (!user) { setMyDisputedApplicationIds(new Set()); return; }
+      if (!user) { setMyDisputedApplicationIds(new Map()); return; }
       try {
         const { data, error } = await supabase
           .from('disputes')
-          .select('application_id')
-          .eq('filed_by', user.id);
+          .select('id, application_id')
+          .neq('category', 'review_report')
+          .order('created_at', { ascending: true });
         if (!active) return;
-        setMyDisputedApplicationIds(error ? new Set() : new Set((data ?? []).map(d => d.application_id)));
+        setMyDisputedApplicationIds(error ? new Map() : new Map((data ?? []).map(d => [d.application_id, d.id])));
       } catch {
-        if (active) setMyDisputedApplicationIds(new Set());
+        if (active) setMyDisputedApplicationIds(new Map());
       }
     };
     loadMyDisputedIds();
     return () => { active = false; };
-  }, [user]);
+  }, [user, disputesReload]);
 
   // Self-service dispute status view (account view) — RLS's disputes_owner_read
   // policy already scopes this to disputes where the signed-in employer is the
@@ -2195,18 +2204,21 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const submitEmployerDispute = async () => {
     if (!disputeModal || !user || !disputeForm.description.trim()) return;
     setFilingDispute(true);
-    const { error } = await supabase.from('disputes').insert({
+    const { data: filed, error } = await supabase.from('disputes').insert({
       application_id: disputeModal.applicationId,
       filed_by: user.id,
       filed_by_role: 'employer',
       category: disputeForm.category,
       description: disputeForm.description.trim(),
-    });
+    }).select('id').single();
+    if (error) { setFilingDispute(false); toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
+    // The dispute exists now; a photo that fails to upload must not read as a failed filing.
+    const failed = disputeFiles.length ? await uploadDisputeEvidence({ disputeId: filed.id, files: disputeFiles, userId: user.id }) : [];
     setFilingDispute(false);
-    if (error) { toast(t('toast.disputeFiledFailed') + error.message, 'error'); return; }
-    toast(t('toast.disputeFiled'), 'success');
-    setMyDisputedApplicationIds(prev => new Set(prev).add(disputeModal.applicationId));
+    toast(failed.length ? t('dispute.evidenceUploadFailed', { names: failed.join(', ') }) : t('toast.disputeFiled'), failed.length ? 'error' : 'success');
+    setMyDisputedApplicationIds(prev => new Map(prev).set(disputeModal.applicationId, filed.id));
     setDisputeModal(null);
+    setDisputeFiles([]);
     setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" });
   };
 
@@ -2575,7 +2587,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <Btn size="xs" variant="secondary" onClick={() => { setRatingForm({}); setRatingModal({ applicationId: a.id, shiftTitle: selectedShift.title, rateeId: a.workerId, direction: 'employer_to_worker' }); }}>{t("rating.rateBtn")}</Btn>
           )}
           {myDisputedApplicationIds.has(a.id) ? (
-            <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, alignSelf: "center" }}>{t("myBids.disputeAlreadyFiledBadge")}</span>
+            <Btn size="xs" variant="secondary" onClick={() => openDispute(myDisputedApplicationIds.get(a.id))}><InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}</Btn>
           ) : (
             <Btn size="xs" variant="secondary" onClick={() => setDisputeModal({ applicationId: a.id, shiftTitle: selectedShift.title })}>{t("myBids.fileDisputeBtn")}</Btn>
           )}
@@ -3946,7 +3958,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   </div>
                 </>
               )}
-              <ReceivedFeedback items={myEmployerFeedback} />
+              <ReceivedFeedback items={myEmployerFeedback} user={user} role="employer" />
+            </Card>
+            <Card style={{ marginBottom: 16 }}>
+              <MyDisputesList user={user} />
             </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, gap: 12 }}>
@@ -4415,8 +4430,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               />
             </div>
 
+            <EvidencePicker files={disputeFiles} onChange={setDisputeFiles} disabled={filingDispute} />
+
             <div style={{display:'flex', gap:8}}>
-              <button onClick={() => { setDisputeModal(null); setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" }); }}
+              <button onClick={() => { setDisputeModal(null); setDisputeFiles([]); setDisputeForm({ category: DISPUTE_CATEGORIES[0].value, description: "" }); }}
                 style={{flex:1, padding:'10px', borderRadius:RADIUS.control, border:`1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor:'pointer', color: BRAND.textMuted}}>
                 {t("common.cancel")}
               </button>
@@ -4456,6 +4473,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, fontSize: FS.meta, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, resize: "vertical" }}
             />
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 4 }}>{t("rating.commentPrivacyHint")}</div>
+            <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 8, lineHeight: 1.45 }}><InlineIcon icon={Icons.Info} size={12} />{t("rating.revealHint")}</div>
           </div>
 
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
@@ -4605,7 +4623,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
               <Stat label={t("employer.colReliability")} value={workerProfileModal.reliability} color={BRAND.green} />
               <div onClick={() => openRatingDetails(workerProfileModal.workerId, 'employer_to_worker', workerProfileModal.name)} style={{ cursor: 'pointer' }}>
-                <Stat label={t("employer.colRating")} value={workerProfileModal.ratingCount ? workerProfileModal.rating.toFixed(1) : '—'} sub={workerProfileModal.ratingCount ? (workerProfileModal.ratingCount === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count: workerProfileModal.ratingCount })) : undefined} color={BRAND.accent} />
+                <Stat label={t("employer.colRating")} value={workerProfileModal.ratingCount >= MIN_REVIEWS_TO_SHOW ? workerProfileModal.rating.toFixed(1) : workerProfileModal.ratingCount ? t("rating.new") : '—'} sub={workerProfileModal.ratingCount ? (workerProfileModal.ratingCount === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count: workerProfileModal.ratingCount })) : undefined} color={BRAND.accent} />
               </div>
               <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primaryOnSurface} />
             </div>
