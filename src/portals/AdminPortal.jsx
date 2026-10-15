@@ -408,7 +408,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
       setFlaggedReviews(null);
       const { data, error } = await supabase.from("ratings")
         .select("id, overall, aspects, comment, direction, flagged_reason, created_at, rater_id, ratee_id, application:applications(shift:shifts(title))")
-        .not("flagged_reason", "is", null).is("hidden_at", null)
+        .not("flagged_reason", "is", null).is("hidden_at", null).is("removed_at", null)
         .order("created_at", { ascending: false }).limit(20);
       if (!active) return;
       if (error || !data?.length) { setFlaggedReviews([]); return; }
@@ -433,6 +433,20 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     if (error) { toast(`${t("dispute.updateFailed")}${error.message}`, "error"); return; }
     setFlaggedReviews(prev => (prev ?? []).filter(x => x.id !== r.id));
     toast(t("dispute.reviewHidden"), "success");
+  };
+  const removeFlaggedReview = async (r) => {
+    const ok = await confirm({
+      title: t("dispute.removeReviewTitle"),
+      body: t("dispute.removeReviewBody"),
+      confirmLabel: t("dispute.removeReviewBtn"),
+      tone: "danger",
+      note: { label: t("dispute.removeReasonLabel"), required: true },
+    });
+    if (!ok) return;
+    const { error } = await supabase.rpc("admin_remove_review", { p_rating_id: r.id, p_reason: ok.note });
+    if (error) { toast(`${t("dispute.updateFailed")}${error.message}`, "error"); return; }
+    setFlaggedReviews(prev => (prev ?? []).filter(x => x.id !== r.id));
+    toast(t("dispute.reviewRemoved"), "success");
   };
   const clearReviewFlag = async (r) => {
     const { error } = await supabase.rpc("admin_clear_review_flag", { p_rating_id: r.id });
@@ -1052,7 +1066,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text }}><InlineIcon icon={Icons.Star} />{Number(r.overall).toFixed(1)}</div>
                     {r.comment && <div style={{ fontSize: FS.meta, color: BRAND.text, marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>“{r.comment}”</div>}
                     <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
-                      <Btn size="xs" variant="danger" onClick={() => hideFlaggedReview(r)}>{t("dispute.hideReviewBtn")}</Btn>
+                      <Btn size="xs" variant="secondary" onClick={() => hideFlaggedReview(r)}>{t("dispute.hideReviewBtn")}</Btn>
+                      <Btn size="xs" variant="danger" onClick={() => removeFlaggedReview(r)}>{t("dispute.removeReviewBtn")}</Btn>
                       <Btn size="xs" variant="secondary" onClick={() => clearReviewFlag(r)}>{t("admin.flagLooksFine")}</Btn>
                     </div>
                   </Card>

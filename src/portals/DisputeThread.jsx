@@ -44,7 +44,7 @@ export default function DisputeThreadModal({ disputeId, user, isAdmin = false, o
     if (!disputeId) return;
     const [d, m, a] = await Promise.all([
       supabase.from("disputes")
-        .select("id, category, description, status, awaiting_role, resolution_note, resolved_at, created_at, filed_by, filed_by_role, rating_id, application:applications(id, worker_id, worker:profiles!applications_worker_id_profiles_fkey(full_name), shift:shifts(id, title, employer_id, employer:profiles(full_name))), rating:ratings(id, overall, aspects, comment, direction, hidden_at, hide_reason)")
+        .select("id, category, description, status, awaiting_role, resolution_note, resolved_at, created_at, filed_by, filed_by_role, rating_id, application:applications(id, worker_id, worker:profiles!applications_worker_id_profiles_fkey(full_name), shift:shifts(id, title, employer_id, employer:profiles(full_name))), rating:ratings(id, overall, aspects, comment, direction, hidden_at, hide_reason, removed_at, remove_reason)")
         .eq("id", disputeId).maybeSingle(),
       supabase.from("dispute_messages").select("id, author_id, author_role, body, is_internal, created_at").eq("dispute_id", disputeId).order("created_at", { ascending: true }),
       supabase.from("dispute_attachments").select("id, message_id, uploader_id, storage_path, file_name, mime_type, size_bytes, created_at").eq("dispute_id", disputeId).order("created_at", { ascending: true }),
@@ -132,6 +132,21 @@ export default function DisputeThreadModal({ disputeId, user, isAdmin = false, o
     await changed();
   };
 
+  const removeReview = async () => {
+    const ok = await confirm({
+      title: t("dispute.removeReviewTitle"),
+      body: t("dispute.removeReviewBody"),
+      confirmLabel: t("dispute.removeReviewBtn"),
+      tone: "danger",
+      note: { label: t("dispute.removeReasonLabel"), required: true },
+    });
+    if (!ok) return;
+    const { error } = await supabase.rpc("admin_remove_review", { p_rating_id: dispute.rating_id, p_reason: ok.note });
+    if (error) { toast(t("dispute.updateFailed") + error.message, "error"); return; }
+    toast(t("dispute.reviewRemoved"), "success");
+    await changed();
+  };
+
   const filingAttachments = attachments.filter(a => !a.message_id);
   const visibleMessages = isAdmin ? messages : messages.filter(m => !m.is_internal);
   const statusLine = !dispute ? "" :
@@ -186,14 +201,16 @@ export default function DisputeThreadModal({ disputeId, user, isAdmin = false, o
                         {aspects.map(a => <span key={a.value}>{t(a.labelKey)} {Number(rating.aspects?.[a.value] ?? 0).toFixed(0)}</span>)}
                       </div>
                       {rating.comment && <div style={{ marginTop: 6, fontSize: FS.body, color: BRAND.text, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>“{rating.comment}”</div>}
-                      {isAdmin && rating.hidden_at && <div style={{ marginTop: 6, fontSize: FS.meta, color: BRAND.redOnSurface, fontWeight: 600 }}>{t("dispute.reviewIsHidden", { reason: rating.hide_reason || "—" })}</div>}
+                      {isAdmin && rating.removed_at && <div style={{ marginTop: 6, fontSize: FS.meta, color: BRAND.redOnSurface, fontWeight: 600 }}>{t("dispute.reviewIsRemoved", { reason: rating.remove_reason || "—" })}</div>}
+                      {isAdmin && !rating.removed_at && rating.hidden_at && <div style={{ marginTop: 6, fontSize: FS.meta, color: BRAND.redOnSurface, fontWeight: 600 }}>{t("dispute.reviewIsHidden", { reason: rating.hide_reason || "—" })}</div>}
                     </>
                   ) : <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("dispute.reviewNoLongerShown")}</div>}
-                  {isAdmin && rating && (
-                    <div style={{ marginTop: 8 }}>
+                  {isAdmin && rating && !rating.removed_at && (
+                    <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {rating.hidden_at
                         ? <Btn size="xs" variant="secondary" onClick={() => setReviewHidden(false)}>{t("dispute.restoreReviewBtn")}</Btn>
-                        : <Btn size="xs" variant="danger" onClick={() => setReviewHidden(true)}>{t("dispute.hideReviewBtn")}</Btn>}
+                        : <Btn size="xs" variant="secondary" onClick={() => setReviewHidden(true)}>{t("dispute.hideReviewBtn")}</Btn>}
+                      <Btn size="xs" variant="danger" onClick={removeReview}>{t("dispute.removeReviewBtn")}</Btn>
                     </div>
                   )}
                 </div>
