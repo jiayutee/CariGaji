@@ -459,6 +459,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   const [view, setView] = useState(() => parseEmployerRoute(initialRouteSegments("employer")).view);
   const [selectedShift, setSelectedShift] = useState(null);
   const [liveApplicants, setLiveApplicants] = useState(null);
+  // Bumped to re-read the applicant list (e.g. a worker's average after rating them).
+  const [applicantsReload, setApplicantsReload] = useState(0);
   const [postStep, setPostStep] = useState(1);
   const [editingShiftId, setEditingShiftId] = useState(null);
   const [cancellingShift, setCancellingShift] = useState(false);
@@ -876,6 +878,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       if (error) { toast(t('toast.ratingFailed') + error.message, 'error'); return; }
       toast(t('toast.ratingSubmitted'), 'success');
       setMyRatedApplicationIds(prev => new Set(prev).add(ratingModal.applicationId));
+      setApplicantsReload(n => n + 1);
       setRatingModal(null);
       setRatingForm({});
       setRatingComment("");
@@ -1419,6 +1422,18 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
   };
 
   const confirmCheckoutHours = async (applicationId) => {
+    // Confirming releases the payout, so say what is being agreed to first.
+    const a = (liveApplicants ?? []).find(x => x.id === applicationId);
+    const hours = Number(a?.workerReportedHours);
+    if (a && hours > 0) {
+      const ok = await confirm({
+        title: t('employer.confirmHoursTitle', { name: a.name }),
+        body: t('employer.confirmHoursBody', { hours: +hours.toFixed(2), amount: (hours * Number(a.wageBid || a.wage || 0)).toFixed(2) }),
+        confirmLabel: t('employer.confirmHoursBtn'),
+        tone: 'primary',
+      });
+      if (!ok) return;
+    }
     const { error } = await supabase.rpc('employer_confirm_checkout', { p_application_id: applicationId });
     if (error) { toast(t('employer.toastConfirmHoursFailed') + error.message, 'error'); return; }
     setLiveApplicants(prev => (prev ?? []).map(a => a.id === applicationId ? { ...a, employerHoursConfirmedAt: new Date().toISOString(), employerHoursDisputed: false } : a));
@@ -1480,6 +1495,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setLiveApplicants(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, checkedInAt: selectedShift?.startAt ?? new Date().toISOString(), noShowAt: null, noShowNote: null } : x));
     toast(t('attendance.toastCheckedIn'), 'success');
     loadAttendanceReqs();
+    setApplicantsReload(n => n + 1);   // the worker's reliability changes when a no-show is reversed
   };
 
   const declineAttendanceRequest = async () => {
@@ -1515,6 +1531,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (error) { toast(error.message, 'error'); return; }
     setLiveApplicants(prev => (prev ?? []).map(x => x.id === a.id ? { ...x, noShowAt: null, noShowNote: null } : x));
     toast(t('attendance.toastNoShowUndone'), 'success');
+    setApplicantsReload(n => n + 1);
   };
 
   const proposeHoursModification = async (applicationId, hours, note) => {
@@ -1701,7 +1718,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         }
       });
     return () => { active = false; };
-  }, [selectedShift]);
+  }, [selectedShift, applicantsReload]);
 
   // Average hourly bid across the open detail's applicant pool (the shift-list
   // enrichment only lands on liveEmployerShifts, so the detail computes its
@@ -2420,9 +2437,28 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     const formOpen = (mode) => attendanceActionTarget?.applicationId === a.id && attendanceActionTarget.mode === mode;
 
     if (a.noShowAt) {
+      // A reported worker can answer with "I was there" (a pending check-in request
+      // with their note). That used to be invisible here -- only Undo showed -- so
+      // the employer never saw the worker's side without undoing first.
       return (
-        <div style={{ marginTop: 6 }} onClick={e => e.stopPropagation()}>
-          <Btn size="xs" variant="secondary" disabled={submittingAttendanceAction} onClick={() => undoNoShow(a)}>{t("attendance.employerUndoNoShowBtn")}</Btn>
+        <div style={inReq ? box : { marginTop: 6 }} onClick={e => e.stopPropagation()}>
+          {inReq && <div style={{ fontWeight: 700 }}>{t("attendance.employerRequestCheckIn")}</div>}
+          {inReq && <HoursNote label={t("hours.workerNoteLabel")} text={inReq.note} tone="them" />}
+          {formOpen("decline") ? (
+            <div>
+              <input value={attendanceActionNote} onChange={e => setAttendanceActionNote(e.target.value)} placeholder={t("attendance.employerDeclineNotePlaceholder")} style={inputStyle} />
+              <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                <Btn size="xs" variant="danger" disabled={submittingAttendanceAction} onClick={declineAttendanceRequest}>{t("attendance.employerConfirmDeclineBtn")}</Btn>
+                <Btn size="xs" variant="secondary" onClick={closeAttendanceAction}>{t("common.cancel")}</Btn>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: 6, marginTop: inReq ? 6 : 0, flexWrap: "wrap" }}>
+              {inReq && <Btn size="xs" variant="success" disabled={submittingAttendanceAction} onClick={() => checkInWorkerOnBehalf(a)}>{t("attendance.employerCheckInBehalfBtn")}</Btn>}
+              {inReq && <Btn size="xs" variant="secondary" onClick={() => { setAttendanceActionNote(""); setAttendanceActionTarget({ applicationId: a.id, mode: "decline", requestId: inReq.id }); }}>{t("attendance.employerDeclineBtn")}</Btn>}
+              <Btn size="xs" variant="secondary" disabled={submittingAttendanceAction} onClick={() => undoNoShow(a)}>{t("attendance.employerUndoNoShowBtn")}</Btn>
+            </div>
+          )}
         </div>
       );
     }

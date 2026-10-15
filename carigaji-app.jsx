@@ -538,6 +538,7 @@ const TRANSLATIONS = {
     "shiftDetail.headcount": "Headcount",
     "shiftDetail.applicationDeadline": "Applications close",
     "shiftDetail.workersNeeded": "workers needed",
+    "shiftDetail.workerNeeded": "worker needed",
     "shiftDetail.employerScore": "Employer Score",
     "shiftDetail.employerScoreSignInToView": "Sign in to view this employer's reliability score.",
     "shiftDetail.locationNote": "Exact address revealed once your application is accepted.",
@@ -568,6 +569,7 @@ const TRANSLATIONS = {
     "myBids.pillAccepted": "Accepted",
     "myBids.pillOfferExpired": "Offer expired",
     "myBids.pillNotSelected": "Not selected",
+    "myBids.pillWithdrawn": "Withdrawn",
     "myBids.pillPending": "Pending",
     "myBids.yourBidPrefix": "Your rate: ",
     "myBids.chatBtn": "Chat →",
@@ -906,6 +908,8 @@ const TRANSLATIONS = {
     "employer.closeApplicationsBtn": "Close applications",
     "employer.confirmRejectTitle": "Reject {name}?",
     "employer.confirmRejectBody": "They'll see that they weren't selected for this shift. You can't undo this here.",
+    "employer.confirmHoursTitle": "Confirm {name}'s hours?",
+    "employer.confirmHoursBody": "You are confirming {hours} hours, which creates a payout of RM{amount}. You can't undo this here — if the hours are wrong, use Decline & Modify instead.",
     "employer.thisApplicant": "this applicant",
     "employer.errTitleRequired": "Add a title so workers know what the job is.",
     "employer.errLocationRequired": "Add where the shift is.",
@@ -1129,6 +1133,7 @@ const TRANSLATIONS = {
     "notif.attendance_admin_ruling.body": "An admin ruled on the attendance dispute for \"{shift_title}\". Open the shift to see the outcome.",
     "notif.bid_received.title": "New application received",
     "notif.bid_received.body": "Someone applied for \"{shift_title}\".",
+    "notif.bid_received.named.body": "{worker_name} applied for \"{shift_title}\".",
     "notif.bid_accepted.title": "Application accepted",
     "notif.bid_accepted.body": "Your application for \"{shift_title}\" was accepted.",
     "notif.bid_rejected.title": "Application rejected",
@@ -1147,6 +1152,7 @@ const TRANSLATIONS = {
     "notif.shift_cancellation_choice_made.show_up_100.body": "A worker is showing up for \"{shift_title}\" and has submitted proof for full pay.",
     "notif.shift_checkout_submitted.title": "Worker submitted checkout hours",
     "notif.shift_checkout_submitted.body": "A worker reported {hours} hours for \"{shift_title}\". Please confirm or dispute.",
+    "notif.shift_checkout_submitted.named.body": "{worker_name} reported {hours} hours for \"{shift_title}\". Please confirm or dispute.",
     "notif.shift_checkout_disputed.title": "Employer disputed your checkout hours",
     "notif.shift_checkout_disputed.with_reason.body": "Reason: {reason}",
     "notif.shift_checkout_disputed.no_reason.body": "The employer disputed the hours you reported. Please resubmit.",
@@ -1167,7 +1173,7 @@ const TRANSLATIONS = {
     "employer.noShowReported": "Reported as no-show",
     "employer.noShowTitle": "Report a no-show?",
     "employer.noShowBody": "{name} was confirmed for this shift and never checked in. Only report this if they genuinely did not turn up.",
-    "employer.noShowConsequence": "This costs the worker 25 reliability points \u2014 more than withdrawing would have \u2014 and employers see that score when choosing who to book. They will be told, and can dispute it. It cannot be undone.",
+    "employer.noShowConsequence": "This costs the worker 25 reliability points \u2014 more than withdrawing would have \u2014 and employers see that score when choosing who to book. They will be told, and can dispute it. If you report them by mistake you can withdraw the report and their points are restored.",
     "employer.noShowNoteLabel": "What happened? (optional)",
     "employer.noShowNotePlaceholder": "The worker will see this. A short note helps if they dispute it.",
     "employer.noShowConfirmBtn": "Report no-show",
@@ -1905,6 +1911,8 @@ const TRANSLATIONS = {
     "theme.ariaLabel": "Theme: {mode}. Click to change.",
     "theme.title": "Theme: {mode}",
     "admin.accessRequiredTitle": "Admin access required",
+    "employer.accessRequiredTitle": "Employer accounts only",
+    "employer.notEmployerHint": "This area is for employer accounts, and you're signed in with a worker account. Use the worker app to find and manage shifts.",
     "admin.notAdminHint": "Your account is not an administrator.",
     "admin.signInHint": "Sign in with an administrator account to continue.",
     "admin.backToWorkerApp": "Back to Worker App",
@@ -5782,6 +5790,21 @@ const STATUS_TONES = {
     no_show: { color: "red", icon: Icons.Alert },
   },
 };
+// The worker's chip for an application. "withdrawn" used to fall through to
+// "Pending" -- a worker who had just withdrawn was told their application was pending.
+const bidPillLabel = (a, t) => {
+  if (a.shiftStatus === "cancelled") return t("myBids.pillShiftCancelled");
+  switch (a.status) {
+    case "offered": return t("myBids.pillConfirmNow");
+    case "shortlisted": return t("myBids.pillShortlisted");
+    case "accepted": return t("myBids.pillAccepted");
+    case "expired": return t("myBids.pillOfferExpired");
+    case "rejected": return t("myBids.pillNotSelected");
+    case "withdrawn": return t("myBids.pillWithdrawn");
+    default: return t("myBids.pillPending");
+  }
+};
+
 export const statusTone = (kind, status, viewer = "worker") => {
   if (kind === "application" && status === "pending" && viewer === "employer") return { color: "blue", icon: null };
   return STATUS_TONES[kind]?.[status] ?? { color: "gray", icon: null };
@@ -7895,6 +7918,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   const renderCheckState = (a, stopClick) => {
     const issue = attendanceIssue(a);
     if (issue) return renderAttendanceIssue(a, issue, "right", stopClick);
+    // A booking on hold for changed terms cannot be checked in to (worker_check_in
+    // refuses it); the banner above says what to do, so offer no dead-end button.
+    if (!a.checkedInAt && reconfirmState(a)) return null;
     // Check-in only opens 2h before the start (record_check_in, 20260915). A
     // button weeks early just led to an error; say when it opens instead.
     if (!a.checkedInAt && checkInNotYetOpen(a)) return renderCheckInOpens(a, "right");
@@ -8431,7 +8457,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               !selectedShift.isMultiDay ? [t("shiftDetail.time"), selectedShift.time] : null,
               [t("shiftDetail.dressCode"), selectedShift.dress],
               selectedShift.languageRequirements && selectedShift.languageRequirements.length > 0 ? [t("shiftDetail.languagesRequired"), selectedShift.languageRequirements.join(", ")] : null,
-              [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t("shiftDetail.workersNeeded")}`],
+              [t("shiftDetail.headcount"), `${selectedShift.headcount} ${t(selectedShift.headcount === 1 ? "shiftDetail.workerNeeded" : "shiftDetail.workersNeeded")}`],
               selectedShift.applicationsCloseAt && new Date(selectedShift.applicationsCloseAt) > new Date()
                 ? [t("shiftDetail.applicationDeadline"), new Date(selectedShift.applicationsCloseAt).toLocaleString('en-MY', { dateStyle: 'medium', timeStyle: 'short' })]
                 : null,
@@ -8831,7 +8857,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       </div>
                     </div>
                     <Pill
-                      label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
+                      label={bidPillLabel(a, t)}
                       {...statusTone("application", a.shiftStatus === "cancelled" ? "shift_cancelled" : a.status)}
                     />
                   </div>
@@ -9059,7 +9085,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ fontSize: FS.h3, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill
-                label={a.shiftStatus === "cancelled" ? t("myBids.pillShiftCancelled") : a.status === "offered" ? t("myBids.pillConfirmNow") : a.status === "shortlisted" ? t("myBids.pillShortlisted") : a.status === "accepted" ? t("myBids.pillAccepted") : a.status === "expired" ? t("myBids.pillOfferExpired") : a.status === "rejected" ? t("myBids.pillNotSelected") : t("myBids.pillPending")}
+                label={bidPillLabel(a, t)}
                 {...statusTone("application", a.shiftStatus === "cancelled" ? "shift_cancelled" : a.status)}
               />
               {a.shiftCategory && <Badge color="amber">{shiftCategoryLabel(a.shiftCategory, t)}</Badge>}
@@ -9161,7 +9187,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 !a.isMultiDay ? [t("shiftDetail.time"), a.shiftStartAt && a.shiftEndAt ? `${formatShiftTime(a.shiftStartAt)}–${formatShiftTime(a.shiftEndAt)}` : t("shiftDetail.tba")] : null,
                 [t("shiftDetail.dressCode"), a.shiftDress || t("shiftDetail.dressCodeNone")],
                 a.shiftLanguages && a.shiftLanguages.length > 0 ? [t("shiftDetail.languagesRequired"), a.shiftLanguages.join(", ")] : null,
-                [t("shiftDetail.headcount"), `${a.shiftHeadcount} ${t("shiftDetail.workersNeeded")}`],
+                [t("shiftDetail.headcount"), `${a.shiftHeadcount} ${t(a.shiftHeadcount === 1 ? "shiftDetail.workerNeeded" : "shiftDetail.workersNeeded")}`],
                 [t("myBids.employerRangeRow"), a.shiftWageMin && a.shiftWageMax ? `RM${a.shiftWageMin}–${a.shiftWageMax}/h` : t("shiftDetail.notApplicable")],
                 [t("myBids.transportAllowanceRow"), a.shiftStipend > 0 ? `RM${a.shiftStipend}` : t("shiftDetail.notProvided")],
                 [t("shiftDetail.yourBid"), `RM${a.wageBid}/h`],
@@ -9214,8 +9240,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
                       ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
-                  {!a.checkedInAt && !attendanceIssue(a) && checkInNotYetOpen(a) && renderCheckInOpens(a, "center")}
-                  {!a.checkedInAt && !attendanceIssue(a) && !checkInNotYetOpen(a) && (
+                  {!a.checkedInAt && !attendanceIssue(a) && !reconfirmState(a) && checkInNotYetOpen(a) && renderCheckInOpens(a, "center")}
+                  {!a.checkedInAt && !attendanceIssue(a) && !reconfirmState(a) && !checkInNotYetOpen(a) && (
                     <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
                   )}
                   {attendanceIssue(a) && (
@@ -11225,6 +11251,20 @@ const ThemeToggleButton = ({ themePreference, onClick, isMobile = false }) => {
   );
 };
 
+// A worker account that opens /employer used to get the employer dashboard (SSM
+// prompt, Post Shift button) that its role can never use. Say so instead.
+const EmployerAccessRequired = ({ onBack }) => {
+  const { t } = useLanguage();
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
+      <div style={{ display: "flex", color: BRAND.textMuted }} aria-hidden="true"><Icons.Ban size={40} /></div>
+      <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text }}>{t("employer.accessRequiredTitle")}</div>
+      <div style={{ fontSize: FS.meta, color: BRAND.textMuted, maxWidth: 320 }}>{t("employer.notEmployerHint")}</div>
+      <Btn variant="secondary" onClick={onBack}>{t("admin.backToWorkerApp")}</Btn>
+    </div>
+  );
+};
+
 const AdminAccessRequired = ({ user, onBack }) => {
   const { t } = useLanguage();
   return (
@@ -12718,7 +12758,8 @@ export default function App() {
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
           {portal === "worker" && <WorkerPortal onOpenPortal={setPortal} isMobile={isMobile} user={user} userRole={userRole} themePreference={themePreference} setThemePreference={setThemePreference} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} homeSignal={homeSignal} kycLevel={profileKycLevel} kycRejectionReason={profileKycRejection} onOpenKycUpload={() => setKycUploadOpen(true)} backHandlerRef={backHandlerRef} deepLinkShift={portal === "worker" ? notifDeepLink : null} linkShiftId={portal === "worker" ? linkShiftId : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} />}
-          {portal === "employer" && <Suspense fallback={<PortalLoading />}><EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} /></Suspense>}
+          {portal === "employer" && user && userRole === "worker" && !isAdmin && <EmployerAccessRequired onBack={() => setPortal("worker")} />}
+          {portal === "employer" && !(user && userRole === "worker" && !isAdmin) && <Suspense fallback={<PortalLoading />}><EmployerPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} onUserUpdated={refreshUser} backHandlerRef={backHandlerRef} deepLinkShift={portal === "employer" ? notifDeepLink : null} onOpenSupportChat={() => setSupportChatOpen(true)} onOpenIssueReport={() => setIssueReportOpen(true)} /></Suspense>}
           {portal === "admin" && (
             isAdmin
               ? <Suspense fallback={<PortalLoading />}><AdminPortal onOpenPortal={setPortal} compact={isMobile} user={user} onRequireAuth={openAuthModal} /></Suspense>
