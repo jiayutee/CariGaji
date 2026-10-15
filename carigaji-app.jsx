@@ -472,6 +472,11 @@ const TRANSLATIONS = {
     "toast.scheduleDatePast": "Every scheduled day must be today or later.",
     "toast.scheduleDuplicateDate": "Each day can only be added once — remove the duplicate date.",
     "toast.maxPayGteMinPay": "Max pay must be ≥ min pay.",
+    "toast.shiftTitleLength": "Shift title must be 3–80 characters.",
+    "toast.headcountRange": "Workers needed must be a whole number from 1 to 50.",
+    "toast.wageBelowLegalMin": "Pay must be at least RM{min}/hour — the legal minimum wage.",
+    "toast.wageTooHigh": "Pay above RM{max}/hour looks like a typo. Please check the amount.",
+    "toast.scheduleIncomplete": "Add a date, a start time and an end time for every day.",
     "toast.applicationDeadlinePast": "Application deadline must be in the future.",
     "toast.applicationDeadlineAfterStart": "Application deadline must be before the shift starts.",
     "toast.postShiftFailed": "Failed to post shift: ",
@@ -511,7 +516,7 @@ const TRANSLATIONS = {
     "shiftDetail.estimatedTotalPay": "Estimated total pay",
     "shiftDetail.transportAllowanceSuffix": " transport allowance",
     "shiftDetail.bidSubmitted": "Application Sent!",
-    "shiftDetail.bidSubmittedHint": "You'll be notified when shortlisted",
+    "shiftDetail.bidSubmittedHint": "We'll notify you if the employer selects you",
     "shiftDetail.positions": "Positions",
     "shiftDetail.applied": "Applied",
     "shiftDetail.wageRange": "Wage Range",
@@ -626,6 +631,9 @@ const TRANSLATIONS = {
     "rating.submitBtn": "Submit Rating",
     "rating.detailsTitle": "Rating details",
     "rating.aspectAvgEmpty": "No ratings yet.",
+    "rating.none": "No ratings yet",
+    "rating.reviewsOne": "1 review",
+    "rating.reviewsMany": "{count} reviews",
     "rating.aspect.onTime": "On time",
     "rating.aspect.polite": "Polite",
     "rating.aspect.hardworking": "Hardworking",
@@ -1080,7 +1088,7 @@ const TRANSLATIONS = {
     "notif.change.datetime": "date/time",
     // Remaining notification types (20260813). Variant keys cover the three
     // notifications whose body branches on an outcome.
-    "notif.payout_created.title": "You have been paid",
+    "notif.payout_created.title": "Hours confirmed — payout on its way",
     "notif.payout_created.body": "Your hours for \"{shift_title}\" were confirmed. RM{amount} is on its way.",
     "notif.worker_withdrew.title": "A worker withdrew",
     "notif.worker_withdrew.body": "{worker_name} withdrew from \"{shift_title}\" with {notice_hours} hours notice. The slot is open again.",
@@ -2057,8 +2065,10 @@ export const toCurrency = (value) => `RM ${Number(value || 0).toFixed(2)}`;
 // broken app, and a missing button removes a worker's only escalation route
 // without anyone noticing. If the policy changes, this changes in the same
 // commit.
+// Only someone who was actually booked has anything to dispute; an applicant who
+// was never hired for a shift that has since ended does not.
 const canFileDispute = (a) => (
-  a?.shiftStatus === "completed"
+  (a?.shiftStatus === "completed" && a?.status === "accepted")
   || (a?.shiftStatus === "cancelled" && a?.status === "accepted" && Boolean(a?.workerSignedAt))
 );
 
@@ -2135,6 +2145,8 @@ export const reconfirmState = (a) => {
   if (!a?.termsChangedAt) return null;
   const changedAt = new Date(a.termsChangedAt).getTime();
   if (a.termsReconfirmedAt && new Date(a.termsReconfirmedAt).getTime() >= changedAt) return null;
+  // Nothing left to hold once the work has been done and signed off.
+  if (a.checkedOutAt || a.employerHoursConfirmedAt) return null;
   const startAt = a.shiftStartAt ? new Date(a.shiftStartAt).getTime() : Infinity;
   const deadline = Math.min(startAt, changedAt + RECONFIRM_WINDOW_MS);
   return {
@@ -4071,18 +4083,32 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
   );
 };
 
-export const StarRating = ({ value = 4.5, size = 14, onClick = null }) => {
+// `count` is how many reviews the value is made of. It is what turns "3.0" into
+// something a reader can weigh, and it is how an unrated profile says so instead of
+// showing grey stars and a "(0)". Callers that do not have a count pass nothing and
+// get the bare value; a missing/zero value always reads "No ratings yet" (the old
+// default of 4.5 would have shown stars that no one had given).
+export const StarRating = ({ value = 0, size = 14, onClick = null, count = null }) => {
+  const { t } = useLanguage();
+  const num = Number(value) || 0;
+  const unrated = count === 0 || (count === null && num === 0);
+  const filled = unrated ? 0 : Math.round(num);
   const stars = [];
   for (let i = 1; i <= 5; i++) {
     stars.push(
-      <span key={i} style={{ color: i <= Math.round(value) ? BRAND.accent : BRAND.border, fontSize: size }}>
+      <span key={i} style={{ color: i <= filled ? BRAND.accent : BRAND.border, fontSize: size }}>
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: "inline-block", verticalAlign: "middle" }}>
-          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill={i <= Math.round(value) ? BRAND.accent : BRAND.border} />
+          <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill={i <= filled ? BRAND.accent : BRAND.border} />
         </svg>
       </span>
     );
   }
-  const content = <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>({value})</span></span>;
+  const label = unrated
+    ? t("rating.none")
+    : count === null
+      ? num.toFixed(1)
+      : `${num.toFixed(1)} \u00b7 ${count === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count })}`;
+  const content = <span>{stars} <span style={{ fontSize: size - 2, color: BRAND.textMuted }}>{label}</span></span>;
   if (!onClick) return content;
   return (
     <span onClick={onClick} role="button" tabIndex={0} style={{ cursor: "pointer" }} onKeyDown={e => { if (e.key === "Enter") onClick(e); }}>
@@ -4166,8 +4192,7 @@ export const RatingDetailsModal = ({ modal, onClose, about = null }) => {
         {list && list.length > 0 && (
           <>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <StarRating value={Number((overallAvg ?? 0).toFixed(1))} />
-              <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>({list.length})</span>
+              <StarRating value={Number((overallAvg ?? 0).toFixed(1))} count={list.length} />
             </div>
             {aspectAverages.map(asp => (
               <div key={asp.value} style={{ marginBottom: 10 }}>
@@ -6160,7 +6185,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     }
     setAvatarUploading(false);
   };
-  const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0 });
+  const [profileStats, setProfileStats] = useState({ reliability_score: 0, rating: 0, rating_count: 0 });
   const [showSedcard, setShowSedcard] = useState(false);
   const [sedcardForm, setSedcardForm] = useState({ bio: "", languagesSpoken: [], qualifications: [], qualificationsOther: "" });
   const [sedcardSaving, setSedcardSaving] = useState(false);
@@ -6615,6 +6640,15 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (found) setSelectedApplication(found);
     setPendingApplicationId(null);
   }, [pendingApplicationId, liveApplications]);
+  // The open application page is a snapshot taken when it was opened. Whatever
+  // changes the list afterwards (check-in, check-out, hours accepted, a realtime
+  // refetch) has to reach it too, or the page keeps offering the old button
+  // (found dogfooding: "Check In" still showing after a successful check-in).
+  useEffect(() => {
+    if (!selectedApplication || !liveApplications) return;
+    const fresh = liveApplications.find(x => x.id === selectedApplication.id);
+    if (fresh && fresh !== selectedApplication) setSelectedApplication(fresh);
+  }, [liveApplications]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!pendingChatShiftId) return undefined;
     const conv = chatConversations.find(c => c.shiftId === pendingChatShiftId);
@@ -6710,13 +6744,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   useEffect(() => {
     if (!user || tab !== 'profile') return;
     let active = true;
-    supabase.from('profiles').select('reliability_score, rating, bio, languages_spoken, qualifications, qualifications_other')
+    supabase.from('profiles').select('reliability_score, rating, rating_count, bio, languages_spoken, qualifications, qualifications_other')
       .eq('id', user.id).single()
       .then(({ data }) => {
         if (active && data) {
           setProfileStats({
             reliability_score: data.reliability_score ?? 0,
-            rating: data.rating ?? 0
+            rating: data.rating ?? 0,
+            rating_count: data.rating_count ?? 0
           });
           setSedcardForm({
             bio: data.bio ?? "",
@@ -6872,7 +6907,10 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         employer: a.shift?.employer?.full_name ?? '',
         date: formatShiftDate(a.shift?.start_at) || 'TBA',
         wageBid: Number(a.wage_ask ?? 0),
-        status: a.status,
+        // Nobody can be hired for a shift that has already ended, so an application
+        // still waiting at that point is, to the worker, simply not selected --
+        // not "Pending" with a Cancel button and a dispute link on it.
+        status: a.shift?.status === 'completed' && ['pending', 'shortlisted', 'offered'].includes(a.status) ? 'rejected' : a.status,
         appliedAt: a.applied_at,
         offerExpiresAt: a.offer_expires_at,
         workerSignedAt: a.worker_signed_at ?? null,
@@ -7142,7 +7180,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, avatar_url)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, rating_count, avatar_url)')
       .eq('status', 'open')
       .order('start_at', { ascending: true })
       .then(({ data }) => {
@@ -7160,6 +7198,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           // from "verified 0/100" rather than showing a misleading red badge.
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
           rating: s.employer ? (s.employer.rating ?? 0) : null,
+          ratingCount: s.employer ? (s.employer.rating_count ?? 0) : null,
           employerAvatarUrl: s.employer?.avatar_url ?? null,
           location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
@@ -7241,7 +7280,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     let active = true;
     supabase
       .from('shifts')
-      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, avatar_url)')
+      .select('id, title, description, category, location, dress_code, start_at, end_at, occurrences, wage_min, wage_max, headcount, filled_count, applicant_count, status, address_visibility, transport_allowance, language_requirements, requirements, employer_id, applications_close_at, employer:profiles(full_name, reliability_score, rating, rating_count, avatar_url)')
       .eq('id', wantedShiftId)
       .maybeSingle()
       .then(({ data: s }) => {
@@ -7261,6 +7300,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           employerId: s.employer_id ?? null,
           reliabilityScore: s.employer ? (s.employer.reliability_score ?? 0) : null,
           rating: s.employer ? (s.employer.rating ?? 0) : null,
+          ratingCount: s.employer ? (s.employer.rating_count ?? 0) : null,
           employerAvatarUrl: s.employer?.avatar_url ?? null,
           location: displayProtectedText(s.location),
           occurrences: s.occurrences ?? [],
@@ -7486,6 +7526,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         employer: trust.full_name || s.employer,
         reliabilityScore: trust.reliability_score ?? s.reliabilityScore,
         rating: trust.rating ?? s.rating,
+        ratingCount: trust.rating_count ?? s.ratingCount,
         employerVerified: trust.employer_verification_status === 'verified',
       };
     });
@@ -7840,18 +7881,23 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // application; they only help if the other side can actually read them.
   const renderHoursNote = (label, text, align, tone = "them") => <HoursNote label={label} text={text} tone={tone} align={align} />;
 
+  // Check-in only opens 2h before the start (record_check_in, 20260915). Both the
+  // list row and the shift page use these, so neither offers a button weeks early.
+  const checkInOpensAtMs = (a) => (a.shiftStartAt ? new Date(a.shiftStartAt).getTime() - 2 * 60 * 60 * 1000 : null);
+  const checkInNotYetOpen = (a) => { const at = checkInOpensAtMs(a); return at != null && Date.now() < at; };
+  const renderCheckInOpens = (a, align) => {
+    const when = new Date(checkInOpensAtMs(a)).toLocaleString(language === "bm" ? "ms-MY" : language === "ch" ? "zh-CN" : "en-MY", {
+      timeZone: "Asia/Kuala_Lumpur", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
+    });
+    return <span style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: align, flex: align === "center" ? 1 : undefined }}>{t("worker.checkInOpensAt", { when })}</span>;
+  };
+
   const renderCheckState = (a, stopClick) => {
     const issue = attendanceIssue(a);
     if (issue) return renderAttendanceIssue(a, issue, "right", stopClick);
     // Check-in only opens 2h before the start (record_check_in, 20260915). A
     // button weeks early just led to an error; say when it opens instead.
-    const opensAt = a.shiftStartAt ? new Date(a.shiftStartAt).getTime() - 2 * 60 * 60 * 1000 : null;
-    if (!a.checkedInAt && opensAt != null && Date.now() < opensAt) {
-      const when = new Date(opensAt).toLocaleString(language === "bm" ? "ms-MY" : language === "ch" ? "zh-CN" : "en-MY", {
-        timeZone: "Asia/Kuala_Lumpur", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit",
-      });
-      return <span style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: "right" }}>{t("worker.checkInOpensAt", { when })}</span>;
-    }
+    if (!a.checkedInAt && checkInNotYetOpen(a)) return renderCheckInOpens(a, "right");
     if (!a.checkedInAt) {
       return <Btn size="sm" variant="success" onClick={(e) => { stopClick?.(e); setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }}>{t("worker.checkInBtn")}</Btn>;
     }
@@ -8057,7 +8103,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <Avatar name={profileName} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
           <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginTop: 10 }}>{profileName}</div>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 6 }}>
-            <span style={{ color: BRAND.accent, fontSize: FS.body }}><InlineIcon icon={Icons.Star} />{(profileStats.rating ?? 0).toFixed(1)}</span>
+            <span style={{ color: BRAND.accent, fontSize: FS.body }}><InlineIcon icon={Icons.Star} />{profileStats.rating_count ? profileStats.rating.toFixed(1) : "\u2014"}</span>
             <Badge color="teal">{t("profile.shiftsDoneBadge").replace("{count}", workerShiftsDone ?? 0)}</Badge>
           </div>
         </div>
@@ -8429,7 +8475,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 8 }}>{t("shiftDetail.employerScoreSignInToView")}</div>
             )}
             <div style={{ display: "flex", gap: 16 }}>
-              <StarRating value={selectedShift.rating ?? 0} onClick={(user && selectedShift.employerId) ? () => openRatingDetails(selectedShift.employerId, 'worker_to_employer', selectedShift.employer) : null} />
+              <StarRating value={selectedShift.rating ?? 0} count={selectedShift.ratingCount ?? null} onClick={(user && selectedShift.employerId) ? () => openRatingDetails(selectedShift.employerId, 'worker_to_employer', selectedShift.employer) : null} />
               <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{selectedShift.totalApplicants} {t("shiftDetail.applicants")}</span>
             </div>
             {employerAbout[selectedShift.employerId] && (
@@ -9168,7 +9214,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <Btn variant="secondary" onClick={() => setWorkerContractModal({
                       ...a, applicationId: a.id, employerName: a.employer, readOnly: true,
                     })} style={{ flex: 1, justifyContent: "center" }}>{t("contract.viewContractBtn")}</Btn>
-                  {!a.checkedInAt && !attendanceIssue(a) && (
+                  {!a.checkedInAt && !attendanceIssue(a) && checkInNotYetOpen(a) && renderCheckInOpens(a, "center")}
+                  {!a.checkedInAt && !attendanceIssue(a) && !checkInNotYetOpen(a) && (
                     <Btn variant="success" onClick={() => { setCheckinTarget({ applicationId: a.id, shiftTitle: a.shiftTitle }); setCheckinCode(""); setCheckinResult(null); setShowQR(true); }} style={{ flex: 1, justifyContent: "center" }}>{t("worker.checkInBtn")}</Btn>
                   )}
                   {attendanceIssue(a) && (
@@ -9741,7 +9788,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </div>
             <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: 10, marginBottom: 20 }}>
               <Stat label={t("profile.shiftsDone")} value={workerShiftsDone ?? "—"} color={BRAND.primaryOnSurface} />
-              <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span><InlineIcon icon={Icons.Star} />{(profileStats.rating ?? 0).toFixed(1)}</span></span>} color={BRAND.accent} />
+              <Stat label={t("profile.rating")} value={<span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span><InlineIcon icon={Icons.Star} />{profileStats.rating_count ? profileStats.rating.toFixed(1) : "\u2014"}</span></span>} sub={profileStats.rating_count ? (profileStats.rating_count === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count: profileStats.rating_count })) : undefined} color={BRAND.accent} />
             </div>
             {kycLevel === "Basic" && !previewMode && (
               // Worker deferred their KYC document uploads during progressive

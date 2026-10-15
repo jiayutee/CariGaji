@@ -21,6 +21,28 @@ const validateOccurrences = (occurrences) => {
   return null;
 };
 
+// The legal floor the app itself tells employers about (see the minimum-wage
+// note in the help pages and contract clause 2). The database floor is lower, so
+// this is the real gate; the ceiling only catches a slipped decimal point.
+const MIN_HOURLY_WAGE = 8.72;
+const MAX_HOURLY_WAGE = 200;
+
+// First problem with the typed shift, as [i18n key, params] -- or null. Each of
+// these used to reach the database and come back as a raw constraint name
+// ("violates check constraint shifts_wage_min_check").
+const shiftFormProblem = (f) => {
+  const title = (f.title || "").trim();
+  if (title.length < 3 || title.length > 80) return ["toast.shiftTitleLength"];
+  const headcount = Number(f.headcount);
+  if (!Number.isInteger(headcount) || headcount < 1 || headcount > 50) return ["toast.headcountRange"];
+  const wageMin = parseFloat(f.wageMin);
+  const wageMax = parseFloat(f.wageMax);
+  if (!(wageMin >= MIN_HOURLY_WAGE)) return ["toast.wageBelowLegalMin", { min: MIN_HOURLY_WAGE }];
+  if (f.wageMax !== "" && f.wageMax != null && !(wageMax >= wageMin)) return ["toast.maxPayGteMinPay"];
+  if ((wageMax || wageMin) > MAX_HOURLY_WAGE) return ["toast.wageTooHigh", { max: MAX_HOURLY_WAGE }];
+  return null;
+};
+
 // ─── Bulk shift upload (CSV) ─────────────────────────────────────────────────
 // Normalized header (lowercase, trimmed, stripped to [a-z0-9]) → form field.
 // Used to fuzzy-match whatever column names an employer's spreadsheet has.
@@ -921,7 +943,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         });
     }
     return () => { active = false; };
-  }, []);
+    // user?.id, not []: on a direct link the account is still loading at mount,
+    // so the free-window lookup was skipped and never retried.
+  }, [user?.id]);
+  // What a shift posted now is actually charged: nothing while this employer's
+  // free window is open. The review step used the global rate regardless and
+  // quoted RM248 for a shift that is saved, and listed, at RM216.
+  const freeWindowOpen = Boolean(feeFreeUntil) && new Date(feeFreeUntil) > new Date();
+  const newShiftFeePct = freeWindowOpen ? 0 : platformFeePct;
 
   // Exposed via useCallback (not just an effect-local function) so the
   // post/edit-shift handler can trigger a refetch after a successful publish
@@ -1589,7 +1618,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     let active = true;
     supabase
       .from('applications')
-      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
+      .select('id, worker_id, wage_ask, status, applied_at, offer_expires_at, worker_signed_at, employer_signed_at, checked_in_at, checked_out_at, worker_reported_hours, worker_reported_break_minutes, worker_checkout_note, employer_hours_confirmed_at, employer_hours_disputed, employer_hours_dispute_note, employer_proposed_hours, employer_proposed_note, hours_resubmitted, cancellation_choice, cancellation_choice_deadline, cancellation_proof_path, terms_changed_at, terms_reconfirmed_at, terms_change_summary, no_show_at, no_show_note, worker:profiles!applications_worker_id_profiles_fkey(full_name, kyc_level, reliability_score, rating, rating_count, avatar_url, bio, languages_spoken, qualifications, qualifications_other)')
       .eq('shift_id', selectedShift.id)
       .order('applied_at', { ascending: true })
       .then(({ data, error }) => {
@@ -1602,6 +1631,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           verified: a.worker?.kyc_level === 'Standard' || a.worker?.kyc_level === 'Advanced',
           reliability: a.worker?.reliability_score ?? 0,
           rating: a.worker?.rating ?? 0,
+          ratingCount: a.worker?.rating_count ?? 0,
           avatarUrl: a.worker?.avatar_url ?? null,
           bio: a.worker?.bio ?? "",
           languagesSpoken: a.worker?.languages_spoken ?? [],
@@ -1614,7 +1644,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           // filled in below from worker_completed_shift_counts(). 0 until then,
           // which is also the fallback if that function is not deployed yet.
           completedShifts: 0,
-          status: a.status,
+          // Once the shift has ended nobody still waiting can be hired, so show
+          // them as not selected instead of offering Shortlist / Send offer.
+          status: selectedShift?.status === 'completed' && ['pending', 'shortlisted', 'offered'].includes(a.status) ? 'rejected' : a.status,
           appliedAt: a.applied_at,
           offerExpiresAt: a.offer_expires_at,
           workerId: a.worker_id,
@@ -2220,6 +2252,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     setOffering(false);
     if (error) { toast(t('toast.updateFailed') + error.message, 'error'); return; }
     setLiveApplicants(prev => (prev ?? []).map(a => ids.includes(a.id) ? { ...a, status: 'offered', offerExpiresAt: deadline } : a));
+    // applicantAction beats the stored status on screen (see the rows' `action`),
+    // so a row shortlisted earlier would keep saying "Shortlisted" after the offer.
+    setApplicantAction(prev => { const next = { ...prev }; ids.forEach(id => { delete next[id]; }); return next; });
     setSelectedApplicantIds([]);
     setBulkSelectMode(false);
     toast(ids.length > 1 ? t('toast.offerSentMultiple').replace('{count}', ids.length) : t('toast.offerSentSingle'), 'success');
@@ -3100,7 +3135,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
                         <span style={metaLabel}>{t("employer.colRating")}</span>
                         <div style={{ justifySelf: "end" }}>
-                          <StarRating value={a.rating} size={12} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} />
+                          <StarRating value={a.rating} count={a.ratingCount} size={12} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} />
                         </div>
 
                         <span style={metaLabel}>{t("employer.colReliability")}</span>
@@ -3153,7 +3188,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           <span style={{ fontSize: FS.meta, color: BRAND.text, minWidth: 28 }}>{a.reliability}</span>
                         </div>
                       </td>
-                      <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
+                      <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} count={a.ratingCount} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
                       <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primaryOnSurface, fontSize: FS.body }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>{applicantStatusPill(a, action)}</td>
                       <td style={{ padding: "12px 14px" }}>{applicantActions(a, action, isSelectable)}</td>
@@ -3311,9 +3346,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       return;
                     }
                     const reason = validateOccurrences(form.occurrences);
-                    if (reason === 'empty' || reason === 'incomplete') { toast(t('toast.shiftFieldsRequired'), 'error'); return; }
+                    if (reason === 'empty' || reason === 'incomplete') { toast(t('toast.scheduleIncomplete'), 'error'); return; }
                     if (reason === 'pastDate') { toast(t('toast.scheduleDatePast'), 'error'); return; }
                     if (reason === 'duplicateDate') { toast(t('toast.scheduleDuplicateDate'), 'error'); return; }
+                    const problem = shiftFormProblem(form);
+                    if (problem) { toast(t(problem[0], problem[1]), 'error'); return; }
                     if (applicationDeadlineError) { toast(applicationDeadlineError, 'error'); return; }
                     setPostStep(2);
                   }} style={{ width: "100%", justifyContent: "center" }}>{t("employer.nextRequirements")}</Btn>
@@ -3407,19 +3444,19 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     // commitment. Each occurrence's own overnight handling
                     // (end time past midnight) is done inside occurrenceHours.
                     const totalHours = totalOccurrenceHours(form.occurrences);
-                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours * (1 + platformFeePct);
+                    const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours * (1 + newShiftFeePct);
                     return (
                       <div style={{ background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: FS.meta, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
                         <div style={{ fontSize: FS.h2, fontWeight: 800, color: BRAND.amber }}>{toCurrency(reserve)}</div>
-                        <div style={{ fontSize: FS.meta, color: BRAND.amber }}>{platformFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(platformFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
+                        <div style={{ fontSize: FS.meta, color: BRAND.amber }}>{newShiftFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(newShiftFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
                         {/* The trial line only appears when a fee actually
                             exists. While the global rate is 0 everyone is free
                             anyway, and announcing a "free trial" then would
                             advertise a benefit indistinguishable from the
                             status quo -- and burn employers' two months on a
                             period that cost them nothing. */}
-                        {platformFeePct > 0 && feeFreeUntil && new Date(feeFreeUntil) > new Date() && (
+                        {platformFeePct > 0 && freeWindowOpen && (
                           <div style={{ fontSize: FS.meta, color: BRAND.onGreenLight, background: BRAND.greenLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>
                             {t("employer.feeTrialActive").replace("{date}", new Date(feeFreeUntil).toLocaleDateString())}
                           </div>
@@ -3436,10 +3473,15 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       if (!form.title || !form.location.trim() || reason) {
                         toast(t('toast.shiftFieldsRequired'), 'error'); return;
                       }
+                      const problem = shiftFormProblem(form);
+                      if (problem) { toast(t(problem[0], problem[1]), 'error'); return; }
                       const sortedOccurrences = [...form.occurrences].sort((a, b) => a.date.localeCompare(b.date));
                       const first = sortedOccurrences[0];
                       const startAt = new Date(`${first.date}T${first.start}:00+08:00`).toISOString();
-                      const endAt   = new Date(`${first.date}T${first.end}:00+08:00`).toISOString();
+                      // An end at or before the start means the shift runs past midnight
+                      // (occurrenceHours counts it that way), so it ends the next day;
+                      // without this the database refused every overnight shift.
+                      const endAt   = new Date(new Date(`${first.date}T${first.end}:00+08:00`).getTime() + (first.end <= first.start ? 24 * 60 * 60 * 1000 : 0)).toISOString();
                       const wageMin = parseFloat(form.wageMin) || 0;
                       const wageMax = parseFloat(form.wageMax) || 0;
                       if (wageMax < wageMin) { toast(t('toast.maxPayGteMinPay'), 'error'); return; }
@@ -4527,7 +4569,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
               <Stat label={t("employer.colReliability")} value={workerProfileModal.reliability} color={BRAND.green} />
               <div onClick={() => openRatingDetails(workerProfileModal.workerId, 'employer_to_worker', workerProfileModal.name)} style={{ cursor: 'pointer' }}>
-                <Stat label={t("employer.colRating")} value={workerProfileModal.rating ? workerProfileModal.rating.toFixed(1) : '—'} color={BRAND.accent} />
+                <Stat label={t("employer.colRating")} value={workerProfileModal.ratingCount ? workerProfileModal.rating.toFixed(1) : '—'} sub={workerProfileModal.ratingCount ? (workerProfileModal.ratingCount === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count: workerProfileModal.ratingCount })) : undefined} color={BRAND.accent} />
               </div>
               <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primaryOnSurface} />
             </div>
