@@ -2321,7 +2321,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     <>
       <div style={{ padding: "0 20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontWeight: 900, fontSize: FS.h3, color: BRAND.primary }}>{SITE.name}</div>
+          <div style={{ fontWeight: 600, fontSize: FS.h3, color: BRAND.primary }}>{SITE.name}</div>
           <div style={{ fontSize: FS.meta, color: BRAND.textMuted, fontWeight: 500 }}>{t("employer.tagline")}</div>
         </div>
         {compact && (
@@ -2342,7 +2342,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           {n.badge > 0 && (
             <span style={{
               marginLeft: 8, minWidth: 16, height: 16, padding: "0 4px", borderRadius: RADIUS.pill,
-              background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 700,
+              background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 600,
               display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
             }}>{n.badge > 9 ? "9+" : n.badge}</span>
           )}
@@ -2350,7 +2350,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       ))}
       <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
-        <div style={{ fontWeight: 800, fontSize: FS.lead, color: BRAND.greenOnSurface }}>{toCurrency(committedPayoutTotal)}</div>
+        <div style={{ fontWeight: 600, fontSize: FS.lead, color: BRAND.greenOnSurface }}>{toCurrency(committedPayoutTotal)}</div>
         <Btn size="xs" variant="ghost" onClick={onOpenSupportChat} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpBtn")}</Btn>
         <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
       </div>
@@ -2386,7 +2386,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         {reconfirmState(a) && (
           <div
             title={t("employer.awaitingReconfirmHint")}
-            style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 7px", borderRadius: RADIUS.pill, background: BRAND.amberLight, fontSize: FS.meta, fontWeight: 700, color: BRAND.onAmberLight }}
+            style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 4, padding: "2px 7px", borderRadius: RADIUS.pill, background: BRAND.amberLight, fontSize: FS.meta, fontWeight: 600, color: BRAND.onAmberLight }}
           >
             <InlineIcon icon={Icons.Alert} />{t("employer.awaitingReconfirm")}
           </div>
@@ -2454,7 +2454,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       // the employer never saw the worker's side without undoing first.
       return (
         <div style={inReq ? box : { marginTop: 6 }} onClick={e => e.stopPropagation()}>
-          {inReq && <div style={{ fontWeight: 700 }}>{t("attendance.employerRequestCheckIn")}</div>}
+          {inReq && <div style={{ fontWeight: 600 }}>{t("attendance.employerRequestCheckIn")}</div>}
           {inReq && <HoursNote label={t("hours.workerNoteLabel")} text={inReq.note} tone="them" />}
           {formOpen("decline") ? (
             <div>
@@ -2478,7 +2478,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (!a.checkedInAt && started && (inReq || ended)) {
       return (
         <div style={box} onClick={e => e.stopPropagation()}>
-          <div style={{ fontWeight: 700 }}>{inReq ? t("attendance.employerRequestCheckIn") : t("attendance.employerNotCheckedIn")}</div>
+          <div style={{ fontWeight: 600 }}>{inReq ? t("attendance.employerRequestCheckIn") : t("attendance.employerNotCheckedIn")}</div>
           <HoursNote label={t("hours.workerNoteLabel")} text={inReq?.note} tone="them" />
           {formOpen("decline") ? (
             <div>
@@ -2501,7 +2501,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
     if (a.employerProposedHours != null && !a.checkedOutAt) {
       return (
         <div style={box}>
-          <div style={{ fontWeight: 700 }}>{t("attendance.employerOnBehalfPending").replace("{hours}", a.employerProposedHours)}</div>
+          <div style={{ fontWeight: 600 }}>{t("attendance.employerOnBehalfPending").replace("{hours}", a.employerProposedHours)}</div>
           <HoursNote label={t("hours.yourNoteLabel")} text={a.employerProposedNote} tone="me" />
         </div>
       );
@@ -2515,7 +2515,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       }
       return (
         <div style={box} onClick={e => e.stopPropagation()}>
-          <div style={{ fontWeight: 700 }}>{outReq ? t("attendance.employerRequestCheckOut") : t("attendance.employerNotCheckedOut")}</div>
+          <div style={{ fontWeight: 600 }}>{outReq ? t("attendance.employerRequestCheckOut") : t("attendance.employerNotCheckedOut")}</div>
           <HoursNote label={t("hours.workerNoteLabel")} text={outReq?.note} tone="them" />
           {formOpen("submit_hours") ? (
             <div>
@@ -2565,7 +2565,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               never checked in -- the same preconditions employer_mark_no_show
               enforces, so the button is never offered where it would fail. */}
           {a.noShowAt ? (
-            <span title={a.noShowNote || undefined} style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.redOnSurface }}>
+            <span title={a.noShowNote || undefined} style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.redOnSurface }}>
               {t("employer.noShowReported")}
             </span>
           ) : (
@@ -2613,7 +2613,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               buttons here, this side has already acted. */}
           {a.employerProposedHours != null && (
             <div style={{ marginTop: 6, padding: "6px 8px", borderRadius: RADIUS.control, background: BRAND.amberLight, color: BRAND.onAmberLight }}>
-              <div style={{ fontWeight: 700 }}>{t("employer.hoursProposedPendingLabel").replace("{hours}", a.employerProposedHours)}</div>
+              <div style={{ fontWeight: 600 }}>{t("employer.hoursProposedPendingLabel").replace("{hours}", a.employerProposedHours)}</div>
               <HoursNote label={t("hours.yourNoteLabel")} text={a.employerProposedNote} tone="me" />
             </div>
           )}
@@ -2677,7 +2677,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           {/* Mobile top bar: hamburger toggle instead of a permanently-expanded sidebar */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: `1px solid ${BRAND.border}`, background: BRAND.surface, flexShrink: 0 }}>
             <button onClick={() => setSidebarOpen(true)} aria-label={t("employer.openMenu")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.text, padding: 4, lineHeight: 1, display: "inline-flex" }}><Icons.Menu size={20} /></button>
-            <div style={{ fontWeight: 800, fontSize: FS.bodyLg, color: BRAND.text }}>{navItems.find(n => n.id === view)?.label || SITE.name}</div>
+            <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text }}>{navItems.find(n => n.id === view)?.label || SITE.name}</div>
           </div>
           {sidebarOpen && createPortal(
             <div style={{ position: "fixed", inset: 0, zIndex: Z.drawer, display: "flex" }}>
@@ -2757,7 +2757,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 pool -- this is the first screen an employer sees. */}
             {unrated.length > 0 && (
               <Card style={{ marginBottom: 20, border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
-                <div style={{ fontSize: FS.body, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.onAmberLight, marginBottom: 4 }}>
                   <InlineIcon icon={Icons.Star} />{t("employer.ratePromptTitle", { count: unrated.length })}
                 </div>
                 <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
@@ -2774,7 +2774,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 they are in the process and what happens next. */}
             {employerProfile && verificationStatus !== 'verified' && (
               <Card style={{ marginBottom: 20, border: `1.5px solid ${verificationStatus === 'rejected' ? BRAND.red : BRAND.amber}`, background: verificationStatus === 'rejected' ? BRAND.redLight : BRAND.amberLight }}>
-                <div style={{ fontSize: FS.body, fontWeight: 700, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, marginBottom: 6 }}>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, marginBottom: 6 }}>
                   {verificationStatus === 'rejected' ? t("employer.verifyRejectedTitle") : t("employer.verifyPendingTitle")}
                 </div>
                 <div style={{ fontSize: FS.meta, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, lineHeight: 1.6 }}>
@@ -2799,7 +2799,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "2fr 1fr", gap: 16 }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: FS.card, color: BRAND.text, marginBottom: 12 }}>{t("employer.activeShiftsHeading")}</div>
+                <div style={{ fontWeight: 600, fontSize: FS.card, color: BRAND.text, marginBottom: 12 }}>{t("employer.activeShiftsHeading")}</div>
                 {(liveEmployerShifts ?? []).filter(s => s.status !== "draft").length === 0 && (
                   <EmptyState
                     icon={<Icons.List size={28} />}
@@ -2811,7 +2811,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   <Card key={s.id} onClick={() => { setSelectedShift(s); setView("shifts"); }} hover style={{ marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 4 }}>{s.title}</div>
+                        <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 4 }}>{s.title}</div>
                         <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{s.isMultiDay ? formatOccurrencesSummary(s.occurrences) : `${s.date} · ${s.time}`}</div>
                       </div>
                       <Pill label={shiftStatusLabel(s.status, t)} {...statusTone("shift", s.status)} />
@@ -2827,7 +2827,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 ))}
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: FS.card, color: BRAND.text, marginBottom: 12 }}>{t("employer.quickActions")}</div>
+                <div style={{ fontWeight: 600, fontSize: FS.card, color: BRAND.text, marginBottom: 12 }}>{t("employer.quickActions")}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   <Btn onClick={beginNewShift} style={{ justifyContent: "center" }}>{t("employer.postNewShift")}</Btn>
                   <Btn variant="secondary" onClick={beginBulkUpload} style={{ justifyContent: "center" }}>{t("employer.bulkUploadBtn")}</Btn>
@@ -2876,13 +2876,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
-                      <span style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text }}>{s.title}</span>
+                      <span style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text }}>{s.title}</span>
                       <Pill label={shiftStatusLabel(s.status, t)} {...statusTone("shift", s.status)} />
                     </div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{s.date} · {s.time}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.greenOnSurface }}>{t('employer.listCardEstBudget').replace('{amount}', s.estBudget)}</div>
+                    <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.greenOnSurface }}>{t('employer.listCardEstBudget').replace('{amount}', s.estBudget)}</div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", flexWrap: "wrap", marginTop: 6 }}>
                           <Badge color="green" size="xs">{t('employer.listCardPositionsBadge').replace('{count}', s.headcount)}</Badge>
                           <Badge color="blue" size="xs">{t('employer.listCardAppliedBadge').replace('{count}', s.applicants)}</Badge>
@@ -3011,7 +3011,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               return (
                 <div style={{ background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "10px 14px", marginBottom: 12, fontSize: FS.meta, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
                   {t('employer.applicationDeadlinePassedBanner')}{' '}
-                  <button onClick={() => startEditShift(selectedShift.id)} style={{ border: 'none', background: 'none', color: BRAND.amber, textDecoration: 'underline', cursor: 'pointer', fontWeight: 700, padding: 0, fontFamily: 'inherit', fontSize: FS.meta }}>
+                  <button onClick={() => startEditShift(selectedShift.id)} style={{ border: 'none', background: 'none', color: BRAND.amber, textDecoration: 'underline', cursor: 'pointer', fontWeight: 600, padding: 0, fontFamily: 'inherit', fontSize: FS.meta }}>
                     {t('employer.editShift')}
                   </button>
                 </div>
@@ -3036,7 +3036,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             </div>
             {selectedShift.status === "cancelled" && confirmedSignedApplicants.length > 0 && (
               <Card style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>{t("employer.cancellationOutcomesTitle")}</div>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 10 }}>{t("employer.cancellationOutcomesTitle")}</div>
                 {confirmedSignedApplicants.map(a => (
                   <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <span style={{ fontSize: FS.meta, color: BRAND.text }}>{a.name}</span>
@@ -3054,7 +3054,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             )}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: FS.card, color: BRAND.text, marginBottom: 4 }}>{t("employer.applicantPool")}</div>
+                <div style={{ fontWeight: 600, fontSize: FS.card, color: BRAND.text, marginBottom: 4 }}>{t("employer.applicantPool")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("employer.positionsOpenHint").replace("{open}", openSlotsRemaining()).replace("{total}", selectedShift.headcount).replace("{plural}", selectedShift.headcount === 1 ? '' : t("common.pluralSuffix"))}</div>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -3179,7 +3179,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       </div>
                       <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.border}`, display: "grid", gridTemplateColumns: "auto 1fr", rowGap: 9, columnGap: 12, alignItems: "center" }}>
                         <span style={metaLabel}>{t("employer.colBidRate")}</span>
-                        <span style={{ justifySelf: "end", fontSize: FS.bodyLg, fontWeight: 800, color: BRAND.primaryOnSurface }}>RM{a.wageBid}</span>
+                        <span style={{ justifySelf: "end", fontSize: FS.bodyLg, fontWeight: 600, color: BRAND.primaryOnSurface }}>RM{a.wageBid}</span>
 
                         <span style={metaLabel}>{t("employer.colRating")}</span>
                         <div style={{ justifySelf: "end" }}>
@@ -3214,7 +3214,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <thead>
                 <tr style={{ background: BRAND.grayLight }}>
                   {[bulkSelectMode ? "" : null, t("employer.colWorker"), t("employer.colKYC"), t("employer.colReliability"), t("employer.colRating"), t("employer.colBidRate"), t("employer.colStatus"), t("employer.colAction")].filter(h => h !== null).map((h, i) => (
-                    <th key={h || `col${i}`} style={{ padding: "12px 14px", fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
+                    <th key={h || `col${i}`} style={{ padding: "12px 14px", fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -3237,7 +3237,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         </div>
                       </td>
                       <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} count={a.ratingCount} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
-                      <td style={{ padding: "12px 14px", fontWeight: 700, color: BRAND.primaryOnSurface, fontSize: FS.body }}>RM{a.wageBid}</td>
+                      <td style={{ padding: "12px 14px", fontWeight: 600, color: BRAND.primaryOnSurface, fontSize: FS.body }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>{applicantStatusPill(a, action)}</td>
                       <td style={{ padding: "12px 14px" }}>{applicantActions(a, action, isSelectable)}</td>
                     </tr>
@@ -3257,7 +3257,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: postStep >= s ? BRAND.primary : BRAND.border, color: postStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 700 }}>{s}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: postStep >= s ? BRAND.primary : BRAND.border, color: postStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 600 }}>{s}</div>
                   <span style={{ fontSize: FS.meta, color: postStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: postStep === s ? 700 : 400 }}>{[t("employer.stepShiftDetails"), t("employer.stepRequirements"), t("employer.stepReview")][s - 1]}</span>
                   {s < 3 && <span aria-hidden="true" style={{ color: BRAND.textMuted, fontSize: FS.lead }}>→</span>}
                 </div>
@@ -3461,7 +3461,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               )}
               {postStep === 3 && (
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text, marginBottom: 16 }}>{t("employer.reviewYourShift")}</div>
+                  <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text, marginBottom: 16 }}>{t("employer.reviewYourShift")}</div>
                   {[
                     [t("employer.reviewLabelTitle"), form.title || t("employer.reviewNotSet")],
                     [t("employer.fieldJobDescription"), form.description || t("employer.reviewNotSet")],
@@ -3496,7 +3496,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     return (
                       <div style={{ background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
                         <div style={{ fontSize: FS.meta, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
-                        <div style={{ fontSize: FS.h2, fontWeight: 800, color: BRAND.amber }}>{toCurrency(reserve)}</div>
+                        <div style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.amber }}>{toCurrency(reserve)}</div>
                         <div style={{ fontSize: FS.meta, color: BRAND.amber }}>{newShiftFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(newShiftFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
                         {/* The trial line only appears when a fee actually
                             exists. While the global rate is 0 everyone is free
@@ -3607,7 +3607,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
               {[1, 2, 3].map(s => (
                 <div key={s} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: bulkUploadStep >= s ? BRAND.primary : BRAND.border, color: bulkUploadStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 700 }}>{s}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: "50%", background: bulkUploadStep >= s ? BRAND.primary : BRAND.border, color: bulkUploadStep >= s ? "#fff" : BRAND.text, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 600 }}>{s}</div>
                   <span style={{ fontSize: FS.meta, color: bulkUploadStep >= s ? BRAND.text : BRAND.textMuted, fontWeight: bulkUploadStep === s ? 700 : 400 }}>{[t("employer.bulkStepUpload"), t("employer.bulkStepReview"), t("employer.bulkStepPublish")][s - 1]}</span>
                   {s < 3 && <span aria-hidden="true" style={{ color: BRAND.textMuted, fontSize: FS.lead }}>→</span>}
                 </div>
@@ -3617,7 +3617,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             {bulkUploadStep === 1 && (
               <Card>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text }}>{t("employer.bulkUploadCsvHeading")}</div>
+                  <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text }}>{t("employer.bulkUploadCsvHeading")}</div>
                   <Btn variant="ghost" size="sm" onClick={downloadBulkUploadTemplate}>{t("employer.bulkDownloadTemplate")}</Btn>
                 </div>
                 <FileInput
@@ -3668,7 +3668,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <thead>
                         <tr style={{ background: BRAND.grayLight }}>
                           {[t("employer.bulkColRow"), t("employer.bulkColGroupId"), t("employer.bulkColStatus"), t("employer.bulkColTitle"), t("employer.bulkColCategory"), t("employer.bulkColDate"), t("employer.bulkColStart"), t("employer.bulkColEnd"), t("employer.bulkColMinWage"), t("employer.bulkColMaxWage"), t("employer.bulkColHeadcount"), t("employer.bulkColLocation"), t("employer.bulkColDressCode"), t("employer.bulkColTransport"), t("employer.bulkColVisibility"), t("employer.bulkColLanguages"), t("employer.bulkColSpecialReq"), ""].map(h => (
-                            <th key={h} style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}`, whiteSpace: "nowrap" }}>{h}</th>
+                            <th key={h} style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}`, whiteSpace: "nowrap" }}>{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -3731,7 +3731,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               const allSettled = !bulkUploadPublishing && readyCount === 0 && needsFixCount === 0 && (publishedCount > 0 || failedCount > 0);
               return (
                 <Card>
-                  <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text, marginBottom: 12 }}>{t("employer.bulkStepPublish")}</div>
+                  <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text, marginBottom: 12 }}>{t("employer.bulkStepPublish")}</div>
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 16 }}>
                     {t("employer.bulkRowsSummary").replace("{ready}", readyCount).replace("{total}", bulkUploadRows.length).replace("{needsFix}", needsFixCount)}
                   </div>
@@ -3782,14 +3782,14 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 below. Replaces a checkbox the employer ticked about
                 themselves, which nothing verified. */}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 10 }}>{t("employer.walletTitle")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>{t("employer.walletTitle")}</div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                 <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("employer.walletAvailable")}</span>
-                <span style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text }}>RM{Number(wallet?.available ?? 0).toFixed(2)}</span>
+                <span style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text }}>RM{Number(wallet?.available ?? 0).toFixed(2)}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
                 <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("employer.walletHeld")}</span>
-                <span style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text }}>RM{Number(wallet?.held ?? 0).toFixed(2)}</span>
+                <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>RM{Number(wallet?.held ?? 0).toFixed(2)}</span>
               </div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5 }}>{t("employer.walletHeldHint")}</div>
               {/* Said plainly, so a RM0.00 balance does not read as "hiring is
@@ -3800,7 +3800,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 append-only and the balance is derived from it, so this list IS
                 the explanation of the balance rather than a separate record. */}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 10 }}>{t("employer.walletHistoryTitle")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>{t("employer.walletHistoryTitle")}</div>
               {walletEntriesFailed ? (
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("employer.walletHistoryError")}</div>
               ) : walletEntries.length === 0 ? (
@@ -3828,7 +3828,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           {entry.shift?.title || entry.note || t("employer.walletHistoryShiftGone")}
                         </div>
                       </div>
-                      <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, flexShrink: 0 }}>
+                      <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, flexShrink: 0 }}>
                         RM{Number(entry.amount ?? 0).toFixed(2)}
                       </div>
                     </div>
@@ -3852,13 +3852,13 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               {t("employer.escrowUnavailableNote")}
             </div>
             <Btn onClick={onOpenSupportChat} style={{ marginBottom: 24 }}>{t("employer.addFundsBtn")}</Btn>
-            <div style={{ fontWeight: 700, fontSize: FS.card, color: BRAND.text, marginBottom: 12 }}>{t("employer.payoutLedgerTitle")}</div>
+            <div style={{ fontWeight: 600, fontSize: FS.card, color: BRAND.text, marginBottom: 12 }}>{t("employer.payoutLedgerTitle")}</div>
             <Card style={{ padding: 0, overflow: "hidden" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: BRAND.grayLight }}>
                     {[t("employer.colDateShort"), t("employer.colStatus"), t("employer.colAmount")].map(h => (
-                      <th key={h} style={{ padding: "12px 16px", fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
+                      <th key={h} style={{ padding: "12px 16px", fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -3875,7 +3875,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 4 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
                         )}
                       </td>
-                      <td style={{ padding: "12px 16px", fontSize: FS.meta, fontWeight: 700, color: BRAND.text }}>{toCurrency(item.amount)}</td>
+                      <td style={{ padding: "12px 16px", fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{toCurrency(item.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -3890,7 +3890,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             {/* Profile photo — the employer-console home for what used to be
                 editable only via the worker-app view's avatar overlay. */}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("employer.profilePhotoTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("employer.profilePhotoTitle")}</div>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ position: "relative", flexShrink: 0 }}>
                   <Avatar name={employerProfile?.full_name || user?.email || "?"} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
@@ -3911,7 +3911,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("employer.aboutCompanyTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("employer.aboutCompanyTitle")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 10 }}>{t("employer.aboutCompanyHint")}</div>
               <textarea
                 value={companyDescriptionDraft}
@@ -3933,7 +3933,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 (get_ratee_ratings), opposite direction. Employer had no
                 self-rating view of any kind before this. */}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
               {myEmployerRatings === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
               {myEmployerRatings && myEmployerRatings.length === 0 && (
                 <EmptyState icon={<Icons.Star size={28} />} title={t("profile.noRatingsTitle")} hint={t("employer.noRatingsHint")} />
@@ -3947,7 +3947,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <div key={asp.value} style={{ marginBottom: 10 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                           <span style={{ fontSize: FS.meta, color: BRAND.text }}>{t(asp.labelKey)}</span>
-                          <span style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.accent }}>{avg != null ? avg.toFixed(1) : "—"}</span>
+                          <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.accent }}>{avg != null ? avg.toFixed(1) : "—"}</span>
                         </div>
                         <Progress value={avg != null ? (avg / 5) * 100 : 0} color={BRAND.accent} />
                       </div>
@@ -3966,7 +3966,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <Card style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, gap: 12 }}>
                 <div style={{ minWidth: 0, flex: "1 1 220px" }}>
-                  <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.pushTitle")}</div>
+                  <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("settings.pushTitle")}</div>
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5 }}>
                     {pushState === "unsupported" ? t("settings.pushUnsupported")
                       : pushState === "denied" ? t("settings.pushDenied")
@@ -3996,7 +3996,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 the worker app edited; surfaced here so an employer never has
                 to enter the worker preview to maintain their own account. */}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>{t("employer.personalDetailsHint")}</div>
               <Input label={t("auth.phoneNumber")} value={personalDetailsForm.phone} onChange={e => setPersonalDetailsForm(f => ({ ...f, phone: e.target.value }))} />
               <Select
@@ -4020,9 +4020,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             </Card>
             <Card style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text }}>{t("employer.companyDetailsTitle")}</div>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text }}>{t("employer.companyDetailsTitle")}</div>
                 {employerProfile?.employer_verification_status === "verified" && (
-                  <span title={t("employer.verifiedBadgeTitle")} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: RADIUS.pill, background: BRAND.blueLight, color: BRAND.onBlueLight, fontSize: FS.meta, fontWeight: 700 }}>
+                  <span title={t("employer.verifiedBadgeTitle")} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: RADIUS.pill, background: BRAND.blueLight, color: BRAND.onBlueLight, fontSize: FS.meta, fontWeight: 600 }}>
                     <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 13, height: 13, borderRadius: "50%", background: BRAND.blue, color: BRAND.onSolid, lineHeight: 1 }}><Icons.Check size={9} /></span>
                     {t("employer.verifiedBadge")}
                   </span>
@@ -4047,7 +4047,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <Btn onClick={saveEmployerCompanyDetails} disabled={companyDetailsLoading} style={{ width: "100%", justifyContent: "center" }}>{t("employer.saveChanges")}</Btn>
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("employer.bankingSectionTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.bankingSectionTitle")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>
                 {t("employer.bankingSectionHint")}
               </div>
@@ -4088,7 +4088,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
               {myDisputes === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
               {myDisputes?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("disputes.myDisputesEmpty")}</div>}
               {myDisputes?.map(d => {
@@ -4097,7 +4097,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 return (
                   <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
-                      <span style={{ fontWeight: 700, fontSize: FS.meta, color: BRAND.text }}>{categoryLabel}</span>
+                      <span style={{ fontWeight: 600, fontSize: FS.meta, color: BRAND.text }}>{categoryLabel}</span>
                       <Badge color={d.status === "under_review" ? "amber" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                       <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
                     </div>
@@ -4114,7 +4114,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               })}
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("employer.outgoingObligationsTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("employer.outgoingObligationsTitle")}</div>
               {employerPayoutItems.length === 0 && (
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("employer.noPayoutObligations")}</div>
               )}
@@ -4192,7 +4192,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                             fontWeight: unreadRoomIds.has(conv.shiftId) ? 600 : 400,
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                           }}>
-                            <span style={{fontWeight:700, color:BRAND.text}}>{preview.name}:</span>{' '}
+                            <span style={{fontWeight: 600, color:BRAND.text}}>{preview.name}:</span>{' '}
                             {displayProtectedText(preview.text)}
                           </div>
                         );
@@ -4247,7 +4247,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     border:`1px solid ${BRAND.border}`, borderRadius:RADIUS.control, background:BRAND.surface,
                     padding:'8px 4px', marginBottom:12, boxShadow:`0 6px 20px ${BRAND.shadow}`,
                   }}>
-                    <div style={{fontSize:FS.meta, fontWeight:700, color:BRAND.textMuted, padding:'2px 12px 6px'}}>
+                    <div style={{fontSize:FS.meta, fontWeight: 600, color:BRAND.textMuted, padding:'2px 12px 6px'}}>
                       {t("chat.membersTitle")}
                     </div>
                     {chatMembers === null ? (
@@ -4288,7 +4288,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       {showDay && (
                         <div style={{ display: "flex", justifyContent: "center", margin: "6px 0 2px" }}>
                           <span style={{
-                            fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted,
+                            fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted,
                             background: BRAND.grayLight, borderRadius: RADIUS.pill, padding: "3px 10px",
                           }}>{chatDayLabel(msg.created_at, t)}</span>
                         </div>
@@ -4297,7 +4297,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0 4px" }}>
                           <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
                           <span style={{
-                            fontSize: FS.meta, fontWeight: 700, color: BRAND.onRedLight,
+                            fontSize: FS.meta, fontWeight: 600, color: BRAND.onRedLight,
                             background: BRAND.redLight, borderRadius: RADIUS.pill, padding: "3px 10px", whiteSpace: "nowrap",
                           }}>{t("chat.newMessagesDivider")}</span>
                           <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
@@ -4364,7 +4364,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {contractModal && (
         <div style={{position:'fixed', inset:0, background:BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
           <div {...contractDialog} style={{background:BRAND.surfaceElevated, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'80vh', overflowY:'auto'}}>
-            <h3 style={{fontSize:FS.lead, fontWeight:700, color:BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.employerTitle")}</h3>
+            <h3 style={{fontSize:FS.lead, fontWeight: 600, color:BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.employerTitle")}</h3>
             <p style={{fontSize:FS.meta, color:BRAND.textMuted, marginBottom:16}}>{t("contract.employerSubtitle")}</p>
             <div style={{background:BRAND.grayLight, borderRadius:RADIUS.control, padding:16, fontSize:FS.meta, lineHeight:1.8, color:BRAND.text, marginBottom:16}}>
               <p><strong>{t("contract.agreementHeading")}</strong></p>
@@ -4411,7 +4411,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {disputeModal && (
         <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
           <div {...disputeDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
-            <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
+            <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
             <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:16}}>{disputeModal.shiftTitle}</p>
 
             <Select
@@ -4453,7 +4453,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         return (
         <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
           <div {...ratingDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
-            <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
+            <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
             <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:16}}>{ratingModal.shiftTitle}</p>
 
             {aspects.map(asp => (
@@ -4477,8 +4477,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           </div>
 
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
-              <span style={{fontSize:FS.meta, fontWeight:700, color: BRAND.text}}>{t("rating.overallPreview")}</span>
-              <span style={{fontSize:FS.card, fontWeight:800, color: BRAND.accent}}>{overall ?? "—"}</span>
+              <span style={{fontSize:FS.meta, fontWeight: 600, color: BRAND.text}}>{t("rating.overallPreview")}</span>
+              <span style={{fontSize:FS.card, fontWeight: 600, color: BRAND.accent}}>{overall ?? "—"}</span>
             </div>
 
             <div style={{display:'flex', gap:8}}>
@@ -4501,7 +4501,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {viewContractModal && (
         <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setViewContractModal(null)}>
           <div {...viewContractDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
-            <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("contract.agreementHeading")}</h3>
+            <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}>{t("contract.agreementHeading")}</h3>
             <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:16}}>{selectedShift?.title}</p>
             {(() => {
               const contractRows = buildContractRows(t, {
@@ -4579,9 +4579,9 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {checkinCodeModal && (
         <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCheckinCodeModal(null)}>
           <div {...checkinCodeDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:360, width:'100%', maxHeight:'85vh', overflowY:'auto', textAlign:'center', border:`1px solid ${BRAND.border}`}} onClick={e => e.stopPropagation()}>
-            <div style={{ fontSize: FS.card, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("employer.checkinCodeTitle")}</div>
+            <div style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("employer.checkinCodeTitle")}</div>
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 20 }}>{checkinCodeModal.title}</div>
-            <div style={{ fontSize: FS.display, fontWeight: 800, letterSpacing: 10, fontFamily: "monospace", color: BRAND.primary, marginBottom: 8 }}>
+            <div style={{ fontSize: FS.display, fontWeight: 600, letterSpacing: 10, fontFamily: "monospace", color: BRAND.primary, marginBottom: 8 }}>
               {checkinCode ?? "······"}
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
@@ -4616,7 +4616,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
               <Avatar name={workerProfileModal.name} size={48} color={BRAND.blue} src={getAvatarUrl(workerProfileModal.avatarUrl)} />
               <div>
-                <div style={{ fontSize:FS.card, fontWeight:800, color: BRAND.text }}>{workerProfileModal.name}</div>
+                <div style={{ fontSize:FS.card, fontWeight: 600, color: BRAND.text }}>{workerProfileModal.name}</div>
                 <Badge color={workerProfileModal.kyc === "Advanced" ? "teal" : workerProfileModal.kyc === "Standard" ? "blue" : "gray"} size="xs">KYC: {workerProfileModal.kyc}</Badge>
               </div>
             </div>
@@ -4628,11 +4628,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primaryOnSurface} />
             </div>
             <div style={{ background: BRAND.grayLight, borderRadius: RADIUS.control, padding: 14, marginBottom: 16 }}>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.bioLabel")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.bioLabel")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, marginBottom: 10, whiteSpace: "pre-wrap" }}>{workerProfileModal.bio || t("sedcard.notProvided")}</div>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.languagesLabel")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.languagesLabel")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.text, marginBottom: 10 }}>{(workerProfileModal.languagesSpoken || []).length > 0 ? workerProfileModal.languagesSpoken.join(', ') : t("sedcard.notProvided")}</div>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.qualificationsLabel")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.qualificationsLabel")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.text }}>
                 {[
                   ...(workerProfileModal.qualifications || []).map(v => t(SEDCARD_QUALIFICATIONS.find(q => q.value === v)?.labelKey ?? v)),
@@ -4640,7 +4640,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 ].join(', ') || t("sedcard.notProvided")}
               </div>
             </div>
-            <div style={{ fontSize:FS.meta, fontWeight:700, color: BRAND.text, marginBottom:8 }}>{t("employer.profileHistoryTitle")}</div>
+            <div style={{ fontSize:FS.meta, fontWeight: 600, color: BRAND.text, marginBottom:8 }}>{t("employer.profileHistoryTitle")}</div>
             {workerHistory === null && <div style={{ fontSize:FS.meta, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
             {workerHistory?.length === 0 && <div style={{ fontSize:FS.meta, color: BRAND.textMuted, marginBottom:8 }}>{t("employer.profileNoHistory")}</div>}
             {(workerHistory ?? []).map(h => (
@@ -4664,7 +4664,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {noShowTarget && (
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setNoShowTarget(null)}>
           <div {...noShowDialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 22, maxWidth: 430, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: FS.card, fontWeight: 800, color: BRAND.red, margin: "0 0 8px" }}>{t("employer.noShowTitle")}</h3>
+            <h3 style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.red, margin: "0 0 8px" }}>{t("employer.noShowTitle")}</h3>
             <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, marginBottom: 12 }}>
               {t("employer.noShowBody", { name: noShowTarget.name })}
             </div>
@@ -4674,7 +4674,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
             <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: 12, marginBottom: 14, fontSize: FS.meta, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
               {t("employer.noShowConsequence")}
             </div>
-            <label style={{ display: "block", fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("employer.noShowNoteLabel")}</label>
+            <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.noShowNoteLabel")}</label>
             <textarea
               value={noShowNote}
               onChange={(e) => setNoShowNote(e.target.value)}
@@ -4697,7 +4697,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
         return (
         <div style={{position:'fixed', inset:0, background:BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}} onClick={() => setCancelQuote(null)}>
           <div {...cancelQuoteDialog} style={{background:BRAND.surface, borderRadius:RADIUS.card, padding:22, maxWidth:560, width:'100%', maxHeight:'85vh', overflowY:'auto'}} onClick={e => e.stopPropagation()}>
-            <h3 style={{fontSize:FS.lead, fontWeight:800, color:BRAND.text, margin:'0 0 4px'}}>{t("employer.cancelQuoteTitle")}</h3>
+            <h3 style={{fontSize:FS.lead, fontWeight: 600, color:BRAND.text, margin:'0 0 4px'}}>{t("employer.cancelQuoteTitle")}</h3>
             <div style={{fontSize:FS.meta, color:BRAND.textMuted, marginBottom:16}}>{cancelQuote.title}</div>
 
             {cancelQuoteLoading || rows === null ? (
@@ -4715,7 +4715,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     <thead>
                       <tr style={{background:BRAND.grayLight}}>
                         {[t("employer.colWorker"), t("employer.cancelQuoteRate"), t("employer.cancelQuoteHours"), t("employer.cancelQuoteShare"), t("employer.cancelQuoteAmount")].map(h => (
-                          <th key={h} style={{padding:'9px 12px', textAlign:'left', fontWeight:700, color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{h}</th>
+                          <th key={h} style={{padding:'9px 12px', textAlign:'left', fontWeight: 600, color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -4726,7 +4726,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                           <td style={{padding:'9px 12px', color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>RM{Number(r.wage_ask).toFixed(2)}/h</td>
                           <td style={{padding:'9px 12px', color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{Number(r.contracted_hours)}h</td>
                           <td style={{padding:'9px 12px', color:BRAND.textMuted, borderBottom:`1px solid ${BRAND.border}`}}>{Math.round(Number(r.rate) * 100)}%</td>
-                          <td style={{padding:'9px 12px', fontWeight:700, color:BRAND.text, borderBottom:`1px solid ${BRAND.border}`}}>RM{Number(r.amount).toFixed(2)}</td>
+                          <td style={{padding:'9px 12px', fontWeight: 600, color:BRAND.text, borderBottom:`1px solid ${BRAND.border}`}}>RM{Number(r.amount).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -4734,8 +4734,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 </div>
 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10}}>
-                  <span style={{fontSize:FS.meta, fontWeight:700, color:BRAND.text}}>{t("employer.cancelQuoteTotal")}</span>
-                  <span style={{fontSize:FS.h3, fontWeight:800, color: owes ? BRAND.red : BRAND.text}}>RM{cancelQuote.total.toFixed(2)}</span>
+                  <span style={{fontSize:FS.meta, fontWeight: 600, color:BRAND.text}}>{t("employer.cancelQuoteTotal")}</span>
+                  <span style={{fontSize:FS.h3, fontWeight: 600, color: owes ? BRAND.red : BRAND.text}}>RM{cancelQuote.total.toFixed(2)}</span>
                 </div>
 
                 {owes ? (
@@ -4771,7 +4771,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               <button
                 onClick={() => { doCancelShift(cancelQuote.shiftId); setCancelQuote(null); }}
                 disabled={cancellingShift || cancelQuoteLoading || rows === null || (owes && !cancelAccepted)}
-                style={{flex:2, padding:'11px', borderRadius:RADIUS.control, background:(owes && !cancelAccepted) || cancelQuoteLoading || rows === null ? BRAND.textMuted : BRAND.red, color:'#fff', border:'none', cursor:(owes && !cancelAccepted) ? 'not-allowed' : 'pointer', fontWeight:700, fontFamily:'inherit'}}>
+                style={{flex:2, padding:'11px', borderRadius:RADIUS.control, background:(owes && !cancelAccepted) || cancelQuoteLoading || rows === null ? BRAND.textMuted : BRAND.red, color:'#fff', border:'none', cursor:(owes && !cancelAccepted) ? 'not-allowed' : 'pointer', fontWeight: 600, fontFamily:'inherit'}}>
                 {cancellingShift ? t("employer.cancellingShift") : t("employer.cancelQuoteConfirm")}
               </button>
             </div>

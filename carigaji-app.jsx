@@ -361,9 +361,9 @@ export const BRAND = {
 // call sites across three consoles are a separate, larger pass, not
 // mechanically listed the way the 16 titles were.
 export const TYPE = {
-  title: { fontSize: 34, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12 },
-  titleMobile: { fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12 },
-  section: { fontSize: 16, fontWeight: 700, lineHeight: 1.3 },
+  title: { fontSize: 34, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.12 },
+  titleMobile: { fontSize: 28, fontWeight: 600, letterSpacing: "-0.03em", lineHeight: 1.12 },
+  section: { fontSize: 16, fontWeight: 600, lineHeight: 1.3 },
   cardTitle: { fontSize: 14, fontWeight: 600, lineHeight: 1.3 },
   body: { fontSize: 14, fontWeight: 400, lineHeight: 1.5 },
   label: { fontSize: 13, fontWeight: 600, lineHeight: 1.3 },
@@ -372,6 +372,8 @@ export const TYPE = {
 // Named size + radius scales (full token sweep). FS.meta (13) is the floor
 // for any body/meta text on phones; FS.micro (11) is reserved for bottom-nav
 // tab labels, numeric count badges and the brand tagline only.
+// Pay figures, contract numbers and other "printed" values: the signature.
+export const FONT_MONO = "'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 export const FS = { micro: 11, meta: 13, body: 14, bodyLg: 15, card: 16, lead: 18, h3: 20, h2: 22, h1: 28, display: 34 };
 export const RADIUS = { control: 8, card: 12, pill: 999 };
 
@@ -440,7 +442,7 @@ const TRANSLATIONS = {
     "common.signIn": "Sign in",
     "common.signUp": "Sign up",
     "common.createAccount": "Create account",
-    "common.postAShift": "Post a Shift",
+    "common.postAShift": "Post a shift",
     "common.accept": "Accept",
     "common.reject": "Reject",
     "common.submitBid": "Apply →",
@@ -1356,8 +1358,8 @@ const TRANSLATIONS = {
     "landing.ctaFindShift": "Find a shift near you",
     "landing.ctaPostShift": "Post a shift as an employer",
     "landing.microFree": "Free to browse",
-    "landing.microKyc": "ID-verified workers",
-    "landing.microSsm": "SSM-verified employers",
+    "landing.microKyc": "ID-checked workers",
+    "landing.microSsm": "Registered companies (SSM)",
     "landing.sectionPayTitle": "How do I know I'll get paid?",
     "landing.sectionPaySubtitle": "How your pay is agreed, recorded and settled",
     "landing.sectionTrustTitle": "Who am I working for?",
@@ -1396,7 +1398,8 @@ const TRANSLATIONS = {
     "landing.sampleSealLine1": "SSM",
     "landing.sampleSealLine2": "Verified",
     "landing.sampleSealLine3": "Employer",
-    "landing.sampleFundedBadge": "Pay shown",
+    "landing.sampleFundedBadge": "Agreed",
+    "landing.sampleLabel": "Example pay slip",
     "discover.filterCity": "City",
     "discover.anyCity": "Any city",
     "discover.filterAreaPlaceholder": "Area e.g. Bukit Bintang",
@@ -2021,8 +2024,8 @@ const TRANSLATIONS = {
     "admin.notAdminHint": "Your account is not an administrator.",
     "admin.signInHint": "Sign in with an administrator account to continue.",
     "admin.backToWorkerApp": "Back to Worker App",
-    "footer.quickLinks": "Quick Links",
-    "footer.categories": "Job Categories",
+    "footer.quickLinks": "Quick links",
+    "footer.categories": "Job categories",
     "footer.rightsReserved": "All rights reserved.",
   },
     };
@@ -2580,7 +2583,7 @@ export const HoursNote = ({ label, text, tone = "them", align = "left" }) => {
       color: them ? BRAND.onBlueLight : BRAND.text,
       border: `1px solid ${them ? BRAND.blue : BRAND.border}`,
     }}>
-      <div style={{ fontSize: FS.meta, fontWeight: 700, letterSpacing: "0.02em", marginBottom: 2, opacity: 0.9 }}><InlineIcon icon={Icons.Chat} size={13} />{label}</div>
+      <div style={{ fontSize: FS.meta, fontWeight: 600, letterSpacing: "0.02em", marginBottom: 2, opacity: 0.9 }}><InlineIcon icon={Icons.Chat} size={13} />{label}</div>
       <div style={{ fontWeight: 500 }}>{text}</div>
     </div>
   );
@@ -2607,7 +2610,7 @@ export const ReceivedFeedback = ({ items, user = null, role = null }) => {
   if (!items || items.length === 0) return null;
   return (
     <div style={{ marginTop: 14 }}>
-      <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("rating.feedbackReceivedTitle")}</div>
+      <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("rating.feedbackReceivedTitle")}</div>
       {items.map((f, i) => (
         <div key={f.id ?? i} style={{ marginTop: 6, padding: "8px 10px", borderRadius: RADIUS.control, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, fontSize: FS.meta, lineHeight: 1.4, color: BRAND.text, overflowWrap: "anywhere" }}>
           <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 2 }}>
@@ -2663,7 +2666,7 @@ const ReportReviewModal = ({ review, user, role, onClose, onFiled }) => {
   return createPortal(
     <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div {...dialog} onClick={e => e.stopPropagation()} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 22, maxWidth: 460, width: "100%", maxHeight: "88vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }}>
-        <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, margin: "0 0 4px" }}>{t("rating.reportTitle")}</h3>
+        <h3 style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, margin: "0 0 4px" }}>{t("rating.reportTitle")}</h3>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>
           <InlineIcon icon={Icons.Star} size={12} />{Number(review.overall).toFixed(1)}{review.application?.shift?.title ? ` · ${displayProtectedText(review.application.shift.title)}` : ""}
         </div>
@@ -2821,7 +2824,7 @@ export const MyDisputesList = ({ user }) => {
   }, [user, reload]);
   return (
     <div>
-      <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
+      <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
       {rows === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("common.loading")}</div>}
       {rows?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("disputes.myDisputesEmpty")}</div>}
       {rows?.map(d => {
@@ -2830,14 +2833,14 @@ export const MyDisputesList = ({ user }) => {
         return (
           <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
-              <span style={{ fontWeight: 700, fontSize: FS.meta, color: BRAND.text }}>{label}</span>
+              <span style={{ fontWeight: 600, fontSize: FS.meta, color: BRAND.text }}>{label}</span>
               <Badge color={d.status === "under_review" ? "amber" : d.status === "awaiting_info" ? "orange" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
               <Badge color={mine ? "blue" : "gray"} size="xs">{mine ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
             </div>
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
             <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{d.description}</div>
             {d.awaiting_role === "employer" && d.status === "awaiting_info" && (
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>{t("dispute.statusLineAwaitingMe")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>{t("dispute.statusLineAwaitingMe")}</div>
             )}
             <div><Btn size="xs" variant="primary" style={{ marginTop: 6 }} onClick={() => openDispute(d.id)}><InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}</Btn></div>
           </div>
@@ -2981,7 +2984,7 @@ export const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src 
       width: size, height: size, borderRadius: "50%",
       background: fallback.background, color: fallback.color,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: size * 0.35, fontWeight: 700, flexShrink: 0,
+      fontSize: size * 0.35, fontWeight: 600, flexShrink: 0,
     }}>{initials}</div>
   );
 });
@@ -3006,7 +3009,7 @@ export const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip })
           >?</button>
         )}
       </div>
-      <div style={{ fontSize: FS.h1, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: FS.h1, fontWeight: 600, color, lineHeight: 1 }}>{value}</div>
       {sub && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 4 }}>{sub}</div>}
       {open && tooltip && (
         // Sits above the tile rather than inside it: these tiles are in a
@@ -3126,9 +3129,10 @@ export const FilterToggle = ({ open, onToggle, activeCount = 0, t }) => (
       aria-expanded={open}
       style={{ fontSize: FS.meta, padding: "4px 10px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, background: BRAND.grayLight, cursor: "pointer", color: BRAND.textMuted, fontFamily: "inherit" }}
     >
-      {open
-        ? `${t("filters.hide")} ▲`
-        : `${t("filters.label")}${activeCount > 0 ? ` (${activeCount})` : ""} ▼`}
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        {open ? t("filters.hide") : `${t("filters.label")}${activeCount > 0 ? ` (${activeCount})` : ""}`}
+        <span aria-hidden="true" style={{ display: "inline-flex", transform: open ? "rotate(180deg)" : "none" }}><Icons.ChevronDown size={14} /></span>
+      </span>
     </button>
   </div>
 );
@@ -3181,7 +3185,7 @@ export const EmptyState = memo(({ icon = <Icons.Inbox size={28} />, title, hint 
     background: BRAND.grayLight,
   }}>
     <div style={{ display: "flex", justifyContent: "center", color: BRAND.textMuted, marginBottom: 8 }} aria-hidden="true">{icon}</div>
-    <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{title}</div>
+    <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{title}</div>
     {hint && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5 }}>{hint}</div>}
   </div>
 ));
@@ -3203,7 +3207,7 @@ const AuthGate = memo(({ onRequireAuth, title, hint, icon = <Icons.Lock size={28
       alignItems: "center", justifyContent: "center", fontSize: FS.h1,
     }} aria-hidden="true">{icon}</div>
     <div>
-      <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{title}</div>
       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, maxWidth: 280 }}>{hint}</div>
     </div>
     <div style={{ display: "flex", gap: 10, marginTop: 4, width: "100%", maxWidth: 280 }}>
@@ -3322,7 +3326,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
           borderRadius: RADIUS.card, boxShadow: `0 12px 40px ${BRAND.shadow}`, overflow: "hidden",
         }}>
           <div style={{ padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}` }}>
-            <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</div>
           </div>
           {items.map((it) => (
@@ -3356,7 +3360,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
               or shrinks the bottom, it no longer shifts the top edge. */}
           <div {...helpDialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, margin: 0 }}><InlineIcon icon={Icons.LifeBuoy} size={18} />{t("help.title")}</h3>
+              <h3 style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, margin: 0 }}><InlineIcon icon={Icons.LifeBuoy} size={18} />{t("help.title")}</h3>
               <button onClick={() => setHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
             </div>
             {HELP_FAQS.map((faq, i) => (
@@ -3548,12 +3552,12 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
     <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16}} onClick={onClose}>
       <div {...dialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 22, maxWidth: 460, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-          <h3 style={{ fontSize: FS.card, fontWeight: 800, color: BRAND.text, margin: 0 }}><InlineIcon icon={Icons.Bug} size={16} />{t("issue.title")}</h3>
+          <h3 style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.text, margin: 0 }}><InlineIcon icon={Icons.Bug} size={16} />{t("issue.title")}</h3>
           <button onClick={onClose} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
         </div>
         <p style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, margin: "0 0 16px" }}>{t("issue.subtitle")}</p>
 
-        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("issue.categoryLabel")}</label>
+        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("issue.categoryLabel")}</label>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
           {CATEGORIES.map(c => (
             <button key={c} onClick={() => setCategory(c)} style={{
@@ -3565,7 +3569,7 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
           ))}
         </div>
 
-        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("issue.severityLabel")}</label>
+        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("issue.severityLabel")}</label>
         <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
           {SEVERITIES.map(sv => (
             <button key={sv} onClick={() => setSeverity(sv)} style={{
@@ -3577,7 +3581,7 @@ const IssueReportModal = ({ open, onClose, user, userRole, pageContext }) => {
           ))}
         </div>
 
-        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>{t("issue.descriptionLabel")}</label>
+        <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("issue.descriptionLabel")}</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -3873,7 +3877,7 @@ export const useConfirm = () => {
   const element = req ? createPortal(
     <div onClick={() => close(null)} style={{ position: "fixed", inset: 0, background: "rgba(10,20,40,0.55)", zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div {...dialog} onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 440, background: BRAND.surfaceElevated, borderRadius: RADIUS.card, padding: 22, boxShadow: "0 20px 50px rgba(0,0,0,0.25)", outline: "none" }}>
-        <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 8, lineHeight: 1.3 }}>{req.title}</div>
+        <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 8, lineHeight: 1.3 }}>{req.title}</div>
         {req.body && <div style={{ fontSize: FS.body, color: BRAND.textMuted, lineHeight: 1.55, marginBottom: 16, whiteSpace: "pre-line" }}>{req.body}</div>}
         {req.note && (
           <label style={{ display: "block", marginBottom: 16 }}>
@@ -4317,7 +4321,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
         {unreadTotal > 0 && (
           <span aria-hidden="true" style={{
             position: "absolute", top: -4, right: -4, minWidth: 16, height: 16, padding: "0 3px",
-            borderRadius: RADIUS.pill, background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 700,
+            borderRadius: RADIUS.pill, background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 600,
             display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
           }}>
             {unreadTotal > 9 ? "9+" : unreadTotal}
@@ -4334,7 +4338,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 14px", borderBottom: `1px solid ${BRAND.border}`,
           }}>
-            <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text }}>{t("notification.title")}</div>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{t("notification.title")}</div>
             <div style={{ display: "flex", gap: 10 }}>
               {notifView === "inbox" && unreadTotal > 0 && (
                 <button
@@ -4371,7 +4375,7 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                 aria-pressed={notifView === view}
                 style={{
                   flex: 1, padding: "8px 0", border: "none", cursor: "pointer", fontFamily: "inherit",
-                  fontSize: FS.meta, fontWeight: 700,
+                  fontSize: FS.meta, fontWeight: 600,
                   background: notifView === view ? BRAND.grayLight : "transparent",
                   color: notifView === view ? BRAND.primaryOnSurface : BRAND.textMuted,
                   borderBottom: `2px solid ${notifView === view ? BRAND.primaryOnSurface : "transparent"}`,
@@ -4421,14 +4425,14 @@ const NotificationBell = ({ user, onNavigate = () => {} }) => {
                       }} />
                     )}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: FS.meta, fontWeight: 700, color: notifDead ? BRAND.textMuted : BRAND.text }}>{notifTitle}</div>
+                      <div style={{ fontSize: FS.meta, fontWeight: 600, color: notifDead ? BRAND.textMuted : BRAND.text }}>{notifTitle}</div>
                       {notifBody && (
                         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2, lineHeight: 1.4 }}>{displayProtectedText(notifBody)}</div>
                       )}
                       {/* The record stays -- it really happened -- but says so
                           plainly instead of being a link that goes nowhere. */}
                       {notifDead && (
-                        <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginTop: 3, fontStyle: "italic" }}>
+                        <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginTop: 3, fontStyle: "italic" }}>
                           {t("notification.targetGone")}
                         </div>
                       )}
@@ -4578,11 +4582,11 @@ export const RatingDetailsModal = ({ modal, onClose, about = null }) => {
   return (
     <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal + 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={onClose}>
       <div {...dialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 420, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }} onClick={e => e.stopPropagation()}>
-        <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("rating.detailsTitle")}</h3>
+        <h3 style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("rating.detailsTitle")}</h3>
         {modal.label && <p style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: about ? 8 : 16 }}>{modal.label}</p>}
         {about && (
           <div style={{ padding: "10px 12px", borderRadius: RADIUS.control, background: BRAND.grayLight, border: `1px solid ${BRAND.border}`, marginBottom: 16 }}>
-            <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 2 }}>{t("shiftDetail.aboutEmployer")}</div>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 2 }}>{t("shiftDetail.aboutEmployer")}</div>
             <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{about}</div>
           </div>
         )}
@@ -4605,7 +4609,7 @@ export const RatingDetailsModal = ({ modal, onClose, about = null }) => {
               <div key={asp.value} style={{ marginBottom: 10 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                   <span style={{ fontSize: FS.meta, color: BRAND.text }}>{t(asp.labelKey)}</span>
-                  <span style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.accent }}>{asp.avg != null ? asp.avg.toFixed(1) : "—"}</span>
+                  <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.accent }}>{asp.avg != null ? asp.avg.toFixed(1) : "—"}</span>
                 </div>
                 <Progress value={asp.avg != null ? (asp.avg / 5) * 100 : 0} color={BRAND.accent} />
               </div>
@@ -4749,6 +4753,12 @@ export const Icons = {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 12H5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  ),
+  Globe: ({ size = 16 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
     </svg>
   ),
   ChevronDown: ({ size = 14 }) => (
@@ -5005,7 +5015,7 @@ const StatStrip = ({ items = [] }) => (
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>{it.icon}</span>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, lineHeight: 1.15 }}>{it.value}</div>
+          <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, lineHeight: 1.15 }}>{it.value}</div>
           {/* Wraps rather than truncating. The reference gets away with one line
               because its labels are two short words ("Total rides"); ours are
               translated and run longer, and a clipped "Total Internal Pay..." is
@@ -5081,9 +5091,10 @@ const Money = ({ value, color = BRAND.greenOnSurface, size = 17, prefix = "" }) 
   // second, independent round().
   const [whole, cents] = toCurrency(Math.abs(n)).slice(3).split(".");
   return (
-    <span style={{ fontWeight: 800, fontSize: size, color, whiteSpace: "nowrap" }}>
-      {n < 0 ? "-" : prefix}RM {whole}
-      <span style={{ fontSize: Math.round(size * 0.62), verticalAlign: "super", marginLeft: 1 }}>{cents}</span>
+    // Mono, tabular, cents inline: every pay figure in the app reads like
+    // the same printed slip, and columns of amounts line up.
+    <span style={{ fontFamily: FONT_MONO, fontWeight: 500, fontSize: size, color, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+      {n < 0 ? "-" : prefix}RM {whole}.{cents}
     </span>
   );
 };
@@ -5119,7 +5130,7 @@ const WorkerBottomNav = ({ items, activeId, onSelect, isMobile, style }) => (
             {n.badge > 0 && (
               <span aria-hidden="true" style={{
                 position: "absolute", top: -5, right: -7, minWidth: 15, height: 15, padding: "0 3px",
-                borderRadius: RADIUS.pill, background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 700,
+                borderRadius: RADIUS.pill, background: BRAND.red, color: BRAND.onSolid, fontSize: FS.micro, fontWeight: 600,
                 display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
               }}>{n.badge > 9 ? "9+" : n.badge}</span>
             )}
@@ -5345,7 +5356,7 @@ export const buildContractRows = (t, {
 // print output structure exactly (see buildContractRows above).
 export const renderContractRowsJSX = (rows) => rows.map((r, i) => {
   if (typeof r === "string") return r === "" ? null : <p key={i}>{r}</p>;
-  if (r.heading) return <p key={i} style={{ fontWeight: 700, marginTop: 14, marginBottom: 2 }}>{r.heading}</p>;
+  if (r.heading) return <p key={i} style={{ fontWeight: 600, marginTop: 14, marginBottom: 2 }}>{r.heading}</p>;
   return <p key={i}>• <strong>{r.label}</strong> {r.value}</p>;
 });
 
@@ -5606,7 +5617,7 @@ const uploadCancellationProof = async (applicationId, file) => {
             justifyContent: compact ? "flex-start" : "space-between",
           }}
         >
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>{selected ? (showDial ? <><span>{selected.flag}</span><span style={{ fontWeight: 700 }}>{selected.dialCode}</span></> : selected.name) : (showDial ? t("auth.selectShort") : t("auth.selectCountry"))}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>{selected ? (showDial ? <><span>{selected.flag}</span><span style={{ fontWeight: 600 }}>{selected.dialCode}</span></> : selected.name) : (showDial ? t("auth.selectShort") : t("auth.selectCountry"))}</span>
           {!compact && <span style={{ display: "inline-flex", transform: open ? "rotate(180deg)" : "none" }}>{Icons.ChevronDown({ size: 14 })}</span>}
         </button>
         {open && (
@@ -5980,7 +5991,7 @@ const AuthModal = ({
               you cannot see -- that a profile and KYC step follows, and that an
               email is about to be sent. */}
           <div>
-            <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text }}>{copy.title}</div>
+            <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text }}>{copy.title}</div>
             {copy.subtitle && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 4 }}>{copy.subtitle}</div>}
           </div>
           <button onClick={onClose} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.textMuted, lineHeight: 1 }} aria-label={translate("common.close")}>{Icons.Close({ size: 20 })}</button>
@@ -6061,7 +6072,7 @@ const AuthModal = ({
                       {/* accentColor: the browser draws a checked radio in the
                           primary blue, which vanished on this card's primary-blue
                           selected fill, so the chosen option looked unticked. */}
-                      <span style={{ fontSize: FS.meta, fontWeight: 700, color: form.accountRole === opt.value ? BRAND.onSolid : BRAND.text }}>{opt.title}</span>
+                      <span style={{ fontSize: FS.meta, fontWeight: 600, color: form.accountRole === opt.value ? BRAND.onSolid : BRAND.text }}>{opt.title}</span>
                       <div style={{ fontSize: FS.meta, color: form.accountRole === opt.value ? "rgba(255,255,255,0.85)" : BRAND.textMuted, marginLeft: 20 }}>{opt.hint}</div>
                     </label>
                   ))}
@@ -6238,8 +6249,8 @@ const MonthlyEarningsBarChart = ({ months, truncated, isMobile, t }) => {
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-        <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text }}>{selected.fullLabel}</div>
-        <div style={{ fontSize: FS.bodyLg, fontWeight: 800, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
+        <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{selected.fullLabel}</div>
+        <div style={{ fontSize: FS.bodyLg, fontWeight: 600, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 6 : 10, height: chartHeight, overflowX: months.length > 8 ? "auto" : "visible", paddingBottom: 2, borderBottom: `1px solid ${BRAND.border}` }}>
         {months.map(m => {
@@ -6299,15 +6310,27 @@ const LandingSection = ({ id, title, subtitle, openId, onToggle, children }) => 
         }}
       >
         <span style={{ minWidth: 0 }}>
-          <span style={{ display: "block", fontSize: FS.bodyLg, fontWeight: 700, color: BRAND.text }}>{title}</span>
+          <span style={{ display: "block", fontSize: FS.bodyLg, fontWeight: 500, color: BRAND.text }}>{title}</span>
           {subtitle && <span style={{ display: "block", fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>{subtitle}</span>}
         </span>
-        <span aria-hidden="true" style={{ fontSize: FS.meta, color: BRAND.textMuted, flexShrink: 0 }}>{open ? "▲" : "▼"}</span>
+        <span aria-hidden="true" style={{ display: "inline-flex", color: BRAND.textMuted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform 160ms cubic-bezier(0.22, 1, 0.36, 1)" }}><Icons.ChevronDown size={16} /></span>
       </button>
       {open && <div style={{ paddingBottom: 20 }}>{children}</div>}
     </div>
   );
 };
+
+// Pay-slip palette: fixed paper and ink in both themes, because a slip is a
+// physical thing and reads as one. Only used by the hero's sample slip.
+const SLIP = { paper: "#FBF8F1", ink: "#1F1B16", inkMuted: "#6B6358", rule: "#D9D2C4", stamp: "#1D4ED8" };
+
+// The signature: a small rubber-stamp mark that only ever sits next to pay
+// that has been agreed in a contract.
+const AgreedStamp = ({ label }) => (
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", border: `1.5px solid ${SLIP.stamp}`, borderRadius: 6, color: SLIP.stamp, fontFamily: FONT_MONO, fontSize: 12, fontWeight: 500, letterSpacing: "0.02em", transform: "rotate(-3deg)", whiteSpace: "nowrap", flexShrink: 0 }}>
+    <Icons.Check size={12} />{label}
+  </span>
+);
 
 const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   const sectionPad = isMobile ? "20px 16px" : "48px 32px";
@@ -6329,7 +6352,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   // primaryOnSurface, not primary: every landing eyebrow is 11px primary text
   // sitting on the page, which measures 3.43:1 in dark mode. 11px/800 is not
   // WCAG large text, so 4.5 applies.
-  const eyebrowStyle = { fontSize: FS.meta, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: BRAND.primaryOnSurface, marginBottom: 10 };
+  const eyebrowStyle = { fontSize: FS.body, fontWeight: 500, color: BRAND.textMuted, marginBottom: 12 };
 
   const trustItems = [
     { icon: <Icons.IdCard size={20} />, color: BRAND.primary, title: t("landing.trustIdTitle"), body: t("landing.trustIdBody") },
@@ -6350,16 +6373,16 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
   return (
     <div>
       {/* Hero */}
-      <div style={{ padding: sectionPad, paddingBottom: isMobile ? 28 : 40, background: `linear-gradient(160deg, ${BRAND.primary}12, transparent)` }}>
+      <div style={{ padding: sectionPad, paddingBottom: isMobile ? 28 : 48 }}>
         <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 24 : 40, alignItems: "center" }}>
           <div style={{ flex: "1 1 auto", minWidth: 0 }}>
             <div style={eyebrowStyle}>{t("landing.eyebrow")}</div>
-            <h1 style={{ fontSize: isMobile ? FS.h1 : FS.display, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.02em", lineHeight: 1.08, margin: "0 0 14px" }}>
+            <h1 style={{ fontSize: isMobile ? 36 : 52, fontWeight: 500, color: BRAND.text, letterSpacing: isMobile ? "-0.02em" : "-0.025em", lineHeight: 1.06, margin: "0 0 16px" }}>
               {t("landing.headline1")}<br />
-              <span style={{ color: BRAND.primary }}>{t("landing.headline2")}</span>
+              <span style={{ color: BRAND.textMuted }}>{t("landing.headline2")}</span>
             </h1>
-            <p style={{ fontSize: isMobile ? FS.body : FS.bodyLg, color: BRAND.textMuted, lineHeight: 1.6, maxWidth: 480, margin: "0 0 20px" }}>{t("landing.subhead")}</p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+            <p style={{ fontSize: isMobile ? FS.bodyLg : FS.lead, color: BRAND.textMuted, lineHeight: 1.55, maxWidth: 520, margin: "0 0 24px" }}>{t("landing.subhead")}</p>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
               {/* Scrolls to the feed rather than opening Register: browsing is
                   free (the line right below says so), and an account is only
                   asked for when the visitor actually bids. */}
@@ -6373,31 +6396,36 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
             </div>
           </div>
 
-          {/* Payslip-style sample shift card */}
-          <div style={{ flex: "0 0 auto", width: isMobile ? "100%" : 340, position: "relative" }}>
-            <div style={{ position: "absolute", top: -16, right: 2, width: 76, height: 76, borderRadius: "50%", border: `2px dashed ${BRAND.green}`, background: BRAND.surfaceElevated, display: "flex", alignItems: "center", justifyContent: "center", transform: "rotate(-8deg)", zIndex: 1 }}>
-              <div style={{ textAlign: "center", fontSize: FS.micro, fontWeight: 800, letterSpacing: "0.02em", textTransform: "uppercase", color: BRAND.greenOnSurface, lineHeight: 1.2 }}>{t("landing.sampleSealLine1")}<br />{t("landing.sampleSealLine2")}<br />{t("landing.sampleSealLine3")}</div>
-            </div>
-            <div style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.card, boxShadow: `0 12px 32px ${BRAND.shadow}`, padding: 18 }}>
-              {/* paddingRight keeps the "Pay shown" badge out from under the
-                  rotated seal, which overhangs this corner of the card. */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, borderBottom: `1px dashed ${BRAND.border}`, paddingBottom: 12, marginBottom: 12, paddingRight: 64 }}>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: FS.body, color: BRAND.text }}>F&amp;B Server — Corporate Dinner</div>
-                  <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}><InlineIcon icon={Icons.Pin} size={11} />Bangsar, Kuala Lumpur</div>
-                </div>
-                <span style={{ background: BRAND.greenLight, color: BRAND.onGreenLight, fontSize: FS.meta, fontWeight: 800, padding: "3px 8px", borderRadius: RADIUS.pill, whiteSpace: "nowrap" }}><InlineIcon icon={Icons.Check} size={10} />{t("landing.sampleFundedBadge")}</span>
+          {/* The one bright thing on the page: a pay slip. Paper-coloured in both
+              themes, pay set in DM Mono, a tear-off edge, and the single
+              "Agreed" stamp, which is the signature detail -- it only ever
+              marks pay that is locked into a contract. Labelled as an example
+              so it can't be mistaken for a live listing. */}
+          <figure aria-label={t("landing.sampleLabel")} style={{ flex: "0 0 auto", width: isMobile ? "100%" : 360, margin: 0, position: "relative" }}>
+            <div style={{ background: SLIP.paper, color: SLIP.ink, borderRadius: `${RADIUS.card}px ${RADIUS.card}px 0 0`, padding: "20px 20px 16px", boxShadow: "0 1px 2px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.12)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: SLIP.inkMuted }}>{t("landing.sampleLabel")}</span>
               </div>
-              {[[t("landing.sampleRateLabel"), `RM 16.00${t("landing.sampleRateUnit")}`], [t("landing.sampleLengthLabel"), `6${t("landing.sampleLengthUnit")}`], [t("landing.samplePayLabel"), "RM 96.00"]].map(([k, v]) => (
-                <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: FS.meta, color: BRAND.textMuted, padding: "5px 0" }}>
-                  <span>{k}</span><b style={{ color: BRAND.text, fontWeight: 700 }}>{v}</b>
+              <div style={{ fontWeight: 600, fontSize: FS.card, lineHeight: 1.3 }}>F&amp;B Server, Corporate Dinner</div>
+              <div style={{ fontSize: FS.meta, color: SLIP.inkMuted, marginTop: 4 }}><InlineIcon icon={Icons.Pin} size={12} />Bangsar, Kuala Lumpur</div>
+              <div style={{ borderTop: `1px dashed ${SLIP.rule}`, margin: "16px 0 8px" }} />
+              {[[t("landing.sampleRateLabel"), `RM 16.00${t("landing.sampleRateUnit")}`], [t("landing.sampleLengthLabel"), `6${t("landing.sampleLengthUnit")}`]].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: FS.meta, color: SLIP.inkMuted, padding: "4px 0" }}>
+                  <span>{k}</span><span style={{ fontFamily: FONT_MONO, color: SLIP.ink, fontVariantNumeric: "tabular-nums" }}>{v}</span>
                 </div>
               ))}
-              <div style={{ marginTop: 10, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "9px 11px", fontSize: FS.meta, color: BRAND.onAmberLight, lineHeight: 1.5 }}>
-                {t("landing.sampleEscrowNote")}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, marginTop: 12 }}>
+                <div>
+                  <div style={{ fontSize: FS.meta, color: SLIP.inkMuted, marginBottom: 2 }}>{t("landing.samplePayLabel")}</div>
+                  <div style={{ fontFamily: FONT_MONO, fontSize: 32, fontWeight: 500, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>RM 96.00</div>
+                </div>
+                <AgreedStamp label={t("landing.sampleFundedBadge")} />
               </div>
+              <div style={{ fontSize: FS.meta, color: SLIP.inkMuted, lineHeight: 1.5, marginTop: 12 }}>{t("landing.sampleEscrowNote")}</div>
             </div>
-          </div>
+            {/* Tear-off edge: a row of half-circles cut out of the slip's foot. */}
+            <div aria-hidden="true" style={{ height: 10, background: `radial-gradient(circle at 6px 0, transparent 5px, ${SLIP.paper} 5.5px) 0 0 / 12px 10px repeat-x` }} />
+          </figure>
         </div>
       </div>
 
@@ -6415,10 +6443,10 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, 1fr)", gap: 16 }}>
           {moneySteps.map((step, i) => (
             <div key={step.title}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: FS.meta, color: BRAND.text, marginBottom: 10 }}>{i + 1}</div>
-              <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 5 }}>{step.title}</div>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: FS.meta, color: BRAND.text, marginBottom: 10 }}>{i + 1}</div>
+              <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 5 }}>{step.title}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.55, marginBottom: 10 }}>{step.body}</div>
-              <span style={{ fontSize: FS.meta, fontWeight: 700, padding: "4px 9px", borderRadius: RADIUS.control, ...chipTone(step.tone) }}>RM 96.00 · {step.status}</span>
+              <span style={{ fontSize: FS.meta, fontWeight: 600, padding: "4px 9px", borderRadius: RADIUS.control, ...chipTone(step.tone) }}>RM 96.00 · {step.status}</span>
             </div>
           ))}
         </div>
@@ -6434,8 +6462,8 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12 }}>
           {trustItems.map(item => (
             <div key={item.title} style={{ background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.card, padding: "16px 12px", textAlign: "center" }}>
-              <div style={{ width: 42, height: 42, margin: "0 auto 10px", borderRadius: "50%", border: `2px solid ${item.color}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.lead }}>{item.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: FS.meta, color: BRAND.text, marginBottom: 4 }}>{item.title}</div>
+              <div style={{ width: 42, height: 42, margin: "0 auto 10px", borderRadius: "50%", border: `1px solid ${BRAND.border}`, color: BRAND.textMuted, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.lead }}>{item.icon}</div>
+              <div style={{ fontWeight: 600, fontSize: FS.meta, color: BRAND.text, marginBottom: 4 }}>{item.title}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5 }}>{item.body}</div>
             </div>
           ))}
@@ -6452,7 +6480,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
           <div>
               {howSteps("worker").map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i > 0 ? `1px solid ${BRAND.border}` : "none" }}>
-                  <span style={{ fontWeight: 800, fontSize: FS.meta, color: BRAND.textMuted, flexShrink: 0, minWidth: 18 }}>{i + 1}</span>
+                  <span style={{ fontWeight: 600, fontSize: FS.meta, color: BRAND.textMuted, flexShrink: 0, minWidth: 18 }}>{i + 1}</span>
                   <span style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.55 }}>{step}</span>
                 </div>
               ))}
@@ -6471,7 +6499,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
           <div>
               {howSteps("employer").map((step, i) => (
                 <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: i > 0 ? `1px solid ${BRAND.border}` : "none" }}>
-                  <span style={{ fontWeight: 800, fontSize: FS.meta, color: BRAND.textMuted, flexShrink: 0, minWidth: 18 }}>{i + 1}</span>
+                  <span style={{ fontWeight: 600, fontSize: FS.meta, color: BRAND.textMuted, flexShrink: 0, minWidth: 18 }}>{i + 1}</span>
                   <span style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.55 }}>{step}</span>
                 </div>
               ))}
@@ -7951,7 +7979,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
   // Not live-measured like footerLinkStyle above, but the same arithmetic
   // (12px font, ~14.4px line box + 4px+4px padding = ~22px) lands just under
   // the 24px floor -- bumped defensively alongside the button that was measured.
-  const footerCategoryChipStyle = { border: `1px solid ${BRAND.border}`, background: BRAND.surface, borderRadius: RADIUS.pill, padding: "6px 10px", cursor: "pointer", fontFamily: "inherit", fontSize: FS.meta, color: BRAND.textMuted };
+  // Plain links, not pills: the same categories already sit above as filter
+  // chips, and a second row of pills read as more buttons to press.
+  const footerCategoryChipStyle = { border: "none", background: "transparent", padding: "6px 12px 6px 0", cursor: "pointer", fontFamily: "inherit", fontSize: FS.meta, color: BRAND.textMuted };
   const shiftsSource = useMemo(() => {
     const base = liveShifts ?? [];
     if (!anonEmployerTrust) return base;
@@ -8293,7 +8323,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     const justify = align === "right" ? "flex-end" : "center";
     return (
       <div style={{ textAlign: align, maxWidth: 260, marginLeft: align === "right" ? "auto" : undefined, marginRight: align === "center" ? "auto" : undefined }}>
-        <div style={{ fontSize: FS.meta, fontWeight: 700, color: tone }}>{title}</div>
+        <div style={{ fontSize: FS.meta, fontWeight: 600, color: tone }}>{title}</div>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2, overflowWrap: "anywhere" }}>{hint}</div>
         {pending && <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginTop: 6 }}>{t("attendance.requestPending")}</div>}
         {declined && (
@@ -8396,7 +8426,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <div style={{ fontSize: FS.h2, fontWeight: 800, color: BRAND.text, marginBottom: 8 }}>{t("worker.checkinTitle")}</div>
+        <div style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("worker.checkinTitle")}</div>
         <div style={{ color: BRAND.textMuted, fontSize: FS.body, marginBottom: 8, textAlign: "center" }}>{checkinTarget?.shiftTitle}</div>
         <div style={{ color: BRAND.textMuted, fontSize: FS.body, marginBottom: 28, textAlign: "center", maxWidth: 320 }}>{t("worker.checkinCodeSubtitle")}</div>
         <input
@@ -8405,7 +8435,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           inputMode="numeric"
           placeholder="000000"
           maxLength={6}
-          style={{ width: 220, textAlign: "center", fontSize: FS.display, fontWeight: 800, letterSpacing: 8, padding: "16px 12px", borderRadius: RADIUS.card, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 16, fontFamily: "monospace" }}
+          style={{ width: 220, textAlign: "center", fontSize: FS.display, fontWeight: 600, letterSpacing: 8, padding: "16px 12px", borderRadius: RADIUS.card, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 16, fontFamily: "monospace" }}
         />
         {checkinResult?.ok === false && (
           <div style={{ color: BRAND.red, fontSize: FS.meta, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkinResult.message}</div>
@@ -8442,11 +8472,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     <div style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", minHeight: 0 }}>
       {previewBanner}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingTop: 32, paddingLeft: 32, paddingRight: 32, paddingBottom: navPadding, background: BRAND.surface, overflow: "auto", minHeight: 0 }}>
-        <div style={{ fontSize: FS.h2, fontWeight: 800, color: BRAND.text, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.proposal ? t("worker.resubmitTitle") : t("worker.checkoutTitle")}</div>
+        <div style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.text, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.proposal ? t("worker.resubmitTitle") : t("worker.checkoutTitle")}</div>
         <div style={{ color: BRAND.textMuted, fontSize: FS.body, marginBottom: 8, textAlign: "center" }}>{checkoutTarget.shiftTitle}</div>
         {checkoutTarget.proposal ? (
           <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "10px 12px", marginBottom: 20, maxWidth: 320, textAlign: "center" }}>
-            <div style={{ fontWeight: 700 }}>{t("worker.employerProposedLabel").replace("{hours}", checkoutTarget.proposal.hours)}</div>
+            <div style={{ fontWeight: 600 }}>{t("worker.employerProposedLabel").replace("{hours}", checkoutTarget.proposal.hours)}</div>
             {checkoutTarget.proposal.note && <div style={{ marginTop: 2, overflowWrap: "anywhere" }}>{checkoutTarget.proposal.note}</div>}
             <div style={{ marginTop: 6 }}>{t("worker.resubmitProposalHint")}</div>
           </div>
@@ -8460,7 +8490,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             onChange={e => setCheckoutHours(e.target.value.replace(/[^0-9.]/g, ""))}
             inputMode="decimal"
             placeholder={checkoutTarget.defaultHours != null ? String(Math.round(checkoutTarget.defaultHours * 100) / 100) : ""}
-            style={{ width: "100%", boxSizing: "border-box", fontSize: FS.lead, fontWeight: 700, padding: "12px 14px", borderRadius: RADIUS.card, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 14 }}
+            style={{ width: "100%", boxSizing: "border-box", fontSize: FS.lead, fontWeight: 600, padding: "12px 14px", borderRadius: RADIUS.card, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 14 }}
           />
           <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("worker.checkoutBreakLabel")}</div>
           <input
@@ -8541,7 +8571,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         </button>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <Avatar name={profileName} size={64} color={BRAND.primary} src={getAvatarUrl(user?.user_metadata?.avatar_url)} />
-          <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginTop: 10 }}>{profileName}</div>
+          <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginTop: 10 }}>{profileName}</div>
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 6 }}>
             <span style={{ color: BRAND.accent, fontSize: FS.body }}><InlineIcon icon={Icons.Star} />{profileStats.rating_count ? profileStats.rating.toFixed(1) : "\u2014"}</span>
             <Badge color="teal">{t("profile.shiftsDoneBadge").replace("{count}", workerShiftsDone ?? 0)}</Badge>
@@ -8621,7 +8651,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <button onClick={() => setShowPersonalDetails(false)} style={{ alignSelf: "flex-start", background: "none", border: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontSize: FS.meta, fontWeight: 600, padding: 0, marginBottom: 16, fontFamily: "inherit" }} aria-label={t("common.back")}>
           {Icons.ArrowLeft ? Icons.ArrowLeft({ size: 14 }) : "←"} <span style={{ marginLeft: 6 }}>{t("common.back")}</span>
         </button>
-        <div style={{ fontSize: FS.h3, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
+        <div style={{ fontSize: FS.h3, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("personalDetails.title")}</div>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 20 }}>{t("personalDetails.subtitle")}</div>
         {!personalDetailsLoaded && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
         {personalDetailsLoaded && (
@@ -8694,7 +8724,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       {showBidModal && (
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "flex-end", zIndex: Z.modal, borderRadius: RADIUS.card }}>
           <div {...bidModalDialog} style={{ background: BRAND.surface, borderRadius: `${RADIUS.card}px ${RADIUS.card}px 0 0`, padding: 24, width: "100%" }}>
-            <div style={{ fontWeight: 800, fontSize: FS.lead, color: BRAND.text, marginBottom: 4 }}>{t("shiftDetail.placeBidTitle")}</div>
+            <div style={{ fontWeight: 600, fontSize: FS.lead, color: BRAND.text, marginBottom: 4 }}>{t("shiftDetail.placeBidTitle")}</div>
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 20 }}>
               {t("shiftDetail.employerRange")}{selectedShift.wageMin}–RM{selectedShift.wageMax}/h{t("shiftDetail.maxBid")}{(selectedShift.wageMax * 1.5).toFixed(2)}/h
             </div>
@@ -8711,7 +8741,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {bidAmount && (
               <div style={{ background: BRAND.grayLight, borderRadius: RADIUS.card, padding: "12px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("shiftDetail.estimatedTotalPay")}</div>
-                <div style={{ fontSize: FS.h2, fontWeight: 800, color: BRAND.greenOnSurface }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
+                <div style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.greenOnSurface }}>RM{(parseFloat(bidAmount || 0) * selectedShift.hours).toFixed(0)}</div>
                 {selectedShift.stipend > 0 && (
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>+ RM{selectedShift.stipend}{t("shiftDetail.transportAllowanceSuffix")}</div>
                 )}
@@ -8807,7 +8837,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: Z.modal, borderRadius: RADIUS.card }}>
           <div {...bidSuccessDialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: isMobile ? 24 : 32, textAlign: "center" }}>
             <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", marginBottom: 12, color: BRAND.greenOnSurface }}><Icons.Check size={40} /></div>
-            <div style={{ fontWeight: 800, fontSize: isMobile ? FS.lead : FS.h3, color: BRAND.text }}>{t("shiftDetail.bidSubmitted")}</div>
+            <div style={{ fontWeight: 600, fontSize: isMobile ? FS.lead : FS.h3, color: BRAND.text }}>{t("shiftDetail.bidSubmitted")}</div>
             <div style={{ color: BRAND.textMuted, fontSize: isMobile ? FS.meta : FS.body, marginTop: 8 }}>RM{bidAmount}/h · {t("shiftDetail.bidSubmittedHint")}</div>
           </div>
         </div>
@@ -8824,7 +8854,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <Badge color="green">{t("shiftDetail.positions")} {selectedShift.headcount}</Badge>
             <Badge color="blue">{t("shiftDetail.applied")} {selectedShift.totalApplicants}</Badge>
           </div>
-          <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 800, color: BRAND.onSolid, lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
+          <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 600, color: BRAND.onSolid, lineHeight: 1.2, marginBottom: 8 }}>{selectedShift.title}</div>
           <div style={{ fontSize: isMobile ? FS.meta : FS.body, color: "rgba(255,255,255,0.85)" }}>{selectedShift.employer}</div>
         </div>
         <div style={{ padding: isMobile ? 14 : 20 }}>
@@ -8836,7 +8866,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           </div>
           {selectedShift.description && (
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("shiftDetail.aboutRole")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("shiftDetail.aboutRole")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{selectedShift.description}</div>
             </Card>
           )}
@@ -8862,7 +8892,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             const locationNote = canSeeExact ? null : t("shiftDetail.locationNote");
             return (
           <Card style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
             {[
               [t("shiftDetail.location"), detailLocation, locationNote],
               selectedShift.isMultiDay
@@ -8899,9 +8929,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <Avatar name={selectedShift.employer || "?"} size={36} color={BRAND.primary} src={getAvatarUrl(selectedShift.employerAvatarUrl)} />
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, display: "flex", alignItems: "center", gap: 4 }}>
                   {selectedShift.employer}
-                  {selectedShift.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 700 }}>✓</span>}
+                  {selectedShift.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 600 }}>✓</span>}
                 </div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("shiftDetail.employerReliability")}</div>
               </div>
@@ -8909,7 +8939,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {selectedShift.reliabilityScore != null ? (
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
                 <div style={{ flex: 1 }}><Progress value={selectedShift.reliabilityScore} color={selectedShift.reliabilityScore > 90 ? BRAND.green : selectedShift.reliabilityScore > 75 ? BRAND.accent : BRAND.red} /></div>
-                <span style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text }}>{selectedShift.reliabilityScore}/100</span>
+                <span style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text }}>{selectedShift.reliabilityScore}/100</span>
               </div>
             ) : (
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 8 }}>{t("shiftDetail.employerScoreSignInToView")}</div>
@@ -8920,7 +8950,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </div>
             {employerAbout[selectedShift.employerId] && (
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.border}` }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 2 }}>{t("shiftDetail.aboutEmployer")}</div>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 2 }}>{t("shiftDetail.aboutEmployer")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{employerAbout[selectedShift.employerId]}</div>
               </div>
             )}
@@ -8977,8 +9007,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             {!user && (
               <DiscoverLandingHero t={t} isMobile={isMobile} onRequireAuth={onRequireAuth} />
             )}
-            <div id="open-shifts" style={{ scrollMarginTop: 72, padding: isMobile ? "12px 12px 0" : "20px 20px 0", background: `linear-gradient(160deg, ${BRAND.primary}15, transparent)` }}>
-              <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 800, color: BRAND.text, marginBottom: 2 }}>
+            <div id="open-shifts" style={{ scrollMarginTop: 72, padding: isMobile ? "12px 12px 0" : "20px 20px 0", }}>
+              <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 600, color: BRAND.text, marginBottom: 2 }}>
                 {user ? t("discover.welcomeBack").replace("{name}", workerOwnName || user.email?.split("@")[0] || "") : t("discover.browseHeading")}
               </div>
               {user && <div style={{ fontSize: isMobile ? FS.meta : FS.body, color: BRAND.textMuted, marginBottom: 12 }}>{t("discover.subtitleLoggedIn")}</div>}
@@ -9115,7 +9145,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         <div style={{ display: "flex", gap: 4, marginBottom: 6, flexWrap: "wrap" }}>
                           <Badge color="amber" size="xs">{shiftCategoryLabel(s.category, t)}</Badge>
                         </div>
-                        <div style={{ fontWeight: 700, fontSize: isMobile ? FS.meta : FS.bodyLg, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
+                        <div style={{ fontWeight: 600, fontSize: isMobile ? FS.meta : FS.bodyLg, color: BRAND.text, lineHeight: 1.3, marginBottom: 2 }}>{s.title}</div>
                         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
                           <button
                             onClick={(e) => {
@@ -9130,13 +9160,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                           >
                             {s.employer}
                           </button>
-                          {s.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 700 }}>✓</span>}
+                          {s.employerVerified && <span title={t("discover.verifiedEmployerTooltip")} style={{ color: BRAND.greenOnSurface, fontWeight: 600 }}>✓</span>}
                         </div>
                       </div>
                       <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 8 }}>
                         {/* Estimated total for the shift (lower-bound rate × hours) is the
                             headline figure; the hourly range drops to the small muted line. */}
-                        <div style={{ fontWeight: 800, fontSize: isMobile ? FS.bodyLg : FS.lead, color: BRAND.primaryOnSurface }}>~RM{Math.round(s.wageMin * s.hours)}</div>
+                        <div style={{ fontFamily: FONT_MONO, fontWeight: 500, fontSize: isMobile ? FS.bodyLg : FS.lead, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>~RM{Math.round(s.wageMin * s.hours)}</div>
                         <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>RM{s.wageMin}–{s.wageMax}{t("discover.perHour")}</div>
                       </div>
                     </div>
@@ -9169,7 +9199,9 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 Feature Backlog "Add website's footer". */}
             <footer style={{
               marginTop: 16,
-              padding: isMobile ? "20px 16px" : "28px 32px",
+              // Extra room at the bottom on phones so the floating cookie
+              // button never sits on top of the last footer links.
+              padding: isMobile ? "24px 16px 88px" : "32px",
               borderTop: `1px solid ${BRAND.border}`,
               background: BRAND.grayLight,
               display: "flex",
@@ -9178,14 +9210,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             }}>
               <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 20 : 40 }}>
                 <div style={{ flex: isMobile ? "1 1 100%" : "0 0 auto", minWidth: 160 }}>
-                  <div style={{ fontSize: FS.card, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.02em" }}>
+                  <div style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.text }}>
                     Cari<span style={{ color: BRAND.primary }}>Gaji</span>
                   </div>
                   <div style={{ fontSize: FS.micro, color: BRAND.textMuted, marginTop: 4 }}>{t("app.tagline")}</div>
                 </div>
 
                 <div style={{ flex: "1 1 140px" }}>
-                  <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("footer.quickLinks")}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("footer.quickLinks")}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <button onClick={() => setTab("discover")} style={footerLinkStyle}>{t("nav.discover")}</button>
                     {!user && <button onClick={() => onRequireAuth("signin")} style={footerLinkStyle}>{t("common.signIn")}</button>}
@@ -9197,7 +9229,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 </div>
 
                 <div style={{ flex: "1 1 220px" }}>
-                  <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.04em" }}>{t("footer.categories")}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("footer.categories")}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {SHIFT_CATEGORIES.map(c => (
                       <button key={c} onClick={() => setFilterCat(c)} style={footerCategoryChipStyle}>{shiftCategoryLabel(c, t)}</button>
@@ -9240,7 +9272,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       on hold is the one thing a worker must act on, and it
                       would otherwise be invisible until they opened the bid. */}
                   {reconfirmState(a) && (
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: RADIUS.pill, background: BRAND.amberLight, fontSize: FS.meta, fontWeight: 700, color: "#92400E", marginBottom: 8 }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 8px", borderRadius: RADIUS.pill, background: BRAND.amberLight, fontSize: FS.meta, fontWeight: 600, color: "#92400E", marginBottom: 8 }}>
                       <InlineIcon icon={Icons.Alert} />{t("reconfirm.cta")}
                     </div>
                   )}
@@ -9256,7 +9288,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 2 }}>{a.shiftTitle}</div>
+                      <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 2 }}>{a.shiftTitle}</div>
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>
                         <button
                           onClick={(e) => { e.stopPropagation(); openRatingDetails(a.employerId, "worker_to_employer", a.employer); }}
@@ -9295,7 +9327,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                             <Icons.Clock size={15} />
                           </span>
                           <span>
-                            <span style={{ fontWeight: 700 }}>
+                            <span style={{ fontWeight: 600 }}>
                               {formatShiftTime(a.shiftStartAt)}–{formatShiftTime(a.shiftEndAt)}
                             </span>
                             {(() => {
@@ -9323,7 +9355,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</div>
-                      <span style={{ fontSize: FS.h2, fontWeight: 800, color: BRAND.greenOnSurface }}>RM{a.wageBid}<span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted }}>/h</span></span>
+                      <span style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.greenOnSurface }}>RM{a.wageBid}<span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted }}>/h</span></span>
                     </div>
                     {a.status === "shortlisted" && (
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
@@ -9374,7 +9406,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             <ScreenTitle isMobile={isMobile}>{t("nav.myBids")}</ScreenTitle>
             {unrated.length > 0 && (
               <div style={{ border: `1px solid ${BRAND.amber}`, background: BRAND.amberLight, borderRadius: RADIUS.card, padding: 14, marginBottom: 14 }}>
-                <div style={{ fontSize: FS.body, fontWeight: 800, color: BRAND.onAmberLight, marginBottom: 4 }}>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.onAmberLight, marginBottom: 4 }}>
                   <InlineIcon icon={Icons.Star} />{t("rating.promptTitle", { count: unrated.length })}
                 </div>
                 <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
@@ -9463,7 +9495,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 background: reconfirm.expired ? BRAND.redLight : BRAND.amberLight,
                 borderRadius: RADIUS.card, padding: 14, marginBottom: 14,
               }}>
-                <div style={{ fontSize: FS.body, fontWeight: 800, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, marginBottom: 6 }}>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, marginBottom: 6 }}>
                   <InlineIcon icon={Icons.Alert} />{t("reconfirm.heading")}
                 </div>
                 <div style={{ fontSize: FS.meta, color: reconfirm.expired ? BRAND.onRedLight : BRAND.onAmberLight, lineHeight: 1.5, marginBottom: 10 }}>
@@ -9474,7 +9506,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   })}
                 </div>
                 {reconfirm.expired ? (
-                  <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.red }}>{t("reconfirm.expired")}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red }}>{t("reconfirm.expired")}</div>
                 ) : (
                   <>
                     <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, opacity: 0.85, marginBottom: 10 }}>
@@ -9499,7 +9531,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <Icons.Clock size={12} />{t("myBids.respondByPrefix")}{formatShiftDate(a.offerExpiresAt, { day: 'numeric', month: 'short', year: 'numeric' })}, {formatShiftTime(a.offerExpiresAt)}
               </div>
             )}
-            <div style={{ fontSize: FS.h3, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
+            <div style={{ fontSize: FS.h3, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{a.shiftTitle}</div>
             <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
               <Pill
                 label={bidPillLabel(a, t)}
@@ -9514,7 +9546,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {a.shiftStatus === "cancelled" && a.cancellationChoiceDeadline && !a.cancellationChoice && (
               <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.red}` }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.red, marginBottom: 4 }}>{t("myBids.lateCancellationTitle")}</div>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("myBids.lateCancellationTitle")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 4 }}>
                   {t("myBids.lateCancellationBody")}
                 </div>
@@ -9555,13 +9587,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 <div><InlineIcon icon={Icons.Star} />{t("myBids.selectedNotice")}</div>
                 <button
                   onClick={() => setContractPreviewOpenIds(prev => { const next = new Set(prev); next.has(a.id) ? next.delete(a.id) : next.add(a.id); return next; })}
-                  style={{ background: "none", border: "none", padding: 0, marginTop: 8, cursor: "pointer", fontSize: FS.meta, fontWeight: 700, color: BRAND.blue, textDecoration: "underline" }}
+                  style={{ background: "none", border: "none", padding: 0, marginTop: 8, cursor: "pointer", fontSize: FS.meta, fontWeight: 600, color: BRAND.blue, textDecoration: "underline" }}
                 >
                   {contractPreviewOpenIds.has(a.id) ? t("myBids.hideContractTermsBtn") : t("myBids.viewContractTermsBtn")}
                 </button>
                 {contractPreviewOpenIds.has(a.id) && (
                   <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${BRAND.border}`, fontSize: FS.meta, color: BRAND.text, lineHeight: 1.7 }}>
-                    <div style={{ fontWeight: 700, marginBottom: 4 }}>{t("contract.agreeToTermsHeading")}</div>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>{t("contract.agreeToTermsHeading")}</div>
                     <div>1. {t("contract.workerClause1")}</div>
                     <div>2. {t("contract.workerClause2")}</div>
                     <div>3. {t("contract.workerClause3")}</div>
@@ -9581,12 +9613,12 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {a.shiftDescription && (
               <Card style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("shiftDetail.aboutRole")}</div>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("shiftDetail.aboutRole")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{a.shiftDescription}</div>
               </Card>
             )}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("shiftDetail.title")}</div>
               {[
                 [t("myBids.employerLabel"), (
                   <button
@@ -9789,7 +9821,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                             fontWeight: unreadRoomIds.has(conv.shiftId) ? 600 : 400,
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
                           }}>
-                            <span style={{fontWeight:700, color:BRAND.text}}>{preview.name}:</span>{' '}
+                            <span style={{fontWeight: 600, color:BRAND.text}}>{preview.name}:</span>{' '}
                             {displayProtectedText(preview.text)}
                           </div>
                         );
@@ -9827,7 +9859,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     src={getAvatarUrl(activeChatShift.otherUserAvatar)}
                   />
                   <div style={{minWidth:0, flex:1}}>
-                    <div style={{fontWeight:700, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                    <div style={{fontWeight: 600, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
                       {activeChatShift.otherUserName || activeChatShift.otherUserLabel}
                     </div>
                     {/* The names are the affordance -- tapping them says who is
@@ -9863,13 +9895,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     fontFamily:'inherit', flexShrink:0,
                   }}>
                   <span style={{flex:1, minWidth:0}}>
-                    <span style={{display:'block', fontSize:FS.body, fontWeight:700, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
+                    <span style={{display:'block', fontSize:FS.body, fontWeight: 600, color:BRAND.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>
                       {activeChatShift.title}
                     </span>
                     <span style={{display:'block', fontSize:FS.meta, color:BRAND.textMuted, marginTop:2}}>
                       {/* A room only exists for an accepted application, so this
                           is a fact about the row, not an optimistic label. */}
-                      <span style={{color:BRAND.greenOnSurface, fontWeight:700}}>{t("myBids.pillAccepted")}</span>
+                      <span style={{color:BRAND.greenOnSurface, fontWeight: 600}}>{t("myBids.pillAccepted")}</span>
                       {activeChatShift.date ? ` \u00b7 ${activeChatShift.date}` : ""}
                     </span>
                   </span>
@@ -9882,7 +9914,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                     border:`1px solid ${BRAND.border}`, borderRadius:RADIUS.control, background:BRAND.surface,
                     padding:'8px 4px', marginBottom:12, boxShadow:`0 6px 20px ${BRAND.shadow}`,
                   }}>
-                    <div style={{fontSize:FS.meta, fontWeight:700, color:BRAND.textMuted, padding:'2px 12px 6px'}}>
+                    <div style={{fontSize:FS.meta, fontWeight: 600, color:BRAND.textMuted, padding:'2px 12px 6px'}}>
                       {t("chat.membersTitle")}
                     </div>
                     {chatMembers === null ? (
@@ -9923,7 +9955,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       {showDay && (
                         <div style={{ display: "flex", justifyContent: "center", margin: "6px 0 2px" }}>
                           <span style={{
-                            fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted,
+                            fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted,
                             background: BRAND.grayLight, borderRadius: RADIUS.pill, padding: "3px 10px",
                           }}>{chatDayLabel(msg.created_at, t)}</span>
                         </div>
@@ -9932,7 +9964,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                         <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0 4px" }}>
                           <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
                           <span style={{
-                            fontSize: FS.meta, fontWeight: 700, color: BRAND.onRedLight,
+                            fontSize: FS.meta, fontWeight: 600, color: BRAND.onRedLight,
                             background: BRAND.redLight, borderRadius: RADIUS.pill, padding: "3px 10px", whiteSpace: "nowrap",
                           }}>{t("chat.newMessagesDivider")}</span>
                           <div style={{ flex: 1, height: 1, background: BRAND.red, opacity: 0.35 }} />
@@ -10049,11 +10081,11 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {!payoutsLoading && (
               <Card style={{ marginBottom: 20, padding: isMobile ? "16px 14px" : "20px" }}>
-                <div style={{ fontSize: isMobile ? FS.meta : FS.bodyLg, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.monthlyChartTitle")}</div>
+                <div style={{ fontSize: isMobile ? FS.meta : FS.bodyLg, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("earnings.monthlyChartTitle")}</div>
                 <MonthlyEarningsBarChart months={monthlyEarnings} truncated={monthlyEarningsTruncated} isMobile={isMobile} t={t} />
               </Card>
             )}
-            <div style={{ fontSize: isMobile ? FS.meta : FS.bodyLg, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("earnings.recentPayouts")}</div>
+            <div style={{ fontSize: isMobile ? FS.meta : FS.bodyLg, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("earnings.recentPayouts")}</div>
             {payoutsLoading ? (
               <>
                 <SkeletonRow />
@@ -10077,7 +10109,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   return (
                     <div key={p.id}>
                       {showMonthHeader && (
-                        <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", margin: i === 0 ? "0 0 8px" : "18px 0 8px" }}>
+                        <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, margin: i === 0 ? "0 0 8px" : "18px 0 8px" }}>
                           {payoutMonthLabels[p.monthKey]}
                         </div>
                       )}
@@ -10099,7 +10131,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                                 title={t("slip.viewShift")}
                                 style={{
                                   border: "none", background: "none", padding: 0, cursor: "pointer",
-                                  fontFamily: "inherit", textAlign: "left", fontWeight: 700, fontSize: FS.body,
+                                  fontFamily: "inherit", textAlign: "left", fontWeight: 600, fontSize: FS.body,
                                   color: BRAND.primaryOnSurface, textDecoration: "underline", textUnderlineOffset: 2,
                                   maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                 }}
@@ -10111,7 +10143,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                               // compensation, or seeded demo data. Nothing to
                               // link to, so it stays plain text rather than a
                               // link that goes nowhere.
-                              <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text }}>{p.shift}</div>
+                              <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text }}>{p.shift}</div>
                             )}
                             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>{p.date} · {p.travel > 0 ? `+RM${p.travel} travel` : t("earnings.salaryPayout")}</div>
                           </div>
@@ -10214,7 +10246,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   set at registration (matched against the uploaded MyKad) or
                   backfilled from an OAuth provider's own asserted name — never
                   freely retyped after the fact. */}
-              <div style={{ fontSize: isMobile ? FS.lead : FS.h3, fontWeight: 800, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
+              <div style={{ fontSize: isMobile ? FS.lead : FS.h3, fontWeight: 600, color: BRAND.text, marginTop: isMobile ? 8 : 12 }}>{profileName}</div>
               <div style={{ fontSize: isMobile ? FS.meta : FS.body, color: BRAND.textMuted }}>{user.email}</div>
               {!previewMode && (
                 <button onClick={() => setShowSedcard(true)} style={{ background: "none", border: "none", color: BRAND.primaryOnSurface, cursor: "pointer", fontSize: FS.meta, fontWeight: 600, padding: 0, marginTop: 6, fontFamily: "inherit" }}>
@@ -10243,7 +10275,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               // viewer themselves, which would read as an instruction to the
               // employer rather than a demonstration of the worker experience.
               <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.amber}`, background: BRAND.amberLight }}>
-                <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.onAmberLight, marginBottom: 4 }}>{kycRejectionReason ? t("profile.kycRejectedTitle") : t("profile.completeKycTitle")}</div>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.onAmberLight, marginBottom: 4 }}>{kycRejectionReason ? t("profile.kycRejectedTitle") : t("profile.completeKycTitle")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, marginBottom: 12, lineHeight: 1.5 }}>
                   {kycRejectionReason ? t("profile.kycRejectedReason", { reason: kycRejectionReason }) : t("profile.completeKycHint")}
                 </div>
@@ -10251,7 +10283,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </Card>
             )}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.kycVerification")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("profile.kycVerification")}</div>
               {[
                 { tier: t("profile.kycBasic"), status: "verified" },
                 { tier: t("profile.kycStandard"), status: kycLevel === "Standard" || kycLevel === "Advanced" ? "verified" : kycLevel === "pending_review" ? "review" : "none" },
@@ -10264,7 +10296,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               ))}
             </Card>
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("profile.reliabilityScoreLabel")}{profileStats.reliability_score}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("profile.reliabilityScoreLabel")}{profileStats.reliability_score}</div>
               <Progress value={Math.min(100, Math.max(0, profileStats.reliability_score))} color={profileStats.reliability_score > 90 ? BRAND.green : profileStats.reliability_score > 75 ? BRAND.accent : BRAND.red} />
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 8 }}>{profileStats.reliability_score >= 90 ? t("profile.reliabilityExcellent") :
  profileStats.reliability_score >= 75 ? t("profile.reliabilityGood") :
@@ -10272,7 +10304,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
  t("profile.reliabilityLow")}</div>
             </Card>
             <Card>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("profile.recentRatings")}</div>
               {myReceivedRatings === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("chat.loading")}</div>}
               {myReceivedRatings && myReceivedRatings.length === 0 && (
                 <EmptyState icon={<Icons.Star size={28} />} title={t("profile.noRatingsTitle")} hint={t("profile.noRatingsHint")} />
@@ -10286,7 +10318,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <div key={asp.value} style={{ marginBottom: 10 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                           <span style={{ fontSize: FS.meta, color: BRAND.text }}>{t(asp.labelKey)}</span>
-                          <span style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.accent }}>{avg != null ? avg.toFixed(1) : "—"}</span>
+                          <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.accent }}>{avg != null ? avg.toFixed(1) : "—"}</span>
                         </div>
                         <Progress value={avg != null ? (avg / 5) * 100 : 0} color={BRAND.accent} />
                       </div>
@@ -10311,7 +10343,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 deliberately, since the Account pane is the next thing to gain a
                 proper header and they are the right strings for it. */}
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("settings.account")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("settings.account")}</div>
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", rowGap: 8, padding: "8px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                 <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("settings.theme")}</span>
                 {/* Swapped with the language switcher (owner, 2026-08-29).
@@ -10418,7 +10450,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "10vh" }} onClick={() => setSettingsHelpOpen(false)}>
                 <div {...settingsHelpDialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 480, width: "100%", maxHeight: "70vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                    <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, margin: 0 }}><InlineIcon icon={Icons.LifeBuoy} size={18} />{t("help.title")}</h3>
+                    <h3 style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, margin: 0 }}><InlineIcon icon={Icons.LifeBuoy} size={18} />{t("help.title")}</h3>
                     <button onClick={() => setSettingsHelpOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
                   </div>
                   {HELP_FAQS.map((faq, i) => (
@@ -10441,7 +10473,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {!user && (
               <Card style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
                 <AuthGate
                   onRequireAuth={onRequireAuth}
                   icon={<Icons.Bank size={28} />}
@@ -10452,7 +10484,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {user && (
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("settings.salaryBankingTitle")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>
                 {t("settings.salaryBankingHint")}
               </div>
@@ -10462,7 +10494,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   E-wallet is rendered DISABLED rather than hidden: there is no
                   payment rail yet, and a greyed row with the reason on it is
                   honest, where a row that looked tappable would not be. */}
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 2 }}>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 2 }}>
                 {t("settings.payoutMethodTitle")}
               </div>
               <div style={{ marginBottom: 14 }}>
@@ -10522,7 +10554,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {user && (
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
+              <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>{t("disputes.myDisputesTitle")}</div>
               {myDisputes === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
               {myDisputes?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("disputes.myDisputesEmpty")}</div>}
               {myDisputes?.map(d => {
@@ -10531,13 +10563,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                 return (
                   <div key={d.id} style={{ padding: "12px 0", borderBottom: `1px solid ${BRAND.border}` }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
-                      <span style={{ fontWeight: 700, fontSize: FS.meta, color: BRAND.text }}>{categoryLabel}</span>
+                      <span style={{ fontWeight: 600, fontSize: FS.meta, color: BRAND.text }}>{categoryLabel}</span>
                       <Badge color={d.status === "under_review" ? "amber" : d.status === "awaiting_info" ? "orange" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"} size="xs">{disputeStatusLabel(d.status, t)}</Badge>
                       <Badge color={filedByYou ? "blue" : "gray"} size="xs">{filedByYou ? t("disputes.filedByYou") : t("disputes.filedAgainstYou")}</Badge>
                     </div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 4 }}>{displayProtectedText(d.application?.shift?.title ?? "—")} · {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{d.description}</div>
-                    {d.awaiting_role === "worker" && d.status === "awaiting_info" && <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>{t("dispute.statusLineAwaitingMe")}</div>}
+                    {d.awaiting_role === "worker" && d.status === "awaiting_info" && <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "4px 8px", marginTop: 6, display: "inline-block" }}>{t("dispute.statusLineAwaitingMe")}</div>}
                     <Btn size="xs" variant="primary" style={{ marginTop: 6, marginRight: 6 }} onClick={() => openDispute(d.id)}><InlineIcon icon={Icons.Chat} />{t("dispute.viewBtn")}</Btn>
                     <Btn size="xs" variant="secondary" style={{ marginTop: 6 }} onClick={() => { setActiveChatShift({ shiftId: d.application?.shift_id, title: d.application?.shift?.title ?? "", date: "", otherUserLabel: "" }); setTab("chat"); }}>{t("disputes.viewShiftChat")}</Btn>
                     {d.resolved_at && (
@@ -10556,7 +10588,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               if (!canSeeEmployer && !isAdminAccount) return null;
               return (
                 <Card style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("settings.accessOtherConsoles")}</div>
+                  <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("settings.accessOtherConsoles")}</div>
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 14 }}>{t("settings.accessOtherConsolesHint")}</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {canSeeEmployer && <Btn variant="secondary" onClick={() => onOpenPortal?.("employer")}>{t("settings.openEmployerConsole")}</Btn>}
@@ -10655,14 +10687,14 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return (
       <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setWithdrawTarget(null)}>
         <div {...withdrawDialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 22, maxWidth: 430, width: "100%", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
-          <h3 style={{ fontSize: FS.card, fontWeight: 800, color: BRAND.text, margin: "0 0 8px" }}>{t("withdraw.title")}</h3>
+          <h3 style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.text, margin: "0 0 8px" }}>{t("withdraw.title")}</h3>
           <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginBottom: 14 }}>
             {t("withdraw.body", { shift: withdrawTarget.shiftTitle })}
           </div>
 
           {/* The cost, stated before the decision rather than after it. */}
           <div style={{ border: `1px solid ${penalty > 0 ? BRAND.amber : BRAND.border}`, background: penalty > 0 ? BRAND.amberLight : BRAND.grayLight, borderRadius: RADIUS.control, padding: 12, marginBottom: 14 }}>
-            <div style={{ fontSize: FS.meta, fontWeight: 700, color: penalty > 0 ? BRAND.onAmberLight : BRAND.text, marginBottom: 4 }}>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: penalty > 0 ? BRAND.onAmberLight : BRAND.text, marginBottom: 4 }}>
               {t("withdraw.noticeLabel", { hours: Math.round(hours) })}
             </div>
             <div style={{ fontSize: FS.meta, color: penalty > 0 ? BRAND.onAmberLight : BRAND.text }}>
@@ -10672,7 +10704,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             </div>
           </div>
 
-          <label style={{ display: "block", fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 6 }}>
+          <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>
             {t("withdraw.reasonLabel")}
           </label>
           <textarea
@@ -10700,7 +10732,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {workerContractModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...workerContractDialog} style={{background: BRAND.surfaceElevated, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-          <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.workerTitle")}</h3>
+          <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.workerTitle")}</h3>
           <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
 
           {(() => {
@@ -10802,7 +10834,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {attendanceRequestTarget && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...attendanceRequestDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:460, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
-          <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("attendance.requestTitle")}</h3>
+          <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}>{t("attendance.requestTitle")}</h3>
           <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:12}}>{attendanceRequestTarget.shiftTitle}</p>
           <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:12}}>
             {attendanceRequestTarget.kind === "check_out" ? t("attendance.requestCheckOutIntro") : t("attendance.requestCheckInIntro")}
@@ -10831,7 +10863,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {disputeModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...workerDisputeDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
-          <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
+          <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}>{t("myBids.fileDisputeTitle")}</h3>
           <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:16}}>{disputeModal.shiftTitle}</p>
 
           <Select
@@ -10889,7 +10921,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       >
         <div {...slipDialog} onClick={e => e.stopPropagation()} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:460, width:'100%', maxHeight:'85vh', overflowY:'auto', border:`1px solid ${BRAND.border}`}}>
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:4}}>
-            <h3 style={{fontSize:FS.lead, fontWeight:800, color: BRAND.text, margin:0}}>{t("slip.title")}</h3>
+            <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, margin:0}}>{t("slip.title")}</h3>
             <button onClick={() => setSlipPayout(null)} aria-label={t("common.close")}
               style={{border:'none', background:'none', cursor:'pointer', color: BRAND.textMuted, fontFamily:'inherit', fontSize:FS.lead, lineHeight:1, padding:0}}><Icons.Close size={18} /></button>
           </div>
@@ -10951,7 +10983,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
       return (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...workerRatingDialog} style={{background: BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto', border: `1px solid ${BRAND.border}`}}>
-          <h3 style={{fontSize:FS.lead, fontWeight:700, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
+          <h3 style={{fontSize:FS.lead, fontWeight: 600, color: BRAND.text, marginBottom:4}}>{t("rating.modalTitle")}</h3>
           <p style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:16}}>{ratingModal.shiftTitle}</p>
 
           {aspects.map(asp => (
@@ -10975,8 +11007,8 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           </div>
 
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 0', borderTop:`1px solid ${BRAND.border}`, marginBottom:16 }}>
-            <span style={{fontSize:FS.meta, fontWeight:700, color: BRAND.text}}>{t("rating.overallPreview")}</span>
-            <span style={{fontSize:FS.card, fontWeight:800, color: BRAND.accent}}>{overall ?? "—"}</span>
+            <span style={{fontSize:FS.meta, fontWeight: 600, color: BRAND.text}}>{t("rating.overallPreview")}</span>
+            <span style={{fontSize:FS.card, fontWeight: 600, color: BRAND.accent}}>{overall ?? "—"}</span>
           </div>
 
           <div style={{display:'flex', gap:8}}>
@@ -10999,7 +11031,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     {cancellationContractModal && (
       <div style={{position:'fixed', inset:0, background: BRAND.overlay, zIndex: Z.modal, display:'flex', alignItems:'center', justifyContent:'center', padding:16}}>
         <div {...cancellationDialog} style={{background:BRAND.surface, borderRadius:RADIUS.card, padding:24, maxWidth:480, width:'100%', maxHeight:'85vh', overflowY:'auto'}}>
-          <h3 style={{fontSize:FS.lead, fontWeight:700, color:BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.cancellationTitle")}</h3>
+          <h3 style={{fontSize:FS.lead, fontWeight: 600, color:BRAND.text, marginBottom:4}}><InlineIcon icon={Icons.Doc} size={16} />{t("contract.cancellationTitle")}</h3>
           <p style={{fontSize:FS.meta, color:BRAND.textMuted, marginBottom:16}}>{t("contract.readCarefully")}</p>
 
           <div style={{background:BRAND.grayLight, borderRadius:RADIUS.control, padding:16, fontSize:FS.meta, lineHeight:1.8, color:BRAND.text, marginBottom:16}}>
@@ -11060,7 +11092,7 @@ const DisputeThreadModal = lazyPortal(() => import("./src/portals/DisputeThread.
 const CookieToggleRow = ({ label, description, checked, disabled = false, onChange }) => (
   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
     <div style={{ flex: 1 }}>
-      <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text }}>{label}</div>
+      <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text }}>{label}</div>
       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>{description}</div>
     </div>
     <button
@@ -11181,7 +11213,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           padding: "10px 16px", borderRadius: RADIUS.pill,
           background: BRAND.primary, border: "none", color: BRAND.onSolid,
           boxShadow: `0 6px 18px ${BRAND.shadow}`, cursor: "pointer",
-          fontSize: FS.meta, fontWeight: 700, fontFamily: "inherit",
+          fontSize: FS.meta, fontWeight: 600, fontFamily: "inherit",
         }}
       >
         <span aria-hidden="true" style={{ display: "inline-flex" }}><Icons.Chat size={18} /></span>
@@ -11209,7 +11241,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
         padding: "14px 16px", borderBottom: `1px solid ${BRAND.border}`, flexShrink: 0,
         background: BRAND.panel,
       }}>
-        <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text, display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text, display: "flex", alignItems: "center", gap: 8 }}>
           <span aria-hidden="true" style={{ display: "inline-flex" }}><Icons.Chat size={18} /></span> {t("supportChat.title")}
         </div>
         <div style={{ display: "flex", gap: 4 }}>
@@ -11266,7 +11298,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
               onClick={openMailtoSupport}
               style={{
                 alignSelf: "flex-start", border: "none", borderRadius: RADIUS.control, padding: "6px 12px",
-                background: BRAND.onAmberLight, color: BRAND.onSolid, fontSize: FS.meta, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                background: BRAND.onAmberLight, color: BRAND.onSolid, fontSize: FS.meta, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
               }}
             >
               {t("supportChat.emailSupport")}
@@ -11292,7 +11324,7 @@ const SupportChatWidget = ({ isMobile, open, onOpenChange }) => {
           disabled={sending || !input.trim()}
           style={{
             padding: "10px 16px", borderRadius: RADIUS.control, border: "none", fontFamily: "inherit",
-            background: BRAND.primary, color: BRAND.onSolid, fontWeight: 700, fontSize: FS.meta,
+            background: BRAND.primary, color: BRAND.onSolid, fontWeight: 600, fontSize: FS.meta,
             cursor: sending || !input.trim() ? "not-allowed" : "pointer",
             opacity: sending || !input.trim() ? 0.6 : 1,
           }}
@@ -11464,7 +11496,7 @@ const CookieConsentManager = ({ isMobile }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, margin: 0 }}>🍪 {t("cookie.panelTitle")}</h3>
+              <h3 style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, margin: 0 }}>🍪 {t("cookie.panelTitle")}</h3>
               <button onClick={() => setPanelOpen(false)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.textMuted, lineHeight: 1 }}>×</button>
             </div>
 
@@ -11475,7 +11507,7 @@ const CookieConsentManager = ({ isMobile }) => {
                   onClick={() => setActiveTab(tabKey)}
                   style={{
                     border: "none", background: "transparent", cursor: "pointer",
-                    padding: "8px 12px", fontSize: FS.meta, fontWeight: 700, fontFamily: "inherit",
+                    padding: "8px 12px", fontSize: FS.meta, fontWeight: 600, fontFamily: "inherit",
                     color: activeTab === tabKey ? BRAND.primary : BRAND.textMuted,
                     borderBottom: activeTab === tabKey ? `2px solid ${BRAND.primary}` : "2px solid transparent",
                     marginBottom: -1,
@@ -11563,7 +11595,7 @@ const AppBrandHeader = ({ onClick, isMobile }) => {
       aria-label={t("app.homeAriaLabel")}
       style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
     >
-      <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 900, color: BRAND.text, letterSpacing: "-0.03em" }}>
+      <div style={{ fontSize: isMobile ? FS.lead : FS.h2, fontWeight: 600, color: BRAND.text, letterSpacing: "-0.03em" }}>
         Cari<span style={{ color: BRAND.primary }}>Gaji</span>
       </div>
       <div style={{ fontSize: FS.micro, color: BRAND.textMuted }}>{t("app.tagline")}</div>
@@ -11617,8 +11649,8 @@ const LanguagePicker = ({ isMobile = false }) => {
         title={t("settings.language")}
         style={isMobile ? { minWidth: 40, height: 36, padding: "0 8px", gap: 0, flexShrink: 0 } : { minWidth: 58, justifyContent: "center", gap: 5 }}
       >
-        <span aria-hidden="true">🌐</span>
-        <span style={{ fontWeight: 700 }}>{current.short}</span>
+        <span aria-hidden="true" style={{ display: "inline-flex" }}><Icons.Globe size={16} /></span>
+        <span style={{ fontWeight: 600 }}>{current.short}</span>
       </Btn>
       {open && (
         <div
@@ -11683,7 +11715,7 @@ const EmployerAccessRequired = ({ onBack }) => {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
       <div style={{ display: "flex", color: BRAND.textMuted }} aria-hidden="true"><Icons.Ban size={40} /></div>
-      <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text }}>{t("employer.accessRequiredTitle")}</div>
+      <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text }}>{t("employer.accessRequiredTitle")}</div>
       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, maxWidth: 320 }}>{t("employer.notEmployerHint")}</div>
       <Btn variant="secondary" onClick={onBack}>{t("admin.backToWorkerApp")}</Btn>
     </div>
@@ -11695,7 +11727,7 @@ const AdminAccessRequired = ({ user, onBack }) => {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
       <div style={{ display: "flex", color: BRAND.textMuted }} aria-hidden="true"><Icons.Ban size={40} /></div>
-      <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text }}>{t("admin.accessRequiredTitle")}</div>
+      <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text }}>{t("admin.accessRequiredTitle")}</div>
       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, maxWidth: 320 }}>
         {user ? t("admin.notAdminHint") : t("admin.signInHint")}
       </div>
@@ -11718,7 +11750,7 @@ const TnCGateModal = ({ open, accepting, onAccept, onSignOut }) => {
   return createPortal(
     <div style={{ position: "fixed", inset: 0, zIndex: Z.gate, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 520, width: "100%", maxHeight: "85vh", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
-        <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("auth.tncGateTitle")}</div>
+        <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("auth.tncGateTitle")}</div>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 16 }}>{t("auth.tncGateSubtitle")}</div>
         <div
           ref={boxRef}
@@ -11772,7 +11804,7 @@ const AvatarGuidePicker = ({ file, existingUrl, onChange, role, disabled }) => {
     : [t("details.avatarGuide1Employer"), t("details.avatarGuide2Employer")];
   return (
     <div style={{ marginBottom: 18 }}>
-      <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 2 }}>{t("details.avatarTitle")}</div>
+      <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 2 }}>{t("details.avatarTitle")}</div>
       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 10 }}>{t("details.avatarOptionalHint")}</div>
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap" }}>
         <div style={{ position: "relative", width: 108, height: 108, flexShrink: 0 }}>
@@ -11982,7 +12014,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
   return createPortal(
     <div style={{ position: "fixed", inset: 0, zIndex: Z.gate, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 560, width: "100%", maxHeight: "88vh", display: "flex", flexDirection: "column", boxSizing: "border-box" }}>
-        <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{kycOnly ? t("details.kycOnlyTitle") : t("details.title")}</div>
+        <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{kycOnly ? t("details.kycOnlyTitle") : t("details.title")}</div>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 16 }}>{kycOnly ? t("details.kycOnlySubtitle") : (isEmployer ? t("details.subtitleEmployer") : t("details.subtitleWorker"))}</div>
         {showErrors && hasErrors && (
           <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: RADIUS.control, background: "#FEF2F2", border: `1.5px solid ${BRAND.red}`, color: BRAND.red, fontSize: FS.meta }}>
@@ -12058,7 +12090,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
           )}
           {(kycOnly || !isEmployer) && (
             <>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 4 }}>{t("auth.uploadDocuments")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("auth.uploadDocuments")}</div>
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 10, lineHeight: 1.5 }}>
                 {kycOnly ? t("details.kycOnlyHint") : t("details.kycDeferHint")}
               </div>
@@ -12116,11 +12148,11 @@ const WelcomeIntroModal = ({ open, role, saving, onDone }) => {
   return createPortal(
     <div style={{ position: "fixed", inset: 0, zIndex: Z.gate, background: BRAND.overlay, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
       <div style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 480, width: "100%", maxHeight: "85vh", overflowY: "auto", boxSizing: "border-box" }}>
-        <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, textAlign: "center", marginBottom: 4 }}>{t("intro.title")}</div>
+        <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, textAlign: "center", marginBottom: 4 }}>{t("intro.title")}</div>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: "center", marginBottom: 18 }}>{t("intro.subtitle")}</div>
         {steps.map((step, i) => (
           <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-            <div style={{ width: 26, height: 26, borderRadius: "50%", background: BRAND.primary, color: BRAND.onSolid, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 700, flexShrink: 0 }}>{i + 1}</div>
+            <div style={{ width: 26, height: 26, borderRadius: "50%", background: BRAND.primary, color: BRAND.onSolid, display: "flex", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 600, flexShrink: 0 }}>{i + 1}</div>
             <div style={{ fontSize: FS.body, color: BRAND.text, lineHeight: 1.6 }}>{step}</div>
           </div>
         ))}
@@ -13124,14 +13156,14 @@ export default function App() {
       minHeight: isMobile && viewport.height ? `${viewport.height}px` : "100dvh",
       width: "100%",
       ...themeVars,
-      background: isMobile
-        ? `linear-gradient(180deg, ${BRAND.primary}08 0%, ${BRAND.page} 18%, ${BRAND.page} 100%)`
-        : `radial-gradient(circle at top, ${BRAND.primary}20 0%, ${resolvedTheme === "dark" ? "#09111d" : "#f8fafc"} 42%, ${resolvedTheme === "dark" ? BRAND.dark : BRAND.page} 100%)`,
+      // Plain page colour. The blue radial glow behind everything tinted the
+      // whole app and competed with the one place blue should mean something.
+      background: BRAND.page,
       display: "flex",
       alignItems: "stretch",
       justifyContent: "stretch",
       padding: 0,
-      fontFamily: "'DM Sans', system-ui, sans-serif",
+      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     }}>
       <div style={{
         width: "100%",

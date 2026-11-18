@@ -164,7 +164,7 @@ export default function DisputeThreadModal({ disputeId, user, isAdmin = false, o
       <div {...dialog} onClick={e => e.stopPropagation()} style={{ background: BRAND.surface, borderRadius: RADIUS.card, width: "100%", maxWidth: 580, maxHeight: "92vh", display: "flex", flexDirection: "column", border: `1px solid ${BRAND.border}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, padding: "16px 18px 10px" }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, lineHeight: 1.25 }}>{categoryLabel}</div>
+            <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, lineHeight: 1.25 }}>{categoryLabel}</div>
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>{displayProtectedText(app?.shift?.title ?? "")}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
@@ -185,7 +185,7 @@ export default function DisputeThreadModal({ disputeId, user, isAdmin = false, o
               </div>
               {!open && dispute.resolution_note && (
                 <div style={{ padding: "9px 12px", borderRadius: RADIUS.control, background: dispute.status === "resolved" ? BRAND.greenLight : BRAND.grayLight, color: dispute.status === "resolved" ? BRAND.onGreenLight : BRAND.text, fontSize: FS.body, lineHeight: 1.5, whiteSpace: "pre-wrap", overflowWrap: "anywhere", marginBottom: 6 }}>
-                  <div style={{ fontSize: FS.meta, fontWeight: 700, marginBottom: 2 }}>{t("dispute.outcomeLabel")}{dispute.resolved_at ? ` · ${formatShiftDate(dispute.resolved_at, { day: "numeric", month: "short", year: "numeric" })}` : ""}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, marginBottom: 2 }}>{t("dispute.outcomeLabel")}{dispute.resolved_at ? ` · ${formatShiftDate(dispute.resolved_at, { day: "numeric", month: "short", year: "numeric" })}` : ""}</div>
                   {dispute.resolution_note}
                 </div>
               )}
@@ -193,7 +193,7 @@ export default function DisputeThreadModal({ disputeId, user, isAdmin = false, o
               {/* The review being challenged. */}
               {dispute.category === "review_report" && (
                 <div style={{ padding: "10px 12px", borderRadius: RADIUS.control, border: `1px solid ${BRAND.border}`, margin: "8px 0" }}>
-                  <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 6 }}>{t("dispute.reviewReported")}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 6 }}>{t("dispute.reviewReported")}</div>
                   {rating ? (
                     <>
                       <StarRating value={Number(rating.overall)} size={14} />

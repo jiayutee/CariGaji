@@ -27,21 +27,24 @@ const THEME_PALETTES = {
     shadow: "rgba(15,23,42,0.08)",
     overlay: "rgba(17,24,39,0.58)",
   },
+  // Graphite, not navy: the dark surfaces used to be slate blues, so the
+  // whole app read blue and the brand blue had nothing to stand out against.
+  // Blue now lives only in the accent (primary actions, selection, pay).
   dark: {
-    page: "#0B1120",
-    surface: "#111827",
-    surfaceMuted: "#0F172A",
-    surfaceElevated: "#172033",
-    panel: "rgba(15,23,42,0.88)",
-    input: "#0F172A",
-    border: "#243044",
-    text: "#E5E7EB",
-    textMuted: "#94A3B8",
+    page: "#141415",
+    surface: "#19191B",
+    surfaceMuted: "#1D1D20",
+    surfaceElevated: "#202023",
+    panel: "rgba(20,20,21,0.9)",
+    input: "#1D1D20",
+    border: "#2C2C30",
+    text: "#EDEDED",
+    textMuted: "#A1A1A6",
     primaryOnSurface: "#5B8DEF",
     redOnSurface: "#F87171",
     greenOnSurface: "#1A9E5C",
     shadow: "rgba(0,0,0,0.35)",
-    overlay: "rgba(2,6,23,0.72)",
+    overlay: "rgba(0,0,0,0.66)",
   },
 };
 

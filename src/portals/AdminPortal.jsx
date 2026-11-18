@@ -720,7 +720,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
     <>
       <div style={{ padding: "0 20px 28px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div>
-          <div style={{ fontWeight: 900, fontSize: FS.h3, color: BRAND.primary }}>{SITE.name}</div>
+          <div style={{ fontWeight: 600, fontSize: FS.h3, color: BRAND.primary }}>{SITE.name}</div>
           <div style={{ fontSize: FS.meta, color: ADMIN_SIDEBAR_DIM, fontWeight: 500 }}>Admin Dashboard</div>
         </div>
         {compact && (
@@ -743,7 +743,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             {navCounts[key] > 0 && (
               <span style={{
                 marginLeft: 8, minWidth: 16, height: 16, padding: "0 4px", borderRadius: RADIUS.pill,
-                background: BRAND.red, color: ADMIN_SIDEBAR_ON_DARK, fontSize: FS.micro, fontWeight: 700,
+                background: BRAND.red, color: ADMIN_SIDEBAR_ON_DARK, fontSize: FS.micro, fontWeight: 600,
                 display: "inline-flex", alignItems: "center", justifyContent: "center", lineHeight: 1,
               }}>{navCounts[key] > 99 ? "99+" : navCounts[key]}</span>
             )}
@@ -773,7 +773,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               actual metric below the fold. */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: BRAND.dark, flexShrink: 0 }}>
             <button onClick={() => setSidebarOpen(true)} aria-label="Open admin menu" style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: ADMIN_SIDEBAR_ON_DARK, padding: 4, lineHeight: 1, display: "inline-flex" }}><Icons.Menu size={20} /></button>
-            <div style={{ fontWeight: 800, fontSize: FS.bodyLg, color: ADMIN_SIDEBAR_ON_DARK }}>{navItems.find(n => n.id === view)?.label || "Admin"}</div>
+            <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: ADMIN_SIDEBAR_ON_DARK }}>{navItems.find(n => n.id === view)?.label || "Admin"}</div>
           </div>
           {sidebarOpen && createPortal(
             <div style={{ position: "fixed", inset: 0, zIndex: Z.drawer, display: "flex" }}>
@@ -816,7 +816,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 16 }}>
               <Card>
-                <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 12 }}>KYC Queue</div>
+                <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 12 }}>KYC Queue</div>
                 {kycQueue === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
                 {kycQueue?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>No pending submissions.</div>}
                 {kycQueue?.slice(0, 3).map(k => (
@@ -828,7 +828,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <Btn size="xs" variant="secondary" onClick={() => setView("kycqueue")} style={{ marginTop: 10 }}>View all →</Btn>
               </Card>
               <Card>
-                <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 12 }}>Employer Queue</div>
+                <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 12 }}>Employer Queue</div>
                 {employerQueue === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
                 {employerQueue?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>No pending submissions.</div>}
                 {employerQueue?.slice(0, 3).map(e => (
@@ -841,7 +841,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               </Card>
               <Card>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text }}>Active Disputes</div>
+                  <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text }}>Active Disputes</div>
                 </div>
                 {disputesQueue === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
                 {disputesQueue?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("admin.disputesEmptyState")}</div>}
@@ -857,7 +857,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <Btn size="xs" variant="secondary" onClick={() => setView("disputes")} style={{ marginTop: 10 }}>View all →</Btn>
               </Card>
               <Card>
-                <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 12 }}>Analytics (7d)</div>
+                <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 12 }}>Analytics (7d)</div>
                 {analyticsCounts === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
                 {analyticsCounts?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>No events recorded.</div>}
                 {analyticsCounts?.map(({ eventType, count }) => (
@@ -890,7 +890,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 {/* Header row */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text }}>{worker.full_name || "Unnamed user"}</div>
+                    <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text }}>{worker.full_name || "Unnamed user"}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>
                       {/* There is no "documents submitted at" column; created_at is
                           when the account was made, so say that rather than
@@ -950,7 +950,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               <Card key={emp.id} style={{ marginBottom: 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: FS.bodyLg, color: BRAND.text }}>{emp.full_name || "Unnamed company"}</div>
+                    <div style={{ fontWeight: 600, fontSize: FS.bodyLg, color: BRAND.text }}>{emp.full_name || "Unnamed company"}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.text, marginTop: 4 }}>SSM: <strong>{emp.ssm_number || "—"}</strong></div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 2 }}>
                       Registered: {new Date(emp.created_at).toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" })}
@@ -1007,7 +1007,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
                     <div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
-                        <span style={{ fontWeight: 800, fontSize: FS.body, color: BRAND.text }}>{categoryLabel}</span>
+                        <span style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text }}>{categoryLabel}</span>
                         <Badge color={d.status === "under_review" ? "amber" : d.status === "awaiting_info" ? "orange" : d.status === "resolved" ? "green" : d.status === "dismissed" ? "gray" : "blue"}>{disputeStatusLabel(d.status, t)}</Badge>
                       </div>
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Opened {new Date(d.created_at).toLocaleDateString("en-MY")}</div>
@@ -1055,7 +1055,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             )}
             {flaggedReviews?.length > 0 && (
               <div style={{ marginTop: 28 }}>
-                <div style={{ fontSize: FS.lead, fontWeight: 800, color: BRAND.text, marginBottom: 4 }}>{t("admin.flaggedReviewsTitle")}</div>
+                <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{t("admin.flaggedReviewsTitle")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 12 }}>{t("admin.flaggedReviewsHint")}</div>
                 {flaggedReviews.map(r => (
                   <Card key={r.id} style={{ marginBottom: 12 }}>
@@ -1063,7 +1063,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <Badge color="red">{t(`admin.flag.${r.flagged_reason}`)}</Badge>
                       <span style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{r.raterName} → {r.rateeName} · {displayProtectedText(r.application?.shift?.title ?? "—")}</span>
                     </div>
-                    <div style={{ fontSize: FS.body, fontWeight: 700, color: BRAND.text }}><InlineIcon icon={Icons.Star} />{Number(r.overall).toFixed(1)}</div>
+                    <div style={{ fontSize: FS.body, fontWeight: 600, color: BRAND.text }}><InlineIcon icon={Icons.Star} />{Number(r.overall).toFixed(1)}</div>
                     {r.comment && <div style={{ fontSize: FS.meta, color: BRAND.text, marginTop: 4, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>“{r.comment}”</div>}
                     <div style={{ display: "flex", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
                       <Btn size="xs" variant="secondary" onClick={() => hideFlaggedReview(r)}>{t("dispute.hideReviewBtn")}</Btn>
@@ -1081,7 +1081,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
           <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setDisputeDetailFor(null)}>
             <div {...disputeDetailDialog} onClick={e => e.stopPropagation()} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 24, maxWidth: 560, width: "100%", maxHeight: "85vh", overflowY: "auto", border: `1px solid ${BRAND.border}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                <h3 style={{ fontSize: FS.lead, fontWeight: 700, color: BRAND.text, margin: 0 }}>{t("admin.disputeInvestigateTitle")}</h3>
+                <h3 style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, margin: 0 }}>{t("admin.disputeInvestigateTitle")}</h3>
                 <button onClick={() => setDisputeDetailFor(null)} aria-label={t("common.close")} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: FS.h3, color: BRAND.textMuted, lineHeight: 1 }}><Icons.Close size={18} /></button>
               </div>
 
@@ -1089,7 +1089,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   employer contract screen already shows, just surfaced here
                   so admin does not have to trust the free-text description
                   alone. */}
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 8 }}>{t("admin.disputeEvidenceTitle")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>{t("admin.disputeEvidenceTitle")}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
                 {[
                   [t("admin.disputeShiftWindow"), disputeDetailFor.application?.shift?.start_at ? `${new Date(disputeDetailFor.application.shift.start_at).toLocaleString("en-MY")} – ${disputeDetailFor.application.shift.end_at ? new Date(disputeDetailFor.application.shift.end_at).toLocaleString("en-MY") : "—"}` : t("admin.disputeNotRecorded")],
@@ -1116,7 +1116,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   through them the payout). Closes the dispute. */}
               {(disputeDetailFor.status === "open" || disputeDetailFor.status === "under_review") && (
                 <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.card, padding: 14, marginBottom: 20 }}>
-                  <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 4 }}>{t("admin.rulingTitle")}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("admin.rulingTitle")}</div>
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 10 }}>{t("admin.rulingHint")}</div>
                   <Select
                     label={t("admin.rulingOutcomeLabel")}
@@ -1142,7 +1142,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                   share for this shift (messages, recipient_id null). Admin
                   posting here is visible to both parties inline with the job
                   chat, not a separate admin-only thread. */}
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 8 }}>{t("admin.disputeChatTitle")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 8 }}>{t("admin.disputeChatTitle")}</div>
               <div style={{ border: `1px solid ${BRAND.border}`, borderRadius: RADIUS.card, maxHeight: 220, overflowY: "auto", padding: 12, marginBottom: 12 }}>
                 {disputeMessages === null && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>Loading…</div>}
                 {disputeMessages?.length === 0 && <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("admin.disputeChatEmpty")}</div>}
@@ -1256,7 +1256,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             </div>
 
             <Card style={{ marginBottom: 20, maxWidth: 640 }}>
-              <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, marginBottom: 10 }}>{t("admin.depositEmployerLabel")}</div>
+              <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 10 }}>{t("admin.depositEmployerLabel")}</div>
               {depositEmployers === null ? (
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("admin.depositLoading")}</div>
               ) : depositEmployers.length === 0 ? (
@@ -1299,7 +1299,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
             {depositTarget && (
               <Card style={{ marginBottom: 20, maxWidth: 640 }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 12 }}>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 12 }}>
                   {t("admin.depositFormTitle", { name: depositTarget.full_name || t("admin.depositUnnamed") })}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -1357,7 +1357,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
 
             {depositResult && (
               <Card style={{ marginBottom: 20, maxWidth: 640, borderLeft: `3px solid ${BRAND.green}` }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 8 }}>{t("admin.depositDoneTitle")}</div>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 8 }}>{t("admin.depositDoneTitle")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.6 }}>
                   {t("admin.depositDoneBody", {
                     amount: Number(depositResult.amount ?? 0).toFixed(2),
@@ -1369,7 +1369,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               </Card>
             )}
 
-            <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, marginBottom: 10 }}>{t("admin.depositRecentTitle")}</div>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 10 }}>{t("admin.depositRecentTitle")}</div>
             <Card style={{ maxWidth: 640 }}>
               {depositRecent === null ? (
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("admin.depositLoading")}</div>
@@ -1384,7 +1384,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                         <div style={{ fontSize: FS.meta, color: BRAND.text, fontWeight: 600 }}>{who?.full_name || r.employer_id?.slice(0, 8) || "—"}</div>
                         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.note}</div>
                       </div>
-                      <div style={{ fontSize: FS.meta, fontWeight: 700, color: BRAND.text, flexShrink: 0 }}>RM{Number(r.amount ?? 0).toFixed(2)}</div>
+                      <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text, flexShrink: 0 }}>RM{Number(r.amount ?? 0).toFixed(2)}</div>
                     </div>
                   );
                 })
@@ -1407,7 +1407,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             </div>
             {payoutMessage && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 10 }}>{payoutMessage}</div>}
             <Card>
-              <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 16 }}>Payout Queue</div>
+              <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 16 }}>Payout Queue</div>
               {/* Six columns will never fit a phone. Scroll the TABLE, not the
                   page -- a body that scrolls sideways drags the whole layout
                   with it. */}
@@ -1416,7 +1416,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 <thead>
                   <tr style={{ background: BRAND.grayLight }}>
                     {["Worker", "Shift", "Amount", "Scheduled", "Status", "Action"].map(h => (
-                      <th key={h} style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 700, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
+                      <th key={h} style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, textAlign: "left", borderBottom: `1px solid ${BRAND.border}` }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -1435,7 +1435,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                     <tr key={p.id} style={{ borderBottom: `1px solid ${BRAND.border}` }}>
                       <td style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{(p.worker_id && payoutQueueWorkerNames[p.worker_id]) || "N/A"}</td>
                       <td style={{ padding: "10px 12px", fontSize: FS.meta, color: BRAND.textMuted }}>{(p.source_refs?.shift_id && payoutQueueShiftTitles[p.source_refs.shift_id]) || "Shift"}</td>
-                      <td style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 700, color: BRAND.greenOnSurface }}>{toCurrency(p.amount)}</td>
+                      <td style={{ padding: "10px 12px", fontSize: FS.meta, fontWeight: 600, color: BRAND.greenOnSurface }}>{toCurrency(p.amount)}</td>
                       <td style={{ padding: "10px 12px", fontSize: FS.meta, color: BRAND.textMuted }}>{p.scheduled_date ? new Date(p.scheduled_date).toLocaleDateString("en-MY") : "TBA"}</td>
                       <td style={{ padding: "10px 12px" }}>
                         <Pill label={payoutStatusLabel(t, p.status)} color={mapPayoutPillColor(p.status)} />
@@ -1483,7 +1483,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
               ["Late cancellation by employer", "Under 24 hours before start: the worker chooses a 50% payout, or shows up for 100%", "Cancellation triggers in Postgres."],
             ].map(([label, value, source]) => (
               <Card key={label} style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight: 700, fontSize: FS.body, color: BRAND.text, marginBottom: 4 }}>{label}</div>
+                <div style={{ fontWeight: 600, fontSize: FS.body, color: BRAND.text, marginBottom: 4 }}>{label}</div>
                 <div style={{ fontSize: FS.body, color: BRAND.text, marginBottom: 6 }}>{value}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{source}</div>
               </Card>
