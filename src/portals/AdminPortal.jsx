@@ -750,7 +750,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
           </button>
         );
       })}
-      <div style={{ padding: "24px 20px 0", marginTop: 16, borderTop: `1px solid ${ADMIN_SIDEBAR_RULE}` }}>
+      <div style={{ padding: compact ? "24px 20px 0" : "24px 20px 72px", marginTop: 16, borderTop: `1px solid ${ADMIN_SIDEBAR_RULE}` }}>
         <div style={{ fontSize: FS.meta, color: ADMIN_SIDEBAR_DIM, marginBottom: 8 }}>Logged in as</div>
         {/* Was hardcoded "Rafiq Ismail / Superadmin" -- design-mock filler that
             survived onto a screen only real admins can open, telling the

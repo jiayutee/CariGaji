@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, Fragment } from "react";
 import { supabase } from "../lib/supabase.js";
 import { createPortal } from "react-dom";
-import { Avatar, BRAND, Badge, Btn, CHECKOUT_WINDOW_MS, Card, DISPUTES_CHANGED_EVENT, DISPUTE_CATEGORIES, EvidencePicker, MyDisputesList, EmptyState, FS, FileInput, FilterClearAll, FilterPanel, FilterToggle, HoursNote, Icons, InlineIcon, Input, MALAYSIAN_BANK_OPTIONS, MIN_REVIEWS_TO_SHOW, OPEN_COOKIE_PREFS_EVENT, PLATFORM_FEE_PCT, Pill, Progress, RADIUS, RATING_ASPECTS, RatingDetailsModal, ReceivedFeedback, SEDCARD_QUALIFICATIONS, SHIFT_CATEGORIES, SHIFT_LANGUAGES, SHIFT_REQUIRED_DOCUMENTS, SITE, Select, StarInput, StarRating, Stat, TYPE, Z, bankVerificationLabel, buildContractRows, chatDayKey, chatDayLabel, chatFullTimestamp, chatPreviewLine, decodeSeg, disablePushNotifications, displayProtectedText, disputeStatusLabel, enablePushNotifications, formatOccurrenceLine, formatOccurrencesSummary, formatShiftDate, formatShiftTime, getAvatarUrl, hasTranslation, hoursUntilShift, initialRouteSegments, mapPayoutPillColor, mapVerificationPillColor, openContractPrintWindow, openMailtoSupport, payoutHoldReasonLabel, payoutStatusLabel, readChatSeen, readPushStatus, reconfirmState, renderContractRowsJSX, routeKeyFromSegment, sanitizeBulkTextValue, shiftCategoryLabel, shiftLastEndsAt, shiftRequiredDocuments, sortConversationsByRecent, statusTone, toCurrency, totalOccurrenceHours, openDispute, uploadAvatarFile, uploadDisputeEvidence, uploadKycFile, useDialog, useLanguage, usePortalRoute, useConfirm, useToast, useUnreadChatRooms, validateMalaysianBankAccount, writeChatSeen } from "../../carigaji-app.jsx";
+import { FONT_MONO, Avatar, BRAND, Badge, Btn, CHECKOUT_WINDOW_MS, Card, DISPUTES_CHANGED_EVENT, DISPUTE_CATEGORIES, EvidencePicker, MyDisputesList, EmptyState, FS, FileInput, FilterClearAll, FilterPanel, FilterToggle, HoursNote, Icons, InlineIcon, Input, MALAYSIAN_BANK_OPTIONS, MIN_REVIEWS_TO_SHOW, OPEN_COOKIE_PREFS_EVENT, PLATFORM_FEE_PCT, Pill, Progress, RADIUS, RATING_ASPECTS, RatingDetailsModal, ReceivedFeedback, SEDCARD_QUALIFICATIONS, SHIFT_CATEGORIES, SHIFT_LANGUAGES, SHIFT_REQUIRED_DOCUMENTS, SITE, Select, StarInput, StarRating, Stat, TYPE, Z, bankVerificationLabel, buildContractRows, chatDayKey, chatDayLabel, chatFullTimestamp, chatPreviewLine, decodeSeg, disablePushNotifications, displayProtectedText, disputeStatusLabel, enablePushNotifications, formatOccurrenceLine, formatOccurrencesSummary, formatShiftDate, formatShiftTime, getAvatarUrl, hasTranslation, hoursUntilShift, initialRouteSegments, mapPayoutPillColor, mapVerificationPillColor, openContractPrintWindow, openMailtoSupport, payoutHoldReasonLabel, payoutStatusLabel, readChatSeen, readPushStatus, reconfirmState, renderContractRowsJSX, routeKeyFromSegment, sanitizeBulkTextValue, shiftCategoryLabel, shiftLastEndsAt, shiftRequiredDocuments, sortConversationsByRecent, statusTone, toCurrency, totalOccurrenceHours, openDispute, uploadAvatarFile, uploadDisputeEvidence, uploadKycFile, useDialog, useLanguage, usePortalRoute, useConfirm, useToast, useUnreadChatRooms, validateMalaysianBankAccount, writeChatSeen } from "../../carigaji-app.jsx";
 
 // Validates the Post Shift wizard's occurrence rows before advancing past
 // step 1. Returns a reason code (mapped to a translated toast message by the
@@ -2348,9 +2348,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
           )}
         </button>
       ))}
-      <div style={{ padding: "24px 20px 0", marginTop: "auto" }}>
+      {/* Bottom room on desktop: the cookie-preferences button floats at the
+          bottom-left and used to sit on top of "Return to Worker App". */}
+      <div style={{ padding: compact ? "24px 20px 0" : "24px 20px 72px", marginTop: "auto" }}>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 6 }}>{t("employer.paidToWorkers")}</div>
-        <div style={{ fontWeight: 600, fontSize: FS.lead, color: BRAND.greenOnSurface }}>{toCurrency(committedPayoutTotal)}</div>
+        <div style={{ fontFamily: FONT_MONO, fontWeight: 500, fontSize: FS.lead, color: BRAND.text, fontVariantNumeric: "tabular-nums" }}>{toCurrency(committedPayoutTotal)}</div>
         <Btn size="xs" variant="ghost" onClick={onOpenSupportChat} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.topUpBtn")}</Btn>
         <Btn size="xs" variant="secondary" onClick={() => onOpenPortal?.("worker")} style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>{t("employer.returnToWorkerApp")}</Btn>
       </div>
@@ -2792,10 +2794,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </Card>
             )}
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
-              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open" || s.status === "closed").length} color={BRAND.primaryOnSurface} />
-              <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} color={BRAND.blue} />
-              <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} color={BRAND.green} />
-              <Stat label={t("employer.statReliability")} value={employerProfile?.reliability_score ?? 0} sub="/100" color={BRAND.accent} />
+              <Stat label={t("employer.statActiveShifts")} value={(liveEmployerShifts ?? []).filter(s => s.status === "open" || s.status === "closed").length} />
+              <Stat label={t("employer.statTotalApplicants")} value={(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.applicants || 0), 0)} />
+              <Stat label={t("employer.statFilledSlots")} value={`${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.filled || 0), 0)}/${(liveEmployerShifts ?? []).reduce((sum, s) => sum + (s.headcount || 0), 0)}`} />
+              <Stat label={t("employer.statReliability")} value={employerProfile?.reliability_score ?? 0} sub="/100" />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "2fr 1fr", gap: 16 }}>
               <div>
@@ -3029,10 +3031,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 top-left on mobile, leftmost on desktop -- which is the strongest
                 position in both layouts, rather than the far edge. */}
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
-              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={(selectedShift.feePct ?? platformFeePct) > 0 ? t("employer.statEstBudgetTooltip").replace("{feePct}", +((selectedShift.feePct ?? platformFeePct) * 100).toFixed(2)) : t("employer.statEstBudgetTooltipNoFee")} color={BRAND.primaryOnSurface} />
-              <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} tooltip={t("employer.statAvgBidTooltip")} color={BRAND.accent} />
-              <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} color={BRAND.blue} />
-              <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} color={BRAND.green} />
+              <Stat label={t("employer.statEstBudget")} value={`RM${selectedShift.estBudget ?? 0}`} tooltip={(selectedShift.feePct ?? platformFeePct) > 0 ? t("employer.statEstBudgetTooltip").replace("{feePct}", +((selectedShift.feePct ?? platformFeePct) * 100).toFixed(2)) : t("employer.statEstBudgetTooltipNoFee")} />
+              <Stat label={t("employer.statAvgBid")} value={detailAvgBid ? `RM${detailAvgBid.toFixed(2)}` : t("employer.reviewNotSet")} tooltip={t("employer.statAvgBidTooltip")} />
+              <Stat label={t("employer.statAppliedUsers")} value={selectedShift.applicants} />
+              <Stat label={t("employer.statSlotsFilled")} value={`${selectedShift.filled}/${selectedShift.headcount}`} />
             </div>
             {selectedShift.status === "cancelled" && confirmedSignedApplicants.length > 0 && (
               <Card style={{ marginBottom: 20 }}>
@@ -3179,7 +3181,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       </div>
                       <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${BRAND.border}`, display: "grid", gridTemplateColumns: "auto 1fr", rowGap: 9, columnGap: 12, alignItems: "center" }}>
                         <span style={metaLabel}>{t("employer.colBidRate")}</span>
-                        <span style={{ justifySelf: "end", fontSize: FS.bodyLg, fontWeight: 600, color: BRAND.primaryOnSurface }}>RM{a.wageBid}</span>
+                        <span style={{ justifySelf: "end", fontFamily: FONT_MONO, fontSize: FS.bodyLg, fontWeight: 500, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>RM{a.wageBid}</span>
 
                         <span style={metaLabel}>{t("employer.colRating")}</span>
                         <div style={{ justifySelf: "end" }}>
@@ -3237,7 +3239,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                         </div>
                       </td>
                       <td style={{ padding: "12px 14px" }}><StarRating value={a.rating} count={a.ratingCount} size={11} onClick={() => openRatingDetails(a.workerId, 'employer_to_worker', a.name)} /></td>
-                      <td style={{ padding: "12px 14px", fontWeight: 600, color: BRAND.primaryOnSurface, fontSize: FS.body }}>RM{a.wageBid}</td>
+                      <td style={{ padding: "12px 14px", fontFamily: FONT_MONO, fontWeight: 500, color: BRAND.primaryOnSurface, fontSize: FS.body, fontVariantNumeric: "tabular-nums" }}>RM{a.wageBid}</td>
                       <td style={{ padding: "12px 14px" }}>{applicantStatusPill(a, action)}</td>
                       <td style={{ padding: "12px 14px" }}>{applicantActions(a, action, isSelectable)}</td>
                     </tr>
@@ -3845,8 +3847,8 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               )}
             </Card>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 12 }}>
-              <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} tooltip={t("employer.pendingPayoutTooltip")} color={BRAND.amber} />
-              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} tooltip={t("employer.totalPaidOutTooltip")} color={BRAND.primaryOnSurface} />
+              <Stat label={t("employer.pendingPayout")} value={toCurrency(committedPayoutTotal)} tooltip={t("employer.pendingPayoutTooltip")} />
+              <Stat label={t("employer.totalPaidOut")} value={toCurrency(paidOutPayoutTotal)} tooltip={t("employer.totalPaidOutTooltip")} />
             </div>
             <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 16 }}>
               {t("employer.escrowUnavailableNote")}
@@ -4621,11 +4623,11 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:16 }}>
-              <Stat label={t("employer.colReliability")} value={workerProfileModal.reliability} color={BRAND.green} />
+              <Stat label={t("employer.colReliability")} value={workerProfileModal.reliability} />
               <div onClick={() => openRatingDetails(workerProfileModal.workerId, 'employer_to_worker', workerProfileModal.name)} style={{ cursor: 'pointer' }}>
-                <Stat label={t("employer.colRating")} value={workerProfileModal.ratingCount >= MIN_REVIEWS_TO_SHOW ? workerProfileModal.rating.toFixed(1) : workerProfileModal.ratingCount ? t("rating.new") : '—'} sub={workerProfileModal.ratingCount ? (workerProfileModal.ratingCount === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count: workerProfileModal.ratingCount })) : undefined} color={BRAND.accent} />
+                <Stat label={t("employer.colRating")} value={workerProfileModal.ratingCount >= MIN_REVIEWS_TO_SHOW ? workerProfileModal.rating.toFixed(1) : workerProfileModal.ratingCount ? t("rating.new") : '—'} sub={workerProfileModal.ratingCount ? (workerProfileModal.ratingCount === 1 ? t("rating.reviewsOne") : t("rating.reviewsMany", { count: workerProfileModal.ratingCount })) : undefined} />
               </div>
-              <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} color={BRAND.primaryOnSurface} />
+              <Stat label={t("employer.colBidRate")} value={`RM${workerProfileModal.wageBid}`} />
             </div>
             <div style={{ background: BRAND.grayLight, borderRadius: RADIUS.control, padding: 14, marginBottom: 16 }}>
               <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginBottom: 4 }}>{t("sedcard.bioLabel")}</div>

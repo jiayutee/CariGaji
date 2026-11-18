@@ -2993,7 +2993,11 @@ export const Avatar = memo(({ name = "?", size = 36, color = BRAND.primary, src 
 // only ever appears on hover -- i.e. never on a phone, where most of this app
 // is used. It looked tappable and did nothing. Now it IS a button: tap toggles
 // the explanation, and the native title stays for desktop hover.
-export const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip }) => {
+// Default is the plain text colour: a figure is not a highlight by itself, and
+// a row of tiles in four different hues made nothing stand out. Pay figures
+// (anything starting "RM") switch to the mono signature automatically.
+export const Stat = memo(({ label, value, sub, color = BRAND.text, tooltip }) => {
+  const isMoney = typeof value === "string" && /^[~-]?RM/.test(value);
   const [open, setOpen] = useState(false);
   return (
     <div title={tooltip} style={{ position: "relative", background: BRAND.grayLight, borderRadius: RADIUS.card, padding: "16px 20px", cursor: tooltip ? "help" : "default" }}>
@@ -3009,7 +3013,7 @@ export const Stat = memo(({ label, value, sub, color = BRAND.primary, tooltip })
           >?</button>
         )}
       </div>
-      <div style={{ fontSize: FS.h1, fontWeight: 600, color, lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: FS.h1, fontWeight: isMoney ? 500 : 600, color, lineHeight: 1, fontVariantNumeric: "tabular-nums", ...(isMoney ? { fontFamily: FONT_MONO, letterSpacing: "-0.02em" } : {}) }}>{value}</div>
       {sub && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 4 }}>{sub}</div>}
       {open && tooltip && (
         // Sits above the tile rather than inside it: these tiles are in a
