@@ -584,6 +584,7 @@ const TRANSLATIONS = {
     "worker.previewModeBidBtn": "Preview — can't submit",
     "myBids.signContractBtn": "Sign Contract",
     "myBids.contractSignedBadge": "Contract signed",
+    "myBids.endedUnsigned": "This shift ended before the contract was signed",
     "myBids.shiftCancelledNotice": "This shift was cancelled by the employer. No further action is needed.",
     "myBids.lateCancellationTitle": "This shift was cancelled less than 24 hours before it started",
     "myBids.lateCancellationBody": "Choose to sign a 50% cancellation payout now, or show up in person and submit a photo for 100% of your agreed wage.",
@@ -1079,10 +1080,10 @@ const TRANSLATIONS = {
     "employer.billingTitle": "Billing & Payouts",
     "employer.accountTitle": "Account",
     "earnings.title": "Earnings",
-    "earnings.subtitle": "Live payout schedule and internal settlement status",
-    "earnings.totalPayouts": "Total Internal Payouts",
-    "earnings.verified": "Banking verified for salary payout",
-    "earnings.notVerified": "Complete SecureSign bank verification to receive payout",
+    "earnings.subtitle": "What you've been paid, and when the next payout lands",
+    "earnings.totalPayouts": "Paid to you",
+    "earnings.verified": "Your bank account is confirmed, so payouts go straight to it",
+    "earnings.notVerified": "Add and confirm your bank account in Profile › Settings to get paid",
     "earnings.statRecords": "Payout records",
     "earnings.statReady": "Ready to release",
     "earnings.statHeld": "Held payouts",
@@ -5019,7 +5020,7 @@ const StatStrip = ({ items = [] }) => (
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>{it.icon}</span>
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, lineHeight: 1.15 }}>{it.value}</div>
+          <div style={{ fontSize: FS.lead, fontWeight: typeof it.value === "string" && /^[~-]?RM/.test(it.value) ? 500 : 600, color: BRAND.text, lineHeight: 1.15, fontVariantNumeric: "tabular-nums", ...(typeof it.value === "string" && /^[~-]?RM/.test(it.value) ? { fontFamily: FONT_MONO } : {}) }}>{it.value}</div>
           {/* Wraps rather than truncating. The reference gets away with one line
               because its labels are two short words ("Total rides"); ours are
               translated and run longer, and a clipped "Total Internal Pay..." is
@@ -6254,7 +6255,7 @@ const MonthlyEarningsBarChart = ({ months, truncated, isMobile, t }) => {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
         <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{selected.fullLabel}</div>
-        <div style={{ fontSize: FS.bodyLg, fontWeight: 600, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
+        <div style={{ fontFamily: FONT_MONO, fontSize: FS.bodyLg, fontWeight: 500, color: BRAND.primaryOnSurface, fontVariantNumeric: "tabular-nums" }}>{toCurrency(selected.total)}</div>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: isMobile ? 6 : 10, height: chartHeight, overflowX: months.length > 8 ? "auto" : "visible", paddingBottom: 2, borderBottom: `1px solid ${BRAND.border}` }}>
         {months.map(m => {
@@ -8363,7 +8364,16 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     return <span style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: align, flex: align === "center" ? 1 : undefined }}>{t("worker.checkInOpensAt", { when })}</span>;
   };
 
+  // Over and never signed: nothing left to sign or check in to. The card used
+  // to keep offering Check In and Sign Contract on shifts months in the past.
+  const endedUnsigned = (a) => {
+    if (a.status !== "accepted" || a.workerSignedAt) return false;
+    const ends = shiftLastEndsAt(a.shiftOccurrences, a.shiftEndAt);
+    return ends != null && Date.now() > ends.getTime();
+  };
+
   const renderCheckState = (a, stopClick) => {
+    if (endedUnsigned(a)) return <span style={{ fontSize: FS.meta, color: BRAND.textMuted, textAlign: "right", maxWidth: 220 }}>{t("myBids.endedUnsigned")}</span>;
     const issue = attendanceIssue(a);
     if (issue) return renderAttendanceIssue(a, issue, "right", stopClick);
     // A booking on hold for changed terms cannot be checked in to (worker_check_in
@@ -9359,7 +9369,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{t("myBids.yourBidPrefix")}</div>
-                      <span style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.greenOnSurface }}>RM{a.wageBid}<span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted }}>/h</span></span>
+                      <span style={{ fontFamily: FONT_MONO, fontSize: FS.h2, fontWeight: 500, color: BRAND.greenOnSurface, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.02em" }}>RM{a.wageBid}<span style={{ fontSize: FS.meta, fontWeight: 400, color: BRAND.textMuted, letterSpacing: 0 }}>/h</span></span>
                     </div>
                     {a.status === "shortlisted" && (
                       <Btn size="sm" onClick={(e) => { e.stopPropagation(); setTab('chat'); }}>{t("myBids.chatBtn")}</Btn>
@@ -9371,7 +9381,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                       <InlineIcon icon={Icons.Star} />{t("myBids.shortlistedBanner")}
                     </div>
                   )}
-                  {a.status === 'accepted' && !a.workerSignedAt && a.shiftStatus !== 'cancelled' && (
+                  {a.status === 'accepted' && !a.workerSignedAt && a.shiftStatus !== 'cancelled' && !endedUnsigned(a) && (
                     <button onClick={(e) => { e.stopPropagation(); setWorkerContractModal({
                         ...a, applicationId: a.id, employerName: a.employer,
                       }); }}
