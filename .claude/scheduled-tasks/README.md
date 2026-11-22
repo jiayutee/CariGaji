@@ -8,25 +8,38 @@ reconciliation, the design invariant check, the anti-spam dedup rule for
 HIGH-risk approval pings), that was the least-protected and most-edited part of
 the project.
 
-They are now version-controlled here, and the live paths are **symlinks** back
-into this directory:
+They are now version-controlled here. The live paths are **plain copies** of
+these files, installed by `scripts/sync-scheduled-tasks.sh`:
 
 ```
-~/.claude/scheduled-tasks/<task>/SKILL.md  ->  .claude/scheduled-tasks/<task>/SKILL.md
+.claude/scheduled-tasks/<task>/SKILL.md  --copy-->  ~/.claude/scheduled-tasks/<task>/SKILL.md
 ```
 
-Editing either path edits the same file. The scheduler opens the live path and
-follows the symlink transparently, so nothing about how tasks run changed.
+**They must not be symlinks.** They were symlinks from 2026-08-22, but the
+Claude app's scheduler now refuses to open a symlinked task file. It logs
+`symlink detected before open; refusing to open`, records the slot as
+`start_failed`, and creates no session, while `lastRunAt` keeps advancing so the
+task still looks healthy. Every CariGaji run silently failed to start from
+2026-09-02 until the copies replaced the symlinks on 2026-11-22.
+
+## Editing a runbook
+
+1. Edit the repo copy here and commit it.
+2. Run `scripts/sync-scheduled-tasks.sh` to install it into the live path.
+
+If a run or a quick fix edited the live file instead, the sync refuses and
+prints the diff. `--pull` copies the live edits back into the repo (then
+commit), and `--force` overwrites them. `--check` only reports drift, and it
+also flags any symlink that has crept back.
+
+`scripts/orchestrator-runner.sh` reads the live path, so it also needs a sync
+after an edit.
 
 ## If you clone this repo somewhere else
 
-The symlinks are absolute and point at `/Users/jiayutee/Dev/Projects/CariGaji`.
-A fresh clone does NOT install them — re-create them by hand:
-
-```bash
-ln -sfn "$(pwd)/.claude/scheduled-tasks/<task>/SKILL.md" \
-        ~/.claude/scheduled-tasks/<task>/SKILL.md
-```
+Run `scripts/sync-scheduled-tasks.sh` once. It creates the live folders and
+copies the three runbooks in. The tasks themselves still have to be registered
+in the Claude app.
 
 ## What is deliberately NOT here
 
