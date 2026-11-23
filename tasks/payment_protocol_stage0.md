@@ -36,10 +36,10 @@ These facts limit what the protocol can promise:
   | 24 to 48 hours | **50%** |
   | Under 24 hours | **50%**, or **100% if the worker turns up** (show-up choice) |
 
-  > ⚠️ `go_to_market.md` §1/§5 and this week's outreach draft only mention the
-  > under-24h tier. The 25% and 50% tiers from 7 days down to 24 hours are live
-  > and will appear in the app. The T&C wording must state all of the tiers,
-  > not only the headline one.
+  > ⚠️ Fixed 2026-11-23: `go_to_market.md` §1/§5 and this week's outreach
+  > draft used to mention only the under-24h tier; they now state all the
+  > tiers. The T&C wording must also state all of the tiers, not only the
+  > headline one.
 
 - **The fee is not charged anywhere.** The 15% fee exists only as a constant in
   the browser (see `tasks/funding_architecture.md`), and pilot employers are
@@ -107,6 +107,6 @@ personally. It is not a guarantee from the platform.
 - [ ] Settle every `[DECIDE]` above.
 - [ ] Have the T&C wording reviewed. It ties to the open backlog row "revise
       privacy policy, terms of service and cookie policy".
-- [ ] Fix `go_to_market.md` §1/§5 and the outreach FAQ so they state all the
+- [x] Fix `go_to_market.md` §1/§5 and the outreach FAQ so they state all the
       cancellation tiers, not only the under-24h one.
 - [ ] Create the "Pilot payments" log before the first pilot shift.
