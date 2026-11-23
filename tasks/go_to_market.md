@@ -42,9 +42,11 @@ Each of these is enforced in the database, not just drawn in the UI:
   wage and hours.
 - **QR check-in/out** timestamps what actually happened, so a timesheet
   argument has evidence behind it.
-- **Late cancellation has a price.** An employer who cancels inside 24h owes
-  each confirmed worker 50% by contract, or 100% if the worker shows up.
-  Computed server-side from the signed wage — not goodwill, not a negotiation.
+- **Late cancellation has a price.** An employer who cancels owes each
+  confirmed worker, by contract: nothing with more than 7 days notice; 25% of
+  the signed wage at 48 hours to 7 days; 50% at 24 to 48 hours; and under 24h,
+  50%, or 100% if the worker shows up. Computed server-side from the signed
+  wage — not goodwill, not a negotiation.
 - **Employers are SSM-gated.** They cannot post until an admin verifies the
   company registration number.
 - **Two-sided ratings and a reliability score**, so no-shows carry forward.
@@ -151,7 +153,8 @@ empty app burns the channel.
 
 **Worker: "How do I know I'll get paid?"**
 Today: the wage and hours are in a contract both sides signed, check-in/out is
-timestamped, and a late cancellation owes you 50–100% automatically. In the
+timestamped, and an employer who cancels late owes you 25–100% of your wage by
+contract, depending on notice. In the
 pilot, the owner personally settles any dispute within 48h. **Do not say
 "guaranteed" or "escrow" until Stage 1 is done.**
 
@@ -165,8 +168,9 @@ No. Workers pay nothing, ever. The fee is charged to the employer on top of
 your wage — you receive the full rate you agreed.
 
 **Worker: "What if the employer cancels last minute?"**
-Inside 24 hours you are owed 50% by contract, or 100% if you turn up. The
-amount is computed from your signed wage, not negotiated.
+By contract: more than 7 days notice, nothing; 48 hours to 7 days, 25%;
+24 to 48 hours, 50%; under 24 hours, 50%, or 100% if you turn up. The amount
+is computed from your signed wage, not negotiated.
 
 **Employer: "Why not just use my WhatsApp group?"**
 You already do, and it works until it doesn't: no-shows with no record, pay
