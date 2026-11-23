@@ -57,8 +57,9 @@ That is the honest wedge: *nobody has to argue about what was agreed.*
 
 ### Stage 0 — Concierge pilot (can start now)
 No new engineering required. Gates:
-- [ ] Decide and write the **manual payment protocol** (below) and put it in
-      the T&C, so the promise made is the promise kept.
+- [ ] Decide and write the **manual payment protocol** and put it in the T&C,
+      so the promise made is the promise kept. Draft with open owner decisions:
+      `tasks/payment_protocol_stage0.md` (2026-11-23).
 - [ ] One category, one area. Recommend **F&B + events in Klang Valley**.
 - [ ] 3–5 employers, hand-held. Owner is personally the payment rail.
 
