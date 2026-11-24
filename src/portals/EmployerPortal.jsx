@@ -3496,10 +3496,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     const totalHours = totalOccurrenceHours(form.occurrences);
                     const reserve = parseFloat(form.wageMax || 0) * parseInt(form.headcount || 0) * totalHours * (1 + newShiftFeePct);
                     return (
-                      <div style={{ background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "12px 16px", marginTop: 16, marginBottom: 16 }}>
-                        <div style={{ fontSize: FS.meta, color: BRAND.amber, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
-                        <div style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.amber }}>{toCurrency(reserve)}</div>
-                        <div style={{ fontSize: FS.meta, color: BRAND.amber }}>{newShiftFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(newShiftFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
+                      <div style={{ background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "12px 16px", marginTop: 16, marginBottom: 16, color: BRAND.onAmberLight }}>
+                        <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, fontWeight: 600, marginBottom: 4 }}>{t("employer.estimatedReserveLabel")}</div>
+                        <div style={{ fontSize: FS.h2, fontWeight: 600, color: BRAND.onAmberLight }}>{toCurrency(reserve)}</div>
+                        <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight }}>{newShiftFeePct > 0 ? t("employer.estimatedReserveFormula").replace("{feePct}", +(newShiftFeePct * 100).toFixed(2)) : t("employer.estimatedReserveFormulaNoFee")}</div>
                         {/* The trial line only appears when a fee actually
                             exists. While the global rate is 0 everyone is free
                             anyway, and announcing a "free trial" then would
@@ -3662,7 +3662,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               );
               return (
                 <div>
-                  <div style={{ background: needsFixCount > 0 ? BRAND.amberLight : BRAND.greenLight, borderRadius: RADIUS.control, padding: "10px 16px", marginBottom: 16, fontSize: FS.meta, fontWeight: 600, color: needsFixCount > 0 ? BRAND.amber : BRAND.green }}>
+                  <div style={{ background: needsFixCount > 0 ? BRAND.amberLight : BRAND.greenLight, borderRadius: RADIUS.control, padding: "10px 16px", marginBottom: 16, fontSize: FS.meta, fontWeight: 600, color: needsFixCount > 0 ? BRAND.onAmberLight : BRAND.onGreenLight }}>
                     {t("employer.bulkRowsSummary").replace("{ready}", readyCount).replace("{total}", total).replace("{needsFix}", needsFixCount)}
                   </div>
                   <Card style={{ padding: 0, overflow: "auto", marginBottom: 16 }}>
@@ -3743,7 +3743,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     </div>
                   )}
                   {!bulkUploadPublishing && (publishedCount > 0 || failedCount > 0) && (
-                    <div style={{ background: failedCount > 0 ? BRAND.amberLight : BRAND.greenLight, borderRadius: RADIUS.control, padding: "10px 16px", marginBottom: 16, fontSize: FS.meta, fontWeight: 600, color: failedCount > 0 ? BRAND.amber : BRAND.green }}>
+                    <div style={{ background: failedCount > 0 ? BRAND.amberLight : BRAND.greenLight, borderRadius: RADIUS.control, padding: "10px 16px", marginBottom: 16, fontSize: FS.meta, fontWeight: 600, color: failedCount > 0 ? BRAND.onAmberLight : BRAND.onGreenLight }}>
                       {t("employer.bulkPublishSummary").replace("{published}", publishedCount).replace("{failed}", failedCount)}
                     </div>
                   )}

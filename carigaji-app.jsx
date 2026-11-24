@@ -9554,7 +9554,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               {a.shiftCategory && <Badge color="amber">{shiftCategoryLabel(a.shiftCategory, t)}</Badge>}
             </div>
             {a.shiftStatus === "cancelled" && !a.cancellationChoiceDeadline && (
-              <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: RADIUS.control, fontSize: FS.meta, color: BRAND.red, marginBottom: 16 }}>
+              <div style={{ padding: "10px 14px", background: BRAND.redLight, border: `1px solid ${BRAND.red}`, borderRadius: RADIUS.control, fontSize: FS.meta, color: BRAND.onRedLight, marginBottom: 16 }}>
                 {t("myBids.shiftCancelledNotice")}
               </div>
             )}
@@ -9621,7 +9621,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             )}
             {a.status === "expired" && (
-              <div style={{ padding: "10px 14px", background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: RADIUS.control, fontSize: FS.meta, color: BRAND.red, marginBottom: 16 }}>
+              <div style={{ padding: "10px 14px", background: BRAND.redLight, border: `1px solid ${BRAND.red}`, borderRadius: RADIUS.control, fontSize: FS.meta, color: BRAND.onRedLight, marginBottom: 16 }}>
                 {t("myBids.offerExpiredNotice")}
               </div>
             )}
@@ -12031,7 +12031,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
         <div style={{ fontSize: FS.lead, fontWeight: 600, color: BRAND.text, marginBottom: 4 }}>{kycOnly ? t("details.kycOnlyTitle") : t("details.title")}</div>
         <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 16 }}>{kycOnly ? t("details.kycOnlySubtitle") : (isEmployer ? t("details.subtitleEmployer") : t("details.subtitleWorker"))}</div>
         {showErrors && hasErrors && (
-          <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: RADIUS.control, background: "#FEF2F2", border: `1.5px solid ${BRAND.red}`, color: BRAND.red, fontSize: FS.meta }}>
+          <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: RADIUS.control, background: BRAND.redLight, border: `1.5px solid ${BRAND.red}`, color: BRAND.onRedLight, fontSize: FS.meta }}>
             {t("auth.pleaseCompleteFields")}
           </div>
         )}
@@ -12119,7 +12119,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
                 <div style={{ fontSize: FS.meta, color: BRAND.greenOnSurface, fontWeight: 600, marginBottom: 12 }}><InlineIcon icon={Icons.Check} />{t("auth.ocrMatch")}</div>
               )}
               {idOcr.status === "mismatch" && (
-                <div style={{ fontSize: FS.meta, color: "#B45309", marginBottom: 12 }}>
+                <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, background: BRAND.amberLight, borderRadius: RADIUS.control, padding: "10px 14px", marginBottom: 12 }}>
                   <strong>{t("auth.ocrMismatchTitle")}</strong> {t("auth.ocrMismatchAction")}
                 </div>
               )}
