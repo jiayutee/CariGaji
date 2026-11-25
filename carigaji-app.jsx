@@ -1401,6 +1401,7 @@ const TRANSLATIONS = {
     "landing.sampleSealLine3": "Employer",
     "landing.sampleFundedBadge": "Agreed",
     "landing.sampleLabel": "Example pay slip",
+    "landing.sampleTitle": "F&B Server, Corporate Dinner",
     "discover.filterCity": "City",
     "discover.anyCity": "Any city",
     "discover.filterAreaPlaceholder": "Area e.g. Bukit Bintang",
@@ -6401,7 +6402,7 @@ const DiscoverLandingHero = ({ t, isMobile, onRequireAuth }) => {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
                 <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: SLIP.inkMuted }}>{t("landing.sampleLabel")}</span>
               </div>
-              <div style={{ fontWeight: 600, fontSize: FS.card, lineHeight: 1.3 }}>F&amp;B Server, Corporate Dinner</div>
+              <div style={{ fontWeight: 600, fontSize: FS.card, lineHeight: 1.3 }}>{t("landing.sampleTitle")}</div>
               <div style={{ fontSize: FS.meta, color: SLIP.inkMuted, marginTop: 4 }}><InlineIcon icon={Icons.Pin} size={12} />Bangsar, Kuala Lumpur</div>
               <div style={{ borderTop: `1px dashed ${SLIP.rule}`, margin: "16px 0 8px" }} />
               {[[t("landing.sampleRateLabel"), `RM 16.00${t("landing.sampleRateUnit")}`], [t("landing.sampleLengthLabel"), `6${t("landing.sampleLengthUnit")}`]].map(([k, v]) => (
