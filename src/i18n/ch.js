@@ -1454,7 +1454,7 @@ export default {
     "auth.roleWorkerHint": "浏览并申请班次",
     "auth.roleEmployerTitle": "招聘员工",
     "auth.roleEmployerHint": "发布班次并管理申请人",
-    "auth.socialSignupHint": "使用 Google、Apple 或 Facebook 注册可立即创建账户。之后系统会要求您完成身份（KYC）验证才能开始工作。",
+    "auth.socialSignupHint": "使用 Google 注册可立即创建账户。之后系统会要求您完成身份（KYC）验证才能开始工作。",
     "auth.tncAgreeText": "我已阅读并同意",
     "auth.tncLinkText": "条款与条件及隐私声明",
     "auth.tncSuffixText": "，包括为就业验证目的收集并使用我的身份证件（MyKad/护照）。",

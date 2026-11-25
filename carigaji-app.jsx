@@ -1875,7 +1875,7 @@ const TRANSLATIONS = {
     "auth.roleWorkerHint": "Browse and apply for shifts",
     "auth.roleEmployerTitle": "Hire workers",
     "auth.roleEmployerHint": "Post shifts and manage applicants",
-    "auth.socialSignupHint": "Signing up with Google, Apple, or Facebook creates your account instantly. You'll be asked to complete identity (KYC) verification afterwards to start working.",
+    "auth.socialSignupHint": "Signing up with Google creates your account instantly. You'll be asked to complete identity (KYC) verification afterwards to start working.",
     "auth.tncAgreeText": "I have read and agree to the",
     "auth.tncLinkText": "Terms & Conditions and Privacy Notice",
     "auth.tncSuffixText": ", including the collection and use of my identity document (MyKad/passport) for employment verification purposes.",
@@ -5828,22 +5828,6 @@ const SocialAuthButtons = ({ onOAuth, label = "Continue" }) => {
         </svg>
       ),
     },
-    {
-      id: "apple", name: "Apple",
-      icon: (
-        <svg width="16" height="18" viewBox="0 0 16 18" xmlns="http://www.w3.org/2000/svg" fill="#000">
-          <path d="M13.24 9.54c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.3 2-1.4 2.44-.36 6.05 1.01 8.03.67.97 1.47 2.06 2.5 2.02 1-.04 1.39-.65 2.6-.65 1.21 0 1.56.65 2.63.63 1.09-.02 1.78-.99 2.44-1.96.77-1.12 1.09-2.21 1.1-2.27-.02-.01-2.11-.81-2.13-3.21zM11.3 3.6c.55-.67.93-1.6.82-2.53-.8.03-1.76.53-2.33 1.2-.51.59-.96 1.53-.84 2.44.89.07 1.8-.45 2.35-1.11z"/>
-        </svg>
-      ),
-    },
-    {
-      id: "facebook", name: "Facebook",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#1877F2">
-          <path d="M24 12c0-6.63-5.37-12-12-12S0 5.37 0 12c0 5.99 4.39 10.95 10.13 11.85v-8.38H7.08V12h3.05V9.36c0-3.01 1.79-4.67 4.53-4.67 1.31 0 2.68.23 2.68.23v2.95h-1.51c-1.49 0-1.96.93-1.96 1.87V12h3.33l-.53 3.47h-2.8v8.38C19.61 22.95 24 17.99 24 12z"/>
-        </svg>
-      ),
-    },
   ];
   return (
     <div style={{ marginBottom: 16 }}>
@@ -6114,10 +6098,16 @@ const AuthModal = ({
               <button type="button" onClick={() => onViewChange("signin")} style={{ display: "block", width: "100%", minHeight: 44, marginTop: 6, background: "none", border: "none", color: BRAND.primaryOnSurface, fontSize: FS.body, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                 {translate("auth.haveAccountSignIn")}
               </button>
-              <SocialAuthButtons onOAuth={onOAuth} label={translate("common.signUp")} />
-              <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 4, textAlign: "center" }}>
-                {translate("auth.socialSignupHint")}
-              </div>
+              {/* Employers sign up by email only: Google OAuth currently drops the
+                  chosen role and creates a worker account (backlog P4, open). */}
+              {!isEmployerSignup && (
+                <>
+                  <SocialAuthButtons onOAuth={onOAuth} label={translate("common.signUp")} />
+                  <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginTop: 4, textAlign: "center" }}>
+                    {translate("auth.socialSignupHint")}
+                  </div>
+                </>
+              )}
             </form>
           )}
         </div>

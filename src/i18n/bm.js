@@ -1455,7 +1455,7 @@ export default {
     "auth.roleWorkerHint": "Semak imbas dan mohon syif",
     "auth.roleEmployerTitle": "Ambil pekerja",
     "auth.roleEmployerHint": "Siarkan syif dan urus pemohon",
-    "auth.socialSignupHint": "Mendaftar dengan Google, Apple, atau Facebook mencipta akaun anda serta-merta. Anda akan diminta melengkapkan pengesahan identiti (KYC) selepas itu untuk mula bekerja.",
+    "auth.socialSignupHint": "Mendaftar dengan Google mencipta akaun anda serta-merta. Anda akan diminta melengkapkan pengesahan identiti (KYC) selepas itu untuk mula bekerja.",
     "auth.tncAgreeText": "Saya telah membaca dan bersetuju dengan",
     "auth.tncLinkText": "Terma & Syarat dan Notis Privasi",
     "auth.tncSuffixText": ", termasuk pengumpulan dan penggunaan dokumen pengenalan saya (MyKad/pasport) untuk tujuan pengesahan pekerjaan.",
