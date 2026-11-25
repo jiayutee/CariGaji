@@ -981,6 +981,7 @@ export default {
     "landing.sampleSealLine3": "Majikan",
     "landing.sampleFundedBadge": "Dipersetujui",
     "landing.sampleLabel": "Contoh slip gaji",
+    "landing.sampleTitle": "Pelayan F&B, Makan Malam Korporat",
     "discover.filterCity": "Bandar",
     "discover.anyCity": "Mana-mana bandar",
     "discover.filterAreaPlaceholder": "Kawasan cth. Bukit Bintang",

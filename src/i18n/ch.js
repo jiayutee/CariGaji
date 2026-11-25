@@ -980,6 +980,7 @@ export default {
     "landing.sampleSealLine3": "雇主",
     "landing.sampleFundedBadge": "已约定",
     "landing.sampleLabel": "工资单示例",
+    "landing.sampleTitle": "餐饮服务员，企业晚宴",
     "discover.filterCity": "城市",
     "discover.anyCity": "所有城市",
     "discover.filterAreaPlaceholder": "地区，例如：武吉免登",
