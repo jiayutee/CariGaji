@@ -2759,7 +2759,7 @@ export const EvidencePicker = ({ files, onChange, disabled = false, compact = fa
       </Btn>
       {!compact && <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 6, lineHeight: 1.45 }}>{t("dispute.evidenceHint", { max: DISPUTE_EVIDENCE.maxFiles })}</div>}
       {compact && <span style={{ fontSize: FS.meta, color: BRAND.textMuted, marginLeft: 8 }} title={t("dispute.evidenceHint", { max: DISPUTE_EVIDENCE.maxFiles })}>JPG · PNG · WebP · PDF · 5 MB</span>}
-      {problem && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 6 }}>{problem}</div>}
+      {problem && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: 6 }}>{problem}</div>}
       {files.length > 0 && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
           {files.map((f, i) => (
@@ -3032,7 +3032,7 @@ export const Stat = memo(({ label, value, sub, color = BRAND.text, tooltip }) =>
 
 export const Input = ({ label, placeholder, value, onChange, type = "text", style = {}, error = false, ...rest }) => (
   <div style={{ marginBottom: 16, ...style }}>
-    {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
+    {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.redOnSurface : BRAND.text, marginBottom: 6 }}>{label}</label>}
     <input type={type} placeholder={placeholder} value={value} onChange={onChange} {...rest}
       style={{
         width: "100%", padding: "10px 14px", borderRadius: RADIUS.control,
@@ -3051,7 +3051,7 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
   const { t } = useLanguage();
   return (
     <div style={{ marginBottom: 16, position: "relative", ...style }}>
-      {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
+      {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.redOnSurface : BRAND.text, marginBottom: 6 }}>{label}</label>}
       <div style={{ position: "relative" }}>
         <input
           type={show ? "text" : "password"}
@@ -3088,7 +3088,7 @@ const PasswordInput = ({ label, placeholder, value, onChange, style = {}, hideTo
 
 export const FileInput = ({ label, onChange, accept, helper, fileName, error = false }) => (
   <div style={{ marginBottom: 16 }}>
-    {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
+    {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.redOnSurface : BRAND.text, marginBottom: 6 }}>{label}</label>}
     <input
       type="file"
       accept={accept}
@@ -3344,7 +3344,7 @@ const ProfileMenu = ({ user, onSignOut, onOpenSupportChat, onOpenIssueReport = (
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
                 padding: "10px 14px", border: "none", background: "transparent",
                 cursor: "pointer", fontFamily: "inherit", fontSize: FS.meta, textAlign: "left",
-                color: it.danger ? BRAND.red : BRAND.text,
+                color: it.danger ? BRAND.redOnSurface : BRAND.text,
               }}
               onMouseEnter={(e) => { e.currentTarget.style.background = BRAND.grayLight; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
@@ -5783,7 +5783,7 @@ const TnCConsent = ({ checked, onChange, error = false }) => {
           onChange={e => onChange(e.target.checked)}
           style={{ marginTop: 2, accentColor: BRAND.primary, flexShrink: 0, width: 16, height: 16 }}
         />
-        <span style={{ fontSize: FS.meta, color: error ? BRAND.red : BRAND.text, lineHeight: 1.5 }}>
+        <span style={{ fontSize: FS.meta, color: error ? BRAND.redOnSurface : BRAND.text, lineHeight: 1.5 }}>
           {t("auth.tncAgreeText")}{" "}
           <span
             role="button"
@@ -6073,7 +6073,7 @@ const AuthModal = ({
                   <Input label={translate("employer.companyNameLabel")} placeholder={translate("employer.companyNamePlaceholder")} value={form.companyName || ""} onChange={e => onChange("companyName", e.target.value)} error={fieldError("companyName")} />
                   <Input label={translate("auth.fieldSsmNumber")} placeholder="202301012345 / 1234567-X" value={form.ssmNumber || ""} onChange={e => onChange("ssmNumber", e.target.value)} error={fieldError("ssmNumber")} />
                   {form.ssmNumber?.trim() && !ssmFormatOk && (
-                    <div style={{ color: BRAND.red, fontSize: FS.meta, marginTop: -10, marginBottom: 12 }}>{translate("auth.ssmFormatHint")}</div>
+                    <div style={{ color: BRAND.redOnSurface, fontSize: FS.meta, marginTop: -10, marginBottom: 12 }}>{translate("auth.ssmFormatHint")}</div>
                   )}
                   <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -6, marginBottom: 14 }}>
                     {translate("auth.employerVerifyNote")}
@@ -6088,7 +6088,7 @@ const AuthModal = ({
                 <PasswordInput label={translate("auth.confirmPasswordReq")} placeholder={translate("auth.retypePassword")} value={form.confirmPassword} onChange={e => onChange("confirmPassword", e.target.value)} hideToggle={true} error={fieldError("confirmPassword")} />
               </div>
               {form.confirmPassword !== "" && form.password !== form.confirmPassword && (
-                <div style={{ color: BRAND.red, fontSize: FS.meta, marginTop: -8, marginBottom: 12 }}>{translate("auth.passwordsNoMatch")}</div>
+                <div style={{ color: BRAND.redOnSurface, fontSize: FS.meta, marginTop: -8, marginBottom: 12 }}>{translate("auth.passwordsNoMatch")}</div>
               )}
               <div style={{ fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1.5, marginTop: -4, marginBottom: 16 }}>
                 {translate("auth.quickSignupHint")}
@@ -8312,7 +8312,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     const req = attendanceRequests[`${a.id}:${kind}`];
     const pending = req?.status === "pending";
     const declined = req?.status === "declined";
-    const tone = issue === "noShow" ? BRAND.red : BRAND.onAmberLight;
+    const tone = issue === "noShow" ? BRAND.redOnSurface : BRAND.onAmberLight;
     const askLabel = issue === "checkoutClosed" ? t("attendance.askCheckoutBtn") : issue === "noShow" ? t("attendance.askReviewBtn") : t("attendance.askCheckInBtn");
     const hint = issue === "noShow" ? (a.noShowNote ? a.noShowNote : t("attendance.noShowHint")) : issue === "checkoutClosed" ? t("attendance.checkoutClosedHint") : t("attendance.missedCheckInHint");
     const title = issue === "noShow" ? t("attendance.noShowTitle") : issue === "checkoutClosed" ? t("attendance.checkoutClosedTitle") : t("attendance.missedCheckInTitle");
@@ -8324,7 +8324,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
         {pending && <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.textMuted, marginTop: 6 }}>{t("attendance.requestPending")}</div>}
         {declined && (
           <>
-            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red, marginTop: 6 }}>{t("attendance.requestDeclined")}</div>
+            <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.redOnSurface, marginTop: 6 }}>{t("attendance.requestDeclined")}</div>
             <HoursNote label={t("hours.employerNoteLabel")} text={req.response_note} tone="them" align={align} />
           </>
         )}
@@ -8393,7 +8393,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
     if (a.employerHoursDisputed) {
       return (
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</div>
+          <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.redOnSurface, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</div>
           {renderHoursNote(t("hours.employerNoteLabel"), a.employerHoursDisputeNote, "right")}
           <Btn size="sm" variant="success" style={{ marginTop: 6 }} onClick={(e) => {
             stopClick?.(e);
@@ -8443,7 +8443,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           style={{ width: 220, textAlign: "center", fontSize: FS.display, fontWeight: 600, letterSpacing: 8, padding: "16px 12px", borderRadius: RADIUS.card, border: `2px solid ${BRAND.border}`, background: BRAND.input, color: BRAND.text, marginBottom: 16, fontFamily: "monospace" }}
         />
         {checkinResult?.ok === false && (
-          <div style={{ color: BRAND.red, fontSize: FS.meta, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkinResult.message}</div>
+          <div style={{ color: BRAND.redOnSurface, fontSize: FS.meta, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkinResult.message}</div>
         )}
         <Btn
           disabled={checkinSubmitting || checkinCode.length !== 6}
@@ -8514,7 +8514,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           />
         </div>
         {checkoutResult?.ok === false && (
-          <div style={{ color: BRAND.red, fontSize: FS.meta, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkoutResult.message}</div>
+          <div style={{ color: BRAND.redOnSurface, fontSize: FS.meta, fontWeight: 600, marginBottom: 16, textAlign: "center" }}>{checkoutResult.message}</div>
         )}
         <Btn
           disabled={checkoutSubmitting || !checkoutHours || Number(checkoutHours) <= 0}
@@ -8866,7 +8866,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr", gap: isMobile ? 8 : 10, marginBottom: 16 }}>
             <Stat label={t("shiftDetail.wageRange")} value={`RM${selectedShift.wageMin}–${selectedShift.wageMax}`} sub={t("shiftDetail.perHour")} color={BRAND.text} />
             <Stat label={t("shiftDetail.shiftDuration")} value={formatDurationHours(selectedShift.hours)} sub={selectedShift.isMultiDay ? t("shiftDetail.daysCount").replace("{count}", selectedShift.occurrences.length) : selectedShift.date} color={BRAND.text} />
-            <Stat label={t("shiftDetail.estimatedGross")} value={`RM${(((selectedShift.wageMin + selectedShift.wageMax) / 2) * selectedShift.hours).toFixed(2)}`} sub={t("shiftDetail.atAvgRate")} tooltip={t("shiftDetail.estimatedGrossTooltip").replace("{min}", selectedShift.wageMin).replace("{max}", selectedShift.wageMax)} color={BRAND.green} />
+            <Stat label={t("shiftDetail.estimatedGross")} value={`RM${(((selectedShift.wageMin + selectedShift.wageMax) / 2) * selectedShift.hours).toFixed(2)}`} sub={t("shiftDetail.atAvgRate")} tooltip={t("shiftDetail.estimatedGrossTooltip").replace("{min}", selectedShift.wageMin).replace("{max}", selectedShift.wageMax)} color={BRAND.greenOnSurface} />
             <Stat label={t("shiftDetail.transportAllowance")} value={selectedShift.stipend > 0 ? `RM${selectedShift.stipend}` : "—"} sub={selectedShift.stipend > 0 ? undefined : t("shiftDetail.notProvided")} color={selectedShift.stipend > 0 ? BRAND.blue : BRAND.textMuted} />
           </div>
           {selectedShift.description && (
@@ -9511,7 +9511,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   })}
                 </div>
                 {reconfirm.expired ? (
-                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red }}>{t("reconfirm.expired")}</div>
+                  <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.redOnSurface }}>{t("reconfirm.expired")}</div>
                 ) : (
                   <>
                     <div style={{ fontSize: FS.meta, color: BRAND.onAmberLight, opacity: 0.85, marginBottom: 10 }}>
@@ -9551,7 +9551,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             {a.shiftStatus === "cancelled" && a.cancellationChoiceDeadline && !a.cancellationChoice && (
               <Card style={{ marginBottom: 16, border: `1.5px solid ${BRAND.red}` }}>
-                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("myBids.lateCancellationTitle")}</div>
+                <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.redOnSurface, marginBottom: 4 }}>{t("myBids.lateCancellationTitle")}</div>
                 <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginBottom: 4 }}>
                   {t("myBids.lateCancellationBody")}
                 </div>
@@ -9583,7 +9583,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               </div>
             )}
             {a.shiftStatus === "cancelled" && a.cancellationChoice === "show_up_100" && (
-              <div style={{ padding: "10px 14px", background: a.cancellationProofPath ? BRAND.greenLight : BRAND.amberLight, borderRadius: RADIUS.control, fontSize: FS.meta, color: a.cancellationProofPath ? BRAND.green : BRAND.amber, marginBottom: 16 }}>
+              <div style={{ padding: "10px 14px", background: a.cancellationProofPath ? BRAND.greenLight : BRAND.amberLight, borderRadius: RADIUS.control, fontSize: FS.meta, color: a.cancellationProofPath ? BRAND.onGreenLight : BRAND.amber, marginBottom: 16 }}>
                 {a.cancellationProofPath ? t("myBids.cancellationProofSubmitted") : t("myBids.cancellationAwaitingProof")}
               </div>
             )}
@@ -9659,7 +9659,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
             )}
             <div style={{ display: "flex", gap: 10 }}>
               {a.status === "pending" && a.shiftStatus !== "cancelled" && (
-                <Btn variant="secondary" disabled={cancellingBid} onClick={() => cancelBid(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.red }}>
+                <Btn variant="secondary" disabled={cancellingBid} onClick={() => cancelBid(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.redOnSurface }}>
                   {cancellingBid ? t("myBids.cancelling") : t("myBids.cancelBidBtn")}
                 </Btn>
               )}
@@ -9668,7 +9668,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
               )}
               {a.status === "offered" && a.shiftStatus !== "cancelled" && (
                 <>
-                  <Btn variant="secondary" disabled={respondingOffer} onClick={() => declineOffer(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.red }}>
+                  <Btn variant="secondary" disabled={respondingOffer} onClick={() => declineOffer(a.id)} style={{ flex: 1, justifyContent: "center", color: BRAND.redOnSurface }}>
                     {respondingOffer ? "…" : t("myBids.declineBtn")}
                   </Btn>
                   <Btn variant="success" disabled={respondingOffer} onClick={() => confirmOffer(a.id)} style={{ flex: 1, justifyContent: "center" }}>
@@ -9685,7 +9685,7 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   last and styled quietly so it is findable, not inviting. */}
               {a.status === "accepted" && a.shiftStatus !== "cancelled" && !a.checkedInAt && !attendanceIssue(a) && (
                 <Btn variant="secondary" onClick={() => { setWithdrawTarget(a); setWithdrawReason(""); }}
-                     style={{ flex: 1, justifyContent: "center", color: BRAND.red, borderColor: BRAND.red }}>
+                     style={{ flex: 1, justifyContent: "center", color: BRAND.redOnSurface, borderColor: BRAND.red }}>
                   {t("withdraw.btn")}
                 </Btn>
               )}
@@ -9721,13 +9721,13 @@ const WorkerPortal = ({ onOpenPortal, isMobile = false, user = null, userRole = 
                   )}
                   {a.checkedInAt && a.checkedOutAt && a.employerHoursDisputed && a.employerProposedHours == null && (
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.red, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</span>
+                      <span style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.redOnSurface, marginBottom: 4 }}>{t("worker.hoursDisputedBadge")}</span>
                       {renderHoursNote(t("hours.employerNoteLabel"), a.employerHoursDisputeNote, "center")}
                       <Btn size="sm" variant="success" style={{ marginTop: 6 }} onClick={() => { setCheckoutTarget({ applicationId: a.id, shiftTitle: a.shiftTitle, defaultHours: a.workerReportedHours ?? totalOccurrenceHours(a.shiftOccurrences) }); setCheckoutHours(""); setCheckoutBreakMinutes(""); setCheckoutNote(""); setCheckoutResult(null); }}>{t("worker.resubmitCheckout")}</Btn>
                     </div>
                   )}
                   {a.checkedInAt && a.checkedOutAt && !a.employerHoursDisputed && a.employerProposedHours == null && (
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.green : BRAND.textMuted }}>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", fontSize: FS.meta, fontWeight: 600, color: a.employerHoursConfirmedAt ? BRAND.greenOnSurface : BRAND.textMuted }}>
                       {a.employerHoursConfirmedAt ? <span><InlineIcon icon={Icons.Check} />{t("worker.hoursConfirmedBadge")}</span> : t("worker.checkoutPendingBadge")}
                       {!a.employerHoursConfirmedAt && renderHoursNote(t("hours.yourNoteLabel"), a.workerCheckoutNote, "center", "me")}
                     </div>
@@ -12084,7 +12084,7 @@ const DetailsGateModal = ({ open, user, role, kycOnly = false, onCompleted, onCl
                   </div>
                   <Input label={t("auth.dateOfBirth")} type="date" value={form.dateOfBirth} onChange={e => set("dateOfBirth", e.target.value)} error={fieldError("dateOfBirth")} max={maxDob} style={{ marginBottom: dobUnderage ? 4 : 16 }} />
                   {dobUnderage && (
-                    <div style={{ fontSize: FS.meta, color: BRAND.red, fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
+                    <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, fontWeight: 600, lineHeight: 1.5, marginBottom: 12 }}>
                       {t("auth.underageWarning").replace("{age}", LEGAL_WORKING_AGE)}
                     </div>
                   )}

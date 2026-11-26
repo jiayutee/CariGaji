@@ -380,7 +380,7 @@ const LocationAutocomplete = ({ label = "Location", value, onChange, error = fal
 
   return (
     <div style={{ marginBottom: 16 }}>
-      {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.red : BRAND.text, marginBottom: 6 }}>{label}</label>}
+      {label && <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: error ? BRAND.redOnSurface : BRAND.text, marginBottom: 6 }}>{label}</label>}
       <input
         ref={inputRef}
         value={value}
@@ -2776,10 +2776,10 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                 they are in the process and what happens next. */}
             {employerProfile && verificationStatus !== 'verified' && (
               <Card style={{ marginBottom: 20, border: `1.5px solid ${verificationStatus === 'rejected' ? BRAND.red : BRAND.amber}`, background: verificationStatus === 'rejected' ? BRAND.redLight : BRAND.amberLight }}>
-                <div style={{ fontSize: FS.body, fontWeight: 600, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, marginBottom: 6 }}>
+                <div style={{ fontSize: FS.body, fontWeight: 600, color: verificationStatus === 'rejected' ? BRAND.onRedLight : BRAND.amber, marginBottom: 6 }}>
                   {verificationStatus === 'rejected' ? t("employer.verifyRejectedTitle") : t("employer.verifyPendingTitle")}
                 </div>
-                <div style={{ fontSize: FS.meta, color: verificationStatus === 'rejected' ? BRAND.red : BRAND.amber, lineHeight: 1.6 }}>
+                <div style={{ fontSize: FS.meta, color: verificationStatus === 'rejected' ? BRAND.onRedLight : BRAND.amber, lineHeight: 1.6 }}>
                   {verificationStatus === 'rejected'
                     ? (employerProfile?.employer_rejection_reason
                         ? t("employer.verifyRejectedReason", { reason: employerProfile.employer_rejection_reason })
@@ -3270,7 +3270,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
               {postStep === 1 && (
                 <div>
                   <Input label={`${t("employer.fieldShiftTitle")} *`} placeholder={t("employer.shiftTitlePlaceholder")} value={form.title} error={Boolean(postErrors.title)} onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setPostErrors(pe => ({ ...pe, title: false })); }} />
-                  {postErrors.title && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.red, fontWeight: 600, marginTop: -8, marginBottom: 12 }}>{t("employer.errTitleRequired")}</div>}
+                  {postErrors.title && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.redOnSurface, fontWeight: 600, marginTop: -8, marginBottom: 12 }}>{t("employer.errTitleRequired")}</div>}
                   <div style={{ marginBottom: 16 }}>
                     <label style={{ display: "block", fontSize: FS.meta, fontWeight: 600, color: BRAND.text, marginBottom: 6 }}>{t("employer.fieldJobDescription")}</label>
                     <textarea
@@ -3282,7 +3282,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   </div>
                   <Select label={t("employer.labelCategory")} value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} options={SHIFT_CATEGORIES.map(v => ({ value: v, label: shiftCategoryLabel(v, t) }))} />
                   <LocationAutocomplete label={`${t("employer.labelLocation")} *`} value={form.location} error={Boolean(postErrors.location)} onChange={val => { setForm(f => ({ ...f, location: val })); setPostErrors(pe => ({ ...pe, location: false })); }} />
-                  {postErrors.location && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.red, fontWeight: 600, marginTop: -8, marginBottom: 12 }}>{t("employer.errLocationRequired")}</div>}
+                  {postErrors.location && <div role="alert" style={{ fontSize: FS.meta, color: BRAND.redOnSurface, fontWeight: 600, marginTop: -8, marginBottom: 12 }}>{t("employer.errLocationRequired")}</div>}
                   <div style={{marginTop:8, marginBottom:16}}>
                     <div style={{fontSize:FS.meta, color: BRAND.textMuted, marginBottom:4}}>{t("employer.addressVisibilityLabel")}</div>
                     <div style={{display:'flex', gap:12}}>
@@ -3349,7 +3349,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       style={{ width: "100%", padding: "10px 14px", borderRadius: RADIUS.control, border: `1.5px solid ${applicationDeadlineError ? BRAND.red : BRAND.border}`, fontSize: FS.body, fontFamily: "inherit", color: BRAND.text, background: BRAND.input, outline: "none", boxSizing: "border-box" }}
                     />
                     {applicationDeadlineError ? (
-                      <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 6 }}>{applicationDeadlineError}</div>
+                      <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: 6 }}>{applicationDeadlineError}</div>
                     ) : (
                       <div style={{ fontSize: FS.meta, color: BRAND.textMuted, marginTop: 6 }}>{t("employer.applicationDeadlineHint")}</div>
                     )}
@@ -3631,7 +3631,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                   error={!!bulkUploadFileError}
                 />
                 {bulkUploadFileError && (
-                  <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: -8, marginBottom: 8 }}>{bulkUploadFileError}</div>
+                  <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: -8, marginBottom: 8 }}>{bulkUploadFileError}</div>
                 )}
                 <button type="button" onClick={() => setBulkGuideOpen(o => !o)}
                   style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 16, background: "none", border: "none", padding: 0, cursor: "pointer", color: BRAND.primaryOnSurface, fontSize: FS.meta, fontWeight: 600, fontFamily: "inherit" }}>
@@ -3685,7 +3685,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                               <td style={{ padding: "8px 12px" }}>
                                 {pillFor(row._status)}
                                 {row._status === "failed" && row._error && (
-                                  <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 4, maxWidth: 140 }}>{row._error}</div>
+                                  <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: 4, maxWidth: 140 }}>{row._error}</div>
                                 )}
                               </td>
                               <td style={{ padding: "8px 12px", minWidth: 170 }}><Input value={row.title} disabled={locked} onChange={e => updateBulkUploadRow(row._rowNum, "title", e.target.value)} style={{ marginBottom: 0 }} error={!row.title.trim()} /></td>
@@ -3752,7 +3752,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <div key={row._rowNum} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", background: BRAND.grayLight, borderRadius: RADIUS.control, gap: 12 }}>
                         <div style={{ fontSize: FS.meta, color: BRAND.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>#{row._rowNum} {row.title || t("employer.bulkUntitled")}</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                          {row._status === "failed" && row._error && <span style={{ fontSize: FS.meta, color: BRAND.red }}>{row._error}</span>}
+                          {row._status === "failed" && row._error && <span style={{ fontSize: FS.meta, color: BRAND.redOnSurface }}>{row._error}</span>}
                           <Pill
                             label={row._status === "ready" ? t("employer.bulkStatusReady") : row._status === "needs_fix" ? t("employer.bulkStatusNeedsFix") : row._status === "published" ? t("employer.bulkStatusPublished") : t("employer.bulkStatusFailed")}
                             color={row._status === "ready" ? "green" : row._status === "needs_fix" ? "amber" : row._status === "published" ? "blue" : "red"}
@@ -3874,7 +3874,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                       <td style={{ padding: "12px 16px" }}>
                         <Pill label={String(item.status || 'queued').replaceAll('_', ' ')} color={mapPayoutPillColor(item.status)} />
                         {item.status === "held" && payoutHoldReasonLabel(t, item.error_message) && (
-                          <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 4 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
+                          <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: 4 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
                         )}
                       </td>
                       <td style={{ padding: "12px 16px", fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{toCurrency(item.amount)}</td>
@@ -4126,7 +4126,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
                     <div style={{ fontSize: FS.meta, fontWeight: 600, color: BRAND.text }}>{toCurrency(item.amount)}</div>
                     <div style={{ fontSize: FS.meta, color: BRAND.textMuted }}>{item.scheduled_date ? new Date(item.scheduled_date).toLocaleDateString("en-MY") : t("employer.tbaShort")}</div>
                     {item.status === "held" && payoutHoldReasonLabel(t, item.error_message) && (
-                      <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 2 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
+                      <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: 2 }}>{payoutHoldReasonLabel(t, item.error_message)}</div>
                     )}
                   </div>
                   <Pill label={payoutStatusLabel(t, item.status)} color={mapPayoutPillColor(item.status)} />
@@ -4666,7 +4666,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
       {noShowTarget && (
         <div style={{ position: "fixed", inset: 0, background: BRAND.overlay, zIndex: Z.modal, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setNoShowTarget(null)}>
           <div {...noShowDialog} style={{ background: BRAND.surface, borderRadius: RADIUS.card, padding: 22, maxWidth: 430, width: "100%", maxHeight: "85vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.red, margin: "0 0 8px" }}>{t("employer.noShowTitle")}</h3>
+            <h3 style={{ fontSize: FS.card, fontWeight: 600, color: BRAND.redOnSurface, margin: "0 0 8px" }}>{t("employer.noShowTitle")}</h3>
             <div style={{ fontSize: FS.meta, color: BRAND.text, lineHeight: 1.5, marginBottom: 12 }}>
               {t("employer.noShowBody", { name: noShowTarget.name })}
             </div>
@@ -4737,7 +4737,7 @@ const EmployerPortal = ({ onOpenPortal, compact = false, user = null, backHandle
 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:10}}>
                   <span style={{fontSize:FS.meta, fontWeight: 600, color:BRAND.text}}>{t("employer.cancelQuoteTotal")}</span>
-                  <span style={{fontSize:FS.h3, fontWeight: 600, color: owes ? BRAND.red : BRAND.text}}>RM{cancelQuote.total.toFixed(2)}</span>
+                  <span style={{fontSize:FS.h3, fontWeight: 600, color: owes ? BRAND.redOnSurface : BRAND.text}}>RM{cancelQuote.total.toFixed(2)}</span>
                 </div>
 
                 {owes ? (
