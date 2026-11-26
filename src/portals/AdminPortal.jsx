@@ -803,13 +803,13 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                 Row 2: how the platform is doing. */}
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginBottom: 12 }}>
               <Stat label="Pending KYC" value={navCounts.kycqueue ?? "—"} color={BRAND.amber} />
-              <Stat label="Open disputes" value={navCounts.disputes ?? "—"} color={BRAND.red} />
-              <Stat label={t("admin.statNewReports")} value={navCounts.reports ?? "—"} color={issueReportsQueue?.some(r => r.status === "new" && r.severity === "blocking") ? BRAND.red : BRAND.amber} />
+              <Stat label="Open disputes" value={navCounts.disputes ?? "—"} color={BRAND.redOnSurface} />
+              <Stat label={t("admin.statNewReports")} value={navCounts.reports ?? "—"} color={issueReportsQueue?.some(r => r.status === "new" && r.severity === "blocking") ? BRAND.redOnSurface : BRAND.amber} />
               <Stat label={t("admin.statPayoutsToRelease")} value={navCounts.payouts ?? "—"} color={BRAND.greenOnSurface} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
               <Stat label="Open shifts" value={overviewStats?.openShifts ?? "—"} color={BRAND.blue} />
-              <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.green} />
+              <Stat label="Fill rate" value={overviewStats?.fillRatePct != null ? `${overviewStats.fillRatePct}%` : "—"} color={BRAND.greenOnSurface} />
               <Stat label="Shifts today" value={overviewStats?.shiftsToday ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label="Registered workers" value={overviewStats?.activeWorkers ?? "—"} color={BRAND.primaryOnSurface} />
               <Stat label="Registered employers" value={overviewStats?.registeredEmployers ?? "—"} color={BRAND.primaryOnSurface} />
@@ -1398,8 +1398,8 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
             <div style={{ ...(compact ? TYPE.titleMobile : TYPE.title), color: BRAND.text, marginBottom: 24 }}>{t("admin.payoutsTitle")}</div>
             <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
               <Stat label="Pending payouts" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "ready" || p.status === "scheduled").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.amber} />
-              <Stat label="Disputed (held)" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "held").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.red} />
-              <Stat label="Processed internal" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "processed_internal").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.green} />
+              <Stat label="Disputed (held)" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "held").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.redOnSurface} />
+              <Stat label="Processed internal" value={toCurrency((livePayoutQueue || []).filter(p => p.status === "processed_internal").reduce((sum, item) => sum + Number(item.amount || 0), 0))} color={BRAND.greenOnSurface} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
               <Btn onClick={runScheduler} disabled={payoutRunning}>{payoutRunning ? "Running..." : "Run Internal Scheduler"}</Btn>
@@ -1440,7 +1440,7 @@ const AdminPortal = ({ onOpenPortal, compact = false, user = null }) => {
                       <td style={{ padding: "10px 12px" }}>
                         <Pill label={payoutStatusLabel(t, p.status)} color={mapPayoutPillColor(p.status)} />
                         {p.status === "held" && payoutHoldReasonLabel(t, p.error_message) && (
-                          <div style={{ fontSize: FS.meta, color: BRAND.red, marginTop: 4 }}>{payoutHoldReasonLabel(t, p.error_message)}</div>
+                          <div style={{ fontSize: FS.meta, color: BRAND.redOnSurface, marginTop: 4 }}>{payoutHoldReasonLabel(t, p.error_message)}</div>
                         )}
                       </td>
                       <td style={{ padding: "10px 12px" }}>
