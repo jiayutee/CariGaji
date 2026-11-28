@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>%BRAND_TITLE%</title>
     <!--BRAND_HEAD-->
     <!-- DM Sans was named in every font stack but never loaded, so visitors
@@ -23,6 +23,33 @@
       *, *::before, *::after { box-sizing: border-box; }
       * { -webkit-user-select: none; user-select: none; }
       input, textarea, select { -webkit-user-select: text; user-select: text; }
+      /* iOS Safari zooms the page when a field under 16px gets focus. Pinch-zoom
+         is allowed now (WCAG 1.4.4), so lift only the SMALL fields to 16px on
+         phones. A blanket 16px !important would shrink fields that are
+         deliberately bigger (check-in code FS.display 34px, hours FS.lead 18px).
+         Inline React styles serialize as "font-size: Npx", hence the matching. */
+      @media (max-width: 767px) {
+        input:not([style*="font-size"]),
+        textarea:not([style*="font-size"]),
+        select:not([style*="font-size"]) { font-size: 16px; }
+        input[style*="font-size: 1px"], input[style*="font-size: 2px"], input[style*="font-size: 3px"],
+        input[style*="font-size: 4px"], input[style*="font-size: 5px"], input[style*="font-size: 6px"],
+        input[style*="font-size: 7px"], input[style*="font-size: 8px"], input[style*="font-size: 9px"],
+        input[style*="font-size: 10px"], input[style*="font-size: 11px"], input[style*="font-size: 12px"],
+        input[style*="font-size: 13px"], input[style*="font-size: 14px"], input[style*="font-size: 15px"],
+        textarea[style*="font-size: 1px"], textarea[style*="font-size: 2px"], textarea[style*="font-size: 3px"],
+        textarea[style*="font-size: 4px"], textarea[style*="font-size: 5px"], textarea[style*="font-size: 6px"],
+        textarea[style*="font-size: 7px"], textarea[style*="font-size: 8px"], textarea[style*="font-size: 9px"],
+        textarea[style*="font-size: 10px"], textarea[style*="font-size: 11px"], textarea[style*="font-size: 12px"],
+        textarea[style*="font-size: 13px"], textarea[style*="font-size: 14px"], textarea[style*="font-size: 15px"],
+        select[style*="font-size: 1px"], select[style*="font-size: 2px"], select[style*="font-size: 3px"],
+        select[style*="font-size: 4px"], select[style*="font-size: 5px"], select[style*="font-size: 6px"],
+        select[style*="font-size: 7px"], select[style*="font-size: 8px"], select[style*="font-size: 9px"],
+        select[style*="font-size: 10px"], select[style*="font-size: 11px"], select[style*="font-size: 12px"],
+        select[style*="font-size: 13px"], select[style*="font-size: 14px"], select[style*="font-size: 15px"] {
+          font-size: 16px !important;
+        }
+      }
       html, body {
         width: 100%;
         height: 100%;
