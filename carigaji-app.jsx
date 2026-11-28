@@ -11453,7 +11453,7 @@ const CookieConsentManager = ({ isMobile }) => {
       )}
 
       {reopenVisible && createPortal(
-        <div style={{ position: "fixed", left: 16, bottom: edgeBottom, zIndex: Z.sticky, display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ position: "fixed", left: 16, bottom: edgeBottom, zIndex: Z.sticky, display: "flex", alignItems: "center", gap: 8 }}>
           <button
             onClick={() => openPanel("categories")}
             aria-label={t("cookie.reopenPreferences")}
@@ -11477,14 +11477,20 @@ const CookieConsentManager = ({ isMobile }) => {
             aria-label={t("cookie.hideBubble")}
             title={t("cookie.hideBubble")}
             style={{
-              width: 22, height: 22, borderRadius: "50%",
-              background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
-              boxShadow: `0 4px 10px ${BRAND.shadow}`, cursor: "pointer",
+              // 32px transparent hit area (WCAG 2.5.8) around the 22px visual circle.
+              width: 32, height: 32, borderRadius: "50%",
+              background: "transparent", border: "none", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: FS.meta, padding: 0, color: BRAND.textMuted, lineHeight: 1,
+              padding: 0,
             }}
           >
-            ×
+            <span aria-hidden="true" style={{
+              width: 22, height: 22, borderRadius: "50%", boxSizing: "border-box",
+              background: BRAND.surfaceElevated, border: `1px solid ${BRAND.border}`,
+              boxShadow: `0 4px 10px ${BRAND.shadow}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: FS.meta, color: BRAND.textMuted, lineHeight: 1,
+            }}>×</span>
           </button>
         </div>,
         document.body
