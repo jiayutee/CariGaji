@@ -906,7 +906,7 @@ const TRANSLATIONS = {
     "auth.sendResetEmail": "Send reset email",
     "auth.emailAddress": "Email address",
     "auth.password": "Password",
-    "auth.forgetPassword": "Forget password?",
+    "auth.forgetPassword": "Forgot password?",
     "auth.noAccountYet": "No account yet? Register Here",
     "auth.resetHint": "We will email you a secure link to reset your password.",
     "auth.fullName": "Full name *",
